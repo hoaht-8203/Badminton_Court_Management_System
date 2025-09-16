@@ -171,6 +171,30 @@ export interface ApplicationUser {
      * @memberof ApplicationUser
      */
     userTokens: Array<ApplicationUserToken> | null;
+    /**
+     * 
+     * @type {Date}
+     * @memberof ApplicationUser
+     */
+    createdAt?: Date;
+    /**
+     * 
+     * @type {Date}
+     * @memberof ApplicationUser
+     */
+    updatedAt?: Date | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ApplicationUser
+     */
+    createdBy?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ApplicationUser
+     */
+    updatedBy?: string | null;
 }
 
 /**
@@ -217,6 +241,10 @@ export function ApplicationUserFromJSONTyped(json: any, ignoreDiscriminator: boo
         'note': json['note'] == null ? undefined : json['note'],
         'status': json['status'],
         'userTokens': (json['userTokens'] == null ? null : (json['userTokens'] as Array<any>).map(ApplicationUserTokenFromJSON)),
+        'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
+        'updatedAt': json['updatedAt'] == null ? undefined : (new Date(json['updatedAt'])),
+        'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
+        'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
     };
 }
 
@@ -255,6 +283,10 @@ export function ApplicationUserToJSONTyped(value?: ApplicationUser | null, ignor
         'note': value['note'],
         'status': value['status'],
         'userTokens': (value['userTokens'] == null ? null : (value['userTokens'] as Array<any>).map(ApplicationUserTokenToJSON)),
+        'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
+        'updatedAt': value['updatedAt'] === null ? null : ((value['updatedAt'] as any)?.toISOString()),
+        'createdBy': value['createdBy'],
+        'updatedBy': value['updatedBy'],
     };
 }
 

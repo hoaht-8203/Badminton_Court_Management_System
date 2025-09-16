@@ -187,7 +187,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
           />
         </Sider>
         <Layout
-          style={{ padding: "0 16px 16px" }}
+          style={{ padding: "8px 16px" }}
           className="max-h-screen overflow-y-auto"
         >
           {children}

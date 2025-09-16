@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Entities;
@@ -9,8 +10,11 @@ using ApiApplication.Processors;
 using ApiApplication.Processors.Impl;
 using ApiApplication.Services;
 using ApiApplication.Services.Impl;
+using ApiApplication.Sessions;
+using ApiApplication.Sessions.Impl;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -40,8 +44,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(opt =>
 });
 
 builder.Services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+
+builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
 
 builder
     .Services.AddAuthentication(opt =>
@@ -104,9 +113,33 @@ builder
 
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddControllers();
+builder
+    .Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DictionaryKeyPolicy = JsonNamingPolicy.CamelCase;
+    })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // Normalize model validation errors into our ApiResponse shape with camelCased keys
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            var errors = context
+                .ModelState.Where(ms => ms.Value != null && ms.Value.Errors.Count > 0)
+                .ToDictionary(
+                    kvp =>
+                        string.IsNullOrEmpty(kvp.Key)
+                            ? kvp.Key
+                            : char.ToLowerInvariant(kvp.Key[0]) + kvp.Key.Substring(1),
+                    kvp => string.Join(" ", kvp.Value!.Errors.Select(e => e.ErrorMessage))
+                );
 
-builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
+            var payload = ApiResponse<object?>.ErrorResponse("Validation failed", errors);
+            return new BadRequestObjectResult(payload);
+        };
+    });
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(

@@ -34,10 +34,14 @@ public class AuthTokenProcessor(
 
         var claims = new List<Claim>
         {
+            // Subject (unique identifier)
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-            new Claim(ClaimTypes.NameIdentifier, user.ToString()),
+            // Map to HttpContext.User.Identity.Name
+            new Claim(ClaimTypes.Name, user.UserName ?? user.Email ?? string.Empty),
+            // Map to ClaimTypes.NameIdentifier for UserId resolution
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
         }.Concat(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
         var expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationTimeInMinutes);

@@ -8,6 +8,7 @@ using ApiApplication.Entities.Shared;
 using ApiApplication.Enums;
 using ApiApplication.Exceptions;
 using ApiApplication.Helpers;
+using ApiApplication.Sessions;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,13 +19,15 @@ public class UserService(
     ApplicationDbContext context,
     IMapper mapper,
     UserManager<ApplicationUser> userManager,
-    RoleManager<IdentityRole<Guid>> roleManager
+    RoleManager<IdentityRole<Guid>> roleManager,
+    ICurrentUser currentUser
 ) : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager = roleManager;
+    private readonly ICurrentUser _currentUser = currentUser;
 
     public async Task CreateAdministratorAsync(
         CreateAdministratorRequest createAdministratorRequest
@@ -71,6 +74,9 @@ public class UserService(
             createAdministratorRequest.Password
         );
 
+        user.CreatedAt = DateTime.UtcNow;
+        user.CreatedBy = _currentUser.Username;
+
         var result = await _userManager.CreateAsync(user);
 
         if (!result.Succeeded)
@@ -109,10 +115,13 @@ public class UserService(
             ?? throw new ApiException("User not found", HttpStatusCode.BadRequest);
 
         _mapper.Map(updateUserRequest, user);
-        user.PasswordHash = _userManager.PasswordHasher.HashPassword(
-            user,
-            updateUserRequest.Password
-        );
+        if (!string.IsNullOrEmpty(updateUserRequest.Password))
+        {
+            user.PasswordHash = _userManager.PasswordHasher.HashPassword(
+                user,
+                updateUserRequest.Password
+            );
+        }
 
         await _context.SaveChangesAsync();
     }
@@ -121,7 +130,7 @@ public class UserService(
         ListAdministratorRequest listAdministratorRequest
     )
     {
-        var query = _context.ApplicationUsers.AsQueryable();
+        var query = _context.ApplicationUsers.OrderByDescending(x => x.CreatedAt).AsQueryable();
 
         if (!string.IsNullOrEmpty(listAdministratorRequest.Keyword))
         {
@@ -166,6 +175,10 @@ public class UserService(
                     Ward = user.Ward,
                     DateOfBirth = user.DateOfBirth,
                     Note = user.Note,
+                    CreatedAt = user.CreatedAt,
+                    UpdatedAt = user.UpdatedAt,
+                    CreatedBy = user.CreatedBy,
+                    UpdatedBy = user.UpdatedBy,
                 }
             );
         }
@@ -181,6 +194,8 @@ public class UserService(
             ?? throw new ApiException("User not found", HttpStatusCode.BadRequest);
 
         var roles = await _userManager.GetRolesAsync(user);
-        return _mapper.Map<DetailAdministratorResponse>(user);
+        var response = _mapper.Map<DetailAdministratorResponse>(user);
+        response.Role = [.. roles];
+        return response;
     }
 }

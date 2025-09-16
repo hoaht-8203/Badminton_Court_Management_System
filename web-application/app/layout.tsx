@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { AuthProvider } from "@/context/AuthContext";
+import { QueryProvider } from "@/providers/QueryProvider";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -23,7 +24,9 @@ const RootLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
   <html lang="en">
     <body className={`${geist.variable} ${geistMono.variable} antialiased`}>
       <AntdRegistry>
-        <AuthProvider>{children}</AuthProvider>
+        <QueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryProvider>
       </AntdRegistry>
     </body>
   </html>

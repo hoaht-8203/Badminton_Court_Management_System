@@ -48,7 +48,7 @@ export interface UpdateUserRequest {
      * @type {string}
      * @memberof UpdateUserRequest
      */
-    password: string | null;
+    password?: string | null;
     /**
      * 
      * @type {string}
@@ -107,7 +107,6 @@ export function instanceOfUpdateUserRequest(value: object): value is UpdateUserR
     if (!('fullName' in value) || value['fullName'] === undefined) return false;
     if (!('userName' in value) || value['userName'] === undefined) return false;
     if (!('email' in value) || value['email'] === undefined) return false;
-    if (!('password' in value) || value['password'] === undefined) return false;
     if (!('phoneNumber' in value) || value['phoneNumber'] === undefined) return false;
     if (!('role' in value) || value['role'] === undefined) return false;
     return true;
@@ -127,7 +126,7 @@ export function UpdateUserRequestFromJSONTyped(json: any, ignoreDiscriminator: b
         'fullName': json['fullName'],
         'userName': json['userName'],
         'email': json['email'],
-        'password': json['password'],
+        'password': json['password'] == null ? undefined : json['password'],
         'phoneNumber': json['phoneNumber'],
         'role': json['role'],
         'address': json['address'] == null ? undefined : json['address'],

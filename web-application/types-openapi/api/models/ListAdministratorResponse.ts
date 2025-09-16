@@ -97,6 +97,30 @@ export interface ListAdministratorResponse {
      * @memberof ListAdministratorResponse
      */
     note?: string | null;
+    /**
+     * 
+     * @type {Date}
+     * @memberof ListAdministratorResponse
+     */
+    createdAt?: Date;
+    /**
+     * 
+     * @type {Date}
+     * @memberof ListAdministratorResponse
+     */
+    updatedAt?: Date | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListAdministratorResponse
+     */
+    createdBy?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListAdministratorResponse
+     */
+    updatedBy?: string | null;
 }
 
 /**
@@ -135,6 +159,10 @@ export function ListAdministratorResponseFromJSONTyped(json: any, ignoreDiscrimi
         'ward': json['ward'] == null ? undefined : json['ward'],
         'dateOfBirth': json['dateOfBirth'] == null ? undefined : (new Date(json['dateOfBirth'])),
         'note': json['note'] == null ? undefined : json['note'],
+        'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
+        'updatedAt': json['updatedAt'] == null ? undefined : (new Date(json['updatedAt'])),
+        'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
+        'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
     };
 }
 
@@ -162,6 +190,10 @@ export function ListAdministratorResponseToJSONTyped(value?: ListAdministratorRe
         'ward': value['ward'],
         'dateOfBirth': value['dateOfBirth'] === null ? null : ((value['dateOfBirth'] as any)?.toISOString().substring(0,10)),
         'note': value['note'],
+        'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
+        'updatedAt': value['updatedAt'] === null ? null : ((value['updatedAt'] as any)?.toISOString()),
+        'createdBy': value['createdBy'],
+        'updatedBy': value['updatedBy'],
     };
 }
 

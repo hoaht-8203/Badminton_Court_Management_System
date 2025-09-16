@@ -160,7 +160,7 @@ export function UpdateUserRequestToJSONTyped(value?: UpdateUserRequest | null, i
         'city': value['city'],
         'district': value['district'],
         'ward': value['ward'],
-        'dateOfBirth': value['dateOfBirth'] === null ? null : ((value['dateOfBirth'] as any)?.toISOString().substring(0,10)),
+        'dateOfBirth': value['dateOfBirth'] === null ? null : ((value['dateOfBirth'] as any)?.toISOString()),
         'note': value['note'],
     };
 }

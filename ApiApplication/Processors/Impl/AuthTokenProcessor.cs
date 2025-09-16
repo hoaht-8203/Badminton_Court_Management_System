@@ -42,6 +42,8 @@ public class AuthTokenProcessor(
             new Claim(ClaimTypes.Name, user.UserName ?? user.Email ?? string.Empty),
             // Map to ClaimTypes.NameIdentifier for UserId resolution
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            // Include security stamp for token invalidation when password changes
+            new Claim("security_stamp", user.SecurityStamp ?? string.Empty),
         }.Concat(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 
         var expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationTimeInMinutes);

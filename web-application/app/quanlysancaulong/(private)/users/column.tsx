@@ -65,6 +65,7 @@ export const columns: TableProps<ListAdministratorResponse>["columns"] = [
     dataIndex: "address",
     key: "address",
     width: 150,
+    ellipsis: true,
     render: (_, { address }) => <>{address ? address : "-"}</>,
   },
   {

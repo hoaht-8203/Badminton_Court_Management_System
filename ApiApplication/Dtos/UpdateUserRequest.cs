@@ -16,6 +16,6 @@ public class UpdateUserRequest
     public string? City { get; set; }
     public string? District { get; set; }
     public string? Ward { get; set; }
-    public DateOnly? DateOfBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
     public string? Note { get; set; }
 }

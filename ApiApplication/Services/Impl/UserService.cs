@@ -20,6 +20,7 @@ public class UserService(
     IMapper mapper,
     UserManager<ApplicationUser> userManager,
     RoleManager<IdentityRole<Guid>> roleManager,
+    SignInManager<ApplicationUser> signInManager,
     ICurrentUser currentUser
 ) : IUserService
 {
@@ -27,6 +28,7 @@ public class UserService(
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
     private readonly RoleManager<IdentityRole<Guid>> _roleManager = roleManager;
+    private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
     private readonly ICurrentUser _currentUser = currentUser;
 
     public async Task CreateAdministratorAsync(
@@ -117,10 +119,33 @@ public class UserService(
         _mapper.Map(updateUserRequest, user);
         if (!string.IsNullOrEmpty(updateUserRequest.Password))
         {
-            user.PasswordHash = _userManager.PasswordHasher.HashPassword(
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(
                 user,
+                token,
                 updateUserRequest.Password
             );
+
+            if (!result.Succeeded)
+            {
+                throw new ApiException(
+                    "Reset password failed",
+                    HttpStatusCode.BadRequest,
+                    result.Errors.ToDictionary(x => x.Code, x => x.Description)
+                );
+            }
+
+            await _userManager.UpdateSecurityStampAsync(user);
+
+            var userRefreshTokens = await _context
+                .ApplicationUserTokens.Where(t =>
+                    t.UserId == user.Id && t.TokenType == TokenType.RefreshToken
+                )
+                .ToListAsync();
+            if (userRefreshTokens.Count > 0)
+            {
+                _context.ApplicationUserTokens.RemoveRange(userRefreshTokens);
+            }
         }
 
         await _context.SaveChangesAsync();

@@ -17,6 +17,7 @@ import {
 } from "@ant-design/icons";
 import CreateNewUserDrawer from "./create-new-user-drawer";
 import UpdateUserDrawer from "./update-user-drawer";
+import dayjs from "dayjs";
 
 const page = () => {
   const [searchParams, setSearchParams] = useState<ListAdministratorRequest>({
@@ -202,7 +203,11 @@ const UserInformation = ({
               <Divider size="small" />
             </Col>
             <Col span={12}>Ngày sinh:</Col>
-            <Col span={12}>{record.dateOfBirth?.toLocaleDateString()}</Col>
+            <Col span={12}>
+              {record.dateOfBirth
+                ? dayjs(record.dateOfBirth).format("DD/MM/YYYY")
+                : "-"}
+            </Col>
             <Col span={24}>
               <Divider size="small" />
             </Col>
@@ -211,8 +216,8 @@ const UserInformation = ({
 
         <Col span={6}>
           <Row gutter={16}>
-            <Col span={4}>Ghi chú:</Col>
-            <Col span={20}>{record.note}</Col>
+            <Col span={5}>Ghi chú:</Col>
+            <Col span={19}>{record.note}</Col>
           </Row>
         </Col>
       </Row>

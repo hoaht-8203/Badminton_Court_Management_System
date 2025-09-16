@@ -24,6 +24,8 @@ import {
 } from "antd";
 import FormItem from "antd/es/form/FormItem";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 import { useEffect } from "react";
 import { ApiError } from "@/lib/axios";
 
@@ -83,6 +85,7 @@ const UpdateUserDrawer = ({ open, onClose, userId }: UpdateUserDrawerProps) => {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+
       const payload: UpdateUserRequest = {
         userId,
         userName: values.userName ?? null,
@@ -96,7 +99,7 @@ const UpdateUserDrawer = ({ open, onClose, userId }: UpdateUserDrawerProps) => {
         district: values.district ?? undefined,
         ward: values.ward ?? undefined,
         dateOfBirth: values.dateOfBirth
-          ? values.dateOfBirth.toDate?.() ?? values.dateOfBirth
+          ? dayjs(values.dateOfBirth).utc(true).toDate()
           : undefined,
         note: values.note ?? undefined,
       };
@@ -104,6 +107,7 @@ const UpdateUserDrawer = ({ open, onClose, userId }: UpdateUserDrawerProps) => {
       updateMutation.mutate(payload, {
         onSuccess: () => {
           message.success("Cập nhật người dùng thành công!");
+          form.resetFields();
           onClose();
         },
         onError: (error: ApiError) => {
@@ -244,7 +248,6 @@ const UpdateUserDrawer = ({ open, onClose, userId }: UpdateUserDrawerProps) => {
               <DatePicker
                 style={{ width: "100%" }}
                 placeholder="Chọn ngày sinh"
-                format="DD/MM/YYYY"
               />
             </FormItem>
           </Col>

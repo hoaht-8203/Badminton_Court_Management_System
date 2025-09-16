@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using ApiApplication.Data;
@@ -31,12 +32,13 @@ builder
     {
         opt.Password.RequireDigit = false;
         opt.Password.RequireLowercase = false;
-        opt.Password.RequireNonAlphanumeric = true;
+        opt.Password.RequireNonAlphanumeric = false;
         opt.Password.RequireUppercase = false;
         opt.Password.RequiredLength = 8;
         opt.User.RequireUniqueEmail = true;
     })
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.AddDbContext<ApplicationDbContext>(opt =>
 {
@@ -82,6 +84,36 @@ builder
             {
                 context.Token = context.Request.Cookies["ACCESS_TOKEN"];
                 return Task.CompletedTask;
+            },
+            OnTokenValidated = async context =>
+            {
+                // Enforce security stamp matching to force logout when password changes
+                var userManager = context.HttpContext.RequestServices.GetRequiredService<
+                    UserManager<ApplicationUser>
+                >();
+                var db =
+                    context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
+
+                var principal = context.Principal;
+                var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var tokenStamp = principal?.FindFirst("security_stamp")?.Value;
+                if (userId == null || tokenStamp == null)
+                {
+                    context.Fail("Invalid token claims.");
+                    return;
+                }
+
+                var userGuid = Guid.Parse(userId);
+                var user = await db.ApplicationUsers.FindAsync(userGuid);
+                if (
+                    user == null
+                    || string.IsNullOrEmpty(user.SecurityStamp)
+                    || !string.Equals(user.SecurityStamp, tokenStamp, StringComparison.Ordinal)
+                )
+                {
+                    context.Fail("Security stamp mismatch.");
+                    return;
+                }
             },
             OnChallenge = async context =>
             {
@@ -165,6 +197,11 @@ builder.Services.AddSwaggerGen(c =>
     );
     c.EnableAnnotations();
     c.DocumentFilter<ApiApplication.Helpers.SwaggerFromQuerySchemaDocumentFilter>();
+});
+
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+    options.ValidationInterval = TimeSpan.FromMinutes(1);
 });
 
 var app = builder.Build();

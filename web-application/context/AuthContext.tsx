@@ -38,11 +38,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error: any) {
       message.error(error.message);
 
-      if (
-        error.status === 401 &&
-        !window.location.href.includes("/quanlysancaulong/login")
-      ) {
-        router.push("/quanlysancaulong/login");
+      if (error.status === 401 && !window.location.href.includes("/login")) {
+        router.push("/login");
       }
 
       setUser(null);

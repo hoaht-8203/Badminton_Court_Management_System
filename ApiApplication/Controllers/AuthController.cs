@@ -34,6 +34,14 @@ namespace ApiApplication.Controllers
             );
         }
 
+        [Authorize]
+        [HttpGet("logout")]
+        public async Task<ActionResult<ApiResponse<object?>>> Logout()
+        {
+            await _authService.LogoutAsync();
+            return Ok(ApiResponse<object?>.SuccessResponse(null, "Logout successfully"));
+        }
+
         [HttpPost("refresh-token")]
         public async Task<ActionResult<ApiResponse<object?>>> RefreshToken()
         {

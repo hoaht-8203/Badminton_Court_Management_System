@@ -18,6 +18,11 @@ public class AuthTokenProcessor(
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
+    public void DeleteAuthTokenAsHttpOnlyCookie(string cookieName)
+    {
+        _httpContextAccessor.HttpContext?.Response.Cookies.Delete(cookieName);
+    }
+
     public (string jwtToken, DateTime expiresAtUtc) GenerateJwtToken(
         ApplicationUser user,
         IList<string> roles

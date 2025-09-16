@@ -93,6 +93,13 @@ public class AuthService(
         return res;
     }
 
+    public Task LogoutAsync()
+    {
+        _authTokenProcessor.DeleteAuthTokenAsHttpOnlyCookie("ACCESS_TOKEN");
+        _authTokenProcessor.DeleteAuthTokenAsHttpOnlyCookie("REFRESH_TOKEN");
+        return Task.CompletedTask;
+    }
+
     public async Task RefreshTokenAsync(string? refreshToken)
     {
         if (string.IsNullOrEmpty(refreshToken))

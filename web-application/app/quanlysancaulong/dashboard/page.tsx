@@ -1,12 +1,12 @@
 "use client";
 
-import { useAuth } from "@/context/AuthContext";
-import React from "react";
-
 const DashboardPage = () => {
-  const { user } = useAuth();
   return (
-    <div>Welcome to the dashboard - Welcome username: {user?.userName}</div>
+    <div>
+      {Array.from({ length: 100 }).map((_, index) => (
+        <div key={index}>{index}</div>
+      ))}
+    </div>
   );
 };
 

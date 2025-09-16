@@ -4,6 +4,9 @@ import React from "react";
 import { authService } from "@/services/authService";
 import { ApiResponse } from "@/types/api";
 import { CurrentUserResponse, LoginRequest } from "@/types-openapi/api";
+import { ApiError } from "@/lib/axios";
+import { message } from "antd";
+import { useRouter } from "next/navigation";
 
 type AuthContextState = {
   user: CurrentUserResponse | null;
@@ -20,6 +23,7 @@ const AuthContext = React.createContext<AuthContextState | undefined>(
 );
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const router = useRouter();
   const [user, setUser] = React.useState<CurrentUserResponse | null>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
 
@@ -31,7 +35,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setUser(null);
       }
-    } catch (_) {
+    } catch (error: any) {
+      message.error(error.message);
+
+      if (
+        error.status === 401 &&
+        !window.location.href.includes("/quanlysancaulong/login")
+      ) {
+        router.push("/quanlysancaulong/login");
+      }
+
       setUser(null);
     }
   }, []);

@@ -11,4 +11,5 @@ public interface IAuthTokenProcessor
     );
     string GenerateRefreshToken();
     void WriteAuthTokenAsHttpOnlyCookie(string cookieName, string token, DateTime expiration);
+    void DeleteAuthTokenAsHttpOnlyCookie(string cookieName);
 }

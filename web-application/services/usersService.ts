@@ -1,5 +1,6 @@
 import { axiosInstance } from "@/lib/axios";
 import {
+  ChangeUserStatusRequest,
   CreateAdministratorRequest,
   DetailAdministratorRequest,
   DetailAdministratorResponse,
@@ -10,6 +11,16 @@ import {
 import { ApiResponse } from "@/types/api";
 
 export const usersService = {
+  async changeUserStatus(
+    payload: ChangeUserStatusRequest
+  ): Promise<ApiResponse<null>> {
+    const res = await axiosInstance.post<ApiResponse<null>>(
+      "/api/users/change-user-status",
+      payload
+    );
+    return res.data;
+  },
+
   async listAdministrator(
     payload: ListAdministratorRequest
   ): Promise<ApiResponse<ListAdministratorResponse[]>> {

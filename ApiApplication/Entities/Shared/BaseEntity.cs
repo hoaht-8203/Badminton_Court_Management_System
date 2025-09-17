@@ -2,7 +2,7 @@ using System;
 
 namespace ApiApplication.Entities.Shared;
 
-public class BaseEntity
+public class BaseEntity : IAuditableEntity
 {
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

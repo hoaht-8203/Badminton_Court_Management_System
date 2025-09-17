@@ -41,7 +41,7 @@ public class UserService(
 
         if (userEmailExists)
         {
-            throw new ApiException("User email already exists", HttpStatusCode.BadRequest);
+            throw new ApiException("Email đã được sử dụng", HttpStatusCode.BadRequest);
         }
 
         var userUserNameExists = await _context.ApplicationUsers.AnyAsync(x =>
@@ -51,7 +51,7 @@ public class UserService(
 
         if (userUserNameExists)
         {
-            throw new ApiException("User user name already exists", HttpStatusCode.BadRequest);
+            throw new ApiException("Tên người dùng đã được sử dụng", HttpStatusCode.BadRequest);
         }
 
         var userPhoneNumberExists = await _context.ApplicationUsers.AnyAsync(x =>
@@ -59,7 +59,7 @@ public class UserService(
         );
         if (userPhoneNumberExists)
         {
-            throw new ApiException("User phone number already exists", HttpStatusCode.BadRequest);
+            throw new ApiException("Số điện thoại đã được sử dụng", HttpStatusCode.BadRequest);
         }
 
         var isRoleExists = await _roleManager.RoleExistsAsync(
@@ -67,7 +67,7 @@ public class UserService(
         );
         if (!isRoleExists)
         {
-            throw new ApiException("Role not found", HttpStatusCode.BadRequest);
+            throw new ApiException("Vai trò không tồn tại", HttpStatusCode.BadRequest);
         }
 
         var user = _mapper.Map<ApplicationUser>(createAdministratorRequest);
@@ -84,7 +84,7 @@ public class UserService(
         if (!result.Succeeded)
         {
             throw new ApiException(
-                "Registration failed",
+                "Đăng ký thất bại",
                 HttpStatusCode.BadRequest,
                 result.Errors.ToDictionary(x => x.Code, x => x.Description)
             );
@@ -97,15 +97,27 @@ public class UserService(
     {
         var user =
             await _context.ApplicationUsers.FindAsync(changeUserStatusRequest.UserId)
-            ?? throw new ApiException("User not found", HttpStatusCode.BadRequest);
+            ?? throw new ApiException("Người dùng không tồn tại", HttpStatusCode.BadRequest);
 
         var validUserStatus = ApplicationUserStatus.ValidUserStatus;
         if (!validUserStatus.Contains(changeUserStatusRequest.Status))
         {
-            throw new ApiException("Invalid user status", HttpStatusCode.BadRequest);
+            throw new ApiException("Trạng thái người dùng không hợp lệ", HttpStatusCode.BadRequest);
         }
 
         user.Status = changeUserStatusRequest.Status;
+
+        await _userManager.UpdateSecurityStampAsync(user);
+
+        var userRefreshTokens = await _context
+            .ApplicationUserTokens.Where(t =>
+                t.UserId == user.Id && t.TokenType == TokenType.RefreshToken
+            )
+            .ToListAsync();
+        if (userRefreshTokens.Count > 0)
+        {
+            _context.ApplicationUserTokens.RemoveRange(userRefreshTokens);
+        }
 
         await _context.SaveChangesAsync();
     }
@@ -114,7 +126,7 @@ public class UserService(
     {
         var user =
             await _context.ApplicationUsers.FindAsync(updateUserRequest.UserId)
-            ?? throw new ApiException("User not found", HttpStatusCode.BadRequest);
+            ?? throw new ApiException("Người dùng không tồn tại", HttpStatusCode.BadRequest);
 
         _mapper.Map(updateUserRequest, user);
         if (!string.IsNullOrEmpty(updateUserRequest.Password))
@@ -129,7 +141,7 @@ public class UserService(
             if (!result.Succeeded)
             {
                 throw new ApiException(
-                    "Reset password failed",
+                    "Đặt lại mật khẩu thất bại",
                     HttpStatusCode.BadRequest,
                     result.Errors.ToDictionary(x => x.Code, x => x.Description)
                 );
@@ -192,7 +204,7 @@ public class UserService(
                     UserName = user.UserName!,
                     Email = user.Email!,
                     PhoneNumber = user.PhoneNumber!,
-                    Role = [.. roles],
+                    Roles = [.. roles],
                     Status = user.Status,
                     Address = user.Address,
                     City = user.City,
@@ -216,7 +228,7 @@ public class UserService(
     {
         var user =
             await _context.ApplicationUsers.FindAsync(detailAdministratorRequest.UserId)
-            ?? throw new ApiException("User not found", HttpStatusCode.BadRequest);
+            ?? throw new ApiException("Người dùng không tồn tại", HttpStatusCode.BadRequest);
 
         var roles = await _userManager.GetRolesAsync(user);
         var response = _mapper.Map<DetailAdministratorResponse>(user);

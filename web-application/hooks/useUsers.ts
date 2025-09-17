@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usersService } from "@/services/usersService";
 import {
+  ChangeUserStatusRequest,
   CreateAdministratorRequest,
   DetailAdministratorRequest,
   ListAdministratorRequest,
@@ -18,6 +19,7 @@ export const userKeys = {
   details: () => [...userKeys.all, "detail"] as const,
   detail: (params: DetailAdministratorRequest) =>
     [...userKeys.details(), params] as const,
+  changeUserStatus: () => [...userKeys.all, "changeStatus"] as const,
 };
 
 // List Administrators Query
@@ -68,6 +70,20 @@ export const useUpdateAdministrator = () => {
           queryKey: userKeys.detail({ userId: variables.userId }),
         });
       }
+    },
+  });
+};
+
+// Change User Status Mutation
+export const useChangeUserStatus = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResponse<null>, ApiError, ChangeUserStatusRequest>({
+    mutationFn: (data: ChangeUserStatusRequest) =>
+      usersService.changeUserStatus(data),
+    onSuccess: () => {
+      // Invalidate and refetch user lists
+      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
     },
   });
 };

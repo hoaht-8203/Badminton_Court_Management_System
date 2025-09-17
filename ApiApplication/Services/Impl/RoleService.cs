@@ -27,7 +27,7 @@ public class RoleService(
         var existedRoleName = await _roleManager.FindByNameAsync(createRoleRequest.RoleName);
         if (existedRoleName != null)
         {
-            throw new ApiException("Role name already exists", HttpStatusCode.BadRequest);
+            throw new ApiException("Tên vai trò đã tồn tại", HttpStatusCode.BadRequest);
         }
 
         var role = _mapper.Map<IdentityRole<Guid>>(createRoleRequest);
@@ -41,12 +41,15 @@ public class RoleService(
         );
         if (isRoleUsed.Count > 0)
         {
-            throw new ApiException("Role is in use, can not delete", HttpStatusCode.BadRequest);
+            throw new ApiException(
+                "Vai trò đang được sử dụng, không thể xóa",
+                HttpStatusCode.BadRequest
+            );
         }
 
         var role =
             await _roleManager.FindByIdAsync(deleteRoleRequest.RoleId.ToString())
-            ?? throw new ApiException("Role not found", HttpStatusCode.BadRequest);
+            ?? throw new ApiException("Không tìm thấy vai trò", HttpStatusCode.BadRequest);
         await _roleManager.DeleteAsync(role);
     }
 
@@ -54,7 +57,7 @@ public class RoleService(
     {
         var role =
             await _roleManager.FindByIdAsync(detailRoleRequest.RoleId.ToString())
-            ?? throw new ApiException("Role not found", HttpStatusCode.BadRequest);
+            ?? throw new ApiException("Không tìm thấy vai trò", HttpStatusCode.BadRequest);
         return _mapper.Map<DetailRoleResponse>(role);
     }
 
@@ -76,12 +79,12 @@ public class RoleService(
     {
         var role =
             await _roleManager.FindByIdAsync(updateRoleRequest.RoleId.ToString())
-            ?? throw new ApiException("Role not found", HttpStatusCode.BadRequest);
+            ?? throw new ApiException("Không tìm thấy vai trò", HttpStatusCode.BadRequest);
 
         var existedRoleName = await _roleManager.FindByNameAsync(updateRoleRequest.RoleName);
         if (existedRoleName != null && existedRoleName.Id != updateRoleRequest.RoleId)
         {
-            throw new ApiException("Role name already exists", HttpStatusCode.BadRequest);
+            throw new ApiException("Tên vai trò đã tồn tại", HttpStatusCode.BadRequest);
         }
 
         _mapper.Map(updateRoleRequest, role);

@@ -1,15 +1,29 @@
 "use client";
 
 import {
+  ChangeUserStatusRequest,
   ListAdministratorRequest,
   ListAdministratorResponse,
 } from "@/types-openapi/api";
-import { Breadcrumb, Button, Col, Divider, Row, Table, Tabs } from "antd";
+import {
+  Breadcrumb,
+  Button,
+  Col,
+  Divider,
+  List,
+  message,
+  Modal,
+  Row,
+  Table,
+  TableProps,
+  Tabs,
+} from "antd";
 import { useState } from "react";
 import SearchUser from "./search-users";
 import { columns } from "./column";
-import { useListAdministrators } from "@/hooks/useUsers";
+import { useChangeUserStatus, useListAdministrators } from "@/hooks/useUsers";
 import {
+  CheckOutlined,
   EditOutlined,
   PlusOutlined,
   ReloadOutlined,
@@ -18,6 +32,23 @@ import {
 import CreateNewUserDrawer from "./create-new-user-drawer";
 import UpdateUserDrawer from "./update-user-drawer";
 import dayjs from "dayjs";
+import { ApplicationUserStatus } from "@/types/commons";
+import { ApiError } from "@/lib/axios";
+
+const tableProps: TableProps<ListAdministratorResponse> = {
+  rowKey: "userId",
+  size: "small",
+  scroll: { x: "max-content" },
+  expandable: {
+    expandRowByClick: true,
+  },
+  onRow: () => ({
+    style: {
+      cursor: "pointer",
+    },
+  }),
+  bordered: true,
+};
 
 const page = () => {
   const [searchParams, setSearchParams] = useState<ListAdministratorRequest>({
@@ -28,6 +59,7 @@ const page = () => {
   const [openCreateNewUserDrawer, setOpenCreateNewUserDrawer] = useState(false);
   const [openUpdateUserDrawer, setOpenUpdateUserDrawer] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [modal, contextHolder] = Modal.useModal();
 
   const {
     data: usersData,
@@ -35,6 +67,83 @@ const page = () => {
     error: errorUsersData,
     refetch: refetchUsersData,
   } = useListAdministrators(searchParams);
+
+  const changeUserStatusMutation = useChangeUserStatus();
+
+  const handleClickUpdateUser = (record: ListAdministratorResponse) => {
+    setOpenUpdateUserDrawer(true);
+    setUserId(record.userId ?? "");
+  };
+
+  const handleClickChangeUserStatus = (
+    status: string,
+    record: ListAdministratorResponse
+  ) => {
+    if (status === ApplicationUserStatus.Inactive) {
+      modal.confirm({
+        title: "Xác nhận",
+        content: (
+          <div>
+            <p>Bạn có chắc chắn muốn ngừng hoạt động người dùng này?</p>
+            <p>
+              Lưu ý: Người dùng này sẽ{" "}
+              <span className="font-bold text-red-500">
+                không thể đăng nhập
+              </span>{" "}
+              vào hệ thống sau khi ngừng hoạt động.
+            </p>
+          </div>
+        ),
+        onOk: () => {
+          changeUserStatusMutation.mutate(
+            {
+              userId: record.userId ?? "",
+              status: status,
+            },
+            {
+              onSuccess: () => {
+                message.success("Cập nhật trạng thái người dùng thành công!");
+              },
+              onError: (error: ApiError) => {
+                for (const key in error.errors) {
+                  message.error(error.errors[key]);
+                }
+              },
+            }
+          );
+        },
+        okText: "Xác nhận",
+        cancelText: "Hủy",
+      });
+    }
+
+    if (status === ApplicationUserStatus.Active) {
+      modal.confirm({
+        title: "Xác nhận",
+        content: "Bạn có chắc chắn muốn kích hoạt người dùng này?",
+        onOk: () => {
+          changeUserStatusMutation.mutate(
+            {
+              userId: record.userId ?? "",
+              status: status,
+            },
+            {
+              onSuccess: () => {
+                message.success("Cập nhật trạng thái người dùng thành công!");
+              },
+              onError: (error: ApiError) => {
+                for (const key in error.errors) {
+                  message.error(error.errors[key]);
+                }
+              },
+            }
+          );
+        },
+        okText: "Xác nhận",
+        cancelText: "Hủy",
+      });
+    }
+  };
 
   return (
     <section>
@@ -84,15 +193,14 @@ const page = () => {
             </Button>
           </div>
         </div>
+
         <Table<ListAdministratorResponse>
+          {...tableProps}
           columns={columns}
           dataSource={usersData?.data ?? []}
-          bordered
           loading={loadingUsersData}
-          rowKey="userId"
-          size="small"
-          scroll={{ x: "max-content" }}
           expandable={{
+            expandRowByClick: true,
             expandedRowRender: (record) => (
               <div>
                 <Tabs
@@ -104,9 +212,11 @@ const page = () => {
                       children: (
                         <UserInformation
                           record={record}
-                          handleClickUpdateUser={() => {
-                            setOpenUpdateUserDrawer(true);
-                            setUserId(record.userId ?? "");
+                          handleClickUpdateUser={() =>
+                            handleClickUpdateUser(record)
+                          }
+                          handleClickChangeUserStatus={(status) => {
+                            handleClickChangeUserStatus(status, record);
                           }}
                         />
                       ),
@@ -114,7 +224,7 @@ const page = () => {
                     {
                       key: "2",
                       label: "Quản lý vai trò người dùng",
-                      children: <div>Quản lý vai trò người dùng</div>,
+                      children: <UserRoleManagement record={record} />,
                     },
                   ]}
                 />
@@ -134,6 +244,8 @@ const page = () => {
         onClose={() => setOpenUpdateUserDrawer(false)}
         userId={userId ?? ""}
       />
+
+      {contextHolder}
     </section>
   );
 };
@@ -141,9 +253,11 @@ const page = () => {
 const UserInformation = ({
   record,
   handleClickUpdateUser,
+  handleClickChangeUserStatus,
 }: {
   record: ListAdministratorResponse;
   handleClickUpdateUser: () => void;
+  handleClickChangeUserStatus: (payload: string) => void;
 }) => {
   return (
     <div>
@@ -223,9 +337,31 @@ const UserInformation = ({
       </Row>
 
       <div className="flex gap-2">
-        <Button color="danger" variant="outlined" icon={<StopOutlined />}>
-          Ngừng hoạt động
-        </Button>
+        {record.status === ApplicationUserStatus.Active && (
+          <Button
+            color="danger"
+            variant="outlined"
+            icon={<StopOutlined />}
+            onClick={() =>
+              handleClickChangeUserStatus(ApplicationUserStatus.Inactive)
+            }
+          >
+            Ngừng hoạt động
+          </Button>
+        )}
+
+        {record.status === ApplicationUserStatus.Inactive && (
+          <Button
+            color="green"
+            variant="outlined"
+            icon={<CheckOutlined />}
+            onClick={() =>
+              handleClickChangeUserStatus(ApplicationUserStatus.Active)
+            }
+          >
+            Kích hoạt
+          </Button>
+        )}
         <Button
           type="primary"
           icon={<EditOutlined />}
@@ -235,6 +371,32 @@ const UserInformation = ({
         </Button>
       </div>
     </div>
+  );
+};
+
+const UserRoleManagement = ({
+  record,
+}: {
+  record: ListAdministratorResponse;
+}) => {
+  return (
+    <>
+      <Row gutter={16}>
+        <Col span={4}>
+          <List
+            size="small"
+            bordered
+            dataSource={record.roles ?? []}
+            renderItem={(item) => <List.Item>{item}</List.Item>}
+          />
+        </Col>
+        <Col span={20}>
+          <Button type="primary" icon={<PlusOutlined />}>
+            Thêm vai trò
+          </Button>
+        </Col>
+      </Row>
+    </>
   );
 };
 

@@ -1,14 +1,12 @@
 "use client";
 
+import { useListRoles } from "@/hooks";
 import {
   useDetailAdministrator,
   useUpdateAdministrator,
 } from "@/hooks/useUsers";
-import { useListRoles } from "@/hooks";
-import {
-  DetailAdministratorRequest,
-  UpdateUserRequest,
-} from "@/types-openapi/api";
+import { ApiError } from "@/lib/axios";
+import { UpdateUserRequest } from "@/types-openapi/api";
 import { CloseOutlined, SaveOutlined } from "@ant-design/icons";
 import {
   Button,
@@ -25,9 +23,8 @@ import {
 import FormItem from "antd/es/form/FormItem";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-dayjs.extend(utc);
 import { useEffect } from "react";
-import { ApiError } from "@/lib/axios";
+dayjs.extend(utc);
 
 interface UpdateUserDrawerProps {
   open: boolean;

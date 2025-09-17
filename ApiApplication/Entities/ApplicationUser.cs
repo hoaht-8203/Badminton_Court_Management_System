@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ApiApplication.Entities;
 
-public class ApplicationUser : IdentityUser<Guid>
+public class ApplicationUser : IdentityUser<Guid>, IAuditableEntity
 {
     public required string FullName { get; set; }
     public string? Address { get; set; }

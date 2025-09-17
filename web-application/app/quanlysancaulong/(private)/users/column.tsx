@@ -1,21 +1,24 @@
 "use client";
 
 import { ListAdministratorResponse } from "@/types-openapi/api";
-import { Space, TableProps, Tag } from "antd";
+import { ApplicationUserStatus } from "@/types/commons";
+import { TableProps, Tag } from "antd";
 import dayjs from "dayjs";
 
 export const columns: TableProps<ListAdministratorResponse>["columns"] = [
   {
-    title: "Full Name",
+    title: "Họ và tên",
     dataIndex: "fullName",
     key: "fullName",
     width: 150,
+    fixed: "left",
   },
   {
-    title: "UserName",
+    title: "Tên người dùng",
     dataIndex: "userName",
     key: "userName",
     width: 150,
+    fixed: "left",
   },
   {
     title: "Email",
@@ -24,26 +27,35 @@ export const columns: TableProps<ListAdministratorResponse>["columns"] = [
     width: 150,
   },
   {
-    title: "Phone Number",
+    title: "Số điện thoại",
     dataIndex: "phoneNumber",
     key: "phoneNumber",
     width: 150,
     render: (_, { phoneNumber }) => <>{phoneNumber ? phoneNumber : "-"}</>,
   },
   {
-    title: "Status",
+    title: "Trạng thái",
     dataIndex: "status",
     key: "status",
     width: 150,
+    render: (_, { status }) => (
+      <>
+        {status === ApplicationUserStatus.Active ? (
+          <span className="text-green-500 font-bold">Đang hoạt động</span>
+        ) : (
+          <span className="text-red-500 font-bold">Không hoạt động</span>
+        )}
+      </>
+    ),
   },
   {
-    title: "Roles",
-    key: "role",
-    dataIndex: "role",
+    title: "Vai trò",
+    key: "roles",
+    dataIndex: "roles",
     width: 150,
-    render: (_, { role }) => (
+    render: (_, { roles }) => (
       <>
-        {role?.map((item) => {
+        {roles?.map((item) => {
           return (
             <Tag color={"green"} key={item}>
               {item.toUpperCase()}
@@ -54,14 +66,14 @@ export const columns: TableProps<ListAdministratorResponse>["columns"] = [
     ),
   },
   {
-    title: "Date Of Birth",
+    title: "Ngày sinh",
     dataIndex: "dateOfBirth",
     key: "dateOfBirth",
     width: 150,
     render: (_, { dateOfBirth }) => <>{dateOfBirth ? dateOfBirth : "-"}</>,
   },
   {
-    title: "Address",
+    title: "Địa chỉ",
     dataIndex: "address",
     key: "address",
     width: 150,
@@ -69,28 +81,28 @@ export const columns: TableProps<ListAdministratorResponse>["columns"] = [
     render: (_, { address }) => <>{address ? address : "-"}</>,
   },
   {
-    title: "City",
+    title: "Thành phố",
     dataIndex: "city",
     key: "city",
     width: 150,
     render: (_, { city }) => <>{city ? city : "-"}</>,
   },
   {
-    title: "District",
+    title: "Quận/Huyện",
     dataIndex: "district",
     key: "district",
     width: 150,
     render: (_, { district }) => <>{district ? district : "-"}</>,
   },
   {
-    title: "Ward",
+    title: "Phường/Xã",
     dataIndex: "ward",
     key: "ward",
     width: 150,
     render: (_, { ward }) => <>{ward ? ward : "-"}</>,
   },
   {
-    title: "Last Modified",
+    title: "Ngày sửa đổi lần cuối",
     dataIndex: "updatedAt",
     key: "updatedAt",
     width: 170,
@@ -106,10 +118,10 @@ export const columns: TableProps<ListAdministratorResponse>["columns"] = [
     fixed: "right",
   },
   {
-    title: "Last Modified By",
+    title: "Người sửa đổi lần cuối",
     dataIndex: "updatedBy",
     key: "updatedBy",
-    width: 150,
+    width: 170,
     render: (_, { createdBy, updatedBy }) => (
       <>{updatedBy ? updatedBy : createdBy ? createdBy : "-"}</>
     ),

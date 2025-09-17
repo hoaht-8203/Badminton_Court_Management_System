@@ -54,7 +54,7 @@ export interface ListAdministratorResponse {
      * @type {Array<string>}
      * @memberof ListAdministratorResponse
      */
-    role: Array<string> | null;
+    roles: Array<string> | null;
     /**
      * 
      * @type {string}
@@ -131,7 +131,7 @@ export function instanceOfListAdministratorResponse(value: object): value is Lis
     if (!('userName' in value) || value['userName'] === undefined) return false;
     if (!('email' in value) || value['email'] === undefined) return false;
     if (!('phoneNumber' in value) || value['phoneNumber'] === undefined) return false;
-    if (!('role' in value) || value['role'] === undefined) return false;
+    if (!('roles' in value) || value['roles'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
@@ -151,7 +151,7 @@ export function ListAdministratorResponseFromJSONTyped(json: any, ignoreDiscrimi
         'userName': json['userName'],
         'email': json['email'],
         'phoneNumber': json['phoneNumber'],
-        'role': json['role'] == null ? null : json['role'],
+        'roles': json['roles'] == null ? null : json['roles'],
         'status': json['status'],
         'address': json['address'] == null ? undefined : json['address'],
         'city': json['city'] == null ? undefined : json['city'],
@@ -182,7 +182,7 @@ export function ListAdministratorResponseToJSONTyped(value?: ListAdministratorRe
         'userName': value['userName'],
         'email': value['email'],
         'phoneNumber': value['phoneNumber'],
-        'role': value['role'],
+        'roles': value['roles'],
         'status': value['status'],
         'address': value['address'],
         'city': value['city'],

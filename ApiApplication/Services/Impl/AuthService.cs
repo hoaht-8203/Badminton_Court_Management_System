@@ -35,12 +35,12 @@ public class AuthService(
         var principal = _httpContextAccessor.HttpContext?.User;
         if (principal?.Identity == null || !principal.Identity.IsAuthenticated)
         {
-            throw new ApiException("Unauthorized", HttpStatusCode.Unauthorized);
+            throw new ApiException("Không được phép truy cập", HttpStatusCode.Unauthorized);
         }
 
         var user =
             await _userManager.GetUserAsync(principal)
-            ?? throw new ApiException("User not found", HttpStatusCode.Unauthorized);
+            ?? throw new ApiException("Không tìm thấy tài khoản", HttpStatusCode.Unauthorized);
 
         var roles = await _userManager.GetRolesAsync(user);
 
@@ -55,7 +55,18 @@ public class AuthService(
 
         if (user == null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password))
         {
-            throw new ApiException("Email or password is incorrect", HttpStatusCode.BadRequest);
+            throw new ApiException(
+                "Email hoặc mật khẩu không chính xác",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        if (user.Status == ApplicationUserStatus.Inactive)
+        {
+            throw new ApiException(
+                "Tài khoản dừng hoạt động không thể đăng nhập, vui lòng liên hệ với quản trị viên để được hỗ trợ.",
+                HttpStatusCode.BadRequest
+            );
         }
 
         IList<string> roles = await _userManager.GetRolesAsync(user);
@@ -104,7 +115,7 @@ public class AuthService(
     {
         if (string.IsNullOrEmpty(refreshToken))
         {
-            throw new ApiException("Refresh token is missing.", HttpStatusCode.BadRequest);
+            throw new ApiException("Mã refresh token không tồn tại.", HttpStatusCode.BadRequest);
         }
 
         var userToken =
@@ -114,12 +125,12 @@ public class AuthService(
                     x.Token == refreshToken && x.TokenType == TokenType.RefreshToken
                 )
             ?? throw new ApiException(
-                "Unable to retrieve user for refresh token",
+                "Không thể lấy thông tin người dùng cho refresh token",
                 HttpStatusCode.BadRequest
             );
         if (userToken.ExpiresAtUtc < DateTime.UtcNow)
         {
-            throw new ApiException("Refresh token is expired.", HttpStatusCode.BadRequest);
+            throw new ApiException("Refresh token đã hết hạn.", HttpStatusCode.BadRequest);
         }
 
         IList<string> roles = await _userManager.GetRolesAsync(userToken.User);
@@ -155,7 +166,7 @@ public class AuthService(
 
         if (userExists)
         {
-            throw new ApiException("User already exists", HttpStatusCode.BadRequest);
+            throw new ApiException("Email đã tồn tại", HttpStatusCode.BadRequest);
         }
 
         var user = _mapper.Map<ApplicationUser>(registerRequest);
@@ -170,7 +181,7 @@ public class AuthService(
         if (!result.Succeeded)
         {
             throw new ApiException(
-                "Registration failed",
+                "Đăng ký thất bại",
                 HttpStatusCode.BadRequest,
                 result.Errors.ToDictionary(x => x.Code, x => x.Description)
             );

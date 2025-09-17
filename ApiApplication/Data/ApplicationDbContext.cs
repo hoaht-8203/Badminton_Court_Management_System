@@ -86,13 +86,13 @@ public class ApplicationDbContext(
         var entries = ChangeTracker
             .Entries()
             .Where(e =>
-                e.Entity is BaseEntity
+                e.Entity is IAuditableEntity
                 && (e.State == EntityState.Added || e.State == EntityState.Modified)
             );
 
         foreach (var entityEntry in entries)
         {
-            var entity = (BaseEntity)entityEntry.Entity;
+            var entity = (IAuditableEntity)entityEntry.Entity;
 
             if (entityEntry.State == EntityState.Added)
             {
@@ -101,7 +101,8 @@ public class ApplicationDbContext(
                 entity.UpdatedAt = DateTime.UtcNow;
                 entity.UpdatedBy = _currentUser.Username;
             }
-            else
+
+            if (entityEntry.State == EntityState.Modified)
             {
                 entity.UpdatedAt = DateTime.UtcNow;
                 entity.UpdatedBy = _currentUser.Username;

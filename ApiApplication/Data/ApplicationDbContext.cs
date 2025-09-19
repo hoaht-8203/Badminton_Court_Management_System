@@ -63,6 +63,10 @@ public class ApplicationDbContext(
             ConcurrencyStamp = "d296d8e5-f257-49e7-936f-734491ebda7a",
             FullName = "Admin",
             UserTokens = [],
+            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+            CreatedBy = null,
+            UpdatedAt = null,
+            UpdatedBy = null,
         };
 
         adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "admin123");

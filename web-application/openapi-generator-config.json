@@ -1,7 +1,7 @@
 {
   "generatorName": "typescript-fetch",
   "inputSpec": "http://localhost:5039/swagger/v1/swagger.json",
-  "output": "types-openapi/api",
+  "output": "src/types-openapi/api",
   "skipValidateSpec": true,
   "additionalProperties": {
     "typescriptThreePlus": true,

@@ -27,7 +27,7 @@ public class CustomersController(ICustomerService customerService) : ControllerB
         );
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("detail")]
     public async Task<ActionResult<ApiResponse<CustomerDetailResponse>>> GetCustomerById(int id)
     {
         var result = await _customerService.GetCustomerByIdAsync(id);

@@ -28,11 +28,13 @@ public class CustomersController(ICustomerService customerService) : ControllerB
     }
 
     [HttpGet("detail")]
-    public async Task<ActionResult<ApiResponse<CustomerDetailResponse>>> GetCustomerById(int id)
+    public async Task<ActionResult<ApiResponse<DetailCustomerResponse>>> DetailCustomer(
+        [FromQuery] DetailCustomerRequest request
+    )
     {
-        var result = await _customerService.GetCustomerByIdAsync(id);
+        var result = await _customerService.GetCustomerByIdAsync(request.Id);
         return Ok(
-            ApiResponse<CustomerDetailResponse>.SuccessResponse(
+            ApiResponse<DetailCustomerResponse>.SuccessResponse(
                 result,
                 "Get customer information successfully"
             )
@@ -40,13 +42,13 @@ public class CustomersController(ICustomerService customerService) : ControllerB
     }
 
     [HttpPost("create")]
-    public async Task<ActionResult<ApiResponse<CustomerDetailResponse>>> CreateCustomer(
+    public async Task<ActionResult<ApiResponse<DetailCustomerResponse>>> CreateCustomer(
         [FromBody] CreateCustomerRequest request
     )
     {
         var result = await _customerService.CreateCustomerAsync(request);
         return Ok(
-            ApiResponse<CustomerDetailResponse>.SuccessResponse(
+            ApiResponse<DetailCustomerResponse>.SuccessResponse(
                 result,
                 "Create successful customers"
             )
@@ -54,13 +56,13 @@ public class CustomersController(ICustomerService customerService) : ControllerB
     }
 
     [HttpPut("update")]
-    public async Task<ActionResult<ApiResponse<CustomerDetailResponse>>> UpdateCustomer(
+    public async Task<ActionResult<ApiResponse<DetailCustomerResponse>>> UpdateCustomer(
         [FromBody] UpdateCustomerRequest request
     )
     {
         var result = await _customerService.UpdateCustomerAsync(request);
         return Ok(
-            ApiResponse<CustomerDetailResponse>.SuccessResponse(
+            ApiResponse<DetailCustomerResponse>.SuccessResponse(
                 result,
                 "Customer update successful"
             )
@@ -77,13 +79,13 @@ public class CustomersController(ICustomerService customerService) : ControllerB
     }
 
     [HttpPut("change-status")]
-    public async Task<ActionResult<ApiResponse<CustomerDetailResponse>>> ChangeCustomerStatus(
+    public async Task<ActionResult<ApiResponse<DetailCustomerResponse>>> ChangeCustomerStatus(
         [FromBody] ChangeCustomerStatusRequest request
     )
     {
         var result = await _customerService.ChangeCustomerStatusAsync(request);
         return Ok(
-            ApiResponse<CustomerDetailResponse>.SuccessResponse(
+            ApiResponse<DetailCustomerResponse>.SuccessResponse(
                 result,
                 "Change customer status successfully"
             )

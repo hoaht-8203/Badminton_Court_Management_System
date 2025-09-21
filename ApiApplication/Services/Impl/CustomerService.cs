@@ -35,7 +35,7 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         return _mapper.Map<List<ListCustomerResponse>>(customers);
     }
 
-    public async Task<CustomerDetailResponse> GetCustomerByIdAsync(int id)
+    public async Task<DetailCustomerResponse> GetCustomerByIdAsync(int id)
     {
         var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == id);
 
@@ -44,10 +44,10 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
             throw new ArgumentException($"Not found customer with ID: {id}");
         }
 
-        return _mapper.Map<CustomerDetailResponse>(customer);
+        return _mapper.Map<DetailCustomerResponse>(customer);
     }
 
-    public async Task<CustomerDetailResponse> CreateCustomerAsync(CreateCustomerRequest request)
+    public async Task<DetailCustomerResponse> CreateCustomerAsync(CreateCustomerRequest request)
     {
         var existingCustomer = await _context.Customers.FirstOrDefaultAsync(c =>
             c.Email == request.Email
@@ -66,10 +66,10 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         _context.Customers.Add(customer);
         await _context.SaveChangesAsync();
 
-        return _mapper.Map<CustomerDetailResponse>(customer);
+        return _mapper.Map<DetailCustomerResponse>(customer);
     }
 
-    public async Task<CustomerDetailResponse> UpdateCustomerAsync(UpdateCustomerRequest request)
+    public async Task<DetailCustomerResponse> UpdateCustomerAsync(UpdateCustomerRequest request)
     {
         var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == request.Id);
 
@@ -114,7 +114,7 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
 
         await _context.SaveChangesAsync();
 
-        return _mapper.Map<CustomerDetailResponse>(customer);
+        return _mapper.Map<DetailCustomerResponse>(customer);
     }
 
     public async Task<bool> DeleteCustomerAsync(DeleteCustomerRequest request)
@@ -134,7 +134,7 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         return true;
     }
 
-    public async Task<CustomerDetailResponse> ChangeCustomerStatusAsync(
+    public async Task<DetailCustomerResponse> ChangeCustomerStatusAsync(
         ChangeCustomerStatusRequest request
     )
     {
@@ -159,6 +159,6 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
 
         await _context.SaveChangesAsync();
 
-        return _mapper.Map<CustomerDetailResponse>(customer);
+        return _mapper.Map<DetailCustomerResponse>(customer);
     }
 }

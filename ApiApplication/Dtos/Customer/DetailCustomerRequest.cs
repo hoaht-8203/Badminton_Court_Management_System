@@ -2,7 +2,7 @@ using System;
 
 namespace ApiApplication.Dtos;
 
-public class CustomerDetailRequest
+public class DetailCustomerRequest
 {
     public required int Id { get; set; }
 }

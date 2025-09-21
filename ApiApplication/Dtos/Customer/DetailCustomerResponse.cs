@@ -1,6 +1,6 @@
 namespace ApiApplication.Dtos.Customer;
 
-public class CustomerDetailResponse
+public class DetailCustomerResponse
 {
     public int Id { get; set; }
     public string FullName { get; set; } = string.Empty;

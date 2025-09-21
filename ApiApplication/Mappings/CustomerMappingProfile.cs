@@ -9,7 +9,7 @@ public class CustomerMappingProfile : Profile
     public CustomerMappingProfile()
     {
         CreateMap<Customer, ListCustomerResponse>();
-        CreateMap<Customer, CustomerDetailResponse>();
+        CreateMap<Customer, DetailCustomerResponse>();
 
         CreateMap<CreateCustomerRequest, Customer>()
             .ForMember(dest => dest.Status, opt => opt.Ignore());

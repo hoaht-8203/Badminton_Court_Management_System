@@ -18,6 +18,7 @@ public class ApplicationDbContext(
 
     public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     public DbSet<ApplicationUserToken> ApplicationUserTokens { get; set; }
+    public DbSet<Customer> Customers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -44,6 +45,7 @@ public class ApplicationDbContext(
             );
 
         SeedAdministratorUser(builder);
+        SeedCustomerData(builder);
     }
 
     private static void SeedAdministratorUser(ModelBuilder builder)
@@ -81,6 +83,68 @@ public class ApplicationDbContext(
                 {
                     RoleId = IdentityRoleConstants.AdminRoleGuid, // Admin role
                     UserId = new("ba8008d3-6f25-4ca3-be62-21c2af0e4f97"),
+                }
+            );
+    }
+
+    private static void SeedCustomerData(ModelBuilder builder)
+    {
+        builder
+            .Entity<Customer>()
+            .HasData(
+                new Customer
+                {
+                    Id = 1,
+                    FullName = "Nguyễn Văn An",
+                    PhoneNumber = "0123456789",
+                    Email = "nguyenvanan@gmail.com",
+                    Status = CustomerStatus.Active,
+                    Gender = "Nam",
+                    Address = "123 Đường ABC, Phường Dịch Vọng",
+                    City = "Hà Nội",
+                    District = "Cầu Giấy",
+                    Ward = "Dịch Vọng",
+                    IDCard = "123456789",
+                    Note = "Khách hàng VIP - Thường xuyên đặt sân",
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = "System",
+                    UpdatedAt = DateTime.UtcNow,
+                },
+                new Customer
+                {
+                    Id = 2,
+                    FullName = "Trần Thị Bình",
+                    PhoneNumber = "0987654321",
+                    Email = "tranthibinh@gmail.com",
+                    Status = CustomerStatus.Active,
+                    Gender = "Nữ",
+                    Address = "456 Đường XYZ, Phường Bến Nghé",
+                    City = "TP. Hồ Chí Minh",
+                    District = "Quận 1",
+                    Ward = "Phường Bến Nghé",
+                    IDCard = "987654321",
+                    Note = "Khách hàng thường xuyên - Đặt sân cuối tuần",
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = "System",
+                    UpdatedAt = DateTime.UtcNow,
+                },
+                new Customer
+                {
+                    Id = 3,
+                    FullName = "Lê Văn Cường",
+                    PhoneNumber = "0369852147",
+                    Email = "levancuong@gmail.com",
+                    Status = CustomerStatus.Active,
+                    Gender = "Nam",
+                    Address = "789 Đường DEF, Phường Láng Thượng",
+                    City = "Hà Nội",
+                    District = "Đống Đa",
+                    Ward = "Láng Thượng",
+                    IDCard = "456789123",
+                    Note = "Khách hàng mới - Quan tâm đến sân cầu lông",
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = "System",
+                    UpdatedAt = DateTime.UtcNow,
                 }
             );
     }

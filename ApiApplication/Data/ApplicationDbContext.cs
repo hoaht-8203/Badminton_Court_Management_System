@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json;
 using ApiApplication.Constants;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
@@ -6,6 +7,7 @@ using ApiApplication.Sessions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace ApiApplication.Data;
 
@@ -18,6 +20,7 @@ public class ApplicationDbContext(
 
     public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     public DbSet<ApplicationUserToken> ApplicationUserTokens { get; set; }
+    public DbSet<Activity> Activities { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -42,6 +45,24 @@ public class ApplicationDbContext(
                     },
                 }
             );
+
+        // Configure Activity entity
+        builder.Entity<Activity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserName).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Action).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Description).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.Value).IsRequired().HasColumnType("decimal(18,2)");
+            entity.Property(e => e.ValueFormatted).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.OrderId).HasMaxLength(50);
+            entity.Property(e => e.AdditionalInfo).HasMaxLength(1000);
+            entity.Property(e => e.ActivityTime).IsRequired();
+
+            entity.HasIndex(e => e.UserName);
+            entity.HasIndex(e => e.Action);
+            entity.HasIndex(e => e.ActivityTime);
+        });
 
         SeedAdministratorUser(builder);
     }

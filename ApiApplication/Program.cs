@@ -54,10 +54,13 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IActivityService, ActivityService>();
+builder.Services.AddScoped<IActivityHelperService, ActivityHelperService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<AuthMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<ActivityMappingProfile>());
 
 builder
     .Services.AddAuthentication(opt =>

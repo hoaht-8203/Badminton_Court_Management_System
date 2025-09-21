@@ -7,8 +7,10 @@ using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Enums;
 using ApiApplication.Exceptions;
+using ApiApplication.Extensions;
 using ApiApplication.Helpers;
 using ApiApplication.Sessions;
+using ApiApplication.Template;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +23,9 @@ public class UserService(
     UserManager<ApplicationUser> userManager,
     RoleManager<IdentityRole<Guid>> roleManager,
     SignInManager<ApplicationUser> signInManager,
-    ICurrentUser currentUser
+    ICurrentUser currentUser,
+    IEmailService emailService,
+    ILogger<UserService> logger
 ) : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
@@ -30,6 +34,8 @@ public class UserService(
     private readonly RoleManager<IdentityRole<Guid>> _roleManager = roleManager;
     private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
     private readonly ICurrentUser _currentUser = currentUser;
+    private readonly IEmailService _emailService = emailService;
+    private readonly ILogger<UserService> _logger = logger;
 
     public async Task CreateAdministratorAsync(
         CreateAdministratorRequest createAdministratorRequest
@@ -91,6 +97,23 @@ public class UserService(
         }
 
         await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.Admin));
+
+        _emailService.SendEmailFireAndForget(
+            () =>
+                _emailService.SendWelcomeEmailAsync(
+                    new()
+                    {
+                        To = user.Email!,
+                        ToName = user.FullName,
+                        FullName = user.FullName,
+                        UserName = user.UserName!,
+                        Email = user.Email!,
+                        Password = createAdministratorRequest.Password,
+                    }
+                ),
+            _logger,
+            user.Email!
+        );
     }
 
     public async Task ChangeUserStatusAsync(ChangeUserStatusRequest changeUserStatusRequest)

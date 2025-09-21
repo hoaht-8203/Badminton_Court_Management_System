@@ -40,6 +40,10 @@ public class ExceptionHandlingMiddleware
 
             switch (error)
             {
+                case UnsupportedMediaTypeException unsupportedMediaTypeEx:
+                    response.StatusCode = StatusCodes.Status415UnsupportedMediaType;
+                    errorResponse.Message = unsupportedMediaTypeEx.Message;
+                    break;
                 case ApiException apiEx:
                     response.StatusCode = (int)apiEx.StatusCode;
                     errorResponse.Message = apiEx.Message;

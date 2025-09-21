@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chào mừng đến với hệ thống quản lý sân cầu lông</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f8f8f8;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 480px;
+        margin: 40px auto;
+        background: #fff;
+        padding: 32px 24px;
+        border-radius: 8px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.07);
+      }
+      h2 {
+        color: #228b22;
+        margin-top: 0;
+      }
+      .content {
+        margin-bottom: 24px;
+        color: #444;
+      }
+      .info {
+        background: #f0f5f0;
+        padding: 12px 18px;
+        border-radius: 6px;
+        margin-bottom: 18px;
+      }
+      .btn {
+        display: inline-block;
+        background: #228b22;
+        color: #fff;
+        text-decoration: none;
+        padding: 12px 28px;
+        border-radius: 5px;
+        font-weight: bold;
+        margin-top: 8px;
+      }
+      .footer {
+        font-size: 12px;
+        color: #888;
+        margin-top: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Chào mừng bạn đến với hệ thống quản lý sân cầu lông!</h2>
+      <div class="content">
+        Xin chào <b>{{FullName}}</b>,<br /><br />
+        Chúng tôi rất vui mừng thông báo rằng bạn đã đăng ký thành công tài
+        khoản tại hệ thống quản lý sân cầu lông.<br />
+      </div>
+      <div class="info">
+        <h3>Thông tin đăng nhập</h3>
+        <p>Tên đăng nhập: {{UserName}}</p>
+        <p>Email: {{Email}}</p>
+        <p>Mật khẩu: {{Password}}</p>
+      </div>
+      <a href="{{SystemLink}}" class="btn">Đăng nhập hệ thống</a>
+      <div class="footer">
+        Trân trọng,<br />
+        Đội ngũ quản lý sân cầu lông
+      </div>
+    </div>
+  </body>
+</html>

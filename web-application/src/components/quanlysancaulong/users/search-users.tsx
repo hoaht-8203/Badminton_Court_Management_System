@@ -33,14 +33,26 @@ const SearchUser = ({ onSearch, onReset }: SearchUserProps) => {
   };
 
   return (
-    <Card title="Lọc dữ liệu">
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSearch}
-        initialValues={{
-          status: 0,
-        }}
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={handleSearch}
+      initialValues={{
+        status: 0,
+      }}
+    >
+      <Card
+        title="Lọc dữ liệu"
+        extra={
+          <div className="flex h-full items-center gap-2">
+            <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+              Tìm kiếm
+            </Button>
+            <Button icon={<ReloadOutlined />} onClick={handleReset}>
+              Reset
+            </Button>
+          </div>
+        }
       >
         <Row gutter={16}>
           <Col span={6}>
@@ -77,19 +89,9 @@ const SearchUser = ({ onSearch, onReset }: SearchUserProps) => {
               />
             </FormItem>
           </Col>
-          <Col span={6}>
-            <div className="flex h-full items-center gap-2">
-              <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
-                Tìm kiếm
-              </Button>
-              <Button icon={<ReloadOutlined />} onClick={handleReset}>
-                Reset
-              </Button>
-            </div>
-          </Col>
         </Row>
-      </Form>
-    </Card>
+      </Card>
+    </Form>
   );
 };
 

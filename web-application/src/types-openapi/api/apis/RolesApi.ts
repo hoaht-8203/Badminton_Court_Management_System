@@ -16,7 +16,6 @@
 import * as runtime from '../runtime';
 import type {
   CreateRoleRequest,
-  DeleteRoleRequest,
   DetailRoleResponseApiResponse,
   ListRoleResponseListApiResponse,
   ObjectApiResponse,
@@ -25,8 +24,6 @@ import type {
 import {
     CreateRoleRequestFromJSON,
     CreateRoleRequestToJSON,
-    DeleteRoleRequestFromJSON,
-    DeleteRoleRequestToJSON,
     DetailRoleResponseApiResponseFromJSON,
     DetailRoleResponseApiResponseToJSON,
     ListRoleResponseListApiResponseFromJSON,
@@ -42,7 +39,7 @@ export interface ApiRolesCreatePostRequest {
 }
 
 export interface ApiRolesDeleteDeleteRequest {
-    deleteRoleRequest?: DeleteRoleRequest;
+    roleId: string;
 }
 
 export interface ApiRolesDetailGetRequest {
@@ -79,7 +76,7 @@ export interface RolesApiInterface {
 
     /**
      * 
-     * @param {DeleteRoleRequest} [deleteRoleRequest] 
+     * @param {string} roleId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof RolesApiInterface
@@ -169,11 +166,20 @@ export class RolesApi extends runtime.BaseAPI implements RolesApiInterface {
     /**
      */
     async apiRolesDeleteDeleteRaw(requestParameters: ApiRolesDeleteDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        if (requestParameters['roleId'] == null) {
+            throw new runtime.RequiredError(
+                'roleId',
+                'Required parameter "roleId" was null or undefined when calling apiRolesDeleteDelete().'
+            );
+        }
+
         const queryParameters: any = {};
 
-        const headerParameters: runtime.HTTPHeaders = {};
+        if (requestParameters['roleId'] != null) {
+            queryParameters['RoleId'] = requestParameters['roleId'];
+        }
 
-        headerParameters['Content-Type'] = 'application/json';
+        const headerParameters: runtime.HTTPHeaders = {};
 
 
         let urlPath = `/api/Roles/delete`;
@@ -183,7 +189,6 @@ export class RolesApi extends runtime.BaseAPI implements RolesApiInterface {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-            body: DeleteRoleRequestToJSON(requestParameters['deleteRoleRequest']),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
@@ -191,7 +196,7 @@ export class RolesApi extends runtime.BaseAPI implements RolesApiInterface {
 
     /**
      */
-    async apiRolesDeleteDelete(requestParameters: ApiRolesDeleteDeleteRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+    async apiRolesDeleteDelete(requestParameters: ApiRolesDeleteDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiRolesDeleteDeleteRaw(requestParameters, initOverrides);
         return await response.value();
     }

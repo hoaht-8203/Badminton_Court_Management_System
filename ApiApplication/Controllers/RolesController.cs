@@ -56,7 +56,7 @@ namespace ApiApplication.Controllers
 
         [HttpDelete("delete")]
         public async Task<ActionResult<ApiResponse<object?>>> DeleteRole(
-            DeleteRoleRequest deleteRoleRequest
+            [FromQuery] DeleteRoleRequest deleteRoleRequest
         )
         {
             await _roleService.DeleteRoleAsync(deleteRoleRequest);

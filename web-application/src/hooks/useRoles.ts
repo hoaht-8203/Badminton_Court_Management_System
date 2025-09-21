@@ -1,6 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { roleService } from "@/services/roleService";
-import { CreateRoleRequest, DeleteRoleRequest, DetailRoleRequest, ListRoleRequest, UpdateRoleRequest } from "@/types-openapi/api";
+import {
+  CreateRoleRequest,
+  DeleteRoleRequest,
+  DetailRoleRequest,
+  DetailRoleResponse,
+  ListRoleRequest,
+  ListRoleResponse,
+  UpdateRoleRequest,
+} from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 import { ApiError } from "@/lib/axios";
 
@@ -15,7 +23,7 @@ export const rolesKeys = {
 
 // List Roles Query
 export const useListRoles = (params: ListRoleRequest) => {
-  return useQuery({
+  return useQuery<ApiResponse<ListRoleResponse[]>, ApiError>({
     queryKey: rolesKeys.list(params),
     queryFn: () => roleService.listRole(params),
     enabled: true,
@@ -24,7 +32,7 @@ export const useListRoles = (params: ListRoleRequest) => {
 
 // Detail Role Query
 export const useDetailRole = (params: DetailRoleRequest) => {
-  return useQuery({
+  return useQuery<ApiResponse<DetailRoleResponse>, ApiError>({
     queryKey: rolesKeys.detail(params),
     queryFn: () => roleService.detailRole(params),
     enabled: !!params.roleId,

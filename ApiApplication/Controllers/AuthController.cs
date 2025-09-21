@@ -49,5 +49,36 @@ namespace ApiApplication.Controllers
             await _authService.RefreshTokenAsync(refreshToken);
             return Ok(ApiResponse<object?>.SuccessResponse(null, "Refresh token successfully"));
         }
+
+        [Authorize]
+        [HttpGet("my-profile")]
+        public async Task<ActionResult<ApiResponse<MyProfileResponse>>> MyProfile()
+        {
+            var user = await _authService.GetMyProfileAsync();
+            return Ok(
+                ApiResponse<MyProfileResponse>.SuccessResponse(user, "Get my profile successfully")
+            );
+        }
+
+        [Authorize]
+        [HttpPut("update-my-profile")]
+        public async Task<ActionResult<ApiResponse<object?>>> UpdateMyProfile(
+            UpdateMyProfileRequest updateMyProfileRequest
+        )
+        {
+            await _authService.UpdateMyProfileAsync(updateMyProfileRequest);
+            return Ok(ApiResponse<object?>.SuccessResponse(null, "Update my profile successfully"));
+        }
+
+        [Authorize]
+        [HttpPut("update-password")]
+        public async Task<ActionResult<ApiResponse<object?>>> UpdatePassword(
+            UpdatePasswordRequest updatePasswordRequest
+        )
+        {
+            var refreshToken = HttpContext.Request.Cookies["REFRESH_TOKEN"];
+            await _authService.UpdatePasswordAsync(updatePasswordRequest, refreshToken);
+            return Ok(ApiResponse<object?>.SuccessResponse(null, "Update password successfully"));
+        }
     }
 }

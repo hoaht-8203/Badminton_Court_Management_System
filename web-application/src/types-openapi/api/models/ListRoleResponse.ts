@@ -31,6 +31,12 @@ export interface ListRoleResponse {
      * @memberof ListRoleResponse
      */
     roleName: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof ListRoleResponse
+     */
+    totalUsers: number;
 }
 
 /**
@@ -39,6 +45,7 @@ export interface ListRoleResponse {
 export function instanceOfListRoleResponse(value: object): value is ListRoleResponse {
     if (!('roleId' in value) || value['roleId'] === undefined) return false;
     if (!('roleName' in value) || value['roleName'] === undefined) return false;
+    if (!('totalUsers' in value) || value['totalUsers'] === undefined) return false;
     return true;
 }
 
@@ -54,6 +61,7 @@ export function ListRoleResponseFromJSONTyped(json: any, ignoreDiscriminator: bo
         
         'roleId': json['roleId'],
         'roleName': json['roleName'],
+        'totalUsers': json['totalUsers'],
     };
 }
 
@@ -70,6 +78,7 @@ export function ListRoleResponseToJSONTyped(value?: ListRoleResponse | null, ign
         
         'roleId': value['roleId'],
         'roleName': value['roleName'],
+        'totalUsers': value['totalUsers'],
     };
 }
 

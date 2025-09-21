@@ -26,6 +26,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.JwtOptionsKey));
+builder.Services.Configure<EmailOptions>(
+    builder.Configuration.GetSection(EmailOptions.EmailOptionsKey)
+);
 
 builder
     .Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(opt =>
@@ -50,9 +53,11 @@ builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<AuthMappingProfile>());
 
 builder
     .Services.AddAuthentication(opt =>

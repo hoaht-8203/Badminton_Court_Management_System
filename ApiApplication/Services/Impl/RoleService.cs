@@ -36,9 +36,11 @@ public class RoleService(
 
     public async Task DeleteRoleAsync(DeleteRoleRequest deleteRoleRequest)
     {
-        var isRoleUsed = await _userManager.GetUsersInRoleAsync(
-            deleteRoleRequest.RoleId.ToString()
-        );
+        var role =
+            await _roleManager.FindByIdAsync(deleteRoleRequest.RoleId.ToString())
+            ?? throw new ApiException("Không tìm thấy vai trò", HttpStatusCode.BadRequest);
+
+        var isRoleUsed = await _userManager.GetUsersInRoleAsync(role.Name!);
         if (isRoleUsed.Count > 0)
         {
             throw new ApiException(
@@ -47,9 +49,6 @@ public class RoleService(
             );
         }
 
-        var role =
-            await _roleManager.FindByIdAsync(deleteRoleRequest.RoleId.ToString())
-            ?? throw new ApiException("Không tìm thấy vai trò", HttpStatusCode.BadRequest);
         await _roleManager.DeleteAsync(role);
     }
 
@@ -71,8 +70,21 @@ public class RoleService(
         }
 
         var roles = await query.ToListAsync();
+        var response = new List<ListRoleResponse>();
+        foreach (var role in roles)
+        {
+            var totalUsers = await _userManager.GetUsersInRoleAsync(role.Name!);
+            response.Add(
+                new ListRoleResponse
+                {
+                    RoleId = role.Id,
+                    RoleName = role.Name!,
+                    TotalUsers = totalUsers.Count,
+                }
+            );
+        }
 
-        return _mapper.Map<List<ListRoleResponse>>(roles);
+        return response;
     }
 
     public async Task UpdateRoleAsync(UpdateRoleRequest updateRoleRequest)

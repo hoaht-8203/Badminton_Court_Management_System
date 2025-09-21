@@ -9,6 +9,7 @@ using ApiApplication.Enums;
 using ApiApplication.Exceptions;
 using ApiApplication.Helpers;
 using ApiApplication.Processors;
+using ApiApplication.Sessions;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -21,7 +22,8 @@ public class AuthService(
     UserManager<ApplicationUser> userManager,
     ApplicationDbContext context,
     IMapper mapper,
-    IHttpContextAccessor httpContextAccessor
+    IHttpContextAccessor httpContextAccessor,
+    ICurrentUser currentUser
 ) : IAuthService
 {
     private readonly IAuthTokenProcessor _authTokenProcessor = authTokenProcessor;
@@ -29,6 +31,7 @@ public class AuthService(
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private readonly ICurrentUser _currentUser = currentUser;
 
     public async Task<CurrentUserResponse> GetCurrentUserAsync()
     {
@@ -47,6 +50,24 @@ public class AuthService(
         var res = _mapper.Map<CurrentUserResponse>(user);
         res.Roles = [.. roles];
         return res;
+    }
+
+    public async Task<MyProfileResponse> GetMyProfileAsync()
+    {
+        var principal = _httpContextAccessor.HttpContext?.User;
+        if (principal?.Identity == null || !principal.Identity.IsAuthenticated)
+        {
+            throw new ApiException("Không được phép truy cập", HttpStatusCode.Unauthorized);
+        }
+
+        var user =
+            await _userManager.GetUserAsync(principal)
+            ?? throw new ApiException("Không tìm thấy tài khoản", HttpStatusCode.Unauthorized);
+
+        var roles = await _userManager.GetRolesAsync(user);
+        var response = _mapper.Map<MyProfileResponse>(user);
+        response.Roles = [.. roles];
+        return response;
     }
 
     public async Task<CurrentUserResponse> LoginAsync(LoginRequest loginRequest)
@@ -158,6 +179,110 @@ public class AuthService(
             userToken.Token,
             refreshTokenExpirationDateInUtc
         );
+    }
+
+    public async Task UpdateMyProfileAsync(UpdateMyProfileRequest updateMyProfileRequest)
+    {
+        var principal = _httpContextAccessor.HttpContext?.User;
+        if (principal?.Identity == null || !principal.Identity.IsAuthenticated)
+        {
+            throw new ApiException("Không được phép truy cập", HttpStatusCode.Unauthorized);
+        }
+
+        var user =
+            await _userManager.GetUserAsync(principal)
+            ?? throw new ApiException("Không tìm thấy tài khoản", HttpStatusCode.Unauthorized);
+
+        if (user.Status == ApplicationUserStatus.Inactive)
+        {
+            throw new ApiException(
+                "Tài khoản dừng hoạt động không thể cập nhật thông tin",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        _mapper.Map(updateMyProfileRequest, user);
+        await _userManager.UpdateAsync(user);
+    }
+
+    public async Task UpdatePasswordAsync(
+        UpdatePasswordRequest updatePasswordRequest,
+        string? refreshToken
+    )
+    {
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            throw new ApiException("Mã refresh token không tồn tại.", HttpStatusCode.BadRequest);
+        }
+
+        var principal = _httpContextAccessor.HttpContext?.User;
+        if (principal?.Identity == null || !principal.Identity.IsAuthenticated)
+        {
+            throw new ApiException("Không được phép truy cập", HttpStatusCode.Unauthorized);
+        }
+
+        var user =
+            await _userManager.GetUserAsync(principal)
+            ?? throw new ApiException("Không tìm thấy tài khoản", HttpStatusCode.Unauthorized);
+
+        if (user.Status == ApplicationUserStatus.Inactive)
+        {
+            throw new ApiException(
+                "Tài khoản dừng hoạt động không thể cập nhật mật khẩu",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        var result = await _userManager.ChangePasswordAsync(
+            user,
+            updatePasswordRequest.OldPassword,
+            updatePasswordRequest.NewPassword
+        );
+
+        if (!result.Succeeded)
+        {
+            throw new ApiException(
+                "Cập nhật mật khẩu thất bại",
+                HttpStatusCode.BadRequest,
+                result.Errors.ToDictionary(x => x.Code, x => x.Description)
+            );
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user, roles);
+        var refreshTokenValue = _authTokenProcessor.GenerateRefreshToken();
+
+        var refreshTokenExpirationDateInUtc = DateTime.UtcNow.AddDays(7);
+
+        _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie(
+            "ACCESS_TOKEN",
+            jwtToken,
+            expirationDateInUtc
+        );
+        _authTokenProcessor.WriteAuthTokenAsHttpOnlyCookie(
+            "REFRESH_TOKEN",
+            refreshTokenValue,
+            refreshTokenExpirationDateInUtc
+        );
+
+        var userToken =
+            await _context
+                .ApplicationUserTokens.Include(x => x.User)
+                .FirstOrDefaultAsync(x =>
+                    x.Token == refreshToken && x.TokenType == TokenType.RefreshToken
+                )
+            ?? throw new ApiException(
+                "Không thể lấy thông tin người dùng cho refresh token",
+                HttpStatusCode.BadRequest
+            );
+        if (userToken != null)
+        {
+            userToken.Token = refreshTokenValue;
+            userToken.ExpiresAtUtc = refreshTokenExpirationDateInUtc;
+        }
+
+        await _context.SaveChangesAsync();
     }
 
     public async Task UserRegisterAsync(RegisterRequest registerRequest)

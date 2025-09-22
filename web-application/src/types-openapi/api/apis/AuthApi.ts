@@ -17,19 +17,36 @@ import * as runtime from '../runtime';
 import type {
   CurrentUserResponseApiResponse,
   LoginRequest,
+  MyProfileResponseApiResponse,
   ObjectApiResponse,
+  UpdateMyProfileRequest,
+  UpdatePasswordRequest,
 } from '../models/index';
 import {
     CurrentUserResponseApiResponseFromJSON,
     CurrentUserResponseApiResponseToJSON,
     LoginRequestFromJSON,
     LoginRequestToJSON,
+    MyProfileResponseApiResponseFromJSON,
+    MyProfileResponseApiResponseToJSON,
     ObjectApiResponseFromJSON,
     ObjectApiResponseToJSON,
+    UpdateMyProfileRequestFromJSON,
+    UpdateMyProfileRequestToJSON,
+    UpdatePasswordRequestFromJSON,
+    UpdatePasswordRequestToJSON,
 } from '../models/index';
 
 export interface ApiAuthLoginPostRequest {
     loginRequest?: LoginRequest;
+}
+
+export interface ApiAuthUpdateMyProfilePutRequest {
+    updateMyProfileRequest?: UpdateMyProfileRequest;
+}
+
+export interface ApiAuthUpdatePasswordPutRequest {
+    updatePasswordRequest?: UpdatePasswordRequest;
 }
 
 /**
@@ -82,11 +99,49 @@ export interface AuthApiInterface {
      * @throws {RequiredError}
      * @memberof AuthApiInterface
      */
+    apiAuthMyProfileGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MyProfileResponseApiResponse>>;
+
+    /**
+     */
+    apiAuthMyProfileGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MyProfileResponseApiResponse>;
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApiInterface
+     */
     apiAuthRefreshTokenPostRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
 
     /**
      */
     apiAuthRefreshTokenPost(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
+     * @param {UpdateMyProfileRequest} [updateMyProfileRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApiInterface
+     */
+    apiAuthUpdateMyProfilePutRaw(requestParameters: ApiAuthUpdateMyProfilePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiAuthUpdateMyProfilePut(requestParameters: ApiAuthUpdateMyProfilePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
+     * @param {UpdatePasswordRequest} [updatePasswordRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApiInterface
+     */
+    apiAuthUpdatePasswordPutRaw(requestParameters: ApiAuthUpdatePasswordPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiAuthUpdatePasswordPut(requestParameters: ApiAuthUpdatePasswordPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
 }
 
@@ -181,6 +236,33 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
 
     /**
      */
+    async apiAuthMyProfileGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MyProfileResponseApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Auth/my-profile`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => MyProfileResponseApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAuthMyProfileGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MyProfileResponseApiResponse> {
+        const response = await this.apiAuthMyProfileGetRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
     async apiAuthRefreshTokenPostRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
         const queryParameters: any = {};
 
@@ -203,6 +285,66 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
      */
     async apiAuthRefreshTokenPost(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiAuthRefreshTokenPostRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiAuthUpdateMyProfilePutRaw(requestParameters: ApiAuthUpdateMyProfilePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Auth/update-my-profile`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateMyProfileRequestToJSON(requestParameters['updateMyProfileRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAuthUpdateMyProfilePut(requestParameters: ApiAuthUpdateMyProfilePutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiAuthUpdateMyProfilePutRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiAuthUpdatePasswordPutRaw(requestParameters: ApiAuthUpdatePasswordPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Auth/update-password`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdatePasswordRequestToJSON(requestParameters['updatePasswordRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAuthUpdatePasswordPut(requestParameters: ApiAuthUpdatePasswordPutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiAuthUpdatePasswordPutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

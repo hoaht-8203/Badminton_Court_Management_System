@@ -21,29 +21,3 @@ public class EmailController(IEmailService emailService) : ControllerBase
         );
     }
 }
-
-public class SendWelcomeEmailRequest
-{
-    public string To { get; set; } = string.Empty;
-    public string ToName { get; set; } = string.Empty;
-    public string LoginName { get; set; } = string.Empty;
-    public string Role { get; set; } = string.Empty;
-}
-
-public class SendPasswordResetEmailRequest
-{
-    public string To { get; set; } = string.Empty;
-    public string ToName { get; set; } = string.Empty;
-    public string ResetLink { get; set; } = string.Empty;
-    public int ExpiryMinutes { get; set; } = 30;
-}
-
-public class SendNotificationEmailRequest
-{
-    public string To { get; set; } = string.Empty;
-    public string ToName { get; set; } = string.Empty;
-    public string Subject { get; set; } = string.Empty;
-    public string Content { get; set; } = string.Empty;
-    public string? ActionLink { get; set; }
-    public string? ActionText { get; set; }
-}

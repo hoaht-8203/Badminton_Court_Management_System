@@ -25,6 +25,48 @@ export interface ListCustomerRequest {
      * @memberof ListCustomerRequest
      */
     fullName?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCustomerRequest
+     */
+    phone?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCustomerRequest
+     */
+    gender?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCustomerRequest
+     */
+    address?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCustomerRequest
+     */
+    city?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCustomerRequest
+     */
+    district?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCustomerRequest
+     */
+    ward?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCustomerRequest
+     */
+    status?: string | null;
 }
 
 /**
@@ -45,6 +87,13 @@ export function ListCustomerRequestFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'fullName': json['fullName'] == null ? undefined : json['fullName'],
+        'phone': json['phone'] == null ? undefined : json['phone'],
+        'gender': json['gender'] == null ? undefined : json['gender'],
+        'address': json['address'] == null ? undefined : json['address'],
+        'city': json['city'] == null ? undefined : json['city'],
+        'district': json['district'] == null ? undefined : json['district'],
+        'ward': json['ward'] == null ? undefined : json['ward'],
+        'status': json['status'] == null ? undefined : json['status'],
     };
 }
 
@@ -60,6 +109,13 @@ export function ListCustomerRequestToJSONTyped(value?: ListCustomerRequest | nul
     return {
         
         'fullName': value['fullName'],
+        'phone': value['phone'],
+        'gender': value['gender'],
+        'address': value['address'],
+        'city': value['city'],
+        'district': value['district'],
+        'ward': value['ward'],
+        'status': value['status'],
     };
 }
 

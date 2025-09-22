@@ -121,6 +121,12 @@ export interface Customer {
      * @memberof Customer
      */
     status: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof Customer
+     */
+    avatarUrl?: string | null;
 }
 
 /**
@@ -161,6 +167,7 @@ export function CustomerFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'idCard': json['idCard'] == null ? undefined : json['idCard'],
         'note': json['note'] == null ? undefined : json['note'],
         'status': json['status'],
+        'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
     };
 }
 
@@ -192,6 +199,7 @@ export function CustomerToJSONTyped(value?: Customer | null, ignoreDiscriminator
         'idCard': value['idCard'],
         'note': value['note'],
         'status': value['status'],
+        'avatarUrl': value['avatarUrl'],
     };
 }
 

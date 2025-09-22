@@ -58,6 +58,13 @@ export interface ApiCustomersDetailGetRequest {
 
 export interface ApiCustomersListGetRequest {
     fullName?: string;
+    phone?: string;
+    gender?: string;
+    address?: string;
+    city?: string;
+    district?: string;
+    ward?: string;
+    status?: string;
 }
 
 export interface ApiCustomersUpdatePutRequest {
@@ -126,6 +133,13 @@ export interface CustomersApiInterface {
     /**
      * 
      * @param {string} [fullName] 
+     * @param {string} [phone] 
+     * @param {string} [gender] 
+     * @param {string} [address] 
+     * @param {string} [city] 
+     * @param {string} [district] 
+     * @param {string} [ward] 
+     * @param {string} [status] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof CustomersApiInterface
@@ -291,6 +305,34 @@ export class CustomersApi extends runtime.BaseAPI implements CustomersApiInterfa
 
         if (requestParameters['fullName'] != null) {
             queryParameters['FullName'] = requestParameters['fullName'];
+        }
+
+        if (requestParameters['phone'] != null) {
+            queryParameters['Phone'] = requestParameters['phone'];
+        }
+
+        if (requestParameters['gender'] != null) {
+            queryParameters['Gender'] = requestParameters['gender'];
+        }
+
+        if (requestParameters['address'] != null) {
+            queryParameters['Address'] = requestParameters['address'];
+        }
+
+        if (requestParameters['city'] != null) {
+            queryParameters['City'] = requestParameters['city'];
+        }
+
+        if (requestParameters['district'] != null) {
+            queryParameters['District'] = requestParameters['district'];
+        }
+
+        if (requestParameters['ward'] != null) {
+            queryParameters['Ward'] = requestParameters['ward'];
+        }
+
+        if (requestParameters['status'] != null) {
+            queryParameters['Status'] = requestParameters['status'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

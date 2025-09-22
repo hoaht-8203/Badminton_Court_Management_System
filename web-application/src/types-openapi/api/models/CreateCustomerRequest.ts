@@ -85,6 +85,12 @@ export interface CreateCustomerRequest {
      * @memberof CreateCustomerRequest
      */
     note?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateCustomerRequest
+     */
+    avatarUrl?: string | null;
 }
 
 /**
@@ -118,6 +124,7 @@ export function CreateCustomerRequestFromJSONTyped(json: any, ignoreDiscriminato
         'ward': json['ward'] == null ? undefined : json['ward'],
         'idCard': json['idCard'] == null ? undefined : json['idCard'],
         'note': json['note'] == null ? undefined : json['note'],
+        'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
     };
 }
 
@@ -135,7 +142,7 @@ export function CreateCustomerRequestToJSONTyped(value?: CreateCustomerRequest |
         'fullName': value['fullName'],
         'phoneNumber': value['phoneNumber'],
         'email': value['email'],
-        'dateOfBirth': value['dateOfBirth'] === null ? null : ((value['dateOfBirth'] as any)?.toISOString().substring(0,10)),
+        'dateOfBirth': value['dateOfBirth'] === null ? null : ((value['dateOfBirth'] as any)?.toISOString()),
         'gender': value['gender'],
         'address': value['address'],
         'city': value['city'],
@@ -143,6 +150,7 @@ export function CreateCustomerRequestToJSONTyped(value?: CreateCustomerRequest |
         'ward': value['ward'],
         'idCard': value['idCard'],
         'note': value['note'],
+        'avatarUrl': value['avatarUrl'],
     };
 }
 

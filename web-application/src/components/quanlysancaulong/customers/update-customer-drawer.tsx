@@ -52,7 +52,11 @@ const UpdateCustomerDrawer = ({ open, onClose, customerId }: UpdateCustomerDrawe
   }, [open, customerId, refetch]);
 
   const handleSubmit: FormProps<UpdateCustomerRequest>["onFinish"] = (values) => {
-    updateMutation.mutate(values, {
+    const payload: UpdateCustomerRequest = {
+      ...values,
+      id: customerId,
+    };
+    updateMutation.mutate(payload, {
       onSuccess: () => {
         message.success("Cập nhật khách hàng thành công!");
         form.resetFields();

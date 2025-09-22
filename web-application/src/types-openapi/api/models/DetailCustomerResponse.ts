@@ -121,6 +121,12 @@ export interface DetailCustomerResponse {
      * @memberof DetailCustomerResponse
      */
     updatedBy?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailCustomerResponse
+     */
+    avatarUrl?: string | null;
 }
 
 /**
@@ -157,6 +163,7 @@ export function DetailCustomerResponseFromJSONTyped(json: any, ignoreDiscriminat
         'updatedAt': json['updatedAt'] == null ? undefined : (new Date(json['updatedAt'])),
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
+        'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
     };
 }
 
@@ -188,6 +195,7 @@ export function DetailCustomerResponseToJSONTyped(value?: DetailCustomerResponse
         'updatedAt': value['updatedAt'] === null ? null : ((value['updatedAt'] as any)?.toISOString()),
         'createdBy': value['createdBy'],
         'updatedBy': value['updatedBy'],
+        'avatarUrl': value['avatarUrl'],
     };
 }
 

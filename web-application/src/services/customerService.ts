@@ -2,18 +2,12 @@ import { axiosInstance } from "@/lib/axios";
 import {
   ChangeCustomerStatusRequest,
   CreateCustomerRequest,
-  CreateRoleRequest,
   DeleteCustomerRequest,
-  DeleteRoleRequest,
   DetailCustomerRequest,
   DetailCustomerResponse,
-  DetailRoleRequest,
-  DetailRoleResponse,
   ListCustomerRequest,
   ListCustomerResponse,
-  ListRoleResponse,
   UpdateCustomerRequest,
-  UpdateRoleRequest,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 

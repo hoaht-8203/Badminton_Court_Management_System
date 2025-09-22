@@ -4,7 +4,7 @@ import { useDetailCustomer, useUpdateCustomer } from "@/hooks/useCustomers";
 import { ApiError } from "@/lib/axios";
 import { UpdateCustomerRequest } from "@/types-openapi/api";
 import { CloseOutlined, SaveOutlined } from "@ant-design/icons";
-import { Button, Drawer, Form, Input, Space, message, DatePicker, Select, Row, Col } from "antd";
+import { Button, Drawer, Form, Input, Space, message, DatePicker, Select, Row, Col, FormProps } from "antd";
 import FormItem from "antd/es/form/FormItem";
 import { useEffect } from "react";
 import dayjs from "dayjs";
@@ -51,25 +51,8 @@ const UpdateCustomerDrawer = ({ open, onClose, customerId }: UpdateCustomerDrawe
     }
   }, [open, customerId, refetch]);
 
-  const handleSubmit = async () => {
-    const values = await form.validateFields();
-
-    const payload: UpdateCustomerRequest = {
-      id: customerId,
-      fullName: values.fullName ?? null,
-      phoneNumber: values.phoneNumber ?? null,
-      email: values.email ?? null,
-      dateOfBirth: values.dateOfBirth ? dayjs(values.dateOfBirth).toDate() : null,
-      gender: values.gender ?? null,
-      address: values.address ?? null,
-      city: values.city ?? null,
-      district: values.district ?? null,
-      ward: values.ward ?? null,
-      idCard: values.idCard ?? null,
-      note: values.note ?? null,
-    };
-
-    updateMutation.mutate(payload, {
+  const handleSubmit: FormProps<UpdateCustomerRequest>["onFinish"] = (values) => {
+    updateMutation.mutate(values, {
       onSuccess: () => {
         message.success("Cập nhật khách hàng thành công!");
         form.resetFields();
@@ -105,13 +88,13 @@ const UpdateCustomerDrawer = ({ open, onClose, customerId }: UpdateCustomerDrawe
           >
             Hủy
           </Button>
-          <Button onClick={handleSubmit} type="primary" icon={<SaveOutlined />} loading={updateMutation.isPending} disabled={loadingDetail}>
+          <Button onClick={() => form.submit()} type="primary" icon={<SaveOutlined />} loading={updateMutation.isPending} disabled={loadingDetail}>
             Lưu thay đổi
           </Button>
         </Space>
       }
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} onFinish={handleSubmit} layout="vertical">
         <Row gutter={16}>
           <Col span={12}>
             <FormItem<UpdateCustomerRequest>

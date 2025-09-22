@@ -4,7 +4,7 @@ import { useCreateCustomer } from "@/hooks/useCustomers";
 import { ApiError } from "@/lib/axios";
 import { CreateCustomerRequest } from "@/types-openapi/api";
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, Form, Input, Space, message, DatePicker, Select, Row, Col } from "antd";
+import { Button, Drawer, Form, Input, Space, message, DatePicker, Select, Row, Col, FormProps } from "antd";
 import FormItem from "antd/es/form/FormItem";
 import dayjs from "dayjs";
 
@@ -18,24 +18,8 @@ const CreateNewCustomerDrawer = ({ open, onClose }: CreateNewCustomerDrawerProps
 
   const createMutation = useCreateCustomer();
 
-  const handleSubmit = async () => {
-    const values = await form.validateFields();
-
-    const payload: CreateCustomerRequest = {
-      fullName: values.fullName,
-      phoneNumber: values.phoneNumber,
-      email: values.email,
-      dateOfBirth: values.dateOfBirth ? dayjs(values.dateOfBirth).toDate() : null,
-      gender: values.gender || null,
-      address: values.address || null,
-      city: values.city || null,
-      district: values.district || null,
-      ward: values.ward || null,
-      idCard: values.idCard || null,
-      note: values.note || null,
-    };
-
-    createMutation.mutate(payload, {
+  const handleSubmit: FormProps<CreateCustomerRequest>["onFinish"] = (values) => {
+    createMutation.mutate(values, {
       onSuccess: () => {
         message.success("Tạo khách hàng thành công!");
         form.resetFields();
@@ -68,13 +52,13 @@ const CreateNewCustomerDrawer = ({ open, onClose }: CreateNewCustomerDrawerProps
           >
             Hủy
           </Button>
-          <Button onClick={handleSubmit} type="primary" icon={<PlusOutlined />} loading={createMutation.isPending}>
+          <Button type="primary" onClick={() => form.submit()} htmlType="submit" icon={<PlusOutlined />} loading={createMutation.isPending}>
             Thêm khách hàng
           </Button>
         </Space>
       }
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} onFinish={handleSubmit} layout="vertical">
         <Row gutter={16}>
           <Col span={12}>
             <FormItem<CreateCustomerRequest>

@@ -5,7 +5,7 @@ import { useCreateAdministrator } from "@/hooks/useUsers";
 import { ApiError } from "@/lib/axios";
 import { CreateAdministratorRequest } from "@/types-openapi/api";
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Col, DatePicker, Drawer, Form, Input, Row, Select, Space, message } from "antd";
+import { Button, Col, DatePicker, Drawer, Form, FormProps, Input, Row, Select, Space, message } from "antd";
 import FormItem from "antd/es/form/FormItem";
 
 interface CreateNewUserDrawerProps {
@@ -21,9 +21,7 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
   });
   const createMutation = useCreateAdministrator();
 
-  const handleSubmit = async () => {
-    const values = await form.validateFields();
-
+  const handleSubmit: FormProps<CreateAdministratorRequest>["onFinish"] = (values) => {
     createMutation.mutate(values, {
       onSuccess: () => {
         message.success("Tạo người dùng thành công!");
@@ -57,13 +55,13 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
           >
             Hủy
           </Button>
-          <Button onClick={handleSubmit} type="primary" icon={<PlusOutlined />} loading={createMutation.isPending}>
+          <Button onClick={() => form.submit()} type="primary" icon={<PlusOutlined />} loading={createMutation.isPending}>
             Thêm người dùng
           </Button>
         </Space>
       }
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} onFinish={handleSubmit} layout="vertical">
         <Row gutter={16}>
           <Col span={12}>
             <FormItem<CreateAdministratorRequest>

@@ -51,7 +51,7 @@ export const columns: TableProps<ListCustomerResponse>["columns"] = [
     title: "Địa chỉ",
     dataIndex: "address",
     key: "address",
-    width: 250,
+    width: 270,
     render: (address) => address || "-",
   },
   {

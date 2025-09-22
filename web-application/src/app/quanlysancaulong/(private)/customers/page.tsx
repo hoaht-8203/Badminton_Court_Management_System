@@ -4,10 +4,11 @@ import CreateNewCustomerDrawer from "@/components/quanlysancaulong/customers/cre
 import { columns } from "@/components/quanlysancaulong/customers/customers-columns";
 import SearchCustomers from "@/components/quanlysancaulong/customers/search-customers";
 import UpdateCustomerDrawer from "@/components/quanlysancaulong/customers/update-customer-drawer";
-import { useDeleteCustomer, useListCustomers } from "@/hooks/useCustomers";
+import { useChangeCustomerStatus, useDeleteCustomer, useListCustomers } from "@/hooks/useCustomers";
 import { ApiError } from "@/lib/axios";
 import { ListCustomerRequest, ListCustomerResponse } from "@/types-openapi/api";
-import { DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
+import { CustomerStatus } from "@/types/commons";
+import { CheckOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined, StopOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Col, Divider, message, Modal, Row, Table, TableProps, Tag } from "antd";
 import { useState } from "react";
 
@@ -38,6 +39,7 @@ const CustomersPage = () => {
   const { data: customersData, isFetching: loadingCustomersData, refetch: refetchCustomersData } = useListCustomers(searchParams);
 
   const deleteCustomerMutation = useDeleteCustomer();
+  const changeCustomerStatusMutation = useChangeCustomerStatus();
 
   const handleClickUpdateCustomer = (record: ListCustomerResponse) => {
     setOpenUpdateCustomerDrawer(true);
@@ -72,6 +74,29 @@ const CustomersPage = () => {
       },
       okText: "Xác nhận",
       cancelText: "Hủy",
+    });
+  };
+
+  const handleClickChangeCustomerStatus = (record: ListCustomerResponse, status: string) => {
+    modal.confirm({
+      title: "Xác nhận",
+      content: "Bạn có chắc chắn muốn ngừng hoạt động khách hàng này?",
+      onOk: () => {
+        changeCustomerStatusMutation.mutate(
+          {
+            id: record.id ?? 0,
+            status: status,
+          },
+          {
+            onSuccess: () => {
+              message.success("Cập nhật trạng thái khách hàng thành công!");
+            },
+            onError: (error: ApiError) => {
+              message.error(error.message);
+            },
+          },
+        );
+      },
     });
   };
 
@@ -122,6 +147,7 @@ const CustomersPage = () => {
                   record={record}
                   handleClickUpdateCustomer={() => handleClickUpdateCustomer(record)}
                   handleClickDeleteCustomer={() => handleClickDeleteCustomer(record)}
+                  handleClickChangeCustomerStatus={(payload) => handleClickChangeCustomerStatus(record, payload)}
                 />
               </div>
             ),
@@ -142,15 +168,17 @@ const CustomerInformation = ({
   record,
   handleClickUpdateCustomer,
   handleClickDeleteCustomer,
+  handleClickChangeCustomerStatus,
 }: {
   record: ListCustomerResponse;
   handleClickUpdateCustomer: () => void;
   handleClickDeleteCustomer: () => void;
+  handleClickChangeCustomerStatus: (payload: string) => void;
 }) => {
   return (
     <div>
       <Row gutter={16} className="mb-4">
-        <Col span={8}>
+        <Col span={7}>
           <Row gutter={16}>
             <Col span={8}>Mã khách hàng:</Col>
             <Col span={16}>{record.id}</Col>
@@ -171,7 +199,8 @@ const CustomerInformation = ({
             <Col span={16}>{record.email}</Col>
           </Row>
         </Col>
-        <Col span={8}>
+        <Divider type="vertical" size="small" style={{ height: "auto" }} />
+        <Col span={7}>
           <Row gutter={16}>
             <Col span={8}>Giới tính:</Col>
             <Col span={16}>{record.gender}</Col>
@@ -190,15 +219,16 @@ const CustomerInformation = ({
             </Col>
             <Col span={8}>Trạng thái:</Col>
             <Col span={16}>
-              {record.status ? (
-                <Tag color={record.status === "Active" ? "green" : record.status === "Inactive" ? "red" : "default"}>{record.status}</Tag>
+              {record.status === CustomerStatus.Active ? (
+                <span className="font-bold text-green-500">Đang hoạt động</span>
               ) : (
-                "-"
+                <span className="font-bold text-red-500">Không hoạt động</span>
               )}
             </Col>
           </Row>
         </Col>
-        <Col span={8}>
+        <Divider type="vertical" size="small" style={{ height: "auto" }} />
+        <Col span={7}>
           <Row gutter={16}>
             <Col span={8}>Địa chỉ:</Col>
             <Col span={16}>{record.address || "-"}</Col>
@@ -226,13 +256,27 @@ const CustomerInformation = ({
         </Col>
       </Row>
 
-      <div className="flex gap-2">
-        <Button type="primary" icon={<EditOutlined />} onClick={handleClickUpdateCustomer}>
-          Cập nhật khách hàng
-        </Button>
-        <Button danger icon={<DeleteOutlined />} onClick={handleClickDeleteCustomer}>
-          Xóa khách hàng
-        </Button>
+      <div className="flex justify-between">
+        <div className="flex gap-2">
+          <Button type="primary" icon={<EditOutlined />} onClick={handleClickUpdateCustomer}>
+            Cập nhật khách hàng
+          </Button>
+        </div>
+        <div className="flex gap-2">
+          <Button danger icon={<DeleteOutlined />} onClick={handleClickDeleteCustomer}>
+            Xóa khách hàng
+          </Button>
+          {record.status === CustomerStatus.Active && (
+            <Button danger icon={<StopOutlined />} onClick={() => handleClickChangeCustomerStatus(CustomerStatus.Inactive)}>
+              Ngừng hoạt động
+            </Button>
+          )}
+          {record.status === CustomerStatus.Inactive && (
+            <Button color="green" variant="outlined" icon={<CheckOutlined />} onClick={() => handleClickChangeCustomerStatus(CustomerStatus.Active)}>
+              Kích hoạt
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

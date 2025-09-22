@@ -8,6 +8,13 @@ public class CustomerMappingProfile : Profile
 {
     public CustomerMappingProfile()
     {
+        CreateMap<DateTime?, DateOnly?>()
+            .ConvertUsing(src => src.HasValue ? DateOnly.FromDateTime(src.Value) : null);
+        CreateMap<DateOnly?, DateTime?>()
+            .ConvertUsing(src =>
+                src.HasValue ? src.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null
+            );
+
         CreateMap<Customer, ListCustomerResponse>();
         CreateMap<Customer, DetailCustomerResponse>();
 

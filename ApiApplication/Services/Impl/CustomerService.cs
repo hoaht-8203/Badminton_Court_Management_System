@@ -26,10 +26,109 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
     {
         var query = _context.Customers.AsQueryable();
 
-        if (!string.IsNullOrEmpty(request.FullName))
+        if (!string.IsNullOrWhiteSpace(request.FullName))
         {
-            query = query.Where(c => c.FullName.Contains(request.FullName));
+            var names = request
+                .FullName.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                )
+                .Select(x => x.ToLower())
+                .ToArray();
+            query = query.Where(c => names.Any(n => c.FullName.ToLower().Contains(n)));
         }
+
+        if (!string.IsNullOrWhiteSpace(request.Phone))
+        {
+            var phones = request
+                .Phone.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                )
+                .ToArray();
+            query = query.Where(c => phones.Any(p => c.PhoneNumber.Contains(p)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Gender))
+        {
+            var genders = request
+                .Gender.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                )
+                .Select(x => x.ToLower())
+                .ToArray();
+            query = query.Where(c => c.Gender != null && genders.Contains(c.Gender.ToLower()));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.City))
+        {
+            var cities = request
+                .City.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                )
+                .Select(x => x.ToLower())
+                .ToArray();
+            query = query.Where(c =>
+                c.City != null && cities.Any(ct => c.City!.ToLower().Contains(ct))
+            );
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Address))
+        {
+            var addresses = request
+                .Address.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                )
+                .Select(x => x.ToLower())
+                .ToArray();
+            query = query.Where(c =>
+                c.Address != null && addresses.Any(a => c.Address!.ToLower().Contains(a))
+            );
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.District))
+        {
+            var districts = request
+                .District.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                )
+                .Select(x => x.ToLower())
+                .ToArray();
+            query = query.Where(c =>
+                c.District != null && districts.Any(d => c.District!.ToLower().Contains(d))
+            );
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Ward))
+        {
+            var wards = request
+                .Ward.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                )
+                .Select(x => x.ToLower())
+                .ToArray();
+            query = query.Where(c =>
+                c.Ward != null && wards.Any(w => c.Ward!.ToLower().Contains(w))
+            );
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Status))
+        {
+            var statuses = request
+                .Status.Split(
+                    ',',
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                )
+                .ToArray();
+            query = query.Where(c => statuses.Contains(c.Status));
+        }
+
+        query = query.OrderByDescending(c => c.CreatedAt);
 
         var customers = await query.ToListAsync();
         return _mapper.Map<List<ListCustomerResponse>>(customers);
@@ -108,6 +207,8 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
             customer.IDCard = null;
         if (request.Note != null && string.IsNullOrEmpty(request.Note))
             customer.Note = null;
+        if (request.AvatarUrl != null && string.IsNullOrEmpty(request.AvatarUrl))
+            customer.AvatarUrl = null;
 
         customer.UpdatedAt = DateTime.UtcNow;
         customer.UpdatedBy = GetCurrentUsername();

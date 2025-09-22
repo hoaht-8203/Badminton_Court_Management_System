@@ -151,6 +151,36 @@ public class UserService(
             await _context.ApplicationUsers.FindAsync(updateUserRequest.UserId)
             ?? throw new ApiException("Người dùng không tồn tại", HttpStatusCode.BadRequest);
 
+        var emailExists = await _context.ApplicationUsers.AnyAsync(x =>
+            x.Email == updateUserRequest.Email
+            && x.Id != user.Id
+            && x.Status == ApplicationUserStatus.Active
+        );
+        if (emailExists)
+        {
+            throw new ApiException("Email đã được sử dụng", HttpStatusCode.BadRequest);
+        }
+
+        var userNameExists = await _context.ApplicationUsers.AnyAsync(x =>
+            x.UserName == updateUserRequest.UserName
+            && x.Id != user.Id
+            && x.Status == ApplicationUserStatus.Active
+        );
+        if (userNameExists)
+        {
+            throw new ApiException("Tên người dùng đã được sử dụng", HttpStatusCode.BadRequest);
+        }
+
+        var phoneNumberExists = await _context.ApplicationUsers.AnyAsync(x =>
+            x.PhoneNumber == updateUserRequest.PhoneNumber
+            && x.Id != user.Id
+            && x.Status == ApplicationUserStatus.Active
+        );
+        if (phoneNumberExists)
+        {
+            throw new ApiException("Số điện thoại đã được sử dụng", HttpStatusCode.BadRequest);
+        }
+
         _mapper.Map(updateUserRequest, user);
         if (!string.IsNullOrEmpty(updateUserRequest.Password))
         {

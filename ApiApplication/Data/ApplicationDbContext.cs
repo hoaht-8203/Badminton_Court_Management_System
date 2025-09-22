@@ -19,13 +19,34 @@ public class ApplicationDbContext(
     private readonly ICurrentUser _currentUser = currentUser;
 
     public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+    public DbSet<Staff> Staffs { get; set; }
     public DbSet<ApplicationUserToken> ApplicationUserTokens { get; set; }
     public DbSet<Activity> Activities { get; set; }
     public DbSet<Customer> Customers { get; set; }
+    public DbSet<SystemConfig> SystemConfigs { get; set; }
+    public DbSet<Shift> Shifts { get; set; }
+    public DbSet<Branch> Branches { get; set; }
+    public DbSet<Department> Departments { get; set; }
+    public DbSet<Payroll> Payrolls { get; set; }
+    public DbSet<PayrollItem> PayrollItems { get; set; }
+    public DbSet<SalaryForm> SalaryForms { get; set; }
+    public DbSet<Schedule> Schedules { get; set; }
+
+    // public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
+    public DbSet<CancelledShift> CancelledShifts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        // Store Staff.SalarySettings as jsonb
+        builder.Entity<Staff>().Property(s => s.SalarySettings).HasColumnType("jsonb");
+
+        // Store SalaryForm.SalarySettings as jsonb
+        builder.Entity<SalaryForm>().Property(s => s.SalarySettings).HasColumnType("jsonb");
+
+        // Store Schedule.ByDay as array of string
+        builder.Entity<Schedule>().Property(s => s.ByDay).HasColumnType("text[]");
 
         builder
             .Entity<IdentityRole<Guid>>()

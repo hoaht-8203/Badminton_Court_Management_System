@@ -28,7 +28,8 @@ public class ApplicationDbContext(
     public DbSet<PayrollItem> PayrollItems { get; set; }
     public DbSet<SalaryForm> SalaryForms { get; set; }
     public DbSet<Schedule> Schedules { get; set; }
-    
+    // public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
+    public DbSet<CancelledShift> CancelledShifts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

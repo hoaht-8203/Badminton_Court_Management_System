@@ -52,13 +52,13 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 
 builder.Services.AddScoped<IStaffService, StaffService>();
-
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IShiftService, ShiftService>();
 builder.Services.AddScoped<ISalaryFormService, SalaryFormService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
-
+builder.Services.AddAutoMapper(config => config.AddProfile<ScheduleMappingProfile>());
 
 builder.Services.AddAutoMapper(config => config.AddProfile<StaffMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<SalaryFormMappingProfile>());

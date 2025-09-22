@@ -288,4 +288,99 @@ public class UserService(
         response.Role = [.. roles];
         return response;
     }
+
+    public async Task UpdateUserRolesAsync(UpdateUserRolesRequest request)
+    {
+        var user =
+            await _context.ApplicationUsers.FindAsync(request.UserId)
+            ?? throw new ApiException("Người dùng không tồn tại", HttpStatusCode.BadRequest);
+
+        var distinctRoles = request.Roles.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        foreach (var roleName in distinctRoles)
+        {
+            var roleExists = await _roleManager.RoleExistsAsync(roleName);
+            if (!roleExists)
+            {
+                throw new ApiException(
+                    $"Vai trò '{roleName}' không tồn tại",
+                    HttpStatusCode.BadRequest
+                );
+            }
+        }
+
+        var currentRoles = await _userManager.GetRolesAsync(user);
+        var desiredSet = new HashSet<string>(distinctRoles, StringComparer.OrdinalIgnoreCase);
+        var currentSet = new HashSet<string>(currentRoles, StringComparer.OrdinalIgnoreCase);
+
+        var rolesToRemove = currentRoles.Where(r => !desiredSet.Contains(r)).ToList();
+        var rolesToAdd = distinctRoles.Where(r => !currentSet.Contains(r)).ToList();
+
+        if (rolesToRemove.Count > 0)
+        {
+            var removeResult = await _userManager.RemoveFromRolesAsync(user, rolesToRemove);
+            if (!removeResult.Succeeded)
+            {
+                throw new ApiException(
+                    "Gỡ vai trò thất bại",
+                    HttpStatusCode.BadRequest,
+                    removeResult.Errors.ToDictionary(x => x.Code, x => x.Description)
+                );
+            }
+        }
+
+        if (rolesToAdd.Count > 0)
+        {
+            var addResult = await _userManager.AddToRolesAsync(user, rolesToAdd);
+            if (!addResult.Succeeded)
+            {
+                throw new ApiException(
+                    "Thêm vai trò thất bại",
+                    HttpStatusCode.BadRequest,
+                    addResult.Errors.ToDictionary(x => x.Code, x => x.Description)
+                );
+            }
+        }
+
+        await _userManager.UpdateSecurityStampAsync(user);
+
+        var userRefreshTokens = await _context
+            .ApplicationUserTokens.Where(t =>
+                t.UserId == user.Id && t.TokenType == TokenType.RefreshToken
+            )
+            .ToListAsync();
+        if (userRefreshTokens.Count > 0)
+        {
+            _context.ApplicationUserTokens.RemoveRange(userRefreshTokens);
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<ListUserRoleItemResponse>> ListUserRolesAsync(
+        ListUserRolesRequest request
+    )
+    {
+        var user =
+            await _context.ApplicationUsers.FindAsync(request.UserId)
+            ?? throw new ApiException("Người dùng không tồn tại", HttpStatusCode.BadRequest);
+
+        var allRoles = await _roleManager.Roles.ToListAsync();
+        var userRoles = await _userManager.GetRolesAsync(user);
+        var assignedSet = new HashSet<string>(userRoles, StringComparer.OrdinalIgnoreCase);
+
+        var response = new List<ListUserRoleItemResponse>();
+        foreach (var role in allRoles)
+        {
+            response.Add(
+                new ListUserRoleItemResponse
+                {
+                    RoleId = role.Id,
+                    RoleName = role.Name!,
+                    Assigned = assignedSet.Contains(role.Name!),
+                }
+            );
+        }
+
+        return response.OrderBy(x => x.RoleName).ToList();
+    }
 }

@@ -71,5 +71,28 @@ namespace ApiApplication.Controllers
                 ApiResponse<object?>.SuccessResponse(null, "Update administrator successfully")
             );
         }
+
+        [HttpPut("update-user-roles")]
+        public async Task<ActionResult<ApiResponse<object?>>> UpdateUserRoles(
+            UpdateUserRolesRequest request
+        )
+        {
+            await _userService.UpdateUserRolesAsync(request);
+            return Ok(ApiResponse<object?>.SuccessResponse(null, "Update user roles successfully"));
+        }
+
+        [HttpGet("list-user-roles")]
+        public async Task<ActionResult<ApiResponse<List<ListUserRoleItemResponse>>>> ListUserRoles(
+            [FromQuery] ListUserRolesRequest request
+        )
+        {
+            var result = await _userService.ListUserRolesAsync(request);
+            return Ok(
+                ApiResponse<List<ListUserRoleItemResponse>>.SuccessResponse(
+                    result,
+                    "Get list user roles successfully"
+                )
+            );
+        }
     }
 }

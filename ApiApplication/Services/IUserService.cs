@@ -18,4 +18,8 @@ public interface IUserService
     public Task ChangeUserStatusAsync(ChangeUserStatusRequest changeUserStatusRequest);
 
     public Task UpdateUserAsync(UpdateUserRequest updateUserRequest);
+
+    public Task UpdateUserRolesAsync(UpdateUserRolesRequest request);
+
+    public Task<List<ListUserRoleItemResponse>> ListUserRolesAsync(ListUserRolesRequest request);
 }

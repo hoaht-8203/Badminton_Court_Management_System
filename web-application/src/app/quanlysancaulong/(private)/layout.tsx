@@ -75,7 +75,7 @@ const sideBarItems: MenuProps["items"] = [
     icon: <Handshake className="h-4 w-4" />,
     children: [
       {
-        key: "quanlykhachhang",
+        key: "/quanlysancaulong/customers",
         label: "Quản lý khách hàng",
       },
       {

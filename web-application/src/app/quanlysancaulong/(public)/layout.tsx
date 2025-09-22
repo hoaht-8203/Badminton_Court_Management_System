@@ -2,15 +2,16 @@
 
 import React from "react";
 
+import RequireAuth from "@/components/authentication/RequireAuth";
 import { useAuth } from "@/context/AuthContext";
 import { CurrentUserResponse } from "@/types-openapi/api";
 import { InfoCircleOutlined, LogoutOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
-import { Avatar, Dropdown, Layout, Menu } from "antd";
+import { Avatar, Dropdown, Layout } from "antd";
+import { Content } from "antd/es/layout/layout";
 import { ArrowLeftRight, ChartSpline, Columns2, Handshake, IdCardLanyard, Package, Settings } from "lucide-react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { usePathname, useRouter } from "next/navigation";
-import RequireAuth from "@/components/authentication/RequireAuth";
+import { useRouter } from "next/navigation";
 
 const sideBarItems: MenuProps["items"] = [
   {
@@ -104,6 +105,17 @@ const sideBarItems: MenuProps["items"] = [
       },
     ],
   },
+  {
+    key: "quanlythongtin",
+    label: "Quản lý thông tin",
+    icon: <InfoCircleOutlined />,
+    children: [
+      {
+        key: "/quanlysancaulong/users/profile",
+        label: "Quản lý thông tin cá nhân",
+      },
+    ],
+  },
 ];
 
 const userMenuItems = (user: CurrentUserResponse, router: AppRouterInstance, logout: () => void): MenuProps["items"] => {
@@ -176,46 +188,11 @@ const userMenuItems = (user: CurrentUserResponse, router: AppRouterInstance, log
   ];
 };
 
-const { Header, Sider } = Layout;
+const { Header } = Layout;
 
 const ComponentLayout = ({ children }: { children: React.ReactNode }) => {
-  const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
-
-  const findParentKeyByPath = React.useCallback((path: string): string | undefined => {
-    const parent = (sideBarItems || []).find((item) => item && "children" in item && item.children?.some((child) => String(child?.key) === path));
-    return parent?.key ? String(parent.key) : undefined;
-  }, []);
-
-  const [selectedKeys, setSelectedKeys] = React.useState<string[]>([pathname]);
-  const [openKeys, setOpenKeys] = React.useState<string[]>(
-    (() => {
-      const parent = findParentKeyByPath(pathname);
-      return parent ? [parent] : [];
-    })(),
-  );
-
-  React.useEffect(() => {
-    setSelectedKeys([pathname]);
-    const parent = findParentKeyByPath(pathname);
-    setOpenKeys(parent ? [parent] : []);
-  }, [pathname, findParentKeyByPath]);
-
-  const rootSubmenuKeys = React.useMemo<string[]>(() => {
-    return (sideBarItems || [])
-      .filter((item) => item && "children" in item && item.children && item.children.length)
-      .map((item) => String(item?.key));
-  }, []);
-
-  const handleOpenChange = (keys: string[]) => {
-    const latestOpenKey = keys.find((key) => openKeys.indexOf(key) === -1);
-    if (latestOpenKey && rootSubmenuKeys.includes(latestOpenKey)) {
-      setOpenKeys([latestOpenKey]);
-    } else {
-      setOpenKeys(keys);
-    }
-  };
 
   return (
     <RequireAuth fallback={null}>
@@ -230,7 +207,7 @@ const ComponentLayout = ({ children }: { children: React.ReactNode }) => {
             borderBottom: "1px solid #e0e0e0",
           }}
         >
-          <div className="text-xl font-bold text-black">Hệ thống quản lý sân cầu lông</div>
+          <div className="text-xl font-bold text-black">Caulong365</div>
           <div>
             <Dropdown
               menu={{
@@ -244,26 +221,7 @@ const ComponentLayout = ({ children }: { children: React.ReactNode }) => {
             </Dropdown>
           </div>
         </Header>
-        <Layout>
-          <Sider width={250}>
-            <Menu
-              mode="inline"
-              selectedKeys={selectedKeys}
-              openKeys={openKeys}
-              onOpenChange={(keys) => handleOpenChange(keys as string[])}
-              onClick={(info) => {
-                const key = info.key as string;
-                setSelectedKeys([key]);
-                router.push(key);
-              }}
-              style={{ height: "100%", borderInlineEnd: 0 }}
-              items={sideBarItems}
-            />
-          </Sider>
-          <Layout style={{ padding: "8px 16px" }} className="max-h-screen overflow-y-auto">
-            {children}
-          </Layout>
-        </Layout>
+        <Content style={{ padding: "0 48px", backgroundColor: "white" }}>{children}</Content>
       </Layout>
     </RequireAuth>
   );

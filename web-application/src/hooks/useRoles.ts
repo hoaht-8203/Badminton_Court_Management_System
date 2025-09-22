@@ -11,6 +11,7 @@ import {
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 import { ApiError } from "@/lib/axios";
+import { userKeys } from "./useUsers";
 
 // Query Keys
 export const rolesKeys = {
@@ -48,6 +49,7 @@ export const useCreateRole = () => {
     onSuccess: () => {
       // Invalidate and refetch role lists
       queryClient.invalidateQueries({ queryKey: rolesKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: userKeys.listUserRoless() });
     },
   });
 };

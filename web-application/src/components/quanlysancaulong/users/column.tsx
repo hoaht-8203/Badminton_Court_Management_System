@@ -54,15 +54,15 @@ export const columns: TableProps<ListAdministratorResponse>["columns"] = [
     dataIndex: "roles",
     width: 150,
     render: (_, { roles }) => (
-      <>
+      <div className="flex flex-wrap gap-2">
         {roles?.map((item) => {
           return (
-            <Tag color={"green"} key={item}>
+            <Tag color={"green"} key={item} style={{ marginRight: 0 }}>
               {item.toUpperCase()}
             </Tag>
           );
         })}
-      </>
+      </div>
     ),
   },
   {

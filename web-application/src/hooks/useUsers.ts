@@ -1,14 +1,16 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ApiError } from "@/lib/axios";
 import { usersService } from "@/services/usersService";
 import {
   ChangeUserStatusRequest,
   CreateAdministratorRequest,
   DetailAdministratorRequest,
   ListAdministratorRequest,
+  ListUserRolesRequest,
   UpdateUserRequest,
+  UpdateUserRolesRequest,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
-import { ApiError } from "@/lib/axios";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // Query Keys
 export const userKeys = {
@@ -18,6 +20,8 @@ export const userKeys = {
   details: () => [...userKeys.all, "detail"] as const,
   detail: (params: DetailAdministratorRequest) => [...userKeys.details(), params] as const,
   changeUserStatus: () => [...userKeys.all, "changeStatus"] as const,
+  listUserRoless: () => [...userKeys.all, "listUserRoles"] as const,
+  listUserRoles: (params: ListUserRolesRequest) => [...userKeys.listUserRoless(), params] as const,
 };
 
 // List Administrators Query
@@ -80,5 +84,29 @@ export const useChangeUserStatus = () => {
       // Invalidate and refetch user lists
       queryClient.invalidateQueries({ queryKey: userKeys.lists() });
     },
+  });
+};
+
+// Update User Roles Mutation
+export const useUpdateUserRoles = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResponse<null>, ApiError, UpdateUserRolesRequest>({
+    mutationFn: (data: UpdateUserRolesRequest) => usersService.updateUserRoles(data),
+    onSuccess: () => {
+      // Invalidate and refetch user lists
+      queryClient.invalidateQueries({ queryKey: userKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: userKeys.listUserRoless() });
+    },
+  });
+};
+
+// List User Roles Query
+export const useListUserRoles = (params: ListUserRolesRequest) => {
+  return useQuery({
+    queryKey: userKeys.listUserRoles(params),
+    queryFn: () => usersService.listUserRoles(params),
+    enabled: !!params.userId,
+    refetchOnMount: "always",
   });
 };

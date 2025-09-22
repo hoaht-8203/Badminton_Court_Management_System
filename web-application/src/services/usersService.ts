@@ -6,7 +6,10 @@ import {
   DetailAdministratorResponse,
   ListAdministratorRequest,
   ListAdministratorResponse,
+  ListUserRoleItemResponse,
+  ListUserRolesRequest,
   UpdateUserRequest,
+  UpdateUserRolesRequest,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 
@@ -38,6 +41,18 @@ export const usersService = {
 
   async updateAdministrator(payload: UpdateUserRequest): Promise<ApiResponse<null>> {
     const res = await axiosInstance.put<ApiResponse<null>>("/api/users/update-administrator", payload);
+    return res.data;
+  },
+
+  async updateUserRoles(payload: UpdateUserRolesRequest): Promise<ApiResponse<null>> {
+    const res = await axiosInstance.put<ApiResponse<null>>("/api/users/update-user-roles", payload);
+    return res.data;
+  },
+
+  async listUserRoles(payload: ListUserRolesRequest): Promise<ApiResponse<ListUserRoleItemResponse[]>> {
+    const res = await axiosInstance.get<ApiResponse<ListUserRoleItemResponse[]>>("/api/users/list-user-roles", {
+      params: payload,
+    });
     return res.data;
   },
 };

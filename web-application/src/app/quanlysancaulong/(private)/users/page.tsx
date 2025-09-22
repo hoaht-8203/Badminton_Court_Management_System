@@ -4,14 +4,14 @@ import { columns } from "@/components/quanlysancaulong/users/column";
 import CreateNewUserDrawer from "@/components/quanlysancaulong/users/create-new-user-drawer";
 import SearchUser from "@/components/quanlysancaulong/users/search-users";
 import UpdateUserDrawer from "@/components/quanlysancaulong/users/update-user-drawer";
-import { useChangeUserStatus, useListAdministrators } from "@/hooks/useUsers";
+import { useChangeUserStatus, useListAdministrators, useListUserRoles, useUpdateUserRoles } from "@/hooks/useUsers";
 import { ApiError } from "@/lib/axios";
-import { ListAdministratorRequest, ListAdministratorResponse } from "@/types-openapi/api";
+import { ListAdministratorRequest, ListAdministratorResponse, ListUserRoleItemResponse } from "@/types-openapi/api";
 import { ApplicationUserStatus } from "@/types/commons";
-import { CheckOutlined, EditOutlined, PlusOutlined, ReloadOutlined, StopOutlined } from "@ant-design/icons";
-import { Breadcrumb, Button, Col, Divider, List, message, Modal, Row, Table, TableProps, Tabs } from "antd";
+import { CheckOutlined, EditOutlined, PlusOutlined, ReloadOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
+import { Breadcrumb, Button, Checkbox, CheckboxChangeEvent, Col, Divider, List, message, Modal, Row, Table, TableProps, Tabs } from "antd";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const tableProps: TableProps<ListAdministratorResponse> = {
   rowKey: "userId",
@@ -36,13 +36,14 @@ const UsersPage = () => {
   });
   const [openCreateNewUserDrawer, setOpenCreateNewUserDrawer] = useState(false);
   const [openUpdateUserDrawer, setOpenUpdateUserDrawer] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [modal, contextHolder] = Modal.useModal();
 
   const { data: usersData, isFetching: loadingUsersData, refetch: refetchUsersData } = useListAdministrators(searchParams);
+  const { data: userRolesData, isFetching: loadingUserRolesData, refetch: refetchUserRolesData } = useListUserRoles({ userId: selectedUserId ?? "" });
 
   const changeUserStatusMutation = useChangeUserStatus();
-
   const handleClickUpdateUser = (record: ListAdministratorResponse) => {
     setOpenUpdateUserDrawer(true);
     setUserId(record.userId ?? "");
@@ -173,12 +174,24 @@ const UsersPage = () => {
                     {
                       key: "2",
                       label: "Quản lý vai trò người dùng",
-                      children: <UserRoleManagement record={record} />,
+                      children: (
+                        <UserRoleManagement
+                          record={record}
+                          listUserRoles={userRolesData?.data ?? []}
+                          refetchUserRolesData={refetchUserRolesData}
+                          loadingUserRolesData={loadingUserRolesData}
+                        />
+                      ),
                     },
                   ]}
                 />
               </div>
             ),
+            onExpand: (expanded, record) => {
+              if (expanded && record.userId) {
+                setSelectedUserId(record.userId);
+              }
+            },
           }}
         />
       </div>
@@ -299,17 +312,86 @@ const UserInformation = ({
   );
 };
 
-const UserRoleManagement = ({ record }: { record: ListAdministratorResponse }) => {
+const UserRoleManagement = ({
+  record,
+  listUserRoles,
+  loadingUserRolesData,
+  refetchUserRolesData,
+}: {
+  record: ListAdministratorResponse;
+  listUserRoles: ListUserRoleItemResponse[];
+  loadingUserRolesData: boolean;
+  refetchUserRolesData: () => void;
+}) => {
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const updateUserRolesMutation = useUpdateUserRoles();
+
+  useEffect(() => {
+    setSelectedRoles(listUserRoles?.filter((item) => item.assigned).map((item) => item.roleId) ?? []);
+  }, [listUserRoles]);
+
+  const handleChangeUserRole = (e: CheckboxChangeEvent, roleId: string) => {
+    if (e.target.checked) {
+      setSelectedRoles([...selectedRoles, roleId]);
+    } else {
+      setSelectedRoles(selectedRoles.filter((id) => id !== roleId));
+    }
+  };
+
+  const handleSaveUserRoles = () => {
+    updateUserRolesMutation.mutate(
+      {
+        userId: record.userId ?? "",
+        roles: listUserRoles.filter((item) => selectedRoles.includes(item.roleId)).map((item) => item.roleName ?? ""),
+      },
+      {
+        onSuccess: () => {
+          message.success("Cập nhật vai trò người dùng thành công!");
+        },
+        onError: (error: ApiError) => {
+          message.error(error.message);
+        },
+      },
+    );
+  };
+
   return (
     <>
       <Row gutter={16}>
         <Col span={4}>
-          <List size="small" bordered dataSource={record.roles ?? []} renderItem={(item) => <List.Item>{item}</List.Item>} />
+          <List
+            size="small"
+            bordered
+            dataSource={listUserRoles ?? []}
+            renderItem={(item) => (
+              <List.Item
+                actions={[
+                  <Checkbox key={item.roleId} checked={selectedRoles.includes(item.roleId)} onChange={(e) => handleChangeUserRole(e, item.roleId)} />,
+                ]}
+              >
+                {item.roleName}
+              </List.Item>
+            )}
+            loading={loadingUserRolesData}
+            rowKey="roleId"
+          />
         </Col>
         <Col span={20}>
-          <Button type="primary" icon={<PlusOutlined />}>
-            Thêm vai trò
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="primary"
+              icon={<ReloadOutlined />}
+              onClick={() => {
+                refetchUserRolesData();
+                setSelectedRoles(listUserRoles?.filter((item) => item.assigned).map((item) => item.roleId) ?? []);
+              }}
+            >
+              Tải lại
+            </Button>
+            <Button type="primary" icon={<SaveOutlined />} onClick={handleSaveUserRoles}>
+              Xác nhận
+            </Button>
+          </div>
         </Col>
       </Row>
     </>

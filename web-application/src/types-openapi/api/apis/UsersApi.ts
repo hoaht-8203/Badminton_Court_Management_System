@@ -19,8 +19,10 @@ import type {
   CreateAdministratorRequest,
   DetailAdministratorResponseApiResponse,
   ListAdministratorResponseListApiResponse,
+  ListUserRoleItemResponseListApiResponse,
   ObjectApiResponse,
   UpdateUserRequest,
+  UpdateUserRolesRequest,
 } from '../models/index';
 import {
     ChangeUserStatusRequestFromJSON,
@@ -31,10 +33,14 @@ import {
     DetailAdministratorResponseApiResponseToJSON,
     ListAdministratorResponseListApiResponseFromJSON,
     ListAdministratorResponseListApiResponseToJSON,
+    ListUserRoleItemResponseListApiResponseFromJSON,
+    ListUserRoleItemResponseListApiResponseToJSON,
     ObjectApiResponseFromJSON,
     ObjectApiResponseToJSON,
     UpdateUserRequestFromJSON,
     UpdateUserRequestToJSON,
+    UpdateUserRolesRequestFromJSON,
+    UpdateUserRolesRequestToJSON,
 } from '../models/index';
 
 export interface ApiUsersChangeUserStatusPostRequest {
@@ -55,8 +61,16 @@ export interface ApiUsersListAdministratorGetRequest {
     status?: string;
 }
 
+export interface ApiUsersListUserRolesGetRequest {
+    userId: string;
+}
+
 export interface ApiUsersUpdateAdministratorPutRequest {
     updateUserRequest?: UpdateUserRequest;
+}
+
+export interface ApiUsersUpdateUserRolesPutRequest {
+    updateUserRolesRequest?: UpdateUserRolesRequest;
 }
 
 /**
@@ -122,6 +136,19 @@ export interface UsersApiInterface {
 
     /**
      * 
+     * @param {string} userId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApiInterface
+     */
+    apiUsersListUserRolesGetRaw(requestParameters: ApiUsersListUserRolesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListUserRoleItemResponseListApiResponse>>;
+
+    /**
+     */
+    apiUsersListUserRolesGet(requestParameters: ApiUsersListUserRolesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListUserRoleItemResponseListApiResponse>;
+
+    /**
+     * 
      * @param {UpdateUserRequest} [updateUserRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -132,6 +159,19 @@ export interface UsersApiInterface {
     /**
      */
     apiUsersUpdateAdministratorPut(requestParameters: ApiUsersUpdateAdministratorPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
+     * @param {UpdateUserRolesRequest} [updateUserRolesRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UsersApiInterface
+     */
+    apiUsersUpdateUserRolesPutRaw(requestParameters: ApiUsersUpdateUserRolesPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiUsersUpdateUserRolesPut(requestParameters: ApiUsersUpdateUserRolesPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
 }
 
@@ -279,6 +319,44 @@ export class UsersApi extends runtime.BaseAPI implements UsersApiInterface {
 
     /**
      */
+    async apiUsersListUserRolesGetRaw(requestParameters: ApiUsersListUserRolesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListUserRoleItemResponseListApiResponse>> {
+        if (requestParameters['userId'] == null) {
+            throw new runtime.RequiredError(
+                'userId',
+                'Required parameter "userId" was null or undefined when calling apiUsersListUserRolesGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['userId'] != null) {
+            queryParameters['UserId'] = requestParameters['userId'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Users/list-user-roles`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListUserRoleItemResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiUsersListUserRolesGet(requestParameters: ApiUsersListUserRolesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListUserRoleItemResponseListApiResponse> {
+        const response = await this.apiUsersListUserRolesGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
     async apiUsersUpdateAdministratorPutRaw(requestParameters: ApiUsersUpdateAdministratorPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
         const queryParameters: any = {};
 
@@ -304,6 +382,36 @@ export class UsersApi extends runtime.BaseAPI implements UsersApiInterface {
      */
     async apiUsersUpdateAdministratorPut(requestParameters: ApiUsersUpdateAdministratorPutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiUsersUpdateAdministratorPutRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiUsersUpdateUserRolesPutRaw(requestParameters: ApiUsersUpdateUserRolesPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Users/update-user-roles`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateUserRolesRequestToJSON(requestParameters['updateUserRolesRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiUsersUpdateUserRolesPut(requestParameters: ApiUsersUpdateUserRolesPutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiUsersUpdateUserRolesPutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

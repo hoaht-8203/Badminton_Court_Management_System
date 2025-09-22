@@ -17,115 +17,58 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
     private readonly IMapper _mapper = mapper;
     private readonly ICurrentUser _currentUser = currentUser;
 
-    private string GetCurrentUsername()
-    {
-        return _currentUser.Username ?? "System";
-    }
-
     public async Task<List<ListCustomerResponse>> ListCustomersAsync(ListCustomerRequest request)
     {
         var query = _context.Customers.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.FullName))
         {
-            var names = request
-                .FullName.Split(
-                    ',',
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-                )
-                .Select(x => x.ToLower())
-                .ToArray();
-            query = query.Where(c => names.Any(n => c.FullName.ToLower().Contains(n)));
+            var name = request.FullName.ToLower();
+            query = query.Where(c => c.FullName.ToLower().Contains(name));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Phone))
         {
-            var phones = request
-                .Phone.Split(
-                    ',',
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-                )
-                .ToArray();
-            query = query.Where(c => phones.Any(p => c.PhoneNumber.Contains(p)));
+            var phone = request.Phone;
+            query = query.Where(c => c.PhoneNumber.Contains(phone));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Gender))
         {
-            var genders = request
-                .Gender.Split(
-                    ',',
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-                )
-                .Select(x => x.ToLower())
-                .ToArray();
-            query = query.Where(c => c.Gender != null && genders.Contains(c.Gender.ToLower()));
+            var gender = request.Gender.ToLower();
+            query = query.Where(c => c.Gender != null && c.Gender.ToLower() == gender);
         }
 
         if (!string.IsNullOrWhiteSpace(request.City))
         {
-            var cities = request
-                .City.Split(
-                    ',',
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-                )
-                .Select(x => x.ToLower())
-                .ToArray();
-            query = query.Where(c =>
-                c.City != null && cities.Any(ct => c.City!.ToLower().Contains(ct))
-            );
+            var city = request.City.ToLower();
+            query = query.Where(c => c.City != null && c.City!.ToLower().Contains(city));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Address))
         {
-            var addresses = request
-                .Address.Split(
-                    ',',
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-                )
-                .Select(x => x.ToLower())
-                .ToArray();
-            query = query.Where(c =>
-                c.Address != null && addresses.Any(a => c.Address!.ToLower().Contains(a))
-            );
+            var address = request.Address.ToLower();
+            query = query.Where(c => c.Address != null && c.Address!.ToLower().Contains(address));
         }
 
         if (!string.IsNullOrWhiteSpace(request.District))
         {
-            var districts = request
-                .District.Split(
-                    ',',
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-                )
-                .Select(x => x.ToLower())
-                .ToArray();
+            var district = request.District.ToLower();
             query = query.Where(c =>
-                c.District != null && districts.Any(d => c.District!.ToLower().Contains(d))
+                c.District != null && c.District!.ToLower().Contains(district)
             );
         }
 
         if (!string.IsNullOrWhiteSpace(request.Ward))
         {
-            var wards = request
-                .Ward.Split(
-                    ',',
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-                )
-                .Select(x => x.ToLower())
-                .ToArray();
-            query = query.Where(c =>
-                c.Ward != null && wards.Any(w => c.Ward!.ToLower().Contains(w))
-            );
+            var ward = request.Ward.ToLower();
+            query = query.Where(c => c.Ward != null && c.Ward!.ToLower().Contains(ward));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Status))
         {
-            var statuses = request
-                .Status.Split(
-                    ',',
-                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
-                )
-                .ToArray();
-            query = query.Where(c => statuses.Contains(c.Status));
+            var status = request.Status;
+            query = query.Where(c => c.Status == status);
         }
 
         query = query.OrderByDescending(c => c.CreatedAt);
@@ -159,8 +102,6 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
 
         var customer = _mapper.Map<Customer>(request);
         customer.Status = CustomerStatus.Active;
-        customer.CreatedAt = DateTime.UtcNow;
-        customer.CreatedBy = GetCurrentUsername();
 
         _context.Customers.Add(customer);
         await _context.SaveChangesAsync();
@@ -210,9 +151,6 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         if (request.AvatarUrl != null && string.IsNullOrEmpty(request.AvatarUrl))
             customer.AvatarUrl = null;
 
-        customer.UpdatedAt = DateTime.UtcNow;
-        customer.UpdatedBy = GetCurrentUsername();
-
         await _context.SaveChangesAsync();
 
         return _mapper.Map<DetailCustomerResponse>(customer);
@@ -228,8 +166,6 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         }
 
         customer.Status = CustomerStatus.Deleted;
-        customer.UpdatedAt = DateTime.UtcNow;
-        customer.UpdatedBy = GetCurrentUsername();
         await _context.SaveChangesAsync();
 
         return true;
@@ -255,8 +191,6 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         }
 
         customer.Status = request.Status;
-        customer.UpdatedAt = DateTime.UtcNow;
-        customer.UpdatedBy = GetCurrentUsername();
 
         await _context.SaveChangesAsync();
 

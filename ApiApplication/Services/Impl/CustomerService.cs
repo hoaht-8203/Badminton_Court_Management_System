@@ -17,19 +17,61 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
     private readonly IMapper _mapper = mapper;
     private readonly ICurrentUser _currentUser = currentUser;
 
-    private string GetCurrentUsername()
-    {
-        return _currentUser.Username ?? "System";
-    }
-
     public async Task<List<ListCustomerResponse>> ListCustomersAsync(ListCustomerRequest request)
     {
         var query = _context.Customers.AsQueryable();
 
-        if (!string.IsNullOrEmpty(request.FullName))
+        if (!string.IsNullOrWhiteSpace(request.FullName))
         {
-            query = query.Where(c => c.FullName.Contains(request.FullName));
+            var name = request.FullName.ToLower();
+            query = query.Where(c => c.FullName.ToLower().Contains(name));
         }
+
+        if (!string.IsNullOrWhiteSpace(request.Phone))
+        {
+            var phone = request.Phone;
+            query = query.Where(c => c.PhoneNumber.Contains(phone));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Gender))
+        {
+            var gender = request.Gender.ToLower();
+            query = query.Where(c => c.Gender != null && c.Gender.ToLower() == gender);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.City))
+        {
+            var city = request.City.ToLower();
+            query = query.Where(c => c.City != null && c.City!.ToLower().Contains(city));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Address))
+        {
+            var address = request.Address.ToLower();
+            query = query.Where(c => c.Address != null && c.Address!.ToLower().Contains(address));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.District))
+        {
+            var district = request.District.ToLower();
+            query = query.Where(c =>
+                c.District != null && c.District!.ToLower().Contains(district)
+            );
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Ward))
+        {
+            var ward = request.Ward.ToLower();
+            query = query.Where(c => c.Ward != null && c.Ward!.ToLower().Contains(ward));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Status))
+        {
+            var status = request.Status;
+            query = query.Where(c => c.Status == status);
+        }
+
+        query = query.OrderByDescending(c => c.CreatedAt);
 
         var customers = await query.ToListAsync();
         return _mapper.Map<List<ListCustomerResponse>>(customers);
@@ -60,8 +102,6 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
 
         var customer = _mapper.Map<Customer>(request);
         customer.Status = CustomerStatus.Active;
-        customer.CreatedAt = DateTime.UtcNow;
-        customer.CreatedBy = GetCurrentUsername();
 
         _context.Customers.Add(customer);
         await _context.SaveChangesAsync();
@@ -108,9 +148,8 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
             customer.IDCard = null;
         if (request.Note != null && string.IsNullOrEmpty(request.Note))
             customer.Note = null;
-
-        customer.UpdatedAt = DateTime.UtcNow;
-        customer.UpdatedBy = GetCurrentUsername();
+        if (request.AvatarUrl != null && string.IsNullOrEmpty(request.AvatarUrl))
+            customer.AvatarUrl = null;
 
         await _context.SaveChangesAsync();
 
@@ -127,8 +166,6 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         }
 
         customer.Status = CustomerStatus.Deleted;
-        customer.UpdatedAt = DateTime.UtcNow;
-        customer.UpdatedBy = GetCurrentUsername();
         await _context.SaveChangesAsync();
 
         return true;
@@ -154,8 +191,6 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         }
 
         customer.Status = request.Status;
-        customer.UpdatedAt = DateTime.UtcNow;
-        customer.UpdatedBy = GetCurrentUsername();
 
         await _context.SaveChangesAsync();
 

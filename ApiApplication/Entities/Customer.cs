@@ -19,4 +19,5 @@ public class Customer : BaseEntity, IAuditableEntity
     public string? IDCard { get; set; } // căn cước công dân
     public string? Note { get; set; }
     public required string Status { get; set; } = CustomerStatus.Active;
+    public string? AvatarUrl { get; set; }
 }

@@ -3,6 +3,7 @@ using System;
 using ApiApplication.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250922133911_AddSupplierUpdate")]
+    partial class AddSupplierUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -137,7 +140,7 @@ namespace ApiApplication.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEAGpM0imOIHTOTa/YnBRpIth+l9ckAnmjf2znrPJOUQ50AxSXsuRKpc4AKcrCbHCAQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAED5gud4IS3jOPtYSZ6Fwq7G7eeDgTUlyS3r6Bu4RUW3XBhZuCCVU3JyCUVZqGpfbQw==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "a5fd6b0c-f96d-4c6b-b70c-95e8f4ff4423",
                             Status = "Active",
@@ -177,16 +180,18 @@ namespace ApiApplication.Migrations
 
             modelBuilder.Entity("ApiApplication.Entities.Supplier", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("SupplierId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SupplierId"));
 
                     b.Property<string>("Address")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("City")
+                    b.Property<string>("Company")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
@@ -195,14 +200,10 @@ namespace ApiApplication.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<string>("District")
-                        .HasColumnType("text");
+                    b.Property<decimal>("CurrentDebt")
+                        .HasColumnType("numeric");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -217,47 +218,67 @@ namespace ApiApplication.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("SupplierGroup")
+                        .HasColumnType("text");
+
+                    b.Property<string>("SupplierName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("TotalPurchase")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("TotalPurchaseAfterReturn")
+                        .HasColumnType("numeric");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
-                    b.Property<string>("Ward")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
+                    b.HasKey("SupplierId");
 
                     b.ToTable("Suppliers");
 
                     b.HasData(
                         new
                         {
-                            Id = 1,
+                            SupplierId = 1,
                             Address = "Số 10 Nguyễn Trãi, Thanh Xuân, Hà Nội",
-                            City = "",
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
-                            District = "",
+                            Company = "An Phát Sports",
+                            CreatedAt = new DateTime(2025, 9, 22, 13, 39, 9, 912, DateTimeKind.Utc).AddTicks(9967),
+                            CreatedBy = "System",
+                            CurrentDebt = 1500000m,
                             Email = "anphat@sports.com",
-                            Name = "Công ty TNHH Thiết Bị Thể Thao An Phát",
                             Notes = "Nhà cung cấp chính thức vợt cầu lông và bóng đá",
                             Phone = "0901234567",
                             Status = "Active",
-                            Ward = ""
+                            SupplierGroup = "Thiết bị thể thao",
+                            SupplierName = "Công ty TNHH Thiết Bị Thể Thao An Phát",
+                            TotalPurchase = 50000000m,
+                            TotalPurchaseAfterReturn = 48000000m,
+                            UpdatedAt = new DateTime(2025, 9, 22, 13, 39, 9, 912, DateTimeKind.Utc).AddTicks(9970),
+                            UpdatedBy = "System"
                         },
                         new
                         {
-                            Id = 2,
+                            SupplierId = 2,
                             Address = "Số 25 Lê Lợi, Quận 1, TP. Hồ Chí Minh",
-                            City = "",
-                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
-                            District = "",
+                            Company = "Vietnam Sports JSC",
+                            CreatedAt = new DateTime(2025, 9, 22, 13, 39, 9, 912, DateTimeKind.Utc).AddTicks(9983),
+                            CreatedBy = "System",
+                            CurrentDebt = 0m,
                             Email = "contact@vietnamsports.vn",
-                            Name = "Công ty CP Dụng Cụ Thể Thao Việt Nam",
                             Notes = "Cung cấp bóng chuyền và thiết bị tập gym",
                             Phone = "0987654321",
                             Status = "Active",
-                            Ward = ""
+                            SupplierGroup = "Dụng cụ thể thao",
+                            SupplierName = "Công ty CP Dụng Cụ Thể Thao Việt Nam",
+                            TotalPurchase = 30000000m,
+                            TotalPurchaseAfterReturn = 30000000m,
+                            UpdatedAt = new DateTime(2025, 9, 22, 13, 39, 9, 912, DateTimeKind.Utc).AddTicks(9984),
+                            UpdatedBy = "System"
                         });
                 });
 

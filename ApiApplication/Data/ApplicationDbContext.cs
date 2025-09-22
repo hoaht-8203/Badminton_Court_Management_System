@@ -18,6 +18,7 @@ public class ApplicationDbContext(
 
     public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     public DbSet<ApplicationUserToken> ApplicationUserTokens { get; set; }
+    public DbSet<Supplier> Suppliers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -44,6 +45,7 @@ public class ApplicationDbContext(
             );
 
         SeedAdministratorUser(builder);
+        SeedSupplierData(builder);
     }
 
     private static void SeedAdministratorUser(ModelBuilder builder)
@@ -81,6 +83,52 @@ public class ApplicationDbContext(
                 {
                     RoleId = IdentityRoleConstants.AdminRoleGuid, // Admin role
                     UserId = new("ba8008d3-6f25-4ca3-be62-21c2af0e4f97"),
+                }
+            );
+    }
+
+    private static void SeedSupplierData(ModelBuilder builder)
+    {
+        builder
+            .Entity<Supplier>()
+            .HasData(
+                new Supplier
+                {
+                    Id = 1,
+                    Name = "Công ty TNHH Thiết Bị Thể Thao An Phát",
+                    Phone = "0901234567",
+                    Email = "anphat@sports.com",
+                    Address = "Số 10 Nguyễn Trãi, Thanh Xuân, Hà Nội",
+                    City = "",
+                    District = "",
+                    Ward = "",
+                    Notes = "Nhà cung cấp chính thức vợt cầu lông và bóng đá",
+                    Status = "Active",
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
+                    CreatedBy = null,
+                    UpdatedAt = null,
+                    UpdatedBy = null,
+                },
+                new Supplier
+                {
+                    Id = 2,
+                    Name = "Công ty CP Dụng Cụ Thể Thao Việt Nam",
+                    Phone = "0987654321",
+                    Email = "contact@vietnamsports.vn",
+                    Address = "Số 25 Lê Lợi, Quận 1, TP. Hồ Chí Minh",
+                    City = "",
+                    District = "",
+                    Ward = "",
+                    Notes = "Cung cấp bóng chuyền và thiết bị tập gym",
+                    Status = "Active",
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
+                    CreatedBy = null,
+                    UpdatedAt = null,
+                    UpdatedBy = null,
                 }
             );
     }

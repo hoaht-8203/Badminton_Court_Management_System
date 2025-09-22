@@ -2,7 +2,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { authService } from "@/services/authService";
 import { ApiResponse } from "@/types/api";
 import { ApiError } from "@/lib/axios";
-import { MyProfileResponse, UpdateMyProfileRequest, UpdatePasswordRequest } from "@/types-openapi/api";
+import {
+  ForgotPasswordRequest,
+  MyProfileResponse,
+  UpdateMyProfileRequest,
+  UpdatePasswordRequest,
+  ValidateForgotPasswordRequest,
+} from "@/types-openapi/api";
 
 export const profileKeys = {
   all: ["profile"] as const,
@@ -31,5 +37,17 @@ export const useUpdateMyProfile = () => {
 export const useUpdatePassword = () => {
   return useMutation<ApiResponse<null>, ApiError, UpdatePasswordRequest>({
     mutationFn: (payload) => authService.updatePassword(payload),
+  });
+};
+
+export const useForgotPassword = () => {
+  return useMutation<ApiResponse<null>, ApiError, ForgotPasswordRequest>({
+    mutationFn: (payload) => authService.forgotPassword(payload),
+  });
+};
+
+export const useValidateForgotPassword = () => {
+  return useMutation<ApiResponse<null>, ApiError, ValidateForgotPasswordRequest>({
+    mutationFn: (payload) => authService.validateForgotPassword(payload),
   });
 };

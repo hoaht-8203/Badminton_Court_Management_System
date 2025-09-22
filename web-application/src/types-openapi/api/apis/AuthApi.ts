@@ -16,15 +16,19 @@
 import * as runtime from '../runtime';
 import type {
   CurrentUserResponseApiResponse,
+  ForgotPasswordRequest,
   LoginRequest,
   MyProfileResponseApiResponse,
   ObjectApiResponse,
   UpdateMyProfileRequest,
   UpdatePasswordRequest,
+  ValidateForgotPasswordRequest,
 } from '../models/index';
 import {
     CurrentUserResponseApiResponseFromJSON,
     CurrentUserResponseApiResponseToJSON,
+    ForgotPasswordRequestFromJSON,
+    ForgotPasswordRequestToJSON,
     LoginRequestFromJSON,
     LoginRequestToJSON,
     MyProfileResponseApiResponseFromJSON,
@@ -35,7 +39,13 @@ import {
     UpdateMyProfileRequestToJSON,
     UpdatePasswordRequestFromJSON,
     UpdatePasswordRequestToJSON,
+    ValidateForgotPasswordRequestFromJSON,
+    ValidateForgotPasswordRequestToJSON,
 } from '../models/index';
+
+export interface ApiAuthForgotPasswordPostRequest {
+    forgotPasswordRequest?: ForgotPasswordRequest;
+}
 
 export interface ApiAuthLoginPostRequest {
     loginRequest?: LoginRequest;
@@ -49,6 +59,10 @@ export interface ApiAuthUpdatePasswordPutRequest {
     updatePasswordRequest?: UpdatePasswordRequest;
 }
 
+export interface ApiAuthValidateForgotPasswordPostRequest {
+    validateForgotPasswordRequest?: ValidateForgotPasswordRequest;
+}
+
 /**
  * AuthApi - interface
  * 
@@ -56,6 +70,19 @@ export interface ApiAuthUpdatePasswordPutRequest {
  * @interface AuthApiInterface
  */
 export interface AuthApiInterface {
+    /**
+     * 
+     * @param {ForgotPasswordRequest} [forgotPasswordRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApiInterface
+     */
+    apiAuthForgotPasswordPostRaw(requestParameters: ApiAuthForgotPasswordPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiAuthForgotPasswordPost(requestParameters: ApiAuthForgotPasswordPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
     /**
      * 
      * @param {LoginRequest} [loginRequest] 
@@ -143,12 +170,55 @@ export interface AuthApiInterface {
      */
     apiAuthUpdatePasswordPut(requestParameters: ApiAuthUpdatePasswordPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
+    /**
+     * 
+     * @param {ValidateForgotPasswordRequest} [validateForgotPasswordRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApiInterface
+     */
+    apiAuthValidateForgotPasswordPostRaw(requestParameters: ApiAuthValidateForgotPasswordPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiAuthValidateForgotPasswordPost(requestParameters: ApiAuthValidateForgotPasswordPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
 }
 
 /**
  * 
  */
 export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
+
+    /**
+     */
+    async apiAuthForgotPasswordPostRaw(requestParameters: ApiAuthForgotPasswordPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Auth/forgot-password`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ForgotPasswordRequestToJSON(requestParameters['forgotPasswordRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAuthForgotPasswordPost(requestParameters: ApiAuthForgotPasswordPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiAuthForgotPasswordPostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      */
@@ -345,6 +415,36 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
      */
     async apiAuthUpdatePasswordPut(requestParameters: ApiAuthUpdatePasswordPutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiAuthUpdatePasswordPutRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiAuthValidateForgotPasswordPostRaw(requestParameters: ApiAuthValidateForgotPasswordPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Auth/validate-forgot-password`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ValidateForgotPasswordRequestToJSON(requestParameters['validateForgotPasswordRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAuthValidateForgotPasswordPost(requestParameters: ApiAuthValidateForgotPasswordPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiAuthValidateForgotPasswordPostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

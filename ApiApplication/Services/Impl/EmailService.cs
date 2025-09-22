@@ -228,4 +228,42 @@ public class EmailService : IEmailService
 
         return message;
     }
+
+    public async Task<EmailResponse> SendForgotPasswordEmailAsync(
+        SendForgotPasswordEmailAsyncRequest request
+    )
+    {
+        var templateRequest = new EmailTemplateRequest
+        {
+            To = request.To,
+            ToName = request.ToName,
+            TemplateType = EmailTemplateType.ForgotPassword,
+            TemplateData = new Dictionary<string, string>
+            {
+                { "FullName", request.FullName },
+                { "Token", request.Token },
+            },
+        };
+
+        return await SendTemplateEmailAsync(templateRequest);
+    }
+
+    public async Task<EmailResponse> SendNewPasswordEmailAsync(
+        SendNewPasswordEmailAsyncRequest request
+    )
+    {
+        var templateRequest = new EmailTemplateRequest
+        {
+            To = request.To,
+            ToName = request.ToName,
+            TemplateType = EmailTemplateType.NewPassword,
+            TemplateData = new Dictionary<string, string>
+            {
+                { "FullName", request.FullName },
+                { "NewPassword", request.NewPassword },
+            },
+        };
+
+        return await SendTemplateEmailAsync(templateRequest);
+    }
 }

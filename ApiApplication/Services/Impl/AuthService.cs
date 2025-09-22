@@ -7,11 +7,11 @@ using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Enums;
 using ApiApplication.Exceptions;
+using ApiApplication.Extensions;
 using ApiApplication.Helpers;
 using ApiApplication.Processors;
-using ApiApplication.Sessions;
+using ApiApplication.Template;
 using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +23,8 @@ public class AuthService(
     ApplicationDbContext context,
     IMapper mapper,
     IHttpContextAccessor httpContextAccessor,
-    ICurrentUser currentUser
+    IEmailService emailService,
+    ILogger<AuthService> logger
 ) : IAuthService
 {
     private readonly IAuthTokenProcessor _authTokenProcessor = authTokenProcessor;
@@ -31,7 +32,94 @@ public class AuthService(
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-    private readonly ICurrentUser _currentUser = currentUser;
+    private readonly IEmailService _emailService = emailService;
+    private readonly ILogger<AuthService> _logger = logger;
+
+    public async Task ForgotPasswordAsync(ForgotPasswordRequest forgotPasswordRequest)
+    {
+        var user =
+            await _userManager.FindByEmailAsync(forgotPasswordRequest.Email)
+            ?? throw new ApiException("Email không tồn tại", HttpStatusCode.BadRequest);
+
+        var otp = new Random().Next(100000, 999999).ToString();
+
+        _context.ApplicationUserTokens.Add(
+            new ApplicationUserToken
+            {
+                UserId = user.Id,
+                Token = otp,
+                TokenType = TokenType.ResetPassword,
+                ExpiresAtUtc = DateTime.UtcNow.AddMinutes(10),
+            }
+        );
+
+        await _context.SaveChangesAsync();
+
+        _emailService.SendEmailFireAndForget(
+            () =>
+                _emailService.SendForgotPasswordEmailAsync(
+                    new SendForgotPasswordEmailAsyncRequest
+                    {
+                        To = user.Email!,
+                        ToName = user.FullName,
+                        FullName = user.FullName,
+                        Token = otp,
+                    }
+                ),
+            _logger,
+            user.Email!
+        );
+    }
+
+    public async Task ValidateForgotPasswordAsync(ValidateForgotPasswordRequest request)
+    {
+        var user =
+            await _userManager.FindByEmailAsync(request.Email!)
+            ?? throw new ApiException("Email không tồn tại", HttpStatusCode.BadRequest);
+
+        var userToken =
+            await _context.ApplicationUserTokens.FirstOrDefaultAsync(x =>
+                x.UserId == user.Id
+                && x.Token == request.Token
+                && x.TokenType == TokenType.ResetPassword
+            ) ?? throw new ApiException("Mã OTP không hợp lệ", HttpStatusCode.BadRequest);
+
+        if (userToken.ExpiresAtUtc < DateTime.UtcNow)
+        {
+            throw new ApiException("Mã OTP đã hết hạn", HttpStatusCode.BadRequest);
+        }
+
+        _context.ApplicationUserTokens.Remove(userToken);
+
+        var newPassword = Guid.NewGuid().ToString()[..8];
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var resetResult = await _userManager.ResetPasswordAsync(user, token, newPassword);
+
+        if (!resetResult.Succeeded)
+        {
+            throw new ApiException("Đặt lại mật khẩu thất bại", HttpStatusCode.BadRequest);
+        }
+
+        await _userManager.UpdateSecurityStampAsync(user);
+
+        await _context.SaveChangesAsync();
+
+        _emailService.SendEmailFireAndForget(
+            () =>
+                _emailService.SendNewPasswordEmailAsync(
+                    new SendNewPasswordEmailAsyncRequest
+                    {
+                        To = user.Email!,
+                        ToName = user.FullName,
+                        FullName = user.FullName,
+                        NewPassword = newPassword,
+                    }
+                ),
+            _logger,
+            user.Email!
+        );
+    }
 
     public async Task<CurrentUserResponse> GetCurrentUserAsync()
     {

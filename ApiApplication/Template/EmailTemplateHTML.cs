@@ -71,6 +71,16 @@ public class EmailTemplateHTML
                 Subject = "Chào mừng bạn đến với Hệ thống Quản lý Sân Cầu Lông",
                 TemplatePath = "WelcomeTemplate.html",
             },
+            EmailTemplateType.ForgotPassword => new EmailTemplate
+            {
+                Subject = "Đặt lại mật khẩu",
+                TemplatePath = "ForgotPasswordTemplate.html",
+            },
+            EmailTemplateType.NewPassword => new EmailTemplate
+            {
+                Subject = "Mật khẩu mới",
+                TemplatePath = "NewPasswordTemplate.html",
+            },
             _ => throw new NotImplementedException(
                 $"Template type {templateType} is not implemented"
             ),

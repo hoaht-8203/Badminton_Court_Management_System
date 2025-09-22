@@ -80,5 +80,25 @@ namespace ApiApplication.Controllers
             await _authService.UpdatePasswordAsync(updatePasswordRequest, refreshToken);
             return Ok(ApiResponse<object?>.SuccessResponse(null, "Update password successfully"));
         }
+
+        [HttpPost("forgot-password")]
+        public async Task<ActionResult<ApiResponse<object?>>> ForgotPassword(
+            ForgotPasswordRequest forgotPasswordRequest
+        )
+        {
+            await _authService.ForgotPasswordAsync(forgotPasswordRequest);
+            return Ok(ApiResponse<object?>.SuccessResponse(null, "Forgot password successfully"));
+        }
+
+        [HttpPost("validate-forgot-password")]
+        public async Task<ActionResult<ApiResponse<object?>>> ValidateForgotPassword(
+            ValidateForgotPasswordRequest validateForgotPasswordRequest
+        )
+        {
+            await _authService.ValidateForgotPasswordAsync(validateForgotPasswordRequest);
+            return Ok(
+                ApiResponse<object?>.SuccessResponse(null, "Validate forgot password successfully")
+            );
+        }
     }
 }

@@ -1,6 +1,14 @@
 import { axiosInstance } from "@/lib/axios";
 import { ApiResponse } from "@/types/api";
-import { CurrentUserResponse, LoginRequest, MyProfileResponse, UpdateMyProfileRequest, UpdatePasswordRequest } from "@/types-openapi/api";
+import {
+  CurrentUserResponse,
+  ForgotPasswordRequest,
+  LoginRequest,
+  MyProfileResponse,
+  UpdateMyProfileRequest,
+  UpdatePasswordRequest,
+  ValidateForgotPasswordRequest,
+} from "@/types-openapi/api";
 
 export const authService = {
   async login(payload: LoginRequest): Promise<ApiResponse<CurrentUserResponse>> {
@@ -29,6 +37,14 @@ export const authService = {
   },
   async updatePassword(payload: UpdatePasswordRequest): Promise<ApiResponse<null>> {
     const res = await axiosInstance.put<ApiResponse<null>>("/api/auth/update-password", payload);
+    return res.data;
+  },
+  async forgotPassword(payload: ForgotPasswordRequest): Promise<ApiResponse<null>> {
+    const res = await axiosInstance.post<ApiResponse<null>>("/api/auth/forgot-password", payload);
+    return res.data;
+  },
+  async validateForgotPassword(payload: ValidateForgotPasswordRequest): Promise<ApiResponse<null>> {
+    const res = await axiosInstance.post<ApiResponse<null>>("/api/auth/validate-forgot-password", payload);
     return res.data;
   },
 };

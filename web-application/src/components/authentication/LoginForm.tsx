@@ -9,12 +9,15 @@ import FormItem from "antd/es/form/FormItem";
 import type { NamePath } from "antd/es/form/interface";
 import { useRouter } from "next/navigation";
 import React from "react";
+import ForgotPasswordForm from "./ForgotPasswordForm";
 
 const LoginForm = () => {
   const [form] = Form.useForm<LoginRequest>();
   const [submitting, setSubmitting] = React.useState(false);
   const { refresh, login } = useAuth();
   const router = useRouter();
+
+  const [showForgotPasswordForm, setShowForgotPasswordForm] = React.useState(false);
 
   const onFinish = async (values: LoginRequest) => {
     try {
@@ -61,7 +64,9 @@ const LoginForm = () => {
           </FormItem>
           <FormItem>
             <div className="text-right">
-              <a href="#">Quên mật khẩu?</a>
+              <Button variant="link" onClick={() => setShowForgotPasswordForm(true)}>
+                Quên mật khẩu?
+              </Button>
             </div>
           </FormItem>
           <div>
@@ -71,6 +76,7 @@ const LoginForm = () => {
           </div>
         </Form>
       </Card>
+      <div className="mt-4">{showForgotPasswordForm && <ForgotPasswordForm onResetPasswordSuccess={() => setShowForgotPasswordForm(false)} />}</div>
     </div>
   );
 };

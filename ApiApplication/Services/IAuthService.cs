@@ -16,4 +16,8 @@ public interface IAuthService
         UpdatePasswordRequest updatePasswordRequest,
         string? refreshToken
     );
+    public Task ForgotPasswordAsync(ForgotPasswordRequest forgotPasswordRequest);
+    public Task ValidateForgotPasswordAsync(
+        ValidateForgotPasswordRequest validateForgotPasswordRequest
+    );
 }

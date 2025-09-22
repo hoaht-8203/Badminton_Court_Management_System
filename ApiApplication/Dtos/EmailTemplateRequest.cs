@@ -14,4 +14,6 @@ public class EmailTemplateRequest
 public enum EmailTemplateType
 {
     Welcome,
+    ForgotPassword,
+    NewPassword,
 }

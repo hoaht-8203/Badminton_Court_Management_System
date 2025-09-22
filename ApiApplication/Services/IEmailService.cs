@@ -13,5 +13,9 @@ public interface IEmailService
 
     Task<EmailResponse> SendWelcomeEmailAsync(SendWelcomeEmailAsyncRequest request);
 
+    Task<EmailResponse> SendForgotPasswordEmailAsync(SendForgotPasswordEmailAsyncRequest request);
+
+    Task<EmailResponse> SendNewPasswordEmailAsync(SendNewPasswordEmailAsyncRequest request);
+
     Task<EmailResponse> TestEmailConfigurationAsync();
 }

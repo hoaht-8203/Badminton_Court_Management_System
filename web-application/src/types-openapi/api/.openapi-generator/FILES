@@ -37,6 +37,7 @@ models/EmailResponse.ts
 models/EmailResponseApiResponse.ts
 models/EmailTemplateRequest.ts
 models/EmailTemplateType.ts
+models/ForgotPasswordRequest.ts
 models/ListActivityRequest.ts
 models/ListActivityResponse.ts
 models/ListActivityResponseListApiResponse.ts
@@ -59,5 +60,6 @@ models/UpdateMyProfileRequest.ts
 models/UpdatePasswordRequest.ts
 models/UpdateRoleRequest.ts
 models/UpdateUserRequest.ts
+models/ValidateForgotPasswordRequest.ts
 models/index.ts
 runtime.ts

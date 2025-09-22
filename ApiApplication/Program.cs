@@ -57,11 +57,11 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<IActivityHelperService, ActivityHelperService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
-
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IShiftService, ShiftService>();
 builder.Services.AddScoped<ISalaryFormService, SalaryFormService>();
+builder.Services.AddScoped<ISupplierService, SupplierService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -69,10 +69,12 @@ builder.Services.AddAutoMapper(config => config.AddProfile<AuthMappingProfile>()
 builder.Services.AddAutoMapper(config => config.AddProfile<ActivityMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<CustomerMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<ScheduleMappingProfile>());
-
 builder.Services.AddAutoMapper(config => config.AddProfile<StaffMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<SalaryFormMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<ShiftMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<SupplierMappingProfile>());
 
 builder
     .Services.AddAuthentication(opt =>

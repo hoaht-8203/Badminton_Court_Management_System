@@ -5,7 +5,7 @@ import { useDetailAdministrator, useUpdateAdministrator } from "@/hooks/useUsers
 import { ApiError } from "@/lib/axios";
 import { UpdateUserRequest } from "@/types-openapi/api";
 import { CloseOutlined, SaveOutlined } from "@ant-design/icons";
-import { Button, Col, DatePicker, Drawer, Form, Input, Row, Select, Space, message } from "antd";
+import { Button, Col, DatePicker, Drawer, Form, FormProps, Input, Row, Select, Space, message } from "antd";
 import FormItem from "antd/es/form/FormItem";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -59,23 +59,11 @@ const UpdateUserDrawer = ({ open, onClose, userId }: UpdateUserDrawerProps) => {
     }
   }, [open, userId, refetch]);
 
-  const handleSubmit = async () => {
-    const values = await form.validateFields();
-
+  const handleSubmit: FormProps<UpdateUserRequest>["onFinish"] = async (values) => {
     const payload: UpdateUserRequest = {
+      ...values,
       userId,
-      userName: values.userName ?? null,
-      fullName: values.fullName ?? null,
-      email: values.email ?? null,
-      password: values.password ?? null,
-      phoneNumber: values.phoneNumber ?? null,
-      role: values.role ?? null,
-      address: values.address ?? undefined,
-      city: values.city ?? undefined,
-      district: values.district ?? undefined,
-      ward: values.ward ?? undefined,
       dateOfBirth: values.dateOfBirth ? dayjs(values.dateOfBirth).utc(true).toDate() : undefined,
-      note: values.note ?? undefined,
     };
 
     updateMutation.mutate(payload, {
@@ -85,10 +73,7 @@ const UpdateUserDrawer = ({ open, onClose, userId }: UpdateUserDrawerProps) => {
         onClose();
       },
       onError: (error: ApiError) => {
-        for (const key in error.errors) {
-          message.error(error.errors[key]);
-          form.setFields([{ name: key, errors: [error.errors[key]] }]);
-        }
+        message.error(error.message);
       },
     });
   };
@@ -114,13 +99,13 @@ const UpdateUserDrawer = ({ open, onClose, userId }: UpdateUserDrawerProps) => {
           >
             Hủy
           </Button>
-          <Button onClick={handleSubmit} type="primary" icon={<SaveOutlined />} loading={updateMutation.isPending} disabled={loadingDetail}>
+          <Button type="primary" icon={<SaveOutlined />} loading={updateMutation.isPending} disabled={loadingDetail} onClick={() => form.submit()}>
             Lưu thay đổi
           </Button>
         </Space>
       }
     >
-      <Form form={form} layout="vertical">
+      <Form form={form} onFinish={handleSubmit} layout="vertical">
         <Row gutter={16}>
           <Col span={12}>
             <FormItem<UpdateUserRequest> name="userName" label="Tên người dùng" rules={[{ required: true, message: "Tên người dùng là bắt buộc" }]}>

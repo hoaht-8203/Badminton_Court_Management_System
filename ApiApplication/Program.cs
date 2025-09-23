@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Minio;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,6 +63,7 @@ builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IShiftService, ShiftService>();
 builder.Services.AddScoped<ISalaryFormService, SalaryFormService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<IStorageService, MinioStorageService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -75,6 +77,23 @@ builder.Services.AddAutoMapper(config => config.AddProfile<ShiftMappingProfile>(
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<SupplierMappingProfile>());
+builder.Services.Configure<MinioOptions>(
+    builder.Configuration.GetSection(MinioOptions.MinioOptionsKey)
+);
+
+// MinIO client
+builder.Services.AddSingleton<IMinioClient>(sp =>
+{
+    var opts = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<MinioOptions>>().Value;
+    var client = new MinioClient()
+        .WithEndpoint(opts.Endpoint, opts.Port)
+        .WithCredentials(opts.AccessKey, opts.SecretKey);
+    if (opts.UseSSL)
+    {
+        client = client.WithSSL();
+    }
+    return client.Build();
+});
 
 builder
     .Services.AddAuthentication(opt =>

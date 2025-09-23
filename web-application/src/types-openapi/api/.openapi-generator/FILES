@@ -2,6 +2,7 @@ apis/ActivityApi.ts
 apis/AuthApi.ts
 apis/CustomersApi.ts
 apis/EmailApi.ts
+apis/FilesApi.ts
 apis/RolesApi.ts
 apis/SalaryFormApi.ts
 apis/ScheduleApi.ts
@@ -17,6 +18,7 @@ models/ApplicationUserToken.ts
 models/BaseEntity.ts
 models/BooleanApiResponse.ts
 models/Branch.ts
+models/CancellationToken.ts
 models/CancelledShift.ts
 models/ChangeCustomerStatusRequest.ts
 models/ChangeSupplierStatusRequest.ts
@@ -31,6 +33,7 @@ models/CurrentUserResponseApiResponse.ts
 models/Customer.ts
 models/DayOfWeek.ts
 models/DeleteCustomerRequest.ts
+models/DeleteFileRequest.ts
 models/DeleteRoleRequest.ts
 models/DeleteSupplierRequest.ts
 models/Department.ts
@@ -78,6 +81,7 @@ models/ObjectApiResponse.ts
 models/Payroll.ts
 models/PayrollItem.ts
 models/RegisterRequest.ts
+models/SafeWaitHandle.ts
 models/SalaryForm.ts
 models/SalaryFormRequest.ts
 models/SalaryFormResponse.ts
@@ -111,6 +115,10 @@ models/UpdateRoleRequest.ts
 models/UpdateSupplierRequest.ts
 models/UpdateUserRequest.ts
 models/UpdateUserRolesRequest.ts
+models/UploadFileRequest.ts
+models/UploadFileResponse.ts
+models/UploadFileResponseApiResponse.ts
 models/ValidateForgotPasswordRequest.ts
+models/WaitHandle.ts
 models/index.ts
 runtime.ts

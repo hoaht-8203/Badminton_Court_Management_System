@@ -3,7 +3,7 @@
 import { ListCustomerResponse } from "@/types-openapi/api";
 import { CustomerStatus } from "@/types/commons";
 import { UserOutlined } from "@ant-design/icons";
-import { TableProps } from "antd";
+import { TableProps, Avatar } from "antd";
 import dayjs from "dayjs";
 
 export const columns: TableProps<ListCustomerResponse>["columns"] = [
@@ -20,9 +20,9 @@ export const columns: TableProps<ListCustomerResponse>["columns"] = [
     key: "fullName",
     width: 200,
     fixed: "left",
-    render: (_, { fullName }) => (
+    render: (_, { fullName, avatarUrl }) => (
       <div className="flex items-center gap-2">
-        <UserOutlined className="text-blue-500" />
+        <Avatar src={avatarUrl} icon={<UserOutlined />} size={32} className="flex-shrink-0" />
         <span className="font-medium">{fullName || "-"}</span>
       </div>
     ),

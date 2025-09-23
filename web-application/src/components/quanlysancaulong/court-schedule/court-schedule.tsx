@@ -103,12 +103,15 @@ const CourtScheduler = () => {
               text: modal.result,
             });
           }}
+          eventMoveHandling="Update"
           onEventMove={async (args) => {
             console.log("onEventMove", args);
           }}
+          eventResizeHandling="Update"
           onEventResize={async (args) => {
             console.log("onEventResize", args);
           }}
+          eventDeleteHandling="Update"
           onEventDeleted={async (args) => {
             console.log("onEventDeleted", args);
           }}

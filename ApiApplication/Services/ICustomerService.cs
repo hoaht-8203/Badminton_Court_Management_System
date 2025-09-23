@@ -6,7 +6,7 @@ namespace ApiApplication.Services;
 public interface ICustomerService
 {
     Task<List<ListCustomerResponse>> ListCustomersAsync(ListCustomerRequest request);
-    Task<DetailCustomerResponse> GetCustomerByIdAsync(int id);
+    Task<DetailCustomerResponse> GetCustomerByIdAsync(DetailCustomerRequest request);
     Task<DetailCustomerResponse> CreateCustomerAsync(CreateCustomerRequest request);
     Task<DetailCustomerResponse> UpdateCustomerAsync(UpdateCustomerRequest request);
     Task<bool> DeleteCustomerAsync(DeleteCustomerRequest request);

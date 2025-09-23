@@ -1,5 +1,6 @@
 using System.Net;
 using ApiApplication.Data;
+using ApiApplication.Dtos;
 using ApiApplication.Dtos.Customer;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
@@ -77,13 +78,13 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         return _mapper.Map<List<ListCustomerResponse>>(customers);
     }
 
-    public async Task<DetailCustomerResponse> GetCustomerByIdAsync(int id)
+    public async Task<DetailCustomerResponse> GetCustomerByIdAsync(DetailCustomerRequest request)
     {
-        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == id);
+        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == request.Id);
 
         if (customer == null)
         {
-            throw new ArgumentException($"Not found customer with ID: {id}");
+            throw new ArgumentException($"Not found customer with ID: {request.Id}");
         }
 
         return _mapper.Map<DetailCustomerResponse>(customer);

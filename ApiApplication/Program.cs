@@ -62,6 +62,9 @@ builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IShiftService, ShiftService>();
 builder.Services.AddScoped<ISalaryFormService, SalaryFormService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<ICourtService, CourtService>();
+builder.Services.AddScoped<ICourtAreaService, CourtAreaService>();
+builder.Services.AddScoped<IPriceUnitService, PriceUnitService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -75,6 +78,9 @@ builder.Services.AddAutoMapper(config => config.AddProfile<ShiftMappingProfile>(
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<SupplierMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<CourtMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<CourtAreaMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<PriceUnitMappingProfile>());
 
 builder
     .Services.AddAuthentication(opt =>

@@ -16,10 +16,12 @@
   "dependencies": {
     "@ant-design/nextjs-registry": "^1.1.0",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
+    "@daypilot/daypilot-lite-react": "^4.6.0",
     "@openapitools/openapi-generator-cli": "^2.23.3",
     "@tanstack/react-query": "^5.89.0",
     "@tanstack/react-query-devtools": "^5.89.0",
     "antd": "^5.27.4",
+    "daypilot-pro-react": "https://npm.daypilot.org/daypilot-pro-react/trial/2025.3.6646.tar.gz",
     "lucide": "^0.544.0",
     "lucide-react": "^0.544.0",
     "next": "15.5.3",

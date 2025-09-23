@@ -21,6 +21,30 @@ import { mapValues } from '../runtime';
 export interface DetailSupplierResponse {
     /**
      * 
+     * @type {Date}
+     * @memberof DetailSupplierResponse
+     */
+    createdAt?: Date;
+    /**
+     * 
+     * @type {Date}
+     * @memberof DetailSupplierResponse
+     */
+    updatedAt?: Date | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailSupplierResponse
+     */
+    createdBy?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailSupplierResponse
+     */
+    updatedBy?: string | null;
+    /**
+     * 
      * @type {number}
      * @memberof DetailSupplierResponse
      */
@@ -103,6 +127,10 @@ export function DetailSupplierResponseFromJSONTyped(json: any, ignoreDiscriminat
     }
     return {
         
+        'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
+        'updatedAt': json['updatedAt'] == null ? undefined : (new Date(json['updatedAt'])),
+        'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
+        'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
         'id': json['id'],
         'name': json['name'],
         'phone': json['phone'],
@@ -127,6 +155,10 @@ export function DetailSupplierResponseToJSONTyped(value?: DetailSupplierResponse
 
     return {
         
+        'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
+        'updatedAt': value['updatedAt'] === null ? null : ((value['updatedAt'] as any)?.toISOString()),
+        'createdBy': value['createdBy'],
+        'updatedBy': value['updatedBy'],
         'id': value['id'],
         'name': value['name'],
         'phone': value['phone'],

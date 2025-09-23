@@ -18,16 +18,21 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper, ICurr
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
-    private readonly ICurrentUser _currentUser = currentUser;
 
     public async Task<List<ListSupplierResponse>> ListSupplierAsync(ListSupplierRequest request)
     {
-        var query = _context.Suppliers.AsQueryable();
+        var query = _context
+            .Suppliers.Where(s => s.Status != SupplierStatus.Deleted)
+            .OrderByDescending(s => s.CreatedAt)
+            .AsQueryable();
 
         if (!string.IsNullOrEmpty(request.Name))
         {
             var keyword = request.Name.ToLower();
-            query = query.Where(p => p.Name != null && p.Name.ToLower().Contains(keyword));
+            query = query.Where(p =>
+                p.Name != null
+                && p.Name.Contains(keyword, StringComparison.CurrentCultureIgnoreCase)
+            );
         }
 
         if (request.Id.HasValue)
@@ -46,10 +51,8 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper, ICurr
             query = query.Where(p => p.Status != null && p.Status.ToLower().Contains(status));
         }
 
-        var suppliers = await query
-            .OrderByDescending(s => s.CreatedAt)
-            .Where(s => s.Status != SupplierStatus.Deleted)
-            .ToListAsync();
+        var suppliers = await query.ToListAsync();
+
         return _mapper.Map<List<ListSupplierResponse>>(suppliers);
     }
 

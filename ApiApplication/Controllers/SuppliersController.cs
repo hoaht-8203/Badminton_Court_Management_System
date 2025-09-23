@@ -2,7 +2,6 @@ using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiApplication.Controllers
@@ -10,7 +9,7 @@ namespace ApiApplication.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class SupplierController(ISupplierService supplierService) : ControllerBase
+    public class SuppliersController(ISupplierService supplierService) : ControllerBase
     {
         private readonly ISupplierService _supplierService = supplierService;
 

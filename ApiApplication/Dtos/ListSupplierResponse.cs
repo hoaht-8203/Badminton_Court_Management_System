@@ -1,8 +1,9 @@
 using System;
+using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Dtos;
 
-public class ListSupplierResponse
+public class ListSupplierResponse : BaseEntity
 {
     public required int Id { get; set; }
     public required string Name { get; set; }

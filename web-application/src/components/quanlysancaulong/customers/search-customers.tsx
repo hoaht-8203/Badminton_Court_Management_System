@@ -1,6 +1,7 @@
 "use client";
 
 import { ListCustomerRequest } from "@/types-openapi/api";
+import { CustomerStatus } from "@/types/commons";
 import { ReloadOutlined, SearchOutlined } from "@ant-design/icons";
 import { Button, Card, Col, Form, FormProps, Input, Row, Select } from "antd";
 import FormItem from "antd/es/form/FormItem";
@@ -68,6 +69,30 @@ const SearchCustomers = ({ onSearch, onReset }: SearchCustomersProps) => {
                 <Select.Option value="Nam">Nam</Select.Option>
                 <Select.Option value="Nữ">Nữ</Select.Option>
                 <Select.Option value="Khác">Khác</Select.Option>
+              </Select>
+            </FormItem>
+          </Col>
+          <Col span={6}>
+            <FormItem<ListCustomerRequest> label="Tìm kiếm theo thành phố" name="city">
+              <Input placeholder="Nhập thành phố" />
+            </FormItem>
+          </Col>
+          <Col span={6}>
+            <FormItem<ListCustomerRequest> label="Tìm kiếm theo quận/huyện" name="district">
+              <Input placeholder="Nhập quận/huyện" />
+            </FormItem>
+          </Col>
+          <Col span={6}>
+            <FormItem<ListCustomerRequest> label="Tìm kiếm theo phường/xã" name="ward">
+              <Input placeholder="Nhập phường/xã" />
+            </FormItem>
+          </Col>
+          <Col span={6}>
+            <FormItem<ListCustomerRequest> label="Tìm kiếm theo trạng thái" name="status">
+              <Select placeholder="Chọn trạng thái" allowClear>
+                <Select.Option value={""}>Tất cả</Select.Option>
+                <Select.Option value={CustomerStatus.Active}>Hoạt động</Select.Option>
+                <Select.Option value={CustomerStatus.Inactive}>Không hoạt động</Select.Option>
               </Select>
             </FormItem>
           </Col>

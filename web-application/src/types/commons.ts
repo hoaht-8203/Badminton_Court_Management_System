@@ -9,3 +9,9 @@ export const CustomerStatus = {
   Inactive: "Inactive",
   Deleted: "Deleted",
 };
+
+export const SupplierStatus = {
+  Active: "Active",
+  Inactive: "Inactive",
+  Deleted: "Deleted",
+};

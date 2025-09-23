@@ -32,7 +32,7 @@ public class CustomersController(ICustomerService customerService) : ControllerB
         [FromQuery] DetailCustomerRequest request
     )
     {
-        var result = await _customerService.GetCustomerByIdAsync(request.Id);
+        var result = await _customerService.GetCustomerByIdAsync(request);
         return Ok(
             ApiResponse<DetailCustomerResponse>.SuccessResponse(
                 result,

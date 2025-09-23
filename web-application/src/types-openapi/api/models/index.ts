@@ -25,8 +25,6 @@ export * from './DeleteFileRequest';
 export * from './DeleteRoleRequest';
 export * from './DeleteSupplierRequest';
 export * from './Department';
-export * from './DetailAdministratorRequest';
-export * from './DetailAdministratorResponse';
 export * from './DetailAdministratorResponseApiResponse';
 export * from './DetailCustomerRequest';
 export * from './DetailCustomerResponse';

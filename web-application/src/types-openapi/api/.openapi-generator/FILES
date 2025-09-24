@@ -3,6 +3,7 @@ apis/AuthApi.ts
 apis/CustomersApi.ts
 apis/EmailApi.ts
 apis/FilesApi.ts
+apis/ProductsApi.ts
 apis/RolesApi.ts
 apis/SalaryFormApi.ts
 apis/ScheduleApi.ts
@@ -26,6 +27,7 @@ models/ChangeUserStatusRequest.ts
 models/CreateActivityRequest.ts
 models/CreateAdministratorRequest.ts
 models/CreateCustomerRequest.ts
+models/CreateProductRequest.ts
 models/CreateRoleRequest.ts
 models/CreateSupplierRequest.ts
 models/CurrentUserResponse.ts
@@ -34,6 +36,7 @@ models/Customer.ts
 models/DayOfWeek.ts
 models/DeleteCustomerRequest.ts
 models/DeleteFileRequest.ts
+models/DeleteProductRequest.ts
 models/DeleteRoleRequest.ts
 models/DeleteSupplierRequest.ts
 models/Department.ts
@@ -43,6 +46,9 @@ models/DetailAdministratorResponseApiResponse.ts
 models/DetailCustomerRequest.ts
 models/DetailCustomerResponse.ts
 models/DetailCustomerResponseApiResponse.ts
+models/DetailProductRequest.ts
+models/DetailProductResponse.ts
+models/DetailProductResponseApiResponse.ts
 models/DetailRoleRequest.ts
 models/DetailRoleResponse.ts
 models/DetailRoleResponseApiResponse.ts
@@ -65,6 +71,9 @@ models/ListAdministratorResponseListApiResponse.ts
 models/ListCustomerRequest.ts
 models/ListCustomerResponse.ts
 models/ListCustomerResponseListApiResponse.ts
+models/ListProductRequest.ts
+models/ListProductResponse.ts
+models/ListProductResponseListApiResponse.ts
 models/ListRoleRequest.ts
 models/ListRoleResponse.ts
 models/ListRoleResponseListApiResponse.ts
@@ -80,6 +89,7 @@ models/MyProfileResponseApiResponse.ts
 models/ObjectApiResponse.ts
 models/Payroll.ts
 models/PayrollItem.ts
+models/Product.ts
 models/RegisterRequest.ts
 models/SafeWaitHandle.ts
 models/SalaryForm.ts
@@ -111,6 +121,8 @@ models/SystemConfig.ts
 models/UpdateCustomerRequest.ts
 models/UpdateMyProfileRequest.ts
 models/UpdatePasswordRequest.ts
+models/UpdateProductImagesRequest.ts
+models/UpdateProductRequest.ts
 models/UpdateRoleRequest.ts
 models/UpdateSupplierRequest.ts
 models/UpdateUserRequest.ts

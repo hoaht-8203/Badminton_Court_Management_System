@@ -35,6 +35,7 @@ public class ApplicationDbContext(
     // public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
     public DbSet<CancelledShift> CancelledShifts { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
+    public DbSet<Product> Products { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -48,6 +49,16 @@ public class ApplicationDbContext(
 
         // Store Schedule.ByDay as array of string
         builder.Entity<Schedule>().Property(s => s.ByDay).HasColumnType("text[]");
+
+        // Product mappings
+        builder.Entity<Product>(entity =>
+        {
+            entity.Property(p => p.Images).HasColumnType("text[]");
+            entity.Property(p => p.CostPrice).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.SalePrice).HasColumnType("decimal(18,2)");
+            entity.HasIndex(p => p.Code).IsUnique(false);
+            entity.HasIndex(p => p.Name);
+        });
 
         builder
             .Entity<IdentityRole<Guid>>()
@@ -248,6 +259,8 @@ public class ApplicationDbContext(
                 && (e.State == EntityState.Added || e.State == EntityState.Modified)
             );
 
+        var username = string.IsNullOrWhiteSpace(_currentUser.Username) ? "System" : _currentUser.Username;
+
         foreach (var entityEntry in entries)
         {
             var entity = (IAuditableEntity)entityEntry.Entity;
@@ -255,15 +268,15 @@ public class ApplicationDbContext(
             if (entityEntry.State == EntityState.Added)
             {
                 entity.CreatedAt = DateTime.UtcNow;
-                entity.CreatedBy = _currentUser.Username;
+                entity.CreatedBy = username;
                 entity.UpdatedAt = DateTime.UtcNow;
-                entity.UpdatedBy = _currentUser.Username;
+                entity.UpdatedBy = username;
             }
 
             if (entityEntry.State == EntityState.Modified)
             {
                 entity.UpdatedAt = DateTime.UtcNow;
-                entity.UpdatedBy = _currentUser.Username;
+                entity.UpdatedBy = username;
             }
         }
 

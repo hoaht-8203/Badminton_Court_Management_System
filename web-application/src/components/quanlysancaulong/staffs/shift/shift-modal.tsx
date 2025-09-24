@@ -24,14 +24,31 @@ export function useShiftModal() {
       title={initialValues.id ? "Cập nhật ca làm việc" : "Thêm ca làm việc"}
       onCancel={hide}
       onOk={() => {
-        form.validateFields().then((values) => {
-          onOk({
-            ...initialValues,
-            ...values,
-            startTime: values.startTime.format("HH:mm:ss"),
-            endTime: values.endTime.format("HH:mm:ss"),
+        form
+          .validateFields()
+          .then((values) => {
+            // Validate startTime và endTime phải là dayjs object
+            if (!values.startTime || !values.endTime || !dayjs.isDayjs(values.startTime) || !dayjs.isDayjs(values.endTime)) {
+              form.setFields([
+                { name: "startTime", errors: ["Giờ bắt đầu không hợp lệ"] },
+                { name: "endTime", errors: ["Giờ kết thúc không hợp lệ"] },
+              ]);
+              return;
+            }
+            onOk({
+              ...initialValues,
+              ...values,
+              startTime: values.startTime.format("HH:mm:ss"),
+              endTime: values.endTime.format("HH:mm:ss"),
+            });
+          })
+          .catch((err) => {
+            // Chỉ show lỗi nếu validateFields bị reject
+            if (err && err.errorFields) {
+              // Có thể dùng message.error hoặc chỉ rely vào form hiển thị lỗi
+              // message.error("Vui lòng nhập đầy đủ thông tin hợp lệ");
+            }
           });
-        });
       }}
       confirmLoading={loading}
       destroyOnHidden

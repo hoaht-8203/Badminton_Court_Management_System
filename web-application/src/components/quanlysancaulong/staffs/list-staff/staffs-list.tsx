@@ -4,7 +4,9 @@ import { Breadcrumb, Button, Card, Col, Form, Input, Row, Select, Radio, Space, 
 import { SearchOutlined, ReloadOutlined, PlusOutlined, FileExcelOutlined } from "@ant-design/icons";
 import StaffDetailBox from "./staff-detail-box";
 
-const columns: ColumnsType<any> = [
+import { EditOutlined } from "@ant-design/icons";
+
+const getColumns = (onEditStaff?: (staff: any) => void): ColumnsType<any> => [
   {
     title: "Mã nhân viên",
     dataIndex: "id",
@@ -31,27 +33,30 @@ const columns: ColumnsType<any> = [
     dataIndex: "identificationNumber",
     key: "identificationNumber",
   },
+  {
+    title: "",
+    key: "actions",
+    render: (_: any, record: any) => (
+      <Button icon={<EditOutlined />} size="small" onClick={e => { e.stopPropagation(); onEditStaff && onEditStaff(record); }}>Cập nhật</Button>
+    ),
+    width: 100,
+  },
 ];
 
 interface StaffListProps {
   staffList: any[];
+  onEditStaff?: (staff: any) => void;
 }
 
-const StaffList: React.FC<StaffListProps> = ({ staffList }) => {
+const StaffList: React.FC<StaffListProps> = ({ staffList, onEditStaff }) => {
   const [expandedRowKeys, setExpandedRowKeys] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
-
-  // Dummy search handler
-
-  // Phân trang dữ liệu
   const pagedData = staffList.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
   return (
     <div>
-      {/* Staff Table */}
       <Table
-        columns={columns}
+        columns={getColumns(onEditStaff)}
         dataSource={pagedData}
         rowKey="id"
         pagination={false}

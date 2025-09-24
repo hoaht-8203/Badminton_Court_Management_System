@@ -104,7 +104,7 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         var customer = _mapper.Map<Customer>(request);
         customer.Status = CustomerStatus.Active;
 
-        _context.Customers.Add(customer);
+        await _context.Customers.AddAsync(customer);
         await _context.SaveChangesAsync();
 
         return _mapper.Map<DetailCustomerResponse>(customer);

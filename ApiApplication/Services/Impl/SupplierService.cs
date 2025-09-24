@@ -79,7 +79,7 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper) : ISu
         var supplier = _mapper.Map<Supplier>(request);
         supplier.Status = SupplierStatus.Active;
 
-        _context.Suppliers.Add(supplier);
+        await _context.Suppliers.AddAsync(supplier);
         await _context.SaveChangesAsync();
     }
 

@@ -15,3 +15,10 @@ export const SupplierStatus = {
   Inactive: "Inactive",
   Deleted: "Deleted",
 };
+
+export const CourtStatus = {
+  Active: "Active",
+  Inactive: "Inactive",
+  Deleted: "Deleted",
+  Maintenance: "Maintenance",
+};

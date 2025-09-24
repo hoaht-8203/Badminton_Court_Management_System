@@ -30,6 +30,13 @@ const tableProps: TableProps<ListCustomerResponse> = {
 const CustomersPage = () => {
   const [searchParams, setSearchParams] = useState<ListCustomerRequest>({
     fullName: null,
+    phone: null,
+    address: null,
+    gender: null,
+    city: null,
+    district: null,
+    ward: null,
+    status: null,
   });
   const [openCreateNewCustomerDrawer, setOpenCreateNewCustomerDrawer] = useState(false);
   const [openUpdateCustomerDrawer, setOpenUpdateCustomerDrawer] = useState(false);
@@ -116,7 +123,12 @@ const CustomersPage = () => {
       </div>
 
       <div className="mb-2">
-        <SearchCustomers onSearch={setSearchParams} onReset={() => setSearchParams({ fullName: null })} />
+        <SearchCustomers
+          onSearch={setSearchParams}
+          onReset={() =>
+            setSearchParams({ fullName: null, phone: null, address: null, gender: null, city: null, district: null, ward: null, status: null })
+          }
+        />
       </div>
 
       <div>

@@ -43,7 +43,7 @@ const sideBarItems: MenuProps["items"] = [
     icon: <CalendarOutlined className="h-4 w-4" />,
   },
   {
-    key: "quanlysancaulong",
+    key: "/quanlysancaulong/courts",
     label: "Quản lý sân cầu lông",
     icon: <Columns2 className="h-4 w-4" />,
   },

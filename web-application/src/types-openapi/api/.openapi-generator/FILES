@@ -5,7 +5,6 @@ apis/CourtAreasApi.ts
 apis/CustomersApi.ts
 apis/EmailApi.ts
 apis/FilesApi.ts
-apis/PriceUnitsApi.ts
 apis/RolesApi.ts
 apis/SalaryFormApi.ts
 apis/ScheduleApi.ts
@@ -29,12 +28,19 @@ models/ChangeSupplierStatusRequest.ts
 models/ChangeUserStatusRequest.ts
 models/Court.ts
 models/CourtArea.ts
+models/CourtPricingRuleDto.ts
+models/CourtPricingRuleTemplate.ts
+models/CourtPricingRuleTemplateDto.ts
+models/CourtPricingRuleTemplateDtoApiResponse.ts
+models/CourtPricingRuleTemplateDtoListApiResponse.ts
+models/CourtPricingRules.ts
 models/CreateActivityRequest.ts
 models/CreateAdministratorRequest.ts
 models/CreateCourtAreaRequest.ts
+models/CreateCourtPricingRuleTemplateRequest.ts
+models/CreateCourtPricingRulesRequest.ts
 models/CreateCourtRequest.ts
 models/CreateCustomerRequest.ts
-models/CreatePriceUnitRequest.ts
 models/CreateRoleRequest.ts
 models/CreateSupplierRequest.ts
 models/CurrentUserResponse.ts
@@ -45,7 +51,6 @@ models/DeletCourtAreaRequest.ts
 models/DeleteCourtRequest.ts
 models/DeleteCustomerRequest.ts
 models/DeleteFileRequest.ts
-models/DeletePriceUnitRequest.ts
 models/DeleteRoleRequest.ts
 models/DeleteSupplierRequest.ts
 models/Department.ts
@@ -61,9 +66,6 @@ models/DetailCourtResponseApiResponse.ts
 models/DetailCustomerRequest.ts
 models/DetailCustomerResponse.ts
 models/DetailCustomerResponseApiResponse.ts
-models/DetailPriceUnitRequest.ts
-models/DetailPriceUnitResponse.ts
-models/DetailPriceUnitResponseApiResponse.ts
 models/DetailRoleRequest.ts
 models/DetailRoleResponse.ts
 models/DetailRoleResponseApiResponse.ts
@@ -91,8 +93,6 @@ models/ListCourtResponseApiResponse.ts
 models/ListCustomerRequest.ts
 models/ListCustomerResponse.ts
 models/ListCustomerResponseListApiResponse.ts
-models/ListPriceUnitResponse.ts
-models/ListPriceUnitResponseListApiResponse.ts
 models/ListRoleRequest.ts
 models/ListRoleResponse.ts
 models/ListRoleResponseListApiResponse.ts
@@ -108,7 +108,6 @@ models/MyProfileResponseApiResponse.ts
 models/ObjectApiResponse.ts
 models/Payroll.ts
 models/PayrollItem.ts
-models/PriceUnit.ts
 models/RegisterRequest.ts
 models/SafeWaitHandle.ts
 models/SalaryForm.ts
@@ -142,7 +141,6 @@ models/UpdateCourtRequest.ts
 models/UpdateCustomerRequest.ts
 models/UpdateMyProfileRequest.ts
 models/UpdatePasswordRequest.ts
-models/UpdatePriceUnitRequest.ts
 models/UpdateRoleRequest.ts
 models/UpdateSupplierRequest.ts
 models/UpdateUserRequest.ts

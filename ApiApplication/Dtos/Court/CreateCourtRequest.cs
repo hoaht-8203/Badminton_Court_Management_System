@@ -14,7 +14,7 @@ public class CreateCourtRequest
 public class CreateCourtPricingRulesRequest
 {
     public required int[] DaysOfWeek { get; set; }
-    public required DateTime StartTime { get; set; }
-    public required DateTime EndTime { get; set; }
+    public required TimeOnly StartTime { get; set; }
+    public required TimeOnly EndTime { get; set; }
     public required decimal PricePerHour { get; set; }
 }

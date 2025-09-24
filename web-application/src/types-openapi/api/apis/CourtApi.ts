@@ -17,6 +17,9 @@ import * as runtime from '../runtime';
 import type {
   BooleanApiResponse,
   ChangeCourtStatusRequest,
+  CourtPricingRuleTemplateDtoApiResponse,
+  CourtPricingRuleTemplateDtoListApiResponse,
+  CreateCourtPricingRuleTemplateRequest,
   CreateCourtRequest,
   DeleteCourtRequest,
   DetailCourtResponseApiResponse,
@@ -28,6 +31,12 @@ import {
     BooleanApiResponseToJSON,
     ChangeCourtStatusRequestFromJSON,
     ChangeCourtStatusRequestToJSON,
+    CourtPricingRuleTemplateDtoApiResponseFromJSON,
+    CourtPricingRuleTemplateDtoApiResponseToJSON,
+    CourtPricingRuleTemplateDtoListApiResponseFromJSON,
+    CourtPricingRuleTemplateDtoListApiResponseToJSON,
+    CreateCourtPricingRuleTemplateRequestFromJSON,
+    CreateCourtPricingRuleTemplateRequestToJSON,
     CreateCourtRequestFromJSON,
     CreateCourtRequestToJSON,
     DeleteCourtRequestFromJSON,
@@ -46,6 +55,10 @@ export interface ApiCourtChangeStatusPutRequest {
 
 export interface ApiCourtCreatePostRequest {
     createCourtRequest?: CreateCourtRequest;
+}
+
+export interface ApiCourtCreatePricingRuleTemplatePostRequest {
+    createCourtPricingRuleTemplateRequest?: CreateCourtPricingRuleTemplateRequest;
 }
 
 export interface ApiCourtDeleteDeleteRequest {
@@ -101,6 +114,19 @@ export interface CourtApiInterface {
 
     /**
      * 
+     * @param {CreateCourtPricingRuleTemplateRequest} [createCourtPricingRuleTemplateRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CourtApiInterface
+     */
+    apiCourtCreatePricingRuleTemplatePostRaw(requestParameters: ApiCourtCreatePricingRuleTemplatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CourtPricingRuleTemplateDtoApiResponse>>;
+
+    /**
+     */
+    apiCourtCreatePricingRuleTemplatePost(requestParameters: ApiCourtCreatePricingRuleTemplatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CourtPricingRuleTemplateDtoApiResponse>;
+
+    /**
+     * 
      * @param {DeleteCourtRequest} [deleteCourtRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -139,6 +165,18 @@ export interface CourtApiInterface {
     /**
      */
     apiCourtListGet(requestParameters: ApiCourtListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListCourtResponseApiResponse>;
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CourtApiInterface
+     */
+    apiCourtListPricingRuleTemplatesGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CourtPricingRuleTemplateDtoListApiResponse>>;
+
+    /**
+     */
+    apiCourtListPricingRuleTemplatesGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CourtPricingRuleTemplateDtoListApiResponse>;
 
     /**
      * 
@@ -217,6 +255,36 @@ export class CourtApi extends runtime.BaseAPI implements CourtApiInterface {
      */
     async apiCourtCreatePost(requestParameters: ApiCourtCreatePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailCourtResponseApiResponse> {
         const response = await this.apiCourtCreatePostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiCourtCreatePricingRuleTemplatePostRaw(requestParameters: ApiCourtCreatePricingRuleTemplatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CourtPricingRuleTemplateDtoApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Court/create-pricing-rule-template`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateCourtPricingRuleTemplateRequestToJSON(requestParameters['createCourtPricingRuleTemplateRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CourtPricingRuleTemplateDtoApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiCourtCreatePricingRuleTemplatePost(requestParameters: ApiCourtCreatePricingRuleTemplatePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CourtPricingRuleTemplateDtoApiResponse> {
+        const response = await this.apiCourtCreatePricingRuleTemplatePostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -324,6 +392,33 @@ export class CourtApi extends runtime.BaseAPI implements CourtApiInterface {
      */
     async apiCourtListGet(requestParameters: ApiCourtListGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListCourtResponseApiResponse> {
         const response = await this.apiCourtListGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiCourtListPricingRuleTemplatesGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CourtPricingRuleTemplateDtoListApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Court/list-pricing-rule-templates`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CourtPricingRuleTemplateDtoListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiCourtListPricingRuleTemplatesGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CourtPricingRuleTemplateDtoListApiResponse> {
+        const response = await this.apiCourtListPricingRuleTemplatesGetRaw(initOverrides);
         return await response.value();
     }
 

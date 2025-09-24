@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { CourtPricingRuleDto } from './CourtPricingRuleDto';
+import {
+    CourtPricingRuleDtoFromJSON,
+    CourtPricingRuleDtoFromJSONTyped,
+    CourtPricingRuleDtoToJSON,
+    CourtPricingRuleDtoToJSONTyped,
+} from './CourtPricingRuleDto';
+
 /**
  * 
  * @export
@@ -42,24 +50,6 @@ export interface DetailCourtResponse {
      * @type {number}
      * @memberof DetailCourtResponse
      */
-    price?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof DetailCourtResponse
-     */
-    priceUnitId?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof DetailCourtResponse
-     */
-    priceUnitName?: string | null;
-    /**
-     * 
-     * @type {number}
-     * @memberof DetailCourtResponse
-     */
     courtAreaId?: number;
     /**
      * 
@@ -75,34 +65,16 @@ export interface DetailCourtResponse {
     note?: string | null;
     /**
      * 
+     * @type {Array<CourtPricingRuleDto>}
+     * @memberof DetailCourtResponse
+     */
+    courtPricingRules?: Array<CourtPricingRuleDto> | null;
+    /**
+     * 
      * @type {string}
      * @memberof DetailCourtResponse
      */
     status?: string | null;
-    /**
-     * 
-     * @type {Date}
-     * @memberof DetailCourtResponse
-     */
-    createdAt?: Date;
-    /**
-     * 
-     * @type {Date}
-     * @memberof DetailCourtResponse
-     */
-    updatedAt?: Date | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof DetailCourtResponse
-     */
-    createdBy?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof DetailCourtResponse
-     */
-    updatedBy?: string | null;
 }
 
 /**
@@ -125,17 +97,11 @@ export function DetailCourtResponseFromJSONTyped(json: any, ignoreDiscriminator:
         'id': json['id'] == null ? undefined : json['id'],
         'name': json['name'] == null ? undefined : json['name'],
         'imageUrl': json['imageUrl'] == null ? undefined : json['imageUrl'],
-        'price': json['price'] == null ? undefined : json['price'],
-        'priceUnitId': json['priceUnitId'] == null ? undefined : json['priceUnitId'],
-        'priceUnitName': json['priceUnitName'] == null ? undefined : json['priceUnitName'],
         'courtAreaId': json['courtAreaId'] == null ? undefined : json['courtAreaId'],
         'courtAreaName': json['courtAreaName'] == null ? undefined : json['courtAreaName'],
         'note': json['note'] == null ? undefined : json['note'],
+        'courtPricingRules': json['courtPricingRules'] == null ? undefined : ((json['courtPricingRules'] as Array<any>).map(CourtPricingRuleDtoFromJSON)),
         'status': json['status'] == null ? undefined : json['status'],
-        'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
-        'updatedAt': json['updatedAt'] == null ? undefined : (new Date(json['updatedAt'])),
-        'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
-        'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
     };
 }
 
@@ -153,17 +119,11 @@ export function DetailCourtResponseToJSONTyped(value?: DetailCourtResponse | nul
         'id': value['id'],
         'name': value['name'],
         'imageUrl': value['imageUrl'],
-        'price': value['price'],
-        'priceUnitId': value['priceUnitId'],
-        'priceUnitName': value['priceUnitName'],
         'courtAreaId': value['courtAreaId'],
         'courtAreaName': value['courtAreaName'],
         'note': value['note'],
+        'courtPricingRules': value['courtPricingRules'] == null ? undefined : ((value['courtPricingRules'] as Array<any>).map(CourtPricingRuleDtoToJSON)),
         'status': value['status'],
-        'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
-        'updatedAt': value['updatedAt'] === null ? null : ((value['updatedAt'] as any)?.toISOString()),
-        'createdBy': value['createdBy'],
-        'updatedBy': value['updatedBy'],
     };
 }
 

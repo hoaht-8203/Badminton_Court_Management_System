@@ -13,13 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { PriceUnit } from './PriceUnit';
-import {
-    PriceUnitFromJSON,
-    PriceUnitFromJSONTyped,
-    PriceUnitToJSON,
-    PriceUnitToJSONTyped,
-} from './PriceUnit';
 import type { CourtArea } from './CourtArea';
 import {
     CourtAreaFromJSON,
@@ -27,6 +20,13 @@ import {
     CourtAreaToJSON,
     CourtAreaToJSONTyped,
 } from './CourtArea';
+import type { CourtPricingRules } from './CourtPricingRules';
+import {
+    CourtPricingRulesFromJSON,
+    CourtPricingRulesFromJSONTyped,
+    CourtPricingRulesToJSON,
+    CourtPricingRulesToJSONTyped,
+} from './CourtPricingRules';
 
 /**
  * 
@@ -81,24 +81,6 @@ export interface Court {
      * @type {number}
      * @memberof Court
      */
-    price: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof Court
-     */
-    priceUnitId: number;
-    /**
-     * 
-     * @type {PriceUnit}
-     * @memberof Court
-     */
-    priceUnit?: PriceUnit;
-    /**
-     * 
-     * @type {number}
-     * @memberof Court
-     */
     courtAreaId: number;
     /**
      * 
@@ -118,6 +100,12 @@ export interface Court {
      * @memberof Court
      */
     status: string | null;
+    /**
+     * 
+     * @type {Array<CourtPricingRules>}
+     * @memberof Court
+     */
+    courtPricingRules?: Array<CourtPricingRules> | null;
 }
 
 /**
@@ -126,8 +114,6 @@ export interface Court {
 export function instanceOfCourt(value: object): value is Court {
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('price' in value) || value['price'] === undefined) return false;
-    if (!('priceUnitId' in value) || value['priceUnitId'] === undefined) return false;
     if (!('courtAreaId' in value) || value['courtAreaId'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     return true;
@@ -150,13 +136,11 @@ export function CourtFromJSONTyped(json: any, ignoreDiscriminator: boolean): Cou
         'id': json['id'],
         'name': json['name'],
         'imageUrl': json['imageUrl'] == null ? undefined : json['imageUrl'],
-        'price': json['price'],
-        'priceUnitId': json['priceUnitId'],
-        'priceUnit': json['priceUnit'] == null ? undefined : PriceUnitFromJSON(json['priceUnit']),
         'courtAreaId': json['courtAreaId'],
         'courtArea': json['courtArea'] == null ? undefined : CourtAreaFromJSON(json['courtArea']),
         'note': json['note'] == null ? undefined : json['note'],
         'status': json['status'],
+        'courtPricingRules': json['courtPricingRules'] == null ? undefined : ((json['courtPricingRules'] as Array<any>).map(CourtPricingRulesFromJSON)),
     };
 }
 
@@ -178,13 +162,11 @@ export function CourtToJSONTyped(value?: Court | null, ignoreDiscriminator: bool
         'id': value['id'],
         'name': value['name'],
         'imageUrl': value['imageUrl'],
-        'price': value['price'],
-        'priceUnitId': value['priceUnitId'],
-        'priceUnit': PriceUnitToJSON(value['priceUnit']),
         'courtAreaId': value['courtAreaId'],
         'courtArea': CourtAreaToJSON(value['courtArea']),
         'note': value['note'],
         'status': value['status'],
+        'courtPricingRules': value['courtPricingRules'] == null ? undefined : ((value['courtPricingRules'] as Array<any>).map(CourtPricingRulesToJSON)),
     };
 }
 

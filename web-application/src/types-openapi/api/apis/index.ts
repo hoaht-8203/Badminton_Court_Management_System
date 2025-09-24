@@ -7,7 +7,6 @@ export * from './CourtAreasApi';
 export * from './CustomersApi';
 export * from './EmailApi';
 export * from './FilesApi';
-export * from './PriceUnitsApi';
 export * from './RolesApi';
 export * from './SalaryFormApi';
 export * from './ScheduleApi';

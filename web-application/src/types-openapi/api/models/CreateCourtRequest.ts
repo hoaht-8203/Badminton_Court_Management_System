@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { CreateCourtPricingRulesRequest } from './CreateCourtPricingRulesRequest';
+import {
+    CreateCourtPricingRulesRequestFromJSON,
+    CreateCourtPricingRulesRequestFromJSONTyped,
+    CreateCourtPricingRulesRequestToJSON,
+    CreateCourtPricingRulesRequestToJSONTyped,
+} from './CreateCourtPricingRulesRequest';
+
 /**
  * 
  * @export
@@ -36,18 +44,6 @@ export interface CreateCourtRequest {
      * @type {number}
      * @memberof CreateCourtRequest
      */
-    price: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof CreateCourtRequest
-     */
-    priceUnitId: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof CreateCourtRequest
-     */
     courtAreaId: number;
     /**
      * 
@@ -55,6 +51,12 @@ export interface CreateCourtRequest {
      * @memberof CreateCourtRequest
      */
     note?: string | null;
+    /**
+     * 
+     * @type {Array<CreateCourtPricingRulesRequest>}
+     * @memberof CreateCourtRequest
+     */
+    courtPricingRules: Array<CreateCourtPricingRulesRequest> | null;
 }
 
 /**
@@ -62,9 +64,8 @@ export interface CreateCourtRequest {
  */
 export function instanceOfCreateCourtRequest(value: object): value is CreateCourtRequest {
     if (!('name' in value) || value['name'] === undefined) return false;
-    if (!('price' in value) || value['price'] === undefined) return false;
-    if (!('priceUnitId' in value) || value['priceUnitId'] === undefined) return false;
     if (!('courtAreaId' in value) || value['courtAreaId'] === undefined) return false;
+    if (!('courtPricingRules' in value) || value['courtPricingRules'] === undefined) return false;
     return true;
 }
 
@@ -80,10 +81,9 @@ export function CreateCourtRequestFromJSONTyped(json: any, ignoreDiscriminator: 
         
         'name': json['name'],
         'imageUrl': json['imageUrl'] == null ? undefined : json['imageUrl'],
-        'price': json['price'],
-        'priceUnitId': json['priceUnitId'],
         'courtAreaId': json['courtAreaId'],
         'note': json['note'] == null ? undefined : json['note'],
+        'courtPricingRules': (json['courtPricingRules'] == null ? null : (json['courtPricingRules'] as Array<any>).map(CreateCourtPricingRulesRequestFromJSON)),
     };
 }
 
@@ -100,10 +100,9 @@ export function CreateCourtRequestToJSONTyped(value?: CreateCourtRequest | null,
         
         'name': value['name'],
         'imageUrl': value['imageUrl'],
-        'price': value['price'],
-        'priceUnitId': value['priceUnitId'],
         'courtAreaId': value['courtAreaId'],
         'note': value['note'],
+        'courtPricingRules': (value['courtPricingRules'] == null ? null : (value['courtPricingRules'] as Array<any>).map(CreateCourtPricingRulesRequestToJSON)),
     };
 }
 

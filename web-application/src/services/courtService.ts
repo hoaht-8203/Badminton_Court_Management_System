@@ -1,13 +1,16 @@
 import { axiosInstance } from "@/lib/axios";
 import {
+  ChangeCourtStatusRequest,
+  CourtPricingRuleDto,
+  CourtPricingRuleTemplateDto,
+  CreateCourtPricingRuleTemplateRequest,
   CreateCourtRequest,
+  DeleteCourtRequest,
   DetailCourtRequest,
   DetailCourtResponse,
   ListCourtRequest,
   ListCourtResponse,
   UpdateCourtRequest,
-  DeleteCourtRequest,
-  ChangeCourtStatusRequest,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 
@@ -45,6 +48,16 @@ export const courtService = {
 
   async changeCourtStatus(payload: ChangeCourtStatusRequest): Promise<ApiResponse<DetailCourtResponse>> {
     const res = await axiosInstance.put<ApiResponse<DetailCourtResponse>>("/api/Courts/change-status", payload);
+    return res.data;
+  },
+
+  async createCourtPricingRuleTemplate(payload: CreateCourtPricingRuleTemplateRequest): Promise<ApiResponse<CourtPricingRuleTemplateDto>> {
+    const res = await axiosInstance.post<ApiResponse<CourtPricingRuleTemplateDto>>("/api/Courts/create-pricing-rule-template", payload);
+    return res.data;
+  },
+
+  async listCourtPricingRuleTemplates(): Promise<ApiResponse<CourtPricingRuleTemplateDto[]>> {
+    const res = await axiosInstance.get<ApiResponse<CourtPricingRuleTemplateDto[]>>("/api/Courts/list-pricing-rule-templates");
     return res.data;
   },
 };

@@ -6,7 +6,6 @@ import { TableProps, Image } from "antd";
 import dayjs from "dayjs";
 
 export const columns: TableProps<ListCourtResponse>["columns"] = [
-  { title: "Mã sân", dataIndex: "id", key: "id", width: 120, fixed: "left" },
   { title: "Tên sân", dataIndex: "name", key: "name", width: 200, fixed: "left" },
   {
     title: "Ảnh",

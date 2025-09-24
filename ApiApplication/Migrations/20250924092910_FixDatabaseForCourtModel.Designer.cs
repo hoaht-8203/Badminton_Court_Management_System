@@ -3,6 +3,7 @@ using System;
 using ApiApplication.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250924092910_FixDatabaseForCourtModel")]
+    partial class FixDatabaseForCourtModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -200,7 +203,7 @@ namespace ApiApplication.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEAX67eWgyaSBlqhn+5GY0vo/no+rJ4Gxx4e54sSxyp5DarbDOM9j1QDEAvsShHmW4g==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOe7lXobBSYwpUXOwvFXM8eMl3fWcMS4C2u4+P2aD3mBUijtevBA6sQUknz7yUbHeA==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "a5fd6b0c-f96d-4c6b-b70c-95e8f4ff4423",
                             Status = "Active",
@@ -385,42 +388,6 @@ namespace ApiApplication.Migrations
                     b.ToTable("CourtAreas");
                 });
 
-            modelBuilder.Entity("ApiApplication.Entities.CourtPricingRuleTemplate", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int[]>("DaysOfWeek")
-                        .IsRequired()
-                        .HasColumnType("integer[]");
-
-                    b.Property<TimeOnly>("EndTime")
-                        .HasColumnType("time without time zone");
-
-                    b.Property<decimal>("PricePerHour")
-                        .HasColumnType("numeric");
-
-                    b.Property<TimeOnly>("StartTime")
-                        .HasColumnType("time without time zone");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("CourtPricingRuleTemplates");
-                });
-
             modelBuilder.Entity("ApiApplication.Entities.CourtPricingRules", b =>
                 {
                     b.Property<Guid>("Id")
@@ -440,14 +407,14 @@ namespace ApiApplication.Migrations
                         .IsRequired()
                         .HasColumnType("integer[]");
 
-                    b.Property<TimeOnly>("EndTime")
-                        .HasColumnType("time without time zone");
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("PricePerHour")
                         .HasColumnType("numeric");
 
-                    b.Property<TimeOnly>("StartTime")
-                        .HasColumnType("time without time zone");
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -535,7 +502,7 @@ namespace ApiApplication.Migrations
                             Id = 1,
                             Address = "123 Đường ABC, Phường Dịch Vọng",
                             City = "Hà Nội",
-                            CreatedAt = new DateTime(2025, 9, 24, 10, 0, 45, 309, DateTimeKind.Utc).AddTicks(7790),
+                            CreatedAt = new DateTime(2025, 9, 24, 9, 29, 9, 967, DateTimeKind.Utc).AddTicks(8500),
                             CreatedBy = "System",
                             District = "Cầu Giấy",
                             Email = "nguyenvanan@gmail.com",
@@ -545,7 +512,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng VIP - Thường xuyên đặt sân",
                             PhoneNumber = "0123456789",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 24, 10, 0, 45, 309, DateTimeKind.Utc).AddTicks(7790),
+                            UpdatedAt = new DateTime(2025, 9, 24, 9, 29, 9, 967, DateTimeKind.Utc).AddTicks(8500),
                             Ward = "Dịch Vọng"
                         },
                         new
@@ -553,7 +520,7 @@ namespace ApiApplication.Migrations
                             Id = 2,
                             Address = "456 Đường XYZ, Phường Bến Nghé",
                             City = "TP. Hồ Chí Minh",
-                            CreatedAt = new DateTime(2025, 9, 24, 10, 0, 45, 309, DateTimeKind.Utc).AddTicks(7800),
+                            CreatedAt = new DateTime(2025, 9, 24, 9, 29, 9, 967, DateTimeKind.Utc).AddTicks(8500),
                             CreatedBy = "System",
                             District = "Quận 1",
                             Email = "tranthibinh@gmail.com",
@@ -563,7 +530,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng thường xuyên - Đặt sân cuối tuần",
                             PhoneNumber = "0987654321",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 24, 10, 0, 45, 309, DateTimeKind.Utc).AddTicks(7800),
+                            UpdatedAt = new DateTime(2025, 9, 24, 9, 29, 9, 967, DateTimeKind.Utc).AddTicks(8500),
                             Ward = "Phường Bến Nghé"
                         },
                         new
@@ -571,7 +538,7 @@ namespace ApiApplication.Migrations
                             Id = 3,
                             Address = "789 Đường DEF, Phường Láng Thượng",
                             City = "Hà Nội",
-                            CreatedAt = new DateTime(2025, 9, 24, 10, 0, 45, 309, DateTimeKind.Utc).AddTicks(7800),
+                            CreatedAt = new DateTime(2025, 9, 24, 9, 29, 9, 967, DateTimeKind.Utc).AddTicks(8500),
                             CreatedBy = "System",
                             District = "Đống Đa",
                             Email = "levancuong@gmail.com",
@@ -581,7 +548,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng mới - Quan tâm đến sân cầu lông",
                             PhoneNumber = "0369852147",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 24, 10, 0, 45, 309, DateTimeKind.Utc).AddTicks(7800),
+                            UpdatedAt = new DateTime(2025, 9, 24, 9, 29, 9, 967, DateTimeKind.Utc).AddTicks(8500),
                             Ward = "Láng Thượng"
                         });
                 });

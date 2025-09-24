@@ -155,10 +155,6 @@ const CourtInformation = ({
           <div className="mb-2">Mã sân: {record.id}</div>
           <Divider size="small" />
           <div className="mb-2">Tên sân: {record.name}</div>
-          <Divider size="small" />
-          <div className="mb-2">Giá: {record.price}</div>
-          <Divider size="small" />
-          <div className="mb-2">Đơn vị giá: {record.priceUnitName}</div>
         </Col>
         <Divider type="vertical" size="small" style={{ height: "auto" }} />
         <Col span={8}>

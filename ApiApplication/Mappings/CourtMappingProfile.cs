@@ -1,3 +1,4 @@
+using System;
 using ApiApplication.Dtos.Court;
 using ApiApplication.Entities;
 using AutoMapper;
@@ -31,6 +32,9 @@ public class CourtMappingProfile : Profile
         CreateMap<CreateCourtPricingRulesRequest, CourtPricingRules>()
             .ForMember(d => d.Id, opt => opt.MapFrom(_ => Guid.NewGuid()))
             .ForMember(d => d.CourtId, opt => opt.Ignore());
-        CreateMap<CourtPricingRules, ListCourtPricingRulesResponse>();
+        CreateMap<CourtPricingRules, CourtPricingRuleDto>();
+        CreateMap<CreateCourtPricingRuleTemplateRequest, CourtPricingRuleTemplate>()
+            .ForMember(d => d.Id, opt => opt.MapFrom(_ => Guid.NewGuid()));
+        CreateMap<CourtPricingRuleTemplate, CourtPricingRuleTemplateDto>();
     }
 }

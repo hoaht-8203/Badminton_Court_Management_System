@@ -9,7 +9,7 @@ public class ListCourtResponse : BaseEntity
     public string? ImageUrl { get; set; }
     public int CourtAreaId { get; set; }
     public string? CourtAreaName { get; set; }
-    public ListCourtPricingRulesResponse[] CourtPricingRules { get; set; } = [];
+    public CourtPricingRuleDto[] CourtPricingRules { get; set; } = [];
     public string? Note { get; set; }
     public string? Status { get; set; }
 }

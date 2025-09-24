@@ -13,72 +13,20 @@
  */
 
 import { mapValues } from '../runtime';
+import type { CourtPricingRuleDto } from './CourtPricingRuleDto';
+import {
+    CourtPricingRuleDtoFromJSON,
+    CourtPricingRuleDtoFromJSONTyped,
+    CourtPricingRuleDtoToJSON,
+    CourtPricingRuleDtoToJSONTyped,
+} from './CourtPricingRuleDto';
+
 /**
  * 
  * @export
  * @interface ListCourtResponse
  */
 export interface ListCourtResponse {
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCourtResponse
-     */
-    id?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCourtResponse
-     */
-    name?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCourtResponse
-     */
-    imageUrl?: string | null;
-    /**
-     * 
-     * @type {number}
-     * @memberof ListCourtResponse
-     */
-    price?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ListCourtResponse
-     */
-    priceUnitId?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCourtResponse
-     */
-    priceUnitName?: string | null;
-    /**
-     * 
-     * @type {number}
-     * @memberof ListCourtResponse
-     */
-    courtAreaId?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCourtResponse
-     */
-    courtAreaName?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCourtResponse
-     */
-    note?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCourtResponse
-     */
-    status?: string | null;
     /**
      * 
      * @type {Date}
@@ -103,6 +51,54 @@ export interface ListCourtResponse {
      * @memberof ListCourtResponse
      */
     updatedBy?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCourtResponse
+     */
+    id?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCourtResponse
+     */
+    name?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCourtResponse
+     */
+    imageUrl?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof ListCourtResponse
+     */
+    courtAreaId?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCourtResponse
+     */
+    courtAreaName?: string | null;
+    /**
+     * 
+     * @type {Array<CourtPricingRuleDto>}
+     * @memberof ListCourtResponse
+     */
+    courtPricingRules?: Array<CourtPricingRuleDto> | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCourtResponse
+     */
+    note?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCourtResponse
+     */
+    status?: string | null;
 }
 
 /**
@@ -122,20 +118,18 @@ export function ListCourtResponseFromJSONTyped(json: any, ignoreDiscriminator: b
     }
     return {
         
-        'id': json['id'] == null ? undefined : json['id'],
-        'name': json['name'] == null ? undefined : json['name'],
-        'imageUrl': json['imageUrl'] == null ? undefined : json['imageUrl'],
-        'price': json['price'] == null ? undefined : json['price'],
-        'priceUnitId': json['priceUnitId'] == null ? undefined : json['priceUnitId'],
-        'priceUnitName': json['priceUnitName'] == null ? undefined : json['priceUnitName'],
-        'courtAreaId': json['courtAreaId'] == null ? undefined : json['courtAreaId'],
-        'courtAreaName': json['courtAreaName'] == null ? undefined : json['courtAreaName'],
-        'note': json['note'] == null ? undefined : json['note'],
-        'status': json['status'] == null ? undefined : json['status'],
         'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
         'updatedAt': json['updatedAt'] == null ? undefined : (new Date(json['updatedAt'])),
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
+        'id': json['id'] == null ? undefined : json['id'],
+        'name': json['name'] == null ? undefined : json['name'],
+        'imageUrl': json['imageUrl'] == null ? undefined : json['imageUrl'],
+        'courtAreaId': json['courtAreaId'] == null ? undefined : json['courtAreaId'],
+        'courtAreaName': json['courtAreaName'] == null ? undefined : json['courtAreaName'],
+        'courtPricingRules': json['courtPricingRules'] == null ? undefined : ((json['courtPricingRules'] as Array<any>).map(CourtPricingRuleDtoFromJSON)),
+        'note': json['note'] == null ? undefined : json['note'],
+        'status': json['status'] == null ? undefined : json['status'],
     };
 }
 
@@ -150,20 +144,18 @@ export function ListCourtResponseToJSONTyped(value?: ListCourtResponse | null, i
 
     return {
         
-        'id': value['id'],
-        'name': value['name'],
-        'imageUrl': value['imageUrl'],
-        'price': value['price'],
-        'priceUnitId': value['priceUnitId'],
-        'priceUnitName': value['priceUnitName'],
-        'courtAreaId': value['courtAreaId'],
-        'courtAreaName': value['courtAreaName'],
-        'note': value['note'],
-        'status': value['status'],
         'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
         'updatedAt': value['updatedAt'] === null ? null : ((value['updatedAt'] as any)?.toISOString()),
         'createdBy': value['createdBy'],
         'updatedBy': value['updatedBy'],
+        'id': value['id'],
+        'name': value['name'],
+        'imageUrl': value['imageUrl'],
+        'courtAreaId': value['courtAreaId'],
+        'courtAreaName': value['courtAreaName'],
+        'courtPricingRules': value['courtPricingRules'] == null ? undefined : ((value['courtPricingRules'] as Array<any>).map(CourtPricingRuleDtoToJSON)),
+        'note': value['note'],
+        'status': value['status'],
     };
 }
 

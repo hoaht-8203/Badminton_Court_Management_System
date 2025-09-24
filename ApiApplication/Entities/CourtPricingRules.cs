@@ -11,7 +11,7 @@ public class CourtPricingRules : BaseEntity
     public required Guid CourtId { get; set; }
     public required Court Court { get; set; } = null!;
     public required int[] DaysOfWeek { get; set; } = [];
-    public required DateTime StartTime { get; set; }
-    public required DateTime EndTime { get; set; }
+    public required TimeOnly StartTime { get; set; }
+    public required TimeOnly EndTime { get; set; }
     public required decimal PricePerHour { get; set; }
 }

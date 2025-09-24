@@ -8,6 +8,6 @@ public class DetailCourtResponse
     public int CourtAreaId { get; set; }
     public string? CourtAreaName { get; set; }
     public string? Note { get; set; }
-    public ListCourtPricingRulesResponse[] CourtPricingRules { get; set; } = [];
+    public CourtPricingRuleDto[] CourtPricingRules { get; set; } = [];
     public string? Status { get; set; }
 }

@@ -10,7 +10,7 @@ namespace ApiApplication.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class CourtController(ICourtService courtService) : ControllerBase
+public class CourtsController(ICourtService courtService) : ControllerBase
 {
     private readonly ICourtService _courtService = courtService;
 
@@ -83,6 +83,34 @@ public class CourtController(ICourtService courtService) : ControllerBase
             ApiResponse<DetailCourtResponse>.SuccessResponse(
                 result,
                 "Change court status successfully"
+            )
+        );
+    }
+
+    [HttpPost("create-pricing-rule-template")]
+    public async Task<
+        ActionResult<ApiResponse<CourtPricingRuleTemplateDto>>
+    > CreateCourtPricingRuleTemplate([FromBody] CreateCourtPricingRuleTemplateRequest request)
+    {
+        var result = await _courtService.CreateCourtPricingRuleTemplateAsync(request);
+        return Ok(
+            ApiResponse<CourtPricingRuleTemplateDto>.SuccessResponse(
+                result,
+                "Create pricing rule template successfully"
+            )
+        );
+    }
+
+    [HttpGet("list-pricing-rule-templates")]
+    public async Task<
+        ActionResult<ApiResponse<List<CourtPricingRuleTemplateDto>>>
+    > ListCourtPricingRuleTemplates()
+    {
+        var result = await _courtService.ListCourtPricingRuleTemplatesAsync();
+        return Ok(
+            ApiResponse<List<CourtPricingRuleTemplateDto>>.SuccessResponse(
+                result,
+                "List pricing rule templates successfully"
             )
         );
     }

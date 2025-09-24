@@ -180,4 +180,39 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
 
         return _mapper.Map<DetailCourtResponse>(courts);
     }
+
+    public async Task<CourtPricingRuleTemplateDto> CreateCourtPricingRuleTemplateAsync(
+        CreateCourtPricingRuleTemplateRequest request
+    )
+    {
+        foreach (var dayOfWeek in request.DaysOfWeek)
+        {
+            if (dayOfWeek < 2 || dayOfWeek > 8)
+            {
+                throw new ApiException(
+                    "Các ngày trong tuần phải là từ 2 đến chủ nhật",
+                    HttpStatusCode.BadRequest
+                );
+            }
+        }
+
+        if (request.StartTime >= request.EndTime)
+        {
+            throw new ApiException(
+                "Thời gian bắt đầu phải trước thời gian kết thúc",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        var courtPricingRuleTemplate = _mapper.Map<CourtPricingRuleTemplate>(request);
+        await _context.CourtPricingRuleTemplates.AddAsync(courtPricingRuleTemplate);
+        await _context.SaveChangesAsync();
+        return _mapper.Map<CourtPricingRuleTemplateDto>(courtPricingRuleTemplate);
+    }
+
+    public async Task<List<CourtPricingRuleTemplateDto>> ListCourtPricingRuleTemplatesAsync()
+    {
+        var courtPricingRuleTemplates = await _context.CourtPricingRuleTemplates.ToListAsync();
+        return _mapper.Map<List<CourtPricingRuleTemplateDto>>(courtPricingRuleTemplates);
+    }
 }

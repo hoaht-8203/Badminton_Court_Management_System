@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { courtService } from "@/services/courtService";
 import {
   ChangeCourtStatusRequest,
+  CourtPricingRuleTemplateDto,
+  CreateCourtPricingRuleTemplateRequest,
   CreateCourtRequest,
   DeleteCourtRequest,
   DetailCourtRequest,
@@ -20,6 +22,7 @@ export const courtsKeys = {
   list: (params: ListCourtRequest) => [...courtsKeys.lists(), params] as const,
   details: () => [...courtsKeys.all, "detail"] as const,
   detail: (params: DetailCourtRequest) => [...courtsKeys.details(), params] as const,
+  listPricingRuleTemplates: () => [...courtsKeys.all, "listPricingRuleTemplates"] as const,
 };
 
 // List Courts
@@ -86,6 +89,26 @@ export const useChangeCourtStatus = () => {
       if (variables.id) {
         queryClient.invalidateQueries({ queryKey: courtsKeys.detail({ id: variables.id }) });
       }
+    },
+  });
+};
+
+// List Court Pricing Rule Templates
+export const useListCourtPricingRuleTemplates = () => {
+  return useQuery<ApiResponse<CourtPricingRuleTemplateDto[]>, ApiError>({
+    queryKey: courtsKeys.listPricingRuleTemplates(),
+    queryFn: () => courtService.listCourtPricingRuleTemplates(),
+    enabled: true,
+  });
+};
+
+// Create Court Pricing Rule Template
+export const useCreateCourtPricingRuleTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<CourtPricingRuleTemplateDto>, ApiError, CreateCourtPricingRuleTemplateRequest>({
+    mutationFn: (data: CreateCourtPricingRuleTemplateRequest) => courtService.createCourtPricingRuleTemplate(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: courtsKeys.listPricingRuleTemplates() });
     },
   });
 };

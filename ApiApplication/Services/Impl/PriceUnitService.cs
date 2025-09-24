@@ -77,14 +77,14 @@ public class PriceUnitService(
             throw new ArgumentException($"Not found price unit with ID: {request.Id}");
         }
 
-        var inUse = await _context.Courts.AnyAsync(c => c.PriceUnitId == request.Id);
-        if (inUse)
-        {
-            throw new ApiException(
-                "Price unit is currently used by one or more courts",
-                System.Net.HttpStatusCode.BadRequest
-            );
-        }
+        // var inUse = await _context.Courts.AnyAsync(c => c.PriceUnitId == request.Id);
+        // if (inUse)
+        // {
+        //     throw new ApiException(
+        //         "Price unit is currently used by one or more courts",
+        //         System.Net.HttpStatusCode.BadRequest
+        //     );
+        // }
 
         _context.PriceUnits.Remove(entity);
         await _context.SaveChangesAsync();

@@ -34,6 +34,7 @@ public class ApplicationDbContext(
     public DbSet<Court> Courts { get; set; }
     public DbSet<CourtArea> CourtAreas { get; set; }
     public DbSet<PriceUnit> PriceUnits { get; set; }
+    public DbSet<CourtPricingRules> CourtPricingRules { get; set; }
 
     // public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
     public DbSet<CancelledShift> CancelledShifts { get; set; }

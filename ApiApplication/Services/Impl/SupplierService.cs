@@ -13,8 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
 
-public class SupplierService(ApplicationDbContext context, IMapper mapper, ICurrentUser currentUser)
-    : ISupplierService
+public class SupplierService(ApplicationDbContext context, IMapper mapper) : ISupplierService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;

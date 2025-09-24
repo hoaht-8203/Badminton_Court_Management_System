@@ -11,5 +11,5 @@ public class PriceUnit : BaseEntity
     public required int Id { get; set; }
     public required string Name { get; set; }
 
-    public ICollection<Court> Courts { get; set; } = new List<Court>();
+    // public ICollection<Court> Courts { get; set; } = new List<Court>();
 }

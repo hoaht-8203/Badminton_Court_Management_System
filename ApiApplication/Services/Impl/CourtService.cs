@@ -22,7 +22,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
     {
         var query = _context
             .Courts.Include(c => c.CourtArea)
-            .Include(c => c.PriceUnit)
+            .Include(c => c.CourtPricingRules)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Name))
@@ -45,7 +45,10 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
 
     public async Task<DetailCourtResponse> DetailCourtAsync(DetailCourtRequest request)
     {
-        var courts = await _context.Courts.FirstOrDefaultAsync(c => c.Id == request.Id);
+        var courts = await _context
+            .Courts.Include(c => c.CourtPricingRules)
+            .Include(c => c.CourtArea)
+            .FirstOrDefaultAsync(c => c.Id == request.Id);
 
         if (courts == null)
         {
@@ -69,14 +72,32 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
         var court = _mapper.Map<Court>(request);
         court.Status = CourtStatus.Active;
 
-        _context.Courts.Add(court);
+        // Map pricing rules and set CourtId
+        foreach (var pricingRuleRequest in request.CourtPricingRules)
+        {
+            var pricingRule = _mapper.Map<CourtPricingRules>(pricingRuleRequest);
+            pricingRule.CourtId = court.Id;
+            court.CourtPricingRules.Add(pricingRule);
+        }
+
+        var newCourt = await _context.Courts.AddAsync(court);
         await _context.SaveChangesAsync();
-        return _mapper.Map<DetailCourtResponse>(court);
+
+        // Reload the court with pricing rules for response
+        var createdCourt = await _context
+            .Courts.Include(c => c.CourtPricingRules)
+            .Include(c => c.CourtArea)
+            .FirstOrDefaultAsync(c => c.Id == newCourt.Entity.Id);
+
+        return _mapper.Map<DetailCourtResponse>(createdCourt);
     }
 
     public async Task<DetailCourtResponse> UpdateCourtAsync(UpdateCourtRequest request)
     {
-        var court = await _context.Courts.FirstOrDefaultAsync(c => c.Id == request.Id);
+        var court = await _context
+            .Courts.Include(c => c.CourtPricingRules)
+            .FirstOrDefaultAsync(c => c.Id == request.Id);
+
         if (court == null)
         {
             throw new ArgumentException($"Not found court with ID: {request.Id}");
@@ -96,9 +117,29 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
             }
         }
 
+        // Update basic court information
         _mapper.Map(request, court);
+
+        // Remove existing pricing rules
+        _context.CourtPricingRules.RemoveRange(court.CourtPricingRules);
+
+        // Add new pricing rules
+        foreach (var pricingRuleRequest in request.CourtPricingRules)
+        {
+            var pricingRule = _mapper.Map<CourtPricingRules>(pricingRuleRequest);
+            pricingRule.CourtId = court.Id;
+            court.CourtPricingRules.Add(pricingRule);
+        }
+
         await _context.SaveChangesAsync();
-        return _mapper.Map<DetailCourtResponse>(court);
+
+        // Reload the court with pricing rules for response
+        var updatedCourt = await _context
+            .Courts.Include(c => c.CourtPricingRules)
+            .Include(c => c.CourtArea)
+            .FirstOrDefaultAsync(c => c.Id == request.Id);
+
+        return _mapper.Map<DetailCourtResponse>(updatedCourt);
     }
 
     public async Task<bool> DeleteCourtAsync(DeleteCourtRequest request)

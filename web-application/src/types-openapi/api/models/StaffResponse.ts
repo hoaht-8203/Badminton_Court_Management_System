@@ -30,13 +30,31 @@ export interface StaffResponse {
      * @type {string}
      * @memberof StaffResponse
      */
-    name?: string | null;
+    fullName?: string | null;
     /**
      * 
      * @type {string}
      * @memberof StaffResponse
      */
-    email?: string | null;
+    identificationNumber?: string | null;
+    /**
+     * 
+     * @type {Date}
+     * @memberof StaffResponse
+     */
+    dateOfBirth?: Date | null;
+    /**
+     * 
+     * @type {Date}
+     * @memberof StaffResponse
+     */
+    dateOfJoining?: Date | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof StaffResponse
+     */
+    address?: string | null;
     /**
      * 
      * @type {string}
@@ -49,6 +67,12 @@ export interface StaffResponse {
      * @memberof StaffResponse
      */
     avatarUrl?: string | null;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof StaffResponse
+     */
+    isActive?: boolean;
     /**
      * 
      * @type {string}
@@ -75,10 +99,14 @@ export function StaffResponseFromJSONTyped(json: any, ignoreDiscriminator: boole
     return {
         
         'id': json['id'] == null ? undefined : json['id'],
-        'name': json['name'] == null ? undefined : json['name'],
-        'email': json['email'] == null ? undefined : json['email'],
+        'fullName': json['fullName'] == null ? undefined : json['fullName'],
+        'identificationNumber': json['identificationNumber'] == null ? undefined : json['identificationNumber'],
+        'dateOfBirth': json['dateOfBirth'] == null ? undefined : (new Date(json['dateOfBirth'])),
+        'dateOfJoining': json['dateOfJoining'] == null ? undefined : (new Date(json['dateOfJoining'])),
+        'address': json['address'] == null ? undefined : json['address'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
+        'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'salarySettings': json['salarySettings'] == null ? undefined : json['salarySettings'],
     };
 }
@@ -95,10 +123,14 @@ export function StaffResponseToJSONTyped(value?: StaffResponse | null, ignoreDis
     return {
         
         'id': value['id'],
-        'name': value['name'],
-        'email': value['email'],
+        'fullName': value['fullName'],
+        'identificationNumber': value['identificationNumber'],
+        'dateOfBirth': value['dateOfBirth'] === null ? null : ((value['dateOfBirth'] as any)?.toISOString()),
+        'dateOfJoining': value['dateOfJoining'] === null ? null : ((value['dateOfJoining'] as any)?.toISOString()),
+        'address': value['address'],
         'phoneNumber': value['phoneNumber'],
         'avatarUrl': value['avatarUrl'],
+        'isActive': value['isActive'],
         'salarySettings': value['salarySettings'],
     };
 }

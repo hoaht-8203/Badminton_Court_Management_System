@@ -8,7 +8,7 @@ apis/SalaryFormApi.ts
 apis/ScheduleApi.ts
 apis/ShiftApi.ts
 apis/StaffApi.ts
-apis/SupplierApi.ts
+apis/SuppliersApi.ts
 apis/UsersApi.ts
 apis/index.ts
 index.ts
@@ -68,6 +68,7 @@ models/ListCustomerResponseListApiResponse.ts
 models/ListRoleRequest.ts
 models/ListRoleResponse.ts
 models/ListRoleResponseListApiResponse.ts
+models/ListStaffRequest.ts
 models/ListSupplierRequest.ts
 models/ListSupplierResponse.ts
 models/ListSupplierResponseListApiResponse.ts

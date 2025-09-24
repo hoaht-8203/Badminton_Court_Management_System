@@ -6,6 +6,6 @@ namespace ApiApplication.Services
     Task CreateStaffAsync(Dtos.StaffRequest request);
         Task DeleteStaffAsync(int staffId);
         Task<Dtos.StaffResponse?> GetStaffByIdAsync(int staffId);
-        Task<List<Dtos.StaffResponse>> GetAllStaffAsync();
+           Task<List<Dtos.StaffResponse>> GetAllStaffAsync(Dtos.ListStaffRequest request);
     }
 }

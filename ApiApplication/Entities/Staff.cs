@@ -19,10 +19,10 @@ namespace ApiApplication.Entities
         public bool IsActive { get; set; } = true;
         public string? Note { get; set; }
 
-    // Link to ApplicationUser
+        // Link to ApplicationUser
         public Guid? UserId { get; set; }
         public ApplicationUser? User { get; set; }
 
-    public string SalarySettings { get; set; } = "{}";
+        public string SalarySettings { get; set; } = "{}";
     }
 }

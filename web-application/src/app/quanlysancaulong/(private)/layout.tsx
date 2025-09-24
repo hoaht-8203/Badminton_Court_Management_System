@@ -93,6 +93,28 @@ const sideBarItems: MenuProps["items"] = [
     key: "quanlynhanvien",
     label: "Quản lý nhân viên",
     icon: <IdCardLanyard className="h-4 w-4" />,
+    children: [
+      {
+        key: "/quanlysancaulong/list-staff",
+        label: "Danh sách nhân viên",
+      },
+      {
+        key: "/quanlysancaulong/shift",
+        label: "Ca làm việc",
+      },
+      {
+        key: "/quanlysancaulong/work-schedule",
+        label: "Lịch làm việc",
+      },
+      {
+        key: "/quanlysancaulong/salary",
+        label: "Quản lý lương",
+      },
+      {
+        key: "/quanlysancaulong/employee-configuration",
+        label: "Thiết lập nhân viên",
+      },
+    ],
   },
   {
     key: "quantriungdung",

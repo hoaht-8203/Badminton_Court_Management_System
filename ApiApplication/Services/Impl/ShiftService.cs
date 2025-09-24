@@ -15,6 +15,10 @@ public class ShiftService(
 
     public async Task CreateShiftAsync(ShiftRequest request)
     {
+        // Check for overlapping shifts
+        if (IsTimeOverlap(request.StartTime, request.EndTime))
+            throw new Exception("Lỗi: Thời gian làm việc bị trùng.");
+        // Create and save the new shift
         var shift = _mapper.Map<Entities.Shift>(request);
         _context.Shifts.Add(shift);
         await _context.SaveChangesAsync();
@@ -22,9 +26,12 @@ public class ShiftService(
 
     public async Task UpdateShiftAsync(int id, ShiftRequest request)
     {
+        // Check for overlapping shifts excluding the current shift
+        if (IsTimeOverlap(request.StartTime, request.EndTime, id))
+            throw new Exception("Lỗi: Thời gian làm việc bị trùng.");
         var shift = await _context.Shifts.FindAsync(id);
         if (shift == null)
-            throw new Exception($"Shift with Id {id} not found");
+            throw new Exception($"Ca làm việc với Id {id} không tồn tại");
         _mapper.Map(request, shift);
         _context.Shifts.Update(shift);
         await _context.SaveChangesAsync();
@@ -34,7 +41,7 @@ public class ShiftService(
     {
         var shift = await _context.Shifts.FindAsync(id);
         if (shift == null)
-            throw new Exception($"Shift with Id {id} not found");
+            throw new Exception($"Ca làm việc với Id {id} không tồn tại");
         _context.Shifts.Remove(shift);
         await _context.SaveChangesAsync();
     }
@@ -48,7 +55,14 @@ public class ShiftService(
 
     public async Task<List<ShiftResponse>> GetAllShiftsAsync()
     {
-        var shifts = await _context.Shifts.ToListAsync();
+        var shifts = await _context.Shifts.OrderBy(s => s.StartTime).ToListAsync();
         return shifts.Select(s => _mapper.Map<ShiftResponse>(s)).ToList();
+    }
+    public bool IsTimeOverlap(TimeOnly startTime, TimeOnly endTime, int? excludeId = null)
+    {
+        return _context.Shifts.Any(s =>
+            (excludeId == null || s.Id != excludeId) &&
+            ((startTime < s.EndTime && endTime > s.StartTime) || startTime == s.StartTime || endTime == s.EndTime)
+        );
     }
 }

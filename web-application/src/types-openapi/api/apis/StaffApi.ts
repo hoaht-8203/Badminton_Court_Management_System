@@ -31,6 +31,13 @@ import {
     StaffResponseListApiResponseToJSON,
 } from '../models/index';
 
+export interface ApiStaffGetRequest {
+    status?: number;
+    departmentIds?: Array<number>;
+    branchIds?: Array<number>;
+    keyword?: string;
+}
+
 export interface ApiStaffIdDeleteRequest {
     id: number;
 }
@@ -57,15 +64,19 @@ export interface ApiStaffPostRequest {
 export interface StaffApiInterface {
     /**
      * 
+     * @param {number} [status] 
+     * @param {Array<number>} [departmentIds] 
+     * @param {Array<number>} [branchIds] 
+     * @param {string} [keyword] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof StaffApiInterface
      */
-    apiStaffGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StaffResponseListApiResponse>>;
+    apiStaffGetRaw(requestParameters: ApiStaffGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StaffResponseListApiResponse>>;
 
     /**
      */
-    apiStaffGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StaffResponseListApiResponse>;
+    apiStaffGet(requestParameters: ApiStaffGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StaffResponseListApiResponse>;
 
     /**
      * 
@@ -129,8 +140,24 @@ export class StaffApi extends runtime.BaseAPI implements StaffApiInterface {
 
     /**
      */
-    async apiStaffGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StaffResponseListApiResponse>> {
+    async apiStaffGetRaw(requestParameters: ApiStaffGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StaffResponseListApiResponse>> {
         const queryParameters: any = {};
+
+        if (requestParameters['status'] != null) {
+            queryParameters['Status'] = requestParameters['status'];
+        }
+
+        if (requestParameters['departmentIds'] != null) {
+            queryParameters['DepartmentIds'] = requestParameters['departmentIds'];
+        }
+
+        if (requestParameters['branchIds'] != null) {
+            queryParameters['BranchIds'] = requestParameters['branchIds'];
+        }
+
+        if (requestParameters['keyword'] != null) {
+            queryParameters['Keyword'] = requestParameters['keyword'];
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -149,8 +176,8 @@ export class StaffApi extends runtime.BaseAPI implements StaffApiInterface {
 
     /**
      */
-    async apiStaffGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StaffResponseListApiResponse> {
-        const response = await this.apiStaffGetRaw(initOverrides);
+    async apiStaffGet(requestParameters: ApiStaffGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StaffResponseListApiResponse> {
+        const response = await this.apiStaffGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

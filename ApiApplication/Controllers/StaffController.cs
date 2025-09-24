@@ -16,9 +16,9 @@ namespace ApiApplication.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<List<StaffResponse>>>> GetAll()
+        public async Task<ActionResult<ApiResponse<List<StaffResponse>>>> GetAll([FromQuery] ListStaffRequest request)
         {
-            var result = await _staffService.GetAllStaffAsync();
+            var result = await _staffService.GetAllStaffAsync(request);
             return Ok(ApiResponse<List<StaffResponse>>.SuccessResponse(result, "Get all staff successfully"));
         }
 

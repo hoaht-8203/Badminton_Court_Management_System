@@ -36,5 +36,7 @@ public class CourtMappingProfile : Profile
         CreateMap<CreateCourtPricingRuleTemplateRequest, CourtPricingRuleTemplate>()
             .ForMember(d => d.Id, opt => opt.MapFrom(_ => Guid.NewGuid()));
         CreateMap<CourtPricingRuleTemplate, CourtPricingRuleTemplateDto>();
+        CreateMap<UpdateCourtPricingRuleTemplateRequest, CourtPricingRuleTemplate>();
+        CreateMap<DeleteCourtPricingRuleTemplateRequest, CourtPricingRuleTemplate>();
     }
 }

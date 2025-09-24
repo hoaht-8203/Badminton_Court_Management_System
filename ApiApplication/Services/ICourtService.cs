@@ -22,4 +22,10 @@ public interface ICourtService
     );
 
     Task<List<CourtPricingRuleTemplateDto>> ListCourtPricingRuleTemplatesAsync();
+
+    Task<CourtPricingRuleTemplateDto> UpdateCourtPricingRuleTemplateAsync(
+        UpdateCourtPricingRuleTemplateRequest request
+    );
+
+    Task DeleteCourtPricingRuleTemplateAsync(DeleteCourtPricingRuleTemplateRequest request);
 }

@@ -5,11 +5,13 @@ import {
   CourtPricingRuleTemplateDto,
   CreateCourtPricingRuleTemplateRequest,
   CreateCourtRequest,
+  DeleteCourtPricingRuleTemplateRequest,
   DeleteCourtRequest,
   DetailCourtRequest,
   DetailCourtResponse,
   ListCourtRequest,
   ListCourtResponse,
+  UpdateCourtPricingRuleTemplateRequest,
   UpdateCourtRequest,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
@@ -58,6 +60,18 @@ export const courtService = {
 
   async listCourtPricingRuleTemplates(): Promise<ApiResponse<CourtPricingRuleTemplateDto[]>> {
     const res = await axiosInstance.get<ApiResponse<CourtPricingRuleTemplateDto[]>>("/api/Courts/list-pricing-rule-templates");
+    return res.data;
+  },
+
+  async updateCourtPricingRuleTemplate(payload: UpdateCourtPricingRuleTemplateRequest): Promise<ApiResponse<CourtPricingRuleTemplateDto>> {
+    const res = await axiosInstance.put<ApiResponse<CourtPricingRuleTemplateDto>>("/api/Courts/update-pricing-rule-template", payload);
+    return res.data;
+  },
+
+  async deleteCourtPricingRuleTemplate(payload: DeleteCourtPricingRuleTemplateRequest): Promise<ApiResponse<null>> {
+    const res = await axiosInstance.delete<ApiResponse<null>>("/api/Courts/delete-pricing-rule-template", {
+      params: payload,
+    });
     return res.data;
   },
 };

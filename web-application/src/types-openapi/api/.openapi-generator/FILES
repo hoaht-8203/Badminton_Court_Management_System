@@ -1,7 +1,7 @@
 apis/ActivityApi.ts
 apis/AuthApi.ts
-apis/CourtApi.ts
 apis/CourtAreasApi.ts
+apis/CourtsApi.ts
 apis/CustomersApi.ts
 apis/EmailApi.ts
 apis/FilesApi.ts
@@ -48,6 +48,7 @@ models/CurrentUserResponseApiResponse.ts
 models/Customer.ts
 models/DayOfWeek.ts
 models/DeletCourtAreaRequest.ts
+models/DeleteCourtPricingRuleTemplateRequest.ts
 models/DeleteCourtRequest.ts
 models/DeleteCustomerRequest.ts
 models/DeleteFileRequest.ts
@@ -137,6 +138,7 @@ models/StaffShiftDto.ts
 models/Supplier.ts
 models/SystemConfig.ts
 models/UpdateCourtAreaRequest.ts
+models/UpdateCourtPricingRuleTemplateRequest.ts
 models/UpdateCourtRequest.ts
 models/UpdateCustomerRequest.ts
 models/UpdateMyProfileRequest.ts

@@ -14,6 +14,6 @@ public class ChangeCourtStatusRequest
     // Helper method để validate status
     public bool IsValidStatus()
     {
-        return CustomerStatus.ValidCustomerStatus.Contains(Status);
+        return CourtStatus.ValidCustomerStatus.Contains(Status);
     }
 }

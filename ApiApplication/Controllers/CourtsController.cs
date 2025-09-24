@@ -114,4 +114,29 @@ public class CourtsController(ICourtService courtService) : ControllerBase
             )
         );
     }
+
+    [HttpPut("update-pricing-rule-template")]
+    public async Task<
+        ActionResult<ApiResponse<CourtPricingRuleTemplateDto>>
+    > UpdateCourtPricingRuleTemplate([FromBody] UpdateCourtPricingRuleTemplateRequest request)
+    {
+        var result = await _courtService.UpdateCourtPricingRuleTemplateAsync(request);
+        return Ok(
+            ApiResponse<CourtPricingRuleTemplateDto>.SuccessResponse(
+                result,
+                "Update pricing rule template successfully"
+            )
+        );
+    }
+
+    [HttpDelete("delete-pricing-rule-template")]
+    public async Task<ActionResult<ApiResponse<object?>>> DeleteCourtPricingRuleTemplate(
+        [FromQuery] DeleteCourtPricingRuleTemplateRequest request
+    )
+    {
+        await _courtService.DeleteCourtPricingRuleTemplateAsync(request);
+        return Ok(
+            ApiResponse<object?>.SuccessResponse(null, "Delete pricing rule template successfully")
+        );
+    }
 }

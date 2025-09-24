@@ -204,6 +204,8 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
             );
         }
 
+        request.DaysOfWeek = [.. request.DaysOfWeek.OrderBy(d => d)];
+
         var courtPricingRuleTemplate = _mapper.Map<CourtPricingRuleTemplate>(request);
         await _context.CourtPricingRuleTemplates.AddAsync(courtPricingRuleTemplate);
         await _context.SaveChangesAsync();
@@ -214,5 +216,34 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
     {
         var courtPricingRuleTemplates = await _context.CourtPricingRuleTemplates.ToListAsync();
         return _mapper.Map<List<CourtPricingRuleTemplateDto>>(courtPricingRuleTemplates);
+    }
+
+    public async Task<CourtPricingRuleTemplateDto> UpdateCourtPricingRuleTemplateAsync(
+        UpdateCourtPricingRuleTemplateRequest request
+    )
+    {
+        var courtPricingRuleTemplate =
+            await _context.CourtPricingRuleTemplates.FirstOrDefaultAsync(c => c.Id == request.Id)
+            ?? throw new ArgumentException(
+                $"Not found court pricing rule template with ID: {request.Id}"
+            );
+
+        _mapper.Map(request, courtPricingRuleTemplate);
+        await _context.SaveChangesAsync();
+        return _mapper.Map<CourtPricingRuleTemplateDto>(courtPricingRuleTemplate);
+    }
+
+    public async Task DeleteCourtPricingRuleTemplateAsync(
+        DeleteCourtPricingRuleTemplateRequest request
+    )
+    {
+        var courtPricingRuleTemplate =
+            await _context.CourtPricingRuleTemplates.FirstOrDefaultAsync(c => c.Id == request.Id)
+            ?? throw new ArgumentException(
+                $"Not found court pricing rule template with ID: {request.Id}"
+            );
+
+        _context.CourtPricingRuleTemplates.Remove(courtPricingRuleTemplate);
+        await _context.SaveChangesAsync();
     }
 }

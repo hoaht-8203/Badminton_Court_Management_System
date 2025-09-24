@@ -5,11 +5,13 @@ import {
   CourtPricingRuleTemplateDto,
   CreateCourtPricingRuleTemplateRequest,
   CreateCourtRequest,
+  DeleteCourtPricingRuleTemplateRequest,
   DeleteCourtRequest,
   DetailCourtRequest,
   DetailCourtResponse,
   ListCourtRequest,
   ListCourtResponse,
+  UpdateCourtPricingRuleTemplateRequest,
   UpdateCourtRequest,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
@@ -107,6 +109,28 @@ export const useCreateCourtPricingRuleTemplate = () => {
   const queryClient = useQueryClient();
   return useMutation<ApiResponse<CourtPricingRuleTemplateDto>, ApiError, CreateCourtPricingRuleTemplateRequest>({
     mutationFn: (data: CreateCourtPricingRuleTemplateRequest) => courtService.createCourtPricingRuleTemplate(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: courtsKeys.listPricingRuleTemplates() });
+    },
+  });
+};
+
+// Update Court Pricing Rule Template
+export const useUpdateCourtPricingRuleTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<CourtPricingRuleTemplateDto>, ApiError, UpdateCourtPricingRuleTemplateRequest>({
+    mutationFn: (data: UpdateCourtPricingRuleTemplateRequest) => courtService.updateCourtPricingRuleTemplate(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: courtsKeys.listPricingRuleTemplates() });
+    },
+  });
+};
+
+// Delete Court Pricing Rule Template
+export const useDeleteCourtPricingRuleTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<null>, ApiError, DeleteCourtPricingRuleTemplateRequest>({
+    mutationFn: (data: DeleteCourtPricingRuleTemplateRequest) => courtService.deleteCourtPricingRuleTemplate(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: courtsKeys.listPricingRuleTemplates() });
     },

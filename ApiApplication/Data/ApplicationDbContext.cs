@@ -31,6 +31,9 @@ public class ApplicationDbContext(
     public DbSet<PayrollItem> PayrollItems { get; set; }
     public DbSet<SalaryForm> SalaryForms { get; set; }
     public DbSet<Schedule> Schedules { get; set; }
+    public DbSet<Court> Courts { get; set; }
+    public DbSet<CourtArea> CourtAreas { get; set; }
+    public DbSet<PriceUnit> PriceUnits { get; set; }
 
     // public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
     public DbSet<CancelledShift> CancelledShifts { get; set; }

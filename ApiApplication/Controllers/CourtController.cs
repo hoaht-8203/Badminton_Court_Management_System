@@ -1,0 +1,89 @@
+using ApiApplication.Dtos;
+using ApiApplication.Dtos.Court;
+using ApiApplication.Dtos.Customer;
+using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace ApiApplication.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+[Authorize]
+public class CourtController(ICourtService courtService) : ControllerBase
+{
+    private readonly ICourtService _courtService = courtService;
+
+    [HttpGet("list")]
+    public async Task<ActionResult<ApiResponse<ListCourtResponse>>> ListCourts(
+        [FromQuery] ListCourtRequest request
+    )
+    {
+        var result = await _courtService.ListCourtsAsync(request);
+        return Ok(
+            ApiResponse<List<ListCourtResponse>>.SuccessResponse(
+                result,
+                "Get court list successfully"
+            )
+        );
+    }
+
+    [HttpGet("detail")]
+    public async Task<ActionResult<ApiResponse<DetailCourtResponse>>> DetailCourt(
+        [FromQuery] DetailCourtRequest request
+    )
+    {
+        var result = await _courtService.DetailCourtAsync(request);
+        return Ok(
+            ApiResponse<DetailCourtResponse>.SuccessResponse(
+                result,
+                "Get court information successfully"
+            )
+        );
+    }
+
+    [HttpPost("create")]
+    public async Task<ActionResult<ApiResponse<DetailCourtResponse>>> CreateCourt(
+        [FromBody] CreateCourtRequest request
+    )
+    {
+        var result = await _courtService.CreateCourtAsync(request);
+        return Ok(
+            ApiResponse<DetailCourtResponse>.SuccessResponse(result, "Create successful court")
+        );
+    }
+
+    [HttpPut("update")]
+    public async Task<ActionResult<ApiResponse<DetailCourtResponse>>> UpdateCourt(
+        [FromBody] UpdateCourtRequest request
+    )
+    {
+        var result = await _courtService.UpdateCourtAsync(request);
+        return Ok(
+            ApiResponse<DetailCourtResponse>.SuccessResponse(result, "Court update successful")
+        );
+    }
+
+    [HttpDelete("delete")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteCourt(
+        [FromBody] DeleteCourtRequest request
+    )
+    {
+        var result = await _courtService.DeleteCourtAsync(request);
+        return Ok(ApiResponse<bool>.SuccessResponse(result, "Court deleted successfully"));
+    }
+
+    [HttpPut("change-status")]
+    public async Task<ActionResult<ApiResponse<DetailCourtResponse>>> ChangeCourtStatus(
+        [FromBody] ChangeCourtStatusRequest request
+    )
+    {
+        var result = await _courtService.ChangeCourtStatusAsync(request);
+        return Ok(
+            ApiResponse<DetailCourtResponse>.SuccessResponse(
+                result,
+                "Change court status successfully"
+            )
+        );
+    }
+}

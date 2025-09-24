@@ -90,11 +90,41 @@ const CourtScheduler = () => {
           }}
           onTimeRangeSelected={async (args) => {
             const scheduler = args.control;
-            const modal = await DayPilot.Modal.prompt("Create a new event:", "Event 1");
+
+            // Lấy start, end của event mới
+            const newStart = args.start;
+            const newEnd = args.end;
+            const resource = args.resource;
+
+            // Lấy danh sách events hiện tại
+            const existingEvents = scheduler.events.list;
+
+            // Hàm check overlap
+            const isOverlapping = existingEvents.some((ev) => {
+              // chỉ check trong cùng resource (cùng sân)
+              if (ev.resource !== resource) return false;
+
+              // DayPilot.Date có compareTo
+              const evStart = new DayPilot.Date(ev.start);
+              const evEnd = new DayPilot.Date(ev.end);
+
+              // nếu khoảng thời gian giao nhau
+              return newStart < evEnd && newEnd > evStart;
+            });
+
+            if (isOverlapping) {
+              DayPilot.Modal.alert("Thời gian này đã có sự kiện, vui lòng chọn slot khác.");
+              scheduler.clearSelection();
+              return;
+            }
+
+            const modal = await DayPilot.Modal.prompt("Tạo sự kiện mới:", "Sự kiện 1");
             scheduler.clearSelection();
             if (modal.canceled) {
               return;
             }
+            // check if the start and end event is existed
+
             scheduler.events.add({
               start: args.start,
               end: args.end,
@@ -103,12 +133,15 @@ const CourtScheduler = () => {
               text: modal.result,
             });
           }}
+          eventMoveHandling="Update"
           onEventMove={async (args) => {
             console.log("onEventMove", args);
           }}
+          eventResizeHandling="Update"
           onEventResize={async (args) => {
             console.log("onEventResize", args);
           }}
+          eventDeleteHandling="Update"
           onEventDeleted={async (args) => {
             console.log("onEventDeleted", args);
           }}

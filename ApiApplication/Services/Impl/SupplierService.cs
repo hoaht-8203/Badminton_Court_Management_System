@@ -13,8 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
 
-public class SupplierService(ApplicationDbContext context, IMapper mapper, ICurrentUser currentUser)
-    : ISupplierService
+public class SupplierService(ApplicationDbContext context, IMapper mapper) : ISupplierService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
@@ -80,7 +79,7 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper, ICurr
         var supplier = _mapper.Map<Supplier>(request);
         supplier.Status = SupplierStatus.Active;
 
-        _context.Suppliers.Add(supplier);
+        await _context.Suppliers.AddAsync(supplier);
         await _context.SaveChangesAsync();
     }
 

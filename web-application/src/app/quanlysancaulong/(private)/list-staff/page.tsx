@@ -1,11 +1,13 @@
 "use client";
 import React from "react";
+import { useState } from "react";
 import StaffList from "@/components/quanlysancaulong/staffs/list-staff/staffs-list";
 import StaffModal from "@/components/quanlysancaulong/staffs/list-staff/staff-modal";
 import { useListStaffs, useCreateStaff, useUpdateStaff } from "@/hooks/useStaffs";
 
 import { Breadcrumb, Button, Card, Col, Form, Input, Row, Select, Radio, Space, message, Avatar, Table, Pagination } from "antd";
 import { SearchOutlined, ReloadOutlined, PlusOutlined, FileExcelOutlined } from "@ant-design/icons";
+import { ListStaffRequest, ListStaffRequestFromJSON, StaffRequest } from "@/types-openapi/api";
 // Dummy roles and status for filter
 const branches = [
   { value: 1, label: "Chi nhánh A" },
@@ -23,17 +25,17 @@ const statusOptions = [
 
 export default function ListStaffPage() {
   const [form] = Form.useForm();
-  const [searchParams, setSearchParams] = React.useState({} as any);
+  const [searchParams, setSearchParams] = useState(ListStaffRequestFromJSON({}));
   const { data: staffsData, isFetching: loadingStaffs, refetch: refetchStaffs } = useListStaffs(searchParams);
-  const [openStaffModal, setOpenStaffModal] = React.useState(false);
-  const [editingStaff, setEditingStaff] = React.useState<any | null>(null);
-  const [showAdvancedFilter, setShowAdvancedFilter] = React.useState(false);
+  const [openStaffModal, setOpenStaffModal] = useState(false);
+  const [editingStaff, setEditingStaff] = useState<any | null>(null);
+  const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
 
   // CRUD hooks
   const createStaff = useCreateStaff();
   const updateStaff = useUpdateStaff(editingStaff?.id);
 
-  const handleSearch = (values: any) => {
+  const handleSearch = (values: ListStaffRequest) => {
     setSearchParams({
       keyword: values.keyword ?? null,
       status: values.status !== 0 ? values.status : null,
@@ -51,7 +53,7 @@ export default function ListStaffPage() {
     setOpenStaffModal(true);
   };
 
-  const handleEditStaff = (staff: any) => {
+  const handleEditStaff = (staff: StaffRequest) => {
     setEditingStaff(staff);
     setOpenStaffModal(true);
   };
@@ -61,7 +63,7 @@ export default function ListStaffPage() {
     setEditingStaff(null);
   };
 
-  const handleStaffModalSubmit = async (values: any) => {
+  const handleStaffModalSubmit = async (values: StaffRequest) => {
     try {
       if (editingStaff && editingStaff.id) {
         await updateStaff.mutateAsync(values);

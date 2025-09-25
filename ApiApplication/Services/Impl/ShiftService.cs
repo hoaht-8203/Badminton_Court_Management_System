@@ -1,3 +1,4 @@
+using ApiApplication.Exceptions;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
 using AutoMapper;
@@ -17,7 +18,10 @@ public class ShiftService(
     {
         // Check for overlapping shifts
         if (IsTimeOverlap(request.StartTime, request.EndTime))
-            throw new Exception("Lỗi: Thời gian làm việc bị trùng.");
+            throw new ApiException(
+                "Lỗi: Thời gian làm việc bị trùng.",
+                System.Net.HttpStatusCode.BadRequest
+            );
         // Create and save the new shift
         var shift = _mapper.Map<Entities.Shift>(request);
         _context.Shifts.Add(shift);
@@ -28,10 +32,16 @@ public class ShiftService(
     {
         // Check for overlapping shifts excluding the current shift
         if (IsTimeOverlap(request.StartTime, request.EndTime, id))
-            throw new Exception("Lỗi: Thời gian làm việc bị trùng.");
+            throw new ApiException(
+                "Lỗi: Thời gian làm việc bị trùng.",
+                System.Net.HttpStatusCode.BadRequest
+            );
         var shift = await _context.Shifts.FindAsync(id);
         if (shift == null)
-            throw new Exception($"Ca làm việc với Id {id} không tồn tại");
+            throw new ApiException(
+                $"Ca làm việc với Id {id} không tồn tại",
+                System.Net.HttpStatusCode.NotFound
+            );
         _mapper.Map(request, shift);
         _context.Shifts.Update(shift);
         await _context.SaveChangesAsync();
@@ -41,7 +51,10 @@ public class ShiftService(
     {
         var shift = await _context.Shifts.FindAsync(id);
         if (shift == null)
-            throw new Exception($"Ca làm việc với Id {id} không tồn tại");
+            throw new ApiException(
+                $"Ca làm việc với Id {id} không tồn tại",
+                System.Net.HttpStatusCode.NotFound
+            );
         _context.Shifts.Remove(shift);
         await _context.SaveChangesAsync();
     }

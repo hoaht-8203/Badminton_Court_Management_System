@@ -97,7 +97,7 @@ export default function ShiftPage() {
   };
 
   return (
-    <div style={{ padding: 24 }}>
+    <div>
       <div style={{ marginBottom: 16 }}>
         <Breadcrumb items={[{ title: "Quản lý sân cầu lông" }, { title: "Ca làm việc" }]} />
       </div>

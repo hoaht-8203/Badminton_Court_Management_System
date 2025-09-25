@@ -85,28 +85,20 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
       <Col span={8} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
         <Space direction="vertical" align="center" style={{ width: "100%" }}>
           <Avatar src={avatarPreview} size={120} style={{ background: "#f0f0f0", marginBottom: 8 }} icon={!avatarPreview && <UploadOutlined />} />
-          <Form.Item name="avatarUrl" style={{ marginBottom: 0 }}>
-            <Upload
-              showUploadList={false}
-              beforeUpload={() => false}
-              accept="image/*"
-              onChange={handleAvatarChange}
-              fileList={fileList}
-            >
-              <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
-            </Upload>
-          </Form.Item>
         </Space>
+        <Form.Item name="avatarUrl" style={{ marginBottom: 0 }}>
+          <Upload showUploadList={false} beforeUpload={() => false} accept="image/*" onChange={handleAvatarChange} fileList={fileList}>
+            <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
+          </Upload>
+        </Form.Item>
       </Col>
       <Col span={16}>
         <Form.Item label="Tên nhân viên" name="fullName" rules={[{ required: true, message: "Vui lòng nhập tên nhân viên" }]}>
-          {" "}
-          <Input />{" "}
+          <Input />
         </Form.Item>
 
         <Form.Item label="Số điện thoại" name="phoneNumber" rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}>
-          {" "}
-          <Input />{" "}
+          <Input />
         </Form.Item>
       </Col>
     </Row>

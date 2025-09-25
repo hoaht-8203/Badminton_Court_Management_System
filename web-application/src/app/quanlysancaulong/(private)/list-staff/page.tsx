@@ -2,7 +2,7 @@
 import React from "react";
 import StaffList from "@/components/quanlysancaulong/staffs/list-staff/staffs-list";
 import StaffModal from "@/components/quanlysancaulong/staffs/list-staff/staff-modal";
-import { useListStaffs } from "@/hooks/useStaffs";
+import { useListStaffs, useCreateStaff, useUpdateStaff } from "@/hooks/useStaffs";
 
 import { Breadcrumb, Button, Card, Col, Form, Input, Row, Select, Radio, Space, message, Avatar, Table, Pagination } from "antd";
 import { SearchOutlined, ReloadOutlined, PlusOutlined, FileExcelOutlined } from "@ant-design/icons";
@@ -28,6 +28,10 @@ export default function ListStaffPage() {
   const [openStaffModal, setOpenStaffModal] = React.useState(false);
   const [editingStaff, setEditingStaff] = React.useState<any | null>(null);
   const [showAdvancedFilter, setShowAdvancedFilter] = React.useState(false);
+
+  // CRUD hooks
+  const createStaff = useCreateStaff();
+  const updateStaff = useUpdateStaff(editingStaff?.id);
 
   const handleSearch = (values: any) => {
     setSearchParams({
@@ -57,24 +61,27 @@ export default function ListStaffPage() {
     setEditingStaff(null);
   };
 
-  const handleStaffModalSubmit = (values: any) => {
-    if (editingStaff) {
-      // TODO: Call API to update staff
-      message.success("Cập nhật nhân viên thành công (demo)");
-    } else {
-      // TODO: Call API to add staff
-      message.success("Thêm nhân viên thành công (demo)");
+  const handleStaffModalSubmit = async (values: any) => {
+    try {
+      if (editingStaff && editingStaff.id) {
+        await updateStaff.mutateAsync(values);
+        message.success("Cập nhật nhân viên thành công");
+      } else {
+        await createStaff.mutateAsync(values);
+        message.success("Thêm nhân viên thành công");
+      }
+      setOpenStaffModal(false);
+      setEditingStaff(null);
+    } catch (error: any) {
+      message.error(error?.message || "Có lỗi xảy ra, vui lòng thử lại");
     }
-    setOpenStaffModal(false);
-    setEditingStaff(null);
-    // Optionally: refetchStaffs();
   };
 
   const handleExportExcel = () => {
     message.success("Xuất Excel (demo)");
   };
   return (
-    <section style={{ padding: 24 }}>
+    <section>
       <div style={{ marginBottom: 16 }}>
         <Breadcrumb items={[{ title: "Quản lý sân cầu lông" }, { title: "Nhân viên" }]} />
       </div>
@@ -136,8 +143,8 @@ export default function ListStaffPage() {
           </Button>
         </div>
       </div>
-  <StaffList staffList={staffsData?.data ?? []} onEditStaff={handleEditStaff} />
-  <StaffModal open={openStaffModal} onClose={handleStaffModalClose} onSubmit={handleStaffModalSubmit} staff={editingStaff} />
+      <StaffList staffList={staffsData?.data ?? []} onEditStaff={handleEditStaff} />
+      <StaffModal open={openStaffModal} onClose={handleStaffModalClose} onSubmit={handleStaffModalSubmit} staff={editingStaff} />
     </section>
   );
 }

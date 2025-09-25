@@ -1,7 +1,10 @@
+
 using ApiApplication.Data;
 using ApiApplication.Sessions;
+using ApiApplication.Exceptions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace ApiApplication.Services.Impl
 {
@@ -19,21 +22,36 @@ namespace ApiApplication.Services.Impl
         {
             var staff = await _context.Staffs.FindAsync(id);
             if (staff == null)
-                throw new Exception($"Nhân viên với Id {id} không tồn tại");
+            {
+                throw new ApiException(
+                    $"Nhân viên với Id {id} không tồn tại",
+                    HttpStatusCode.NotFound
+                );
+            }
 
             // Check uniqueness for IdentificationNumber
             if (!string.IsNullOrEmpty(request.IdentificationNumber))
             {
                 var exists = await _context.Staffs.AnyAsync(s => s.IdentificationNumber == request.IdentificationNumber && s.Id != id);
                 if (exists)
-                    throw new Exception($"CCCD '{request.IdentificationNumber}' đã được sử dụng bởi nhân viên khác.");
+                {
+                    throw new ApiException(
+                        $"CCCD '{request.IdentificationNumber}' đã được sử dụng bởi nhân viên khác.",
+                        HttpStatusCode.BadRequest
+                    );
+                }
             }
             // Check uniqueness for PhoneNumber
             if (!string.IsNullOrEmpty(request.PhoneNumber))
             {
                 var exists = await _context.Staffs.AnyAsync(s => s.PhoneNumber == request.PhoneNumber && s.Id != id);
                 if (exists)
-                    throw new Exception($"Số điện thoại '{request.PhoneNumber}' đã được sử dụng bởi nhân viên khác.");
+                {
+                    throw new ApiException(
+                        $"Số điện thoại '{request.PhoneNumber}' đã được sử dụng bởi nhân viên khác.",
+                        HttpStatusCode.BadRequest
+                    );
+                }
             }
 
             _mapper.Map(request, staff);
@@ -41,75 +59,98 @@ namespace ApiApplication.Services.Impl
             await _context.SaveChangesAsync();
         }
 
-            public async Task CreateStaffAsync(Dtos.StaffRequest request)
+        public async Task CreateStaffAsync(Dtos.StaffRequest request)
+        {
+            // Check uniqueness for IdentificationNumber
+            if (!string.IsNullOrEmpty(request.IdentificationNumber))
             {
-                // Check uniqueness for IdentificationNumber
-                if (!string.IsNullOrEmpty(request.IdentificationNumber))
+                var exists = await _context.Staffs.AnyAsync(s => s.IdentificationNumber == request.IdentificationNumber);
+                if (exists)
                 {
-                    var exists = await _context.Staffs.AnyAsync(s => s.IdentificationNumber == request.IdentificationNumber);
-                    if (exists)
-                        throw new Exception($"CCCD '{request.IdentificationNumber}' đã được sử dụng bởi nhân viên khác.");
+                    throw new ApiException(
+                        $"CCCD '{request.IdentificationNumber}' đã được sử dụng bởi nhân viên khác.",
+                        HttpStatusCode.BadRequest
+                    );
                 }
-                // Check uniqueness for PhoneNumber
-                if (!string.IsNullOrEmpty(request.PhoneNumber))
+            }
+            // Check uniqueness for PhoneNumber
+            if (!string.IsNullOrEmpty(request.PhoneNumber))
+            {
+                var exists = await _context.Staffs.AnyAsync(s => s.PhoneNumber == request.PhoneNumber);
+                if (exists)
                 {
-                    var exists = await _context.Staffs.AnyAsync(s => s.PhoneNumber == request.PhoneNumber);
-                    if (exists)
-                        throw new Exception($"Số điện thoại '{request.PhoneNumber}' đã được sử dụng bởi nhân viên khác.");
+                    throw new ApiException(
+                        $"Số điện thoại '{request.PhoneNumber}' đã được sử dụng bởi nhân viên khác.",
+                        HttpStatusCode.BadRequest
+                    );
                 }
-
-                var staff = _mapper.Map<Entities.Staff>(request);
-                _context.Staffs.Add(staff);
-                await _context.SaveChangesAsync();
             }
 
-            public async Task DeleteStaffAsync(int staffId)
+            var staff = _mapper.Map<Entities.Staff>(request);
+            _context.Staffs.Add(staff);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteStaffAsync(int staffId)
+        {
+            var staff = await _context.Staffs.FindAsync(staffId);
+            if (staff == null)
             {
-                var staff = await _context.Staffs.FindAsync(staffId);
-                if (staff == null)
-                    throw new Exception($"Nhân viên với Id {staffId} không tồn tại");
-                _context.Staffs.Remove(staff);
-                await _context.SaveChangesAsync();
+                throw new ApiException(
+                    $"Nhân viên với Id {staffId} không tồn tại",
+                    HttpStatusCode.NotFound
+                );
+            }
+            _context.Staffs.Remove(staff);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<Dtos.StaffResponse?> GetStaffByIdAsync(int staffId)
+        {
+            var staff = await _context.Staffs
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.Id == staffId);
+            if (staff == null)
+            {
+                throw new ApiException(
+                    $"Nhân viên với Id {staffId} không tồn tại",
+                    HttpStatusCode.NotFound
+                );
+            }
+            return _mapper.Map<Dtos.StaffResponse>(staff);
+        }
+
+        public async Task<List<Dtos.StaffResponse>> GetAllStaffAsync(Dtos.ListStaffRequest request)
+        {
+            var query = _context.Staffs.OrderBy(s => s.Id).Include(s => s.User).AsQueryable();
+
+            if (request.Status.HasValue)
+            {
+                // 1: active, 0: inactive
+                if (request.Status.Value == 1)
+                    query = query.Where(s => s.IsActive);
+                else if (request.Status.Value == 0)
+                    query = query.Where(s => !s.IsActive);
+            }
+            if (request.DepartmentIds != null && request.DepartmentIds.Any())
+            {
+                query = query.Where(s => s.DepartmentId.HasValue && request.DepartmentIds.Contains(s.DepartmentId.Value));
+            }
+            if (request.BranchIds != null && request.BranchIds.Any())
+            {
+                query = query.Where(s => s.BranchId.HasValue && request.BranchIds.Contains(s.BranchId.Value));
+            }
+            if (!string.IsNullOrWhiteSpace(request.Keyword))
+            {
+                query = query.Where(s =>
+                    (s.FullName != null && s.FullName.Contains(request.Keyword))
+                    || (s.PhoneNumber != null && s.PhoneNumber.Contains(request.Keyword))
+                    || (s.IdentificationNumber != null && s.IdentificationNumber.Contains(request.Keyword))
+                );
             }
 
-            public async Task<Dtos.StaffResponse?> GetStaffByIdAsync(int staffId)
-            {
-                var staff = await _context.Staffs
-                    .Include(s => s.User)
-                    .FirstOrDefaultAsync(s => s.Id == staffId);
-                if (staff == null) return null;
-                return _mapper.Map<Dtos.StaffResponse>(staff);
-            }
-
-            public async Task<List<Dtos.StaffResponse>> GetAllStaffAsync(Dtos.ListStaffRequest request)
-            {
-                var query = _context.Staffs.Include(s => s.User).AsQueryable();
-
-                if (request.Status.HasValue)
-                {
-                    // 1: active, 0: inactive
-                    if (request.Status.Value == 1)
-                        query = query.Where(s => s.IsActive);
-                    else if (request.Status.Value == 0)
-                        query = query.Where(s => !s.IsActive);
-                }
-                if (request.DepartmentIds != null && request.DepartmentIds.Any())
-                {
-                    query = query.Where(s => s.DepartmentId.HasValue && request.DepartmentIds.Contains(s.DepartmentId.Value));
-                }
-                if (request.BranchIds != null && request.BranchIds.Any())
-                {
-                    query = query.Where(s => s.BranchId.HasValue && request.BranchIds.Contains(s.BranchId.Value));
-                }
-                if (!string.IsNullOrWhiteSpace(request.Keyword))
-                {
-                    query = query.Where(s => (s.FullName != null && s.FullName.Contains(request.Keyword)) ||
-                                             (s.PhoneNumber != null && s.PhoneNumber.Contains(request.Keyword)) ||
-                                             (s.IdentificationNumber != null && s.IdentificationNumber.Contains(request.Keyword)));
-                }
-
-                var staffs = await query.ToListAsync();
-                return staffs.Select(s => _mapper.Map<Dtos.StaffResponse>(s)).ToList();
-            }
+            var staffs = await query.ToListAsync();
+            return staffs.Select(s => _mapper.Map<Dtos.StaffResponse>(s)).ToList();
+        }
     }
 }

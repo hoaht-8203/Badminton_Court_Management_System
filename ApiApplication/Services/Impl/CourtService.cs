@@ -214,7 +214,9 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
 
     public async Task<List<CourtPricingRuleTemplateDto>> ListCourtPricingRuleTemplatesAsync()
     {
-        var courtPricingRuleTemplates = await _context.CourtPricingRuleTemplates.ToListAsync();
+        var courtPricingRuleTemplates = await _context
+            .CourtPricingRuleTemplates.OrderByDescending(c => c.CreatedAt)
+            .ToListAsync();
         return _mapper.Map<List<CourtPricingRuleTemplateDto>>(courtPricingRuleTemplates);
     }
 

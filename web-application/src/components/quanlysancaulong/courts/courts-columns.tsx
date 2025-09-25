@@ -2,20 +2,11 @@
 
 import { ListCourtResponse } from "@/types-openapi/api";
 import { CourtStatus } from "@/types/commons";
-import { TableProps, Image } from "antd";
+import { TableProps } from "antd";
 import dayjs from "dayjs";
 
 export const columns: TableProps<ListCourtResponse>["columns"] = [
   { title: "Tên sân", dataIndex: "name", key: "name", width: 200, fixed: "left" },
-  {
-    title: "Ảnh",
-    dataIndex: "imageUrl",
-    key: "imageUrl",
-    width: 120,
-    render: (url?: string) => (url ? <Image src={url} alt="court" width={64} height={48} style={{ objectFit: "cover" }} /> : "-"),
-  },
-  { title: "Giá", dataIndex: "price", key: "price", width: 120 },
-  { title: "Đơn vị giá", dataIndex: "priceUnitName", key: "priceUnitName", width: 150, render: (v) => v || "-" },
   { title: "Khu vực", dataIndex: "courtAreaName", key: "courtAreaName", width: 160, render: (v) => v || "-" },
   { title: "Ghi chú", dataIndex: "note", key: "note", width: 220, render: (v) => v || "-" },
   {

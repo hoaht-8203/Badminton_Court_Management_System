@@ -1,45 +1,52 @@
 "use client";
 
 import { useCreateCourt, useListCourtPricingRuleTemplates } from "@/hooks/useCourt";
-import { ApiError } from "@/lib/axios";
 import { useListCourtAreas } from "@/hooks/useCourtArea";
+import { ApiError } from "@/lib/axios";
 import { CreateCourtPricingRulesRequest, CreateCourtRequest } from "@/types-openapi/api";
 import {
+  CalendarOutlined,
   CloseOutlined,
   CopyOutlined,
   DeleteOutlined,
   EditOutlined,
-  LeftOutlined,
+  InfoCircleOutlined,
+  LoadingOutlined,
   PlusOutlined,
   ReloadOutlined,
-  RightOutlined,
+  UploadOutlined,
 } from "@ant-design/icons";
 import {
   Button,
+  Carousel,
+  Col,
+  Divider,
   Drawer,
   Form,
-  Input,
-  Space,
-  message,
-  Row,
-  Col,
   FormProps,
-  Select,
-  Divider,
-  List,
-  TimePicker,
+  Image,
+  Input,
   InputNumber,
-  Typography,
-  Tag,
+  List,
+  message,
   Popconfirm,
-  Carousel,
+  Row,
+  Segmented,
+  Select,
+  Space,
+  Spin,
+  Tag,
+  TimePicker,
+  Typography,
+  Upload,
 } from "antd";
-import FormItem from "antd/es/form/FormItem";
-import CreateNewCourtAreaDrawer from "./create-new-court-area-drawer";
-import { useMemo, useRef, useState } from "react";
-import dayjs, { Dayjs } from "dayjs";
-import ManageCourtPricingRuleTemplateDrawer from "./manage-court-pricing-rule-template-drawer";
 import { CarouselRef } from "antd/es/carousel";
+import FormItem from "antd/es/form/FormItem";
+import dayjs, { Dayjs } from "dayjs";
+import { useMemo, useRef, useState } from "react";
+import CreateNewCourtAreaDrawer from "./create-new-court-area-drawer";
+import ManageCourtPricingRuleTemplateDrawer from "./manage-court-pricing-rule-template-drawer";
+import { fileService } from "@/services/fileService";
 
 interface CreateNewCourtDrawerProps {
   open: boolean;
@@ -56,6 +63,9 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
   const [newRuleEndTime, setNewRuleEndTime] = useState<Dayjs | null>(null);
   const [newRulePricePerHour, setNewRulePricePerHour] = useState<number | null>(null);
   const [isUsingPricingRuleTemplate, setIsUsingPricingRuleTemplate] = useState(false);
+  const [courtImageUrl, setCourtImageUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [courtImageFileName, setCourtImageFileName] = useState<string | null>(null);
 
   const daysOptions = useMemo(
     () => [
@@ -88,12 +98,16 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
 
     const payload: CreateCourtRequest = {
       ...values,
+      imageUrl: courtImageUrl,
       courtPricingRules: courtPricingRules,
     } as CreateCourtRequest;
 
     createMutation.mutate(payload, {
       onSuccess: () => {
         message.success("Tạo sân thành công!");
+        setCourtImageUrl(null);
+        setCourtImageFileName(null);
+        setUploading(false);
         handleClose();
       },
       onError: (error: ApiError) => {
@@ -124,7 +138,7 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
     setNewRulePricePerHour(null);
   };
 
-  const handleClose = () => {
+  const handleClose = async () => {
     formCreateBasicInfoOfCourt.resetFields();
     formCreateCourtPriceRule.resetFields();
     setCourtPricingRules([]);
@@ -134,6 +148,17 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
     setNewRulePricePerHour(null);
     setIsUsingPricingRuleTemplate(false);
     carouselRef.current?.goTo(0);
+
+    try {
+      if (courtImageFileName) {
+        await fileService.deleteFile({ fileName: courtImageFileName });
+      }
+    } catch (error) {
+      message.error("Xóa ảnh thất bại: " + (error as Error).message);
+    } finally {
+      setUploading(false);
+    }
+
     onClose();
   };
 
@@ -162,12 +187,24 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
 
   const carouselRef = useRef<CarouselRef>(null);
 
-  const next = async () => {
-    carouselRef.current?.next();
+  const handleRemoveCourtImageUrl = () => {
+    setCourtImageUrl(null);
   };
 
-  const prev = () => {
-    carouselRef.current?.prev();
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const url = await fileService.uploadFile(file);
+      setCourtImageUrl(url.data?.publicUrl ?? null);
+      setCourtImageFileName(url.data?.fileName ?? null);
+      message.success("Upload ảnh thành công!");
+      return false; // Prevent default upload behavior
+    } catch (error) {
+      message.error("Upload ảnh thất bại: " + (error as Error).message);
+      return false;
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -195,12 +232,33 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
           </Space>
         }
       >
+        <Segmented
+          defaultValue={1}
+          options={[
+            {
+              label: "Cấu hình thông tin sân cầu lông",
+              value: 1,
+              icon: <InfoCircleOutlined />,
+            },
+            {
+              label: "Cấu hình giá sân cầu lông theo khung giờ",
+              value: 2,
+              icon: <CalendarOutlined />,
+            },
+          ]}
+          block
+          onChange={(value: number) => {
+            if (value === 1) {
+              carouselRef.current?.goTo(0);
+            } else {
+              carouselRef.current?.goTo(1);
+            }
+            return value;
+          }}
+        />
         <Carousel infinite={false} ref={carouselRef} dots={false} draggable={false}>
           <div>
             <div>
-              <Button onClick={next} icon={<RightOutlined />} iconPosition="end">
-                Cấu hình giá sân cầu lông theo khung giờ
-              </Button>
               <Divider>Thông tin sân cầu lông</Divider>
               <Form form={formCreateBasicInfoOfCourt} onFinish={handleSubmit} layout="vertical">
                 <Row gutter={16}>
@@ -239,14 +297,46 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
                     </FormItem>
                   </Col>
                 </Row>
+
+                <FormItem<CreateCourtRequest> name="imageUrl" label="Ảnh sân cầu lông">
+                  <Space direction="vertical" style={{ width: "100%" }}>
+                    {courtImageUrl ? (
+                      <Space>
+                        <div className="flex items-center justify-center border border-dashed border-gray-300 p-1">
+                          <Image
+                            src={courtImageUrl}
+                            alt="Avatar preview"
+                            style={{ width: 200, height: 200, objectFit: "cover" }}
+                            fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
+                          />
+                        </div>
+                        <Button type="text" danger icon={<DeleteOutlined />} onClick={handleRemoveCourtImageUrl}>
+                          Xóa ảnh
+                        </Button>
+                      </Space>
+                    ) : (
+                      <>
+                        {uploading ? (
+                          <div className="flex h-[200px] w-[200px] items-center justify-center border border-gray-300">
+                            <Spin indicator={<LoadingOutlined spin />} />
+                          </div>
+                        ) : (
+                          <Upload beforeUpload={handleUpload} showUploadList={false} accept="image/*" disabled={uploading}>
+                            <Button icon={<UploadOutlined />} loading={uploading}>
+                              {uploading ? "Đang upload..." : "Chọn ảnh sân cầu lông"}
+                            </Button>
+                          </Upload>
+                        )}
+                      </>
+                    )}
+                    <div style={{ fontSize: "12px", color: "#666" }}>Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WebP). Kích thước tối đa 100MB.</div>
+                  </Space>
+                </FormItem>
               </Form>
             </div>
           </div>
           <div>
             <div>
-              <Button onClick={prev} icon={<LeftOutlined />} iconPosition="end">
-                Cấu hình thông tin sân cầu lông
-              </Button>
               <Divider>Cấu hình giá sân cầu lông theo khung giờ</Divider>
               <Form form={formCreateCourtPriceRule} onFinish={handleSubmitCourtPriceRule} layout="vertical">
                 <Row gutter={16} align="bottom">

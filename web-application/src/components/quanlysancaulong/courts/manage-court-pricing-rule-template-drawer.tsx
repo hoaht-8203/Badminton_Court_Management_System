@@ -1,25 +1,36 @@
-import { CreateCourtPricingRulesRequest, CreateCourtPricingRuleTemplateRequest } from "@/types-openapi/api";
-import { Drawer, Form, Space, Button, InputNumber, message, FormProps, List, Popconfirm, Tag, Typography } from "antd";
-import { CloseOutlined, DeleteOutlined, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
-import { Row } from "antd";
-import { Col } from "antd";
-import { Select } from "antd";
-import React, { useMemo, useState } from "react";
-import FormItem from "antd/es/form/FormItem";
-import { TimePicker } from "antd";
-import dayjs, { Dayjs } from "dayjs";
-import { useCreateCourtPricingRuleTemplate, useDeleteCourtPricingRuleTemplate, useListCourtPricingRuleTemplates } from "@/hooks/useCourt";
+import {
+  useCreateCourtPricingRuleTemplate,
+  useDeleteCourtPricingRuleTemplate,
+  useListCourtPricingRuleTemplates,
+  useUpdateCourtPricingRuleTemplate,
+} from "@/hooks/useCourt";
 import { ApiError } from "@/lib/axios";
+import { CreateCourtPricingRuleTemplateRequest, UpdateCourtPricingRuleTemplateRequest } from "@/types-openapi/api";
+import { CloseOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
+import { Button, Col, Drawer, Form, FormProps, InputNumber, List, message, Popconfirm, Row, Select, Space, Tag, TimePicker, Typography } from "antd";
+import FormItem from "antd/es/form/FormItem";
+import dayjs, { Dayjs } from "dayjs";
+import { useMemo, useState } from "react";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
+dayjs.extend(customParseFormat);
 
 interface ManageCourtPricingRuleTemplateProps {
   open: boolean;
   onClose: () => void;
 }
 
+interface FormFields {
+  daysOfWeek: number[];
+  timeRange: [Dayjs, Dayjs];
+  pricePerHour: number;
+}
+
 const ManageCourtPricingRuleTemplate = ({ open, onClose }: ManageCourtPricingRuleTemplateProps) => {
-  const [form] = Form.useForm<CreateCourtPricingRuleTemplateRequest>();
+  const [form] = Form.useForm<FormFields>();
 
   const createMutation = useCreateCourtPricingRuleTemplate();
+  const updateMutation = useUpdateCourtPricingRuleTemplate();
   const deleteMutation = useDeleteCourtPricingRuleTemplate();
   const {
     data: courtPricingRuleTemplates,
@@ -31,6 +42,8 @@ const ManageCourtPricingRuleTemplate = ({ open, onClose }: ManageCourtPricingRul
   const [newRuleStartTime, setNewRuleStartTime] = useState<Dayjs | null>(null);
   const [newRuleEndTime, setNewRuleEndTime] = useState<Dayjs | null>(null);
   const [newRulePricePerHour, setNewRulePricePerHour] = useState<number | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [ruleIdEditing, setRuleIdEditing] = useState<string | null>(null);
 
   const clearForm = () => {
     form.resetFields();
@@ -38,6 +51,8 @@ const ManageCourtPricingRuleTemplate = ({ open, onClose }: ManageCourtPricingRul
     setNewRuleStartTime(null);
     setNewRuleEndTime(null);
     setNewRulePricePerHour(null);
+    setIsEditing(false);
+    setRuleIdEditing(null);
   };
 
   const daysOptions = useMemo(
@@ -53,23 +68,43 @@ const ManageCourtPricingRuleTemplate = ({ open, onClose }: ManageCourtPricingRul
     [],
   );
 
-  const handleCreateRule: FormProps<CreateCourtPricingRuleTemplateRequest>["onFinish"] = () => {
-    const payload: CreateCourtPricingRuleTemplateRequest = {
-      daysOfWeek: newRuleDaysOfWeek,
-      startTime: dayjs(newRuleStartTime).format("HH:mm:ss"),
-      endTime: dayjs(newRuleEndTime).format("HH:mm:ss"),
-      pricePerHour: newRulePricePerHour as number,
-    };
+  const handleCreateRule: FormProps<FormFields>["onFinish"] = () => {
+    if (isEditing) {
+      const payload: UpdateCourtPricingRuleTemplateRequest = {
+        id: ruleIdEditing as string,
+        daysOfWeek: newRuleDaysOfWeek,
+        startTime: dayjs(newRuleStartTime).format("HH:mm:ss"),
+        endTime: dayjs(newRuleEndTime).format("HH:mm:ss"),
+        pricePerHour: newRulePricePerHour as number,
+      };
 
-    createMutation.mutate(payload, {
-      onSuccess: () => {
-        message.success("Thêm cấu hình giá theo khung giờ thành công!");
-        clearForm();
-      },
-      onError: (error: ApiError) => {
-        message.error(error.message);
-      },
-    });
+      updateMutation.mutate(payload, {
+        onSuccess: () => {
+          message.success("Cập nhật cấu hình giá theo khung giờ thành công!");
+          clearForm();
+        },
+        onError: (error: ApiError) => {
+          message.error(error.message);
+        },
+      });
+    } else {
+      const payload: CreateCourtPricingRuleTemplateRequest = {
+        daysOfWeek: newRuleDaysOfWeek,
+        startTime: dayjs(newRuleStartTime).format("HH:mm:ss"),
+        endTime: dayjs(newRuleEndTime).format("HH:mm:ss"),
+        pricePerHour: newRulePricePerHour as number,
+      };
+
+      createMutation.mutate(payload, {
+        onSuccess: () => {
+          message.success("Thêm cấu hình giá theo khung giờ thành công!");
+          clearForm();
+        },
+        onError: (error: ApiError) => {
+          message.error(error.message);
+        },
+      });
+    }
   };
 
   const handleDeleteRule = (id: string) => {
@@ -82,6 +117,24 @@ const ManageCourtPricingRuleTemplate = ({ open, onClose }: ManageCourtPricingRul
         },
       },
     );
+  };
+
+  const handleEdit = (id: string) => {
+    const startTime = courtPricingRuleTemplates?.data?.find((item) => item.id === id)?.startTime;
+    const endTime = courtPricingRuleTemplates?.data?.find((item) => item.id === id)?.endTime;
+
+    setNewRuleDaysOfWeek(courtPricingRuleTemplates?.data?.find((item) => item.id === id)?.daysOfWeek || []);
+    setNewRuleStartTime(dayjs(startTime, "HH:mm:ss"));
+    setNewRuleEndTime(dayjs(endTime, "HH:mm:ss"));
+    setNewRulePricePerHour(courtPricingRuleTemplates?.data?.find((item) => item.id === id)?.pricePerHour || null);
+
+    form.setFieldsValue({
+      daysOfWeek: courtPricingRuleTemplates?.data?.find((item) => item.id === id)?.daysOfWeek || [],
+      timeRange: [dayjs(startTime, "HH:mm:ss"), dayjs(endTime, "HH:mm:ss")],
+      pricePerHour: courtPricingRuleTemplates?.data?.find((item) => item.id === id)?.pricePerHour,
+    });
+    setIsEditing(true);
+    setRuleIdEditing(id);
   };
 
   return (
@@ -111,11 +164,7 @@ const ManageCourtPricingRuleTemplate = ({ open, onClose }: ManageCourtPricingRul
       <Form form={form} onFinish={handleCreateRule} layout="vertical">
         <Row gutter={16} align="bottom">
           <Col span={24}>
-            <FormItem<CreateCourtPricingRuleTemplateRequest>
-              name="daysOfWeek"
-              label="Ngày trong tuần"
-              rules={[{ required: true, message: "Ngày trong tuần là bắt buộc" }]}
-            >
+            <FormItem<FormFields> name="daysOfWeek" label="Ngày trong tuần" rules={[{ required: true, message: "Ngày trong tuần là bắt buộc" }]}>
               <Select
                 mode="multiple"
                 placeholder="Chọn ngày trong tuần"
@@ -126,11 +175,7 @@ const ManageCourtPricingRuleTemplate = ({ open, onClose }: ManageCourtPricingRul
             </FormItem>
           </Col>
           <Col span={12}>
-            <FormItem<CreateCourtPricingRuleTemplateRequest>
-              name="startTime"
-              label="Giờ bắt đầu"
-              rules={[{ required: true, message: "Giờ bắt đầu là bắt buộc" }]}
-            >
+            <FormItem<FormFields> name="timeRange" label="Giờ bắt đầu" rules={[{ required: true, message: "Giờ bắt đầu là bắt buộc" }]}>
               <TimePicker.RangePicker
                 value={[newRuleStartTime, newRuleEndTime]}
                 onChange={(vals) => {
@@ -143,11 +188,7 @@ const ManageCourtPricingRuleTemplate = ({ open, onClose }: ManageCourtPricingRul
             </FormItem>
           </Col>
           <Col span={12}>
-            <FormItem<CreateCourtPricingRuleTemplateRequest>
-              name="pricePerHour"
-              label="Giá/giờ (₫)"
-              rules={[{ required: true, message: "Giá/giờ là bắt buộc" }]}
-            >
+            <FormItem<FormFields> name="pricePerHour" label="Giá/giờ (₫)" rules={[{ required: true, message: "Giá/giờ là bắt buộc" }]}>
               <InputNumber
                 min={0}
                 step={1000}
@@ -162,7 +203,7 @@ const ManageCourtPricingRuleTemplate = ({ open, onClose }: ManageCourtPricingRul
           <Col span={24}>
             <Space>
               <Button htmlType="submit" type="dashed" icon={<PlusOutlined />}>
-                Thêm cấu hình
+                {isEditing ? "Cập nhật cấu hình" : "Thêm cấu hình"}
               </Button>
             </Space>
           </Col>
@@ -194,6 +235,9 @@ const ManageCourtPricingRuleTemplate = ({ open, onClose }: ManageCourtPricingRul
                     Xóa cấu hình
                   </Button>
                 </Popconfirm>,
+                <Button onClick={() => handleEdit(item.id as string)} size="small" icon={<EditOutlined />} key="edit">
+                  Chỉnh sửa
+                </Button>,
               ]}
             >
               <Space direction="vertical" style={{ width: "100%" }} size={2}>

@@ -8,9 +8,10 @@ import { useChangeCourtStatus, useDeleteCourt, useListCourts } from "@/hooks/use
 import { ApiError } from "@/lib/axios";
 import { ListCourtRequest, ListCourtResponse } from "@/types-openapi/api";
 import { CourtStatus } from "@/types/commons";
-import { CheckOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined, StopOutlined } from "@ant-design/icons";
-import { Breadcrumb, Button, Col, Divider, Modal, Row, Table, TableProps, message } from "antd";
+import { CheckOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined, SettingOutlined, StopOutlined } from "@ant-design/icons";
+import { Breadcrumb, Button, Col, Divider, Image, Modal, Row, Table, TableProps, message } from "antd";
 import { useState } from "react";
+import ManageCourtPricingRuleTemplateDrawer from "@/components/quanlysancaulong/courts/manage-court-pricing-rule-template-drawer";
 
 const tableProps: TableProps<ListCourtResponse> = {
   rowKey: "id",
@@ -27,6 +28,7 @@ const tableProps: TableProps<ListCourtResponse> = {
 
 const CourtPage = () => {
   const [searchParams, setSearchParams] = useState<ListCourtRequest>({});
+  const [openManagePricingRuleTemplateDrawer, setOpenManagePricingRuleTemplateDrawer] = useState(false);
   const [openCreateDrawer, setOpenCreateDrawer] = useState(false);
   const [openUpdateDrawer, setOpenUpdateDrawer] = useState(false);
   const [courtId, setCourtId] = useState<string | null>(null);
@@ -83,6 +85,10 @@ const CourtPage = () => {
     });
   };
 
+  const handleClickManagePricingRuleTemplate = () => {
+    setOpenManagePricingRuleTemplateDrawer(true);
+  };
+
   return (
     <section>
       <div className="mb-4">
@@ -101,6 +107,9 @@ const CourtPage = () => {
           <div className="flex gap-2">
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenCreateDrawer(true)}>
               Thêm sân
+            </Button>
+            <Button type="primary" icon={<SettingOutlined />} onClick={handleClickManagePricingRuleTemplate}>
+              Quản lý cấu hình giá sân theo khung Giờ
             </Button>
             <Button type="primary" icon={<ReloadOutlined />} onClick={() => refetch()}>
               Tải lại
@@ -131,6 +140,10 @@ const CourtPage = () => {
 
       <CreateNewCourtDrawer open={openCreateDrawer} onClose={() => setOpenCreateDrawer(false)} />
       <UpdateCourtDrawer open={openUpdateDrawer} onClose={() => setOpenUpdateDrawer(false)} courtId={courtId ?? ""} />
+      <ManageCourtPricingRuleTemplateDrawer
+        open={openManagePricingRuleTemplateDrawer}
+        onClose={() => setOpenManagePricingRuleTemplateDrawer(false)}
+      />
 
       {contextHolder}
     </section>
@@ -151,13 +164,31 @@ const CourtInformation = ({
   return (
     <div>
       <Row gutter={16} className="mb-4">
-        <Col span={8}>
+        <Col span={6}>
           <div className="mb-2">Mã sân: {record.id}</div>
           <Divider size="small" />
           <div className="mb-2">Tên sân: {record.name}</div>
+          <div className="mb-2">
+            Ảnh sân:
+            <div className="">
+              {record.imageUrl ? (
+                <Image
+                  src={record.imageUrl}
+                  alt="court"
+                  width={150}
+                  height={150}
+                  style={{ objectFit: "cover", border: "1px dashed #ccc", padding: "4px" }}
+                />
+              ) : (
+                <div className="flex h-[150px] w-[150px] items-center justify-center border border-dashed border-gray-300">
+                  <span className="text-gray-500">Không có ảnh</span>
+                </div>
+              )}
+            </div>
+          </div>
         </Col>
         <Divider type="vertical" size="small" style={{ height: "auto" }} />
-        <Col span={8}>
+        <Col span={6}>
           <div className="mb-2">Khu vực: {record.courtAreaName}</div>
           <Divider size="small" />
           <div className="mb-2">Ghi chú: {record.note || "-"}</div>
@@ -184,9 +215,6 @@ const CourtInformation = ({
           </Button>
         </div>
         <div className="flex gap-2">
-          <Button danger icon={<DeleteOutlined />} onClick={handleClickDelete}>
-            Xóa sân
-          </Button>
           {record.status !== CourtStatus.Inactive && (
             <Button danger icon={<StopOutlined />} onClick={() => handleClickChangeStatus(CourtStatus.Inactive)}>
               Ngừng hoạt động

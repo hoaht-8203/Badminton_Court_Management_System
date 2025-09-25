@@ -64,6 +64,11 @@ export interface ApiProductsUpdatePutRequest {
     updateProductRequest?: UpdateProductRequest;
 }
 
+export interface ApiProductsUpdateStatusPutRequest {
+    id?: number;
+    isActive?: boolean;
+}
+
 /**
  * ProductsApi - interface
  * 
@@ -154,6 +159,20 @@ export interface ProductsApiInterface {
     /**
      */
     apiProductsUpdatePut(requestParameters: ApiProductsUpdatePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
+     * @param {number} [id] 
+     * @param {boolean} [isActive] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProductsApiInterface
+     */
+    apiProductsUpdateStatusPutRaw(requestParameters: ApiProductsUpdateStatusPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiProductsUpdateStatusPut(requestParameters: ApiProductsUpdateStatusPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
 }
 
@@ -407,6 +426,41 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
      */
     async apiProductsUpdatePut(requestParameters: ApiProductsUpdatePutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiProductsUpdatePutRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProductsUpdateStatusPutRaw(requestParameters: ApiProductsUpdateStatusPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['id'] != null) {
+            queryParameters['id'] = requestParameters['id'];
+        }
+
+        if (requestParameters['isActive'] != null) {
+            queryParameters['isActive'] = requestParameters['isActive'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Products/update-status`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProductsUpdateStatusPut(requestParameters: ApiProductsUpdateStatusPutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiProductsUpdateStatusPutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

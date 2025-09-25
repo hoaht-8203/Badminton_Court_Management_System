@@ -39,6 +39,13 @@ namespace ApiApplication.Controllers
             return Ok(ApiResponse<object?>.SuccessResponse(null, "Cập nhật sản phẩm thành công"));
         }
 
+        [HttpPut("update-status")]
+        public async Task<ActionResult<ApiResponse<object?>>> UpdateStatus([FromQuery] int id, [FromQuery] bool isActive)
+        {
+            await _productService.UpdateStatusAsync(id, isActive);
+            return Ok(ApiResponse<object?>.SuccessResponse(null, "Cập nhật trạng thái sản phẩm thành công"));
+        }
+
         [HttpDelete("delete")]
         public async Task<ActionResult<ApiResponse<object?>>> Delete([FromQuery] DeleteProductRequest request)
         {

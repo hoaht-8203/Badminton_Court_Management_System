@@ -181,6 +181,18 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         await _context.SaveChangesAsync();
     }
 
+    public async Task UpdateStatusAsync(int id, bool isActive)
+    {
+        var entity = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+        if (entity == null)
+        {
+            throw new ArgumentException($"Sản phẩm không tồn tại: {id}");
+        }
+
+        entity.IsActive = isActive;
+        await _context.SaveChangesAsync();
+    }
+
     private static string? ExtractFileNameFromUrl(string url)
     {
         if (string.IsNullOrWhiteSpace(url)) return null;

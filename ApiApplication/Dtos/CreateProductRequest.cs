@@ -20,7 +20,7 @@ public class CreateProductRequest
     public decimal SalePrice { get; set; }
 
     public bool IsDirectSale { get; set; } = true;
-    public bool IsExtraTopping { get; set; } = false;
+    public bool IsActive { get; set; } = true;
 
     public bool ManageInventory { get; set; } = false;
     public int Stock { get; set; } = 0;

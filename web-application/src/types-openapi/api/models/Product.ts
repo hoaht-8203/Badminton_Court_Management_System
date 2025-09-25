@@ -102,7 +102,7 @@ export interface Product {
      * @type {boolean}
      * @memberof Product
      */
-    isExtraTopping?: boolean;
+    isActive?: boolean;
     /**
      * 
      * @type {boolean}
@@ -184,7 +184,7 @@ export function ProductFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'costPrice': json['costPrice'] == null ? undefined : json['costPrice'],
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
         'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
-        'isExtraTopping': json['isExtraTopping'] == null ? undefined : json['isExtraTopping'],
+        'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'manageInventory': json['manageInventory'] == null ? undefined : json['manageInventory'],
         'stock': json['stock'] == null ? undefined : json['stock'],
         'minStock': json['minStock'] == null ? undefined : json['minStock'],
@@ -220,7 +220,7 @@ export function ProductToJSONTyped(value?: Product | null, ignoreDiscriminator: 
         'costPrice': value['costPrice'],
         'salePrice': value['salePrice'],
         'isDirectSale': value['isDirectSale'],
-        'isExtraTopping': value['isExtraTopping'],
+        'isActive': value['isActive'],
         'manageInventory': value['manageInventory'],
         'stock': value['stock'],
         'minStock': value['minStock'],

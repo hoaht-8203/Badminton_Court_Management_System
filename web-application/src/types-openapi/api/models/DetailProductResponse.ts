@@ -84,6 +84,12 @@ export interface DetailProductResponse {
      * @type {boolean}
      * @memberof DetailProductResponse
      */
+    isActive?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof DetailProductResponse
+     */
     manageInventory?: boolean;
     /**
      * 
@@ -158,6 +164,7 @@ export function DetailProductResponseFromJSONTyped(json: any, ignoreDiscriminato
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
         'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
         'isExtraTopping': json['isExtraTopping'] == null ? undefined : json['isExtraTopping'],
+        'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'manageInventory': json['manageInventory'] == null ? undefined : json['manageInventory'],
         'stock': json['stock'] == null ? undefined : json['stock'],
         'minStock': json['minStock'] == null ? undefined : json['minStock'],
@@ -190,6 +197,7 @@ export function DetailProductResponseToJSONTyped(value?: DetailProductResponse |
         'salePrice': value['salePrice'],
         'isDirectSale': value['isDirectSale'],
         'isExtraTopping': value['isExtraTopping'],
+        'isActive': value['isActive'],
         'manageInventory': value['manageInventory'],
         'stock': value['stock'],
         'minStock': value['minStock'],

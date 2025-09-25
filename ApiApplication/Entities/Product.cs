@@ -18,7 +18,7 @@ public class Product : BaseEntity, IAuditableEntity
     public string Name { get; set; } = string.Empty; // Tên hàng
 
     [MaxLength(100)]
-    public string? MenuType { get; set; } // Loại thực đơn (Đồ ăn/Đồ uống/Dịch vụ)
+    public string? MenuType { get; set; } // Loại thực đơn (Đồ ăn/Đồ uống/Khác)
 
     [MaxLength(150)]
     public string? Category { get; set; } // Nhóm hàng (tạm thời dùng string; có thể tách bảng sau)
@@ -32,7 +32,7 @@ public class Product : BaseEntity, IAuditableEntity
 
     // Flags
     public bool IsDirectSale { get; set; } = true; // Bán trực tiếp
-    public bool IsExtraTopping { get; set; } = false; // Là món thêm (Extra topping)
+    public bool IsActive { get; set; } = true; // Trạng thái kinh doanh
 
     // Inventory management
     public bool ManageInventory { get; set; } = false; // Quản lý tồn kho

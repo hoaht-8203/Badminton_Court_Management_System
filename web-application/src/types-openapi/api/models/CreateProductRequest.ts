@@ -72,7 +72,7 @@ export interface CreateProductRequest {
      * @type {boolean}
      * @memberof CreateProductRequest
      */
-    isExtraTopping?: boolean;
+    isActive?: boolean;
     /**
      * 
      * @type {boolean}
@@ -149,7 +149,7 @@ export function CreateProductRequestFromJSONTyped(json: any, ignoreDiscriminator
         'costPrice': json['costPrice'] == null ? undefined : json['costPrice'],
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
         'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
-        'isExtraTopping': json['isExtraTopping'] == null ? undefined : json['isExtraTopping'],
+        'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'manageInventory': json['manageInventory'] == null ? undefined : json['manageInventory'],
         'stock': json['stock'] == null ? undefined : json['stock'],
         'minStock': json['minStock'] == null ? undefined : json['minStock'],
@@ -180,7 +180,7 @@ export function CreateProductRequestToJSONTyped(value?: CreateProductRequest | n
         'costPrice': value['costPrice'],
         'salePrice': value['salePrice'],
         'isDirectSale': value['isDirectSale'],
-        'isExtraTopping': value['isExtraTopping'],
+        'isActive': value['isActive'],
         'manageInventory': value['manageInventory'],
         'stock': value['stock'],
         'minStock': value['minStock'],

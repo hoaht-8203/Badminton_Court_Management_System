@@ -36,6 +36,9 @@ public class ApplicationDbContext(
     public DbSet<CancelledShift> CancelledShifts { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<Product> Products { get; set; }
+    public DbSet<PriceTable> PriceTables { get; set; }
+    public DbSet<PriceTimeRange> PriceTimeRanges { get; set; }
+    public DbSet<PriceTableProduct> PriceTableProducts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -58,6 +61,20 @@ public class ApplicationDbContext(
             entity.Property(p => p.SalePrice).HasColumnType("decimal(18,2)");
             entity.HasIndex(p => p.Code).IsUnique(false);
             entity.HasIndex(p => p.Name);
+        });
+
+        // Price table mappings
+        builder.Entity<PriceTable>(entity =>
+        {
+            entity.HasMany(p => p.TimeRanges).WithOne(r => r.PriceTable).HasForeignKey(r => r.PriceTableId).OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<PriceTimeRange>(entity => { });
+        builder.Entity<PriceTableProduct>(entity =>
+        {
+            entity.HasKey(x => new { x.PriceTableId, x.ProductId });
+            entity.HasOne(x => x.PriceTable).WithMany(p => p.PriceTableProducts).HasForeignKey(x => x.PriceTableId);
+            entity.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId);
+            entity.Property(x => x.OverrideSalePrice).HasColumnType("decimal(18,2)");
         });
 
         builder

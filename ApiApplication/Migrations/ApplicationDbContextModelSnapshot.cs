@@ -200,7 +200,7 @@ namespace ApiApplication.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEM9JfwF4jZMZOsED65BjdxWtBMp28J3//cwUmXWCKyDnaRF/T8XlfRLOnsMRbPHt7w==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEACngENqnIDwl0+xlbC0gDEtS+1CHGvwxtHW73Xcr4WEZFxuTsU+3UCY2IXOMQZW3w==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "a5fd6b0c-f96d-4c6b-b70c-95e8f4ff4423",
                             Status = "Active",
@@ -387,7 +387,7 @@ namespace ApiApplication.Migrations
                             Id = 1,
                             Address = "123 Đường ABC, Phường Dịch Vọng",
                             City = "Hà Nội",
-                            CreatedAt = new DateTime(2025, 9, 23, 17, 51, 54, 361, DateTimeKind.Utc).AddTicks(2660),
+                            CreatedAt = new DateTime(2025, 9, 24, 18, 35, 56, 968, DateTimeKind.Utc).AddTicks(2950),
                             CreatedBy = "System",
                             District = "Cầu Giấy",
                             Email = "nguyenvanan@gmail.com",
@@ -397,7 +397,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng VIP - Thường xuyên đặt sân",
                             PhoneNumber = "0123456789",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 23, 17, 51, 54, 361, DateTimeKind.Utc).AddTicks(2660),
+                            UpdatedAt = new DateTime(2025, 9, 24, 18, 35, 56, 968, DateTimeKind.Utc).AddTicks(2950),
                             Ward = "Dịch Vọng"
                         },
                         new
@@ -405,7 +405,7 @@ namespace ApiApplication.Migrations
                             Id = 2,
                             Address = "456 Đường XYZ, Phường Bến Nghé",
                             City = "TP. Hồ Chí Minh",
-                            CreatedAt = new DateTime(2025, 9, 23, 17, 51, 54, 361, DateTimeKind.Utc).AddTicks(2670),
+                            CreatedAt = new DateTime(2025, 9, 24, 18, 35, 56, 968, DateTimeKind.Utc).AddTicks(2950),
                             CreatedBy = "System",
                             District = "Quận 1",
                             Email = "tranthibinh@gmail.com",
@@ -415,7 +415,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng thường xuyên - Đặt sân cuối tuần",
                             PhoneNumber = "0987654321",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 23, 17, 51, 54, 361, DateTimeKind.Utc).AddTicks(2670),
+                            UpdatedAt = new DateTime(2025, 9, 24, 18, 35, 56, 968, DateTimeKind.Utc).AddTicks(2950),
                             Ward = "Phường Bến Nghé"
                         },
                         new
@@ -423,7 +423,7 @@ namespace ApiApplication.Migrations
                             Id = 3,
                             Address = "789 Đường DEF, Phường Láng Thượng",
                             City = "Hà Nội",
-                            CreatedAt = new DateTime(2025, 9, 23, 17, 51, 54, 361, DateTimeKind.Utc).AddTicks(2670),
+                            CreatedAt = new DateTime(2025, 9, 24, 18, 35, 56, 968, DateTimeKind.Utc).AddTicks(2960),
                             CreatedBy = "System",
                             District = "Đống Đa",
                             Email = "levancuong@gmail.com",
@@ -433,7 +433,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng mới - Quan tâm đến sân cầu lông",
                             PhoneNumber = "0369852147",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 23, 17, 51, 54, 361, DateTimeKind.Utc).AddTicks(2670),
+                            UpdatedAt = new DateTime(2025, 9, 24, 18, 35, 56, 968, DateTimeKind.Utc).AddTicks(2960),
                             Ward = "Láng Thượng"
                         });
                 });
@@ -559,6 +559,87 @@ namespace ApiApplication.Migrations
                     b.ToTable("PayrollItems");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.PriceTable", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("EffectiveFrom")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("EffectiveTo")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PriceTables");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.PriceTableProduct", b =>
+                {
+                    b.Property<int>("PriceTableId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("OverrideSalePrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("PriceTableId", "ProductId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("PriceTableProducts");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.PriceTimeRange", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("interval");
+
+                    b.Property<int>("PriceTableId")
+                        .HasColumnType("integer");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("interval");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PriceTableId");
+
+                    b.ToTable("PriceTimeRanges");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -591,10 +672,10 @@ namespace ApiApplication.Migrations
                         .IsRequired()
                         .HasColumnType("text[]");
 
-                    b.Property<bool>("IsDirectSale")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsExtraTopping")
+                    b.Property<bool>("IsDirectSale")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("ManageInventory")
@@ -1155,6 +1236,36 @@ namespace ApiApplication.Migrations
                     b.Navigation("Staff");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.PriceTableProduct", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.PriceTable", "PriceTable")
+                        .WithMany("PriceTableProducts")
+                        .HasForeignKey("PriceTableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiApplication.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PriceTable");
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.PriceTimeRange", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.PriceTable", "PriceTable")
+                        .WithMany("TimeRanges")
+                        .HasForeignKey("PriceTableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PriceTable");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Schedule", b =>
                 {
                     b.HasOne("ApiApplication.Entities.Shift", "Shift")
@@ -1252,6 +1363,13 @@ namespace ApiApplication.Migrations
             modelBuilder.Entity("ApiApplication.Entities.Payroll", b =>
                 {
                     b.Navigation("PayrollItems");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.PriceTable", b =>
+                {
+                    b.Navigation("PriceTableProducts");
+
+                    b.Navigation("TimeRanges");
                 });
 #pragma warning restore 612, 618
         }

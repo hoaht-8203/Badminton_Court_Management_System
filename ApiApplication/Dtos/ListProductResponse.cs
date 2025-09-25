@@ -11,4 +11,5 @@ public class ListProductResponse
     public string? MenuType { get; set; }
     public decimal SalePrice { get; set; }
     public bool IsDirectSale { get; set; }
+    public bool IsActive { get; set; }
 } 

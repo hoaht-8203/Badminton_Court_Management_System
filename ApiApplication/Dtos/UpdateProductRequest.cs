@@ -22,7 +22,7 @@ public class UpdateProductRequest
     public decimal? SalePrice { get; set; }
 
     public bool? IsDirectSale { get; set; }
-    public bool? IsExtraTopping { get; set; }
+    public bool? IsActive { get; set; }
 
     public bool? ManageInventory { get; set; }
     public int? Stock { get; set; }

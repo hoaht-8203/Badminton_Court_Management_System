@@ -3,6 +3,8 @@ apis/AuthApi.ts
 apis/CustomersApi.ts
 apis/EmailApi.ts
 apis/FilesApi.ts
+apis/PricesApi.ts
+apis/ProductsApi.ts
 apis/RolesApi.ts
 apis/SalaryFormApi.ts
 apis/ScheduleApi.ts
@@ -26,6 +28,8 @@ models/ChangeUserStatusRequest.ts
 models/CreateActivityRequest.ts
 models/CreateAdministratorRequest.ts
 models/CreateCustomerRequest.ts
+models/CreatePriceTableRequest.ts
+models/CreateProductRequest.ts
 models/CreateRoleRequest.ts
 models/CreateSupplierRequest.ts
 models/CurrentUserResponse.ts
@@ -34,6 +38,8 @@ models/Customer.ts
 models/DayOfWeek.ts
 models/DeleteCustomerRequest.ts
 models/DeleteFileRequest.ts
+models/DeletePriceTableRequest.ts
+models/DeleteProductRequest.ts
 models/DeleteRoleRequest.ts
 models/DeleteSupplierRequest.ts
 models/Department.ts
@@ -43,6 +49,12 @@ models/DetailAdministratorResponseApiResponse.ts
 models/DetailCustomerRequest.ts
 models/DetailCustomerResponse.ts
 models/DetailCustomerResponseApiResponse.ts
+models/DetailPriceTableRequest.ts
+models/DetailPriceTableResponse.ts
+models/DetailPriceTableResponseApiResponse.ts
+models/DetailProductRequest.ts
+models/DetailProductResponse.ts
+models/DetailProductResponseApiResponse.ts
 models/DetailRoleRequest.ts
 models/DetailRoleResponse.ts
 models/DetailRoleResponseApiResponse.ts
@@ -65,6 +77,14 @@ models/ListAdministratorResponseListApiResponse.ts
 models/ListCustomerRequest.ts
 models/ListCustomerResponse.ts
 models/ListCustomerResponseListApiResponse.ts
+models/ListPriceTableProductsResponse.ts
+models/ListPriceTableProductsResponseApiResponse.ts
+models/ListPriceTableRequest.ts
+models/ListPriceTableResponse.ts
+models/ListPriceTableResponseListApiResponse.ts
+models/ListProductRequest.ts
+models/ListProductResponse.ts
+models/ListProductResponseListApiResponse.ts
 models/ListRoleRequest.ts
 models/ListRoleResponse.ts
 models/ListRoleResponseListApiResponse.ts
@@ -81,6 +101,11 @@ models/MyProfileResponseApiResponse.ts
 models/ObjectApiResponse.ts
 models/Payroll.ts
 models/PayrollItem.ts
+models/PriceTable.ts
+models/PriceTableProduct.ts
+models/PriceTimeRange.ts
+models/PriceTimeRangeDto.ts
+models/Product.ts
 models/RegisterRequest.ts
 models/SafeWaitHandle.ts
 models/SalaryForm.ts
@@ -95,6 +120,7 @@ models/ScheduleByStaffResponse.ts
 models/ScheduleByStaffResponseListApiResponse.ts
 models/ScheduleRequest.ts
 models/ScheduleResponse.ts
+models/SetPriceTableProductsRequest.ts
 models/Shift.ts
 models/ShiftAssignmentDto.ts
 models/ShiftRequest.ts
@@ -112,6 +138,9 @@ models/SystemConfig.ts
 models/UpdateCustomerRequest.ts
 models/UpdateMyProfileRequest.ts
 models/UpdatePasswordRequest.ts
+models/UpdatePriceTableRequest.ts
+models/UpdateProductImagesRequest.ts
+models/UpdateProductRequest.ts
 models/UpdateRoleRequest.ts
 models/UpdateSupplierRequest.ts
 models/UpdateUserRequest.ts

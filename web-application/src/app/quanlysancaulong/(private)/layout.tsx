@@ -24,11 +24,11 @@ const sideBarItems: MenuProps["items"] = [
     icon: <Package className="h-4 w-4" />,
     children: [
       {
-        key: "quanlydanhmuc",
+        key: "/quanlysancaulong/quanlydanhmuc",
         label: "Quản lý danh mục",
       },
       {
-        key: "thietlapgia",
+        key: "/quanlysancaulong/thietlapgia",
         label: "Thiết lập giá",
       },
       {

@@ -5,6 +5,8 @@ export * from './AuthApi';
 export * from './CustomersApi';
 export * from './EmailApi';
 export * from './FilesApi';
+export * from './PricesApi';
+export * from './ProductsApi';
 export * from './RolesApi';
 export * from './SalaryFormApi';
 export * from './ScheduleApi';

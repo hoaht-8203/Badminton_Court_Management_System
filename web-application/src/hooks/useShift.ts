@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { shiftService } from "@/services/shiftService";
 import { ShiftRequest, ShiftResponse } from "@/types-openapi/api";
 
-export function useListShifts(params?: any) {
+export function useListShifts() {
   return useQuery({
     queryKey: ["shifts"],
     queryFn: async () => {

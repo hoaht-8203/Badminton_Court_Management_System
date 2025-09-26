@@ -62,18 +62,41 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
             var entity = await _context.Set<PriceTable>().Include(x => x.TimeRanges).FirstOrDefaultAsync(x => x.Id == request.Id);
             if (entity == null) throw new ArgumentException($"Bảng giá không tồn tại: {request.Id}");
             _mapper.Map(request, entity);
-            // replace ranges
-            entity.TimeRanges.Clear();
-            var ranges = request.TimeRanges ?? new List<PriceTimeRangeDto>();
-            entity.TimeRanges.AddRange(ranges
+
+            // validate and normalize ranges
+            var ranges = (request.TimeRanges ?? new List<PriceTimeRangeDto>())
                 .Where(r => r != null)
-                .Select(r => new PriceTimeRange { StartTime = r.StartTime, EndTime = r.EndTime }));
+                .Select(r => new { r.StartTime, r.EndTime })
+                .ToList();
+            foreach (var r in ranges)
+            {
+                if (r.StartTime >= r.EndTime)
+                {
+                    throw new ApiException("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc", System.Net.HttpStatusCode.BadRequest);
+                }
+            }
+
+            // replace ranges explicitly
+            _context.RemoveRange(entity.TimeRanges);
+            await _context.SaveChangesAsync();
+            entity.TimeRanges.Clear();
+            entity.TimeRanges.AddRange(ranges
+                .Select(r => new PriceTimeRange { PriceTableId = entity.Id, StartTime = r.StartTime, EndTime = r.EndTime }));
+
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
             var msg = ex.InnerException?.Message ?? ex.Message;
             throw new ApiException($"Update price table failed: {msg}", System.Net.HttpStatusCode.BadRequest);
+        }
+        catch (ApiException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new ApiException($"Update price table failed: {ex.Message}", System.Net.HttpStatusCode.BadRequest);
         }
     }
 

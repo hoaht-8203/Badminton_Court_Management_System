@@ -100,5 +100,36 @@ namespace ApiApplication.Controllers
                 ApiResponse<object?>.SuccessResponse(null, "Validate forgot password successfully")
             );
         }
+
+        [HttpPost("verify-email")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponse<object?>>> VerifyEmail(
+            VerifyEmailRequest request
+        )
+        {
+            await _authService.VerifyEmailAsync(request);
+            return Ok(ApiResponse<object?>.SuccessResponse(null, "Verify email successfully"));
+        }
+
+        [HttpPost("sign-up")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponse<CurrentUserResponse>>> SignUp(
+            RegisterRequest registerRequest
+        )
+        {
+            await _authService.UserRegisterAsync(registerRequest);
+
+            var user = await _authService.LoginAsync(
+                new LoginRequest
+                {
+                    Email = registerRequest.Email,
+                    Password = registerRequest.Password,
+                }
+            );
+
+            return Ok(
+                ApiResponse<CurrentUserResponse>.SuccessResponse(user, "Sign-up successfully")
+            );
+        }
     }
 }

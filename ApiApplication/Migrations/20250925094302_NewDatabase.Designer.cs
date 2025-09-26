@@ -3,6 +3,7 @@ using System;
 using ApiApplication.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250925094302_NewDatabase")]
+    partial class NewDatabase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,9 +98,6 @@ namespace ApiApplication.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Address")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AvatarUrl")
                         .HasColumnType("text");
 
                     b.Property<string>("City")
@@ -203,7 +203,7 @@ namespace ApiApplication.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFUhkOvHNIyZdMPw1fnMfk0VboXjCLxi7l+LWxR0K0O+4y5yHG1d8SiDlBcKRDcEYw==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBq+6ILSkRI27eRk3LEX6d+nQSjrTIhNLMCP5KsHmJVslBDe2Stlz3ZwQ2WrgpiEHA==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "a5fd6b0c-f96d-4c6b-b70c-95e8f4ff4423",
                             Status = "Active",
@@ -469,7 +469,7 @@ namespace ApiApplication.Migrations
                             Id = 1,
                             Address = "123 Đường ABC, Phường Dịch Vọng",
                             City = "Hà Nội",
-                            CreatedAt = new DateTime(2025, 9, 25, 10, 8, 23, 738, DateTimeKind.Utc).AddTicks(8536),
+                            CreatedAt = new DateTime(2025, 9, 25, 9, 43, 1, 566, DateTimeKind.Utc).AddTicks(3301),
                             CreatedBy = "System",
                             District = "Cầu Giấy",
                             Email = "nguyenvanan@gmail.com",
@@ -479,7 +479,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng VIP - Thường xuyên đặt sân",
                             PhoneNumber = "0123456789",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 25, 10, 8, 23, 738, DateTimeKind.Utc).AddTicks(8539),
+                            UpdatedAt = new DateTime(2025, 9, 25, 9, 43, 1, 566, DateTimeKind.Utc).AddTicks(3305),
                             Ward = "Dịch Vọng"
                         },
                         new
@@ -487,7 +487,7 @@ namespace ApiApplication.Migrations
                             Id = 2,
                             Address = "456 Đường XYZ, Phường Bến Nghé",
                             City = "TP. Hồ Chí Minh",
-                            CreatedAt = new DateTime(2025, 9, 25, 10, 8, 23, 738, DateTimeKind.Utc).AddTicks(8550),
+                            CreatedAt = new DateTime(2025, 9, 25, 9, 43, 1, 566, DateTimeKind.Utc).AddTicks(3321),
                             CreatedBy = "System",
                             District = "Quận 1",
                             Email = "tranthibinh@gmail.com",
@@ -497,7 +497,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng thường xuyên - Đặt sân cuối tuần",
                             PhoneNumber = "0987654321",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 25, 10, 8, 23, 738, DateTimeKind.Utc).AddTicks(8551),
+                            UpdatedAt = new DateTime(2025, 9, 25, 9, 43, 1, 566, DateTimeKind.Utc).AddTicks(3322),
                             Ward = "Phường Bến Nghé"
                         },
                         new
@@ -505,7 +505,7 @@ namespace ApiApplication.Migrations
                             Id = 3,
                             Address = "789 Đường DEF, Phường Láng Thượng",
                             City = "Hà Nội",
-                            CreatedAt = new DateTime(2025, 9, 25, 10, 8, 23, 738, DateTimeKind.Utc).AddTicks(8555),
+                            CreatedAt = new DateTime(2025, 9, 25, 9, 43, 1, 566, DateTimeKind.Utc).AddTicks(3329),
                             CreatedBy = "System",
                             District = "Đống Đa",
                             Email = "levancuong@gmail.com",
@@ -515,7 +515,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng mới - Quan tâm đến sân cầu lông",
                             PhoneNumber = "0369852147",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 25, 10, 8, 23, 738, DateTimeKind.Utc).AddTicks(8556),
+                            UpdatedAt = new DateTime(2025, 9, 25, 9, 43, 1, 566, DateTimeKind.Utc).AddTicks(3330),
                             Ward = "Láng Thượng"
                         });
                 });

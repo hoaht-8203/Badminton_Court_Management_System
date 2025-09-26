@@ -11,13 +11,11 @@ public class Court : BaseEntity
     public required string Name { get; set; }
     public string? ImageUrl { get; set; }
 
-    public required decimal Price { get; set; }
-    public required int PriceUnitId { get; set; }
-    public PriceUnit? PriceUnit { get; set; }
-
     public required int CourtAreaId { get; set; }
     public CourtArea? CourtArea { get; set; }
 
     public string? Note { get; set; }
     public required string Status { get; set; } = CourtStatus.Active;
+
+    public ICollection<CourtPricingRules> CourtPricingRules { get; set; } = [];
 }

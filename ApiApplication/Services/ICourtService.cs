@@ -16,4 +16,16 @@ public interface ICourtService
     Task<bool> DeleteCourtAsync(DeleteCourtRequest request);
 
     Task<DetailCourtResponse> ChangeCourtStatusAsync(ChangeCourtStatusRequest request);
+
+    Task<CourtPricingRuleTemplateDto> CreateCourtPricingRuleTemplateAsync(
+        CreateCourtPricingRuleTemplateRequest request
+    );
+
+    Task<List<CourtPricingRuleTemplateDto>> ListCourtPricingRuleTemplatesAsync();
+
+    Task<CourtPricingRuleTemplateDto> UpdateCourtPricingRuleTemplateAsync(
+        UpdateCourtPricingRuleTemplateRequest request
+    );
+
+    Task DeleteCourtPricingRuleTemplateAsync(DeleteCourtPricingRuleTemplateRequest request);
 }

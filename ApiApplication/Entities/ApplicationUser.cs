@@ -13,6 +13,7 @@ public class ApplicationUser : IdentityUser<Guid>, IAuditableEntity
     public string? Ward { get; set; }
     public DateOnly? DateOfBirth { get; set; }
     public string? Note { get; set; }
+    public string? AvatarUrl { get; set; }
     public required string Status { get; set; } = ApplicationUserStatus.Active;
     public required ICollection<ApplicationUserToken> UserTokens { get; set; } = [];
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

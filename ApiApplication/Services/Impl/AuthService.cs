@@ -121,6 +121,37 @@ public class AuthService(
         );
     }
 
+    public async Task VerifyEmailAsync(VerifyEmailRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Token))
+        {
+            throw new ApiException("Email hoặc token không hợp lệ", HttpStatusCode.BadRequest);
+        }
+
+        var user =
+            await _userManager.FindByEmailAsync(request.Email!)
+            ?? throw new ApiException("Email không tồn tại", HttpStatusCode.BadRequest);
+
+        var userToken =
+            await _context.ApplicationUserTokens.FirstOrDefaultAsync(x =>
+                x.UserId == user.Id
+                && x.Token == request.Token
+                && x.TokenType == TokenType.EmailConfirm
+            )
+            ?? throw new ApiException("Mã xác thực email không hợp lệ", HttpStatusCode.BadRequest);
+
+        if (userToken.ExpiresAtUtc < DateTime.UtcNow)
+        {
+            throw new ApiException("Mã xác thực email đã hết hạn", HttpStatusCode.BadRequest);
+        }
+
+        user.EmailConfirmed = true;
+        await _userManager.UpdateAsync(user);
+
+        _context.ApplicationUserTokens.Remove(userToken);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<CurrentUserResponse> GetCurrentUserAsync()
     {
         var principal = _httpContextAccessor.HttpContext?.User;
@@ -373,7 +404,7 @@ public class AuthService(
         await _context.SaveChangesAsync();
     }
 
-    public async Task UserRegisterAsync(RegisterRequest registerRequest)
+    public async Task<CurrentUserResponse> UserRegisterAsync(RegisterRequest registerRequest)
     {
         var userExists = await _userManager.FindByEmailAsync(registerRequest.Email) != null;
 
@@ -401,5 +432,48 @@ public class AuthService(
         }
 
         await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.User));
+
+        var emailConfirmToken = Guid.NewGuid().ToString("N");
+
+        _context.ApplicationUserTokens.Add(
+            new ApplicationUserToken
+            {
+                UserId = user.Id,
+                Token = emailConfirmToken,
+                TokenType = TokenType.EmailConfirm,
+                ExpiresAtUtc = DateTime.UtcNow.AddDays(1),
+            }
+        );
+
+        await _context.SaveChangesAsync();
+
+        _emailService.SendEmailFireAndForget(
+            () =>
+                _emailService.SendEmailAsync(
+                    new EmailRequest
+                    {
+                        To = user.Email!,
+                        ToName = user.FullName,
+                        Subject = "Xác nhận email đăng ký tài khoản",
+                        Body =
+                            $"Xin chào {user.FullName},\n\nCảm ơn bạn đã đăng ký. Mã xác nhận email của bạn là: {emailConfirmToken}. Mã sẽ hết hạn sau 24 giờ.",
+                        IsHtml = false,
+                    }
+                ),
+            _logger,
+            user.Email!
+        );
+
+        var roles = await _userManager.GetRolesAsync(user);
+        return new CurrentUserResponse
+        {
+            UserId = user.Id,
+            UserName = user.UserName,
+            FullName = user.FullName,
+            Email = user.Email,
+            EmailConfirmed = user.EmailConfirmed,
+            AvatarUrl = user.AvatarUrl,
+            Roles = roles.ToList(),
+        };
     }
 }

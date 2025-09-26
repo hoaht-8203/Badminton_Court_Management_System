@@ -117,15 +117,7 @@ namespace ApiApplication.Controllers
             RegisterRequest registerRequest
         )
         {
-            await _authService.UserRegisterAsync(registerRequest);
-
-            var user = await _authService.LoginAsync(
-                new LoginRequest
-                {
-                    Email = registerRequest.Email,
-                    Password = registerRequest.Password,
-                }
-            );
+            var user = await _authService.UserRegisterAsync(registerRequest);
 
             return Ok(
                 ApiResponse<CurrentUserResponse>.SuccessResponse(user, "Sign-up successfully")

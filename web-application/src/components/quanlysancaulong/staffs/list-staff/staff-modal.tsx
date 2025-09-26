@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import dayjs from "dayjs";
-import { Modal, Tabs, Form, Input, Button, Row, Col, Space, Upload, DatePicker, Select, Avatar } from "antd";
+import { Drawer, Tabs, Form, Input, Button, Row, Col, Space, Upload, DatePicker, Select, Avatar } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import { StaffRequest } from "@/types-openapi/api/models/StaffRequest";
 import { Rows } from "lucide";
@@ -129,39 +129,46 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
   );
 
   return (
-    <Modal open={open} title="Thêm mới nhân viên" onCancel={onClose} footer={null} width={900} destroyOnHidden>
+    <Drawer
+      open={open}
+      title="Thêm mới nhân viên"
+      onClose={onClose}
+      width={900}
+      destroyOnClose
+      footer={null}
+      extra={
+        <Space>
+          <Button onClick={onClose}>Bỏ qua</Button>
+          <Button type="primary" onClick={() => form.submit()}>
+            Lưu
+          </Button>
+        </Space>
+      }
+    >
       <Tabs
         defaultActiveKey="info"
-        items={[
-          {
-            key: "info",
-            label: "Thông tin",
-            children: (
-              <Form form={form} layout="vertical" onFinish={handleFinish}>
-                {renderBasicFields()}
-                <div style={{ margin: "16px 0" }}>
-                  <Button type="dashed" onClick={() => setExpanded((e) => !e)}>
-                    {expanded ? "Ẩn thông tin" : "Thêm thông tin"}
-                  </Button>
-                </div>
-                {expanded && <div style={{ marginBottom: 16 }}>{renderExtraFields()}</div>}
-                <Space>
-                  <Button type="primary" htmlType="submit">
-                    Lưu
-                  </Button>
-                  <Button onClick={onClose}>Bỏ qua</Button>
-                </Space>
-              </Form>
-            ),
-          },
-          {
-            key: "salary",
-            label: "Thiết lập lương",
-            children: <div>Chưa có nội dung</div>,
-          },
-        ]}
+        items={[{
+          key: "info",
+          label: "Thông tin",
+          children: (
+            <Form form={form} layout="vertical" onFinish={handleFinish}>
+              {renderBasicFields()}
+              <div style={{ margin: "16px 0" }}>
+                <Button type="dashed" onClick={() => setExpanded((e) => !e)}>
+                  {expanded ? "Ẩn thông tin" : "Thêm thông tin"}
+                </Button>
+              </div>
+              {expanded && <div style={{ marginBottom: 16 }}>{renderExtraFields()}</div>}
+            </Form>
+          ),
+        },
+        {
+          key: "salary",
+          label: "Thiết lập lương",
+          children: <div>Chưa có nội dung</div>,
+        }]}
       />
-    </Modal>
+    </Drawer>
   );
 };
 

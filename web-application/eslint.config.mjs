@@ -16,6 +16,7 @@ const eslintConfig = [
     extends: ["next/core-web-vitals", "next/typescript", "prettier"],
     rules: {
       semi: ["error"], // quy tắc tự custom
+      "@typescript-eslint/no-explicit-any": "off",
     },
   }),
 

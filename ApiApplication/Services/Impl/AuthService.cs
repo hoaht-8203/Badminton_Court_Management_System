@@ -404,7 +404,7 @@ public class AuthService(
         await _context.SaveChangesAsync();
     }
 
-    public async Task UserRegisterAsync(RegisterRequest registerRequest)
+    public async Task<CurrentUserResponse> UserRegisterAsync(RegisterRequest registerRequest)
     {
         var userExists = await _userManager.FindByEmailAsync(registerRequest.Email) != null;
 
@@ -463,5 +463,17 @@ public class AuthService(
             _logger,
             user.Email!
         );
+
+        var roles = await _userManager.GetRolesAsync(user);
+        return new CurrentUserResponse
+        {
+            UserId = user.Id,
+            UserName = user.UserName,
+            FullName = user.FullName,
+            Email = user.Email,
+            EmailConfirmed = user.EmailConfirmed,
+            AvatarUrl = user.AvatarUrl,
+            Roles = roles.ToList(),
+        };
     }
 }

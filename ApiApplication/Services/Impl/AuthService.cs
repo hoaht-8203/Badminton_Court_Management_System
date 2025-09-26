@@ -121,7 +121,7 @@ public class AuthService(
         );
     }
 
-    public async Task VerifyEmailAsync(ApiApplication.Dtos.VerifyEmailRequest request)
+    public async Task VerifyEmailAsync(VerifyEmailRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Token))
         {

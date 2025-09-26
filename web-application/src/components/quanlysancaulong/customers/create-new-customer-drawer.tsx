@@ -33,6 +33,8 @@ const CreateNewCustomerDrawer = ({ open, onClose }: CreateNewCustomerDrawerProps
         message.success("Tạo khách hàng thành công!");
         form.resetFields();
         setAvatarUrl(null);
+        setAvatarFileName(null);
+        setUploading(false);
         onClose();
       },
       onError: (error: ApiError) => {

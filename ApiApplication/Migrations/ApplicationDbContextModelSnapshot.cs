@@ -200,7 +200,7 @@ namespace ApiApplication.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEITkGgo0SyS55lhahLi+nD8d0hgDx1ZyFmbfI1CXEsW73FLY4pZr3TMPl08oa0wJAA==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEAX67eWgyaSBlqhn+5GY0vo/no+rJ4Gxx4e54sSxyp5DarbDOM9j1QDEAvsShHmW4g==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "a5fd6b0c-f96d-4c6b-b70c-95e8f4ff4423",
                             Status = "Active",
@@ -339,12 +339,6 @@ namespace ApiApplication.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("numeric");
-
-                    b.Property<int>("PriceUnitId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
@@ -358,8 +352,6 @@ namespace ApiApplication.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CourtAreaId");
-
-                    b.HasIndex("PriceUnitId");
 
                     b.ToTable("Courts");
                 });
@@ -391,6 +383,83 @@ namespace ApiApplication.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("CourtAreas");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.CourtPricingRuleTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int[]>("DaysOfWeek")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<decimal>("PricePerHour")
+                        .HasColumnType("numeric");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CourtPricingRuleTemplates");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.CourtPricingRules", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CourtId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int[]>("DaysOfWeek")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<decimal>("PricePerHour")
+                        .HasColumnType("numeric");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourtId");
+
+                    b.ToTable("CourtPricingRules");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Customer", b =>
@@ -466,7 +535,7 @@ namespace ApiApplication.Migrations
                             Id = 1,
                             Address = "123 Đường ABC, Phường Dịch Vọng",
                             City = "Hà Nội",
-                            CreatedAt = new DateTime(2025, 9, 23, 11, 37, 9, 117, DateTimeKind.Utc).AddTicks(9731),
+                            CreatedAt = new DateTime(2025, 9, 24, 10, 0, 45, 309, DateTimeKind.Utc).AddTicks(7790),
                             CreatedBy = "System",
                             District = "Cầu Giấy",
                             Email = "nguyenvanan@gmail.com",
@@ -476,7 +545,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng VIP - Thường xuyên đặt sân",
                             PhoneNumber = "0123456789",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 23, 11, 37, 9, 117, DateTimeKind.Utc).AddTicks(9733),
+                            UpdatedAt = new DateTime(2025, 9, 24, 10, 0, 45, 309, DateTimeKind.Utc).AddTicks(7790),
                             Ward = "Dịch Vọng"
                         },
                         new
@@ -484,7 +553,7 @@ namespace ApiApplication.Migrations
                             Id = 2,
                             Address = "456 Đường XYZ, Phường Bến Nghé",
                             City = "TP. Hồ Chí Minh",
-                            CreatedAt = new DateTime(2025, 9, 23, 11, 37, 9, 117, DateTimeKind.Utc).AddTicks(9740),
+                            CreatedAt = new DateTime(2025, 9, 24, 10, 0, 45, 309, DateTimeKind.Utc).AddTicks(7800),
                             CreatedBy = "System",
                             District = "Quận 1",
                             Email = "tranthibinh@gmail.com",
@@ -494,7 +563,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng thường xuyên - Đặt sân cuối tuần",
                             PhoneNumber = "0987654321",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 23, 11, 37, 9, 117, DateTimeKind.Utc).AddTicks(9741),
+                            UpdatedAt = new DateTime(2025, 9, 24, 10, 0, 45, 309, DateTimeKind.Utc).AddTicks(7800),
                             Ward = "Phường Bến Nghé"
                         },
                         new
@@ -502,7 +571,7 @@ namespace ApiApplication.Migrations
                             Id = 3,
                             Address = "789 Đường DEF, Phường Láng Thượng",
                             City = "Hà Nội",
-                            CreatedAt = new DateTime(2025, 9, 23, 11, 37, 9, 117, DateTimeKind.Utc).AddTicks(9744),
+                            CreatedAt = new DateTime(2025, 9, 24, 10, 0, 45, 309, DateTimeKind.Utc).AddTicks(7800),
                             CreatedBy = "System",
                             District = "Đống Đa",
                             Email = "levancuong@gmail.com",
@@ -512,7 +581,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng mới - Quan tâm đến sân cầu lông",
                             PhoneNumber = "0369852147",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 23, 11, 37, 9, 117, DateTimeKind.Utc).AddTicks(9744),
+                            UpdatedAt = new DateTime(2025, 9, 24, 10, 0, 45, 309, DateTimeKind.Utc).AddTicks(7800),
                             Ward = "Láng Thượng"
                         });
                 });
@@ -636,35 +705,6 @@ namespace ApiApplication.Migrations
                     b.HasIndex("StaffId");
 
                     b.ToTable("PayrollItems");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.PriceUnit", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PriceUnits");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.SalaryForm", b =>
@@ -1164,15 +1204,18 @@ namespace ApiApplication.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ApiApplication.Entities.PriceUnit", "PriceUnit")
-                        .WithMany("Courts")
-                        .HasForeignKey("PriceUnitId")
+                    b.Navigation("CourtArea");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.CourtPricingRules", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.Court", "Court")
+                        .WithMany("CourtPricingRules")
+                        .HasForeignKey("CourtId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CourtArea");
-
-                    b.Navigation("PriceUnit");
+                    b.Navigation("Court");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PayrollItem", b =>
@@ -1288,6 +1331,11 @@ namespace ApiApplication.Migrations
                     b.Navigation("UserTokens");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.Court", b =>
+                {
+                    b.Navigation("CourtPricingRules");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.CourtArea", b =>
                 {
                     b.Navigation("Courts");
@@ -1296,11 +1344,6 @@ namespace ApiApplication.Migrations
             modelBuilder.Entity("ApiApplication.Entities.Payroll", b =>
                 {
                     b.Navigation("PayrollItems");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.PriceUnit", b =>
-                {
-                    b.Navigation("Courts");
                 });
 #pragma warning restore 612, 618
         }

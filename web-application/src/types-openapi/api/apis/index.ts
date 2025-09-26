@@ -2,6 +2,8 @@
 /* eslint-disable */
 export * from './ActivityApi';
 export * from './AuthApi';
+export * from './CourtAreasApi';
+export * from './CourtsApi';
 export * from './CustomersApi';
 export * from './EmailApi';
 export * from './FilesApi';

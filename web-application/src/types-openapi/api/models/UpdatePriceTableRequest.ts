@@ -47,24 +47,6 @@ export interface UpdatePriceTableRequest {
     effectiveTo?: Date | null;
     /**
      * 
-     * @type {Array<number>}
-     * @memberof UpdatePriceTableRequest
-     */
-    months?: Array<number> | null;
-    /**
-     * 
-     * @type {Array<number>}
-     * @memberof UpdatePriceTableRequest
-     */
-    daysOfMonth?: Array<number> | null;
-    /**
-     * 
-     * @type {Array<number>}
-     * @memberof UpdatePriceTableRequest
-     */
-    weekdays?: Array<number> | null;
-    /**
-     * 
      * @type {boolean}
      * @memberof UpdatePriceTableRequest
      */
@@ -105,9 +87,6 @@ export function UpdatePriceTableRequestFromJSONTyped(json: any, ignoreDiscrimina
         'name': json['name'],
         'effectiveFrom': json['effectiveFrom'] == null ? undefined : (new Date(json['effectiveFrom'])),
         'effectiveTo': json['effectiveTo'] == null ? undefined : (new Date(json['effectiveTo'])),
-        'months': json['months'] == null ? undefined : json['months'],
-        'daysOfMonth': json['daysOfMonth'] == null ? undefined : json['daysOfMonth'],
-        'weekdays': json['weekdays'] == null ? undefined : json['weekdays'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'timeRanges': json['timeRanges'] == null ? undefined : ((json['timeRanges'] as Array<any>).map(PriceTimeRangeDtoFromJSON)),
         'id': json['id'],
@@ -128,9 +107,6 @@ export function UpdatePriceTableRequestToJSONTyped(value?: UpdatePriceTableReque
         'name': value['name'],
         'effectiveFrom': value['effectiveFrom'] === null ? null : ((value['effectiveFrom'] as any)?.toISOString()),
         'effectiveTo': value['effectiveTo'] === null ? null : ((value['effectiveTo'] as any)?.toISOString()),
-        'months': value['months'],
-        'daysOfMonth': value['daysOfMonth'],
-        'weekdays': value['weekdays'],
         'isActive': value['isActive'],
         'timeRanges': value['timeRanges'] == null ? undefined : ((value['timeRanges'] as Array<any>).map(PriceTimeRangeDtoToJSON)),
         'id': value['id'],

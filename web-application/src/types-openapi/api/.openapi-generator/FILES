@@ -1,3 +1,4 @@
+.openapi-generator-ignore
 apis/ActivityApi.ts
 apis/AuthApi.ts
 apis/CourtAreasApi.ts
@@ -132,6 +133,7 @@ models/Payroll.ts
 models/PayrollItem.ts
 models/PriceTable.ts
 models/PriceTableProduct.ts
+models/PriceTableProductItem.ts
 models/PriceTimeRange.ts
 models/PriceTimeRangeDto.ts
 models/Product.ts
@@ -149,6 +151,7 @@ models/ScheduleByStaffResponse.ts
 models/ScheduleByStaffResponseListApiResponse.ts
 models/ScheduleRequest.ts
 models/ScheduleResponse.ts
+models/SetPriceTableProductItem.ts
 models/SetPriceTableProductsRequest.ts
 models/Shift.ts
 models/ShiftAssignmentDto.ts
@@ -181,6 +184,7 @@ models/UploadFileRequest.ts
 models/UploadFileResponse.ts
 models/UploadFileResponseApiResponse.ts
 models/ValidateForgotPasswordRequest.ts
+models/VerifyEmailRequest.ts
 models/WaitHandle.ts
 models/index.ts
 runtime.ts

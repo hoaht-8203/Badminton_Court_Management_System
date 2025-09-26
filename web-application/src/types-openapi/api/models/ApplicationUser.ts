@@ -164,6 +164,12 @@ export interface ApplicationUser {
      * @type {string}
      * @memberof ApplicationUser
      */
+    avatarUrl?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ApplicationUser
+     */
     status: string | null;
     /**
      * 
@@ -239,6 +245,7 @@ export function ApplicationUserFromJSONTyped(json: any, ignoreDiscriminator: boo
         'ward': json['ward'] == null ? undefined : json['ward'],
         'dateOfBirth': json['dateOfBirth'] == null ? undefined : (new Date(json['dateOfBirth'])),
         'note': json['note'] == null ? undefined : json['note'],
+        'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'status': json['status'],
         'userTokens': (json['userTokens'] == null ? null : (json['userTokens'] as Array<any>).map(ApplicationUserTokenFromJSON)),
         'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
@@ -281,6 +288,7 @@ export function ApplicationUserToJSONTyped(value?: ApplicationUser | null, ignor
         'ward': value['ward'],
         'dateOfBirth': value['dateOfBirth'] === null ? null : ((value['dateOfBirth'] as any)?.toISOString().substring(0,10)),
         'note': value['note'],
+        'avatarUrl': value['avatarUrl'],
         'status': value['status'],
         'userTokens': (value['userTokens'] == null ? null : (value['userTokens'] as Array<any>).map(ApplicationUserTokenToJSON)),
         'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),

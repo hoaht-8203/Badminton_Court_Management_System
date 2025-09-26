@@ -84,24 +84,6 @@ export interface PriceTable {
     effectiveTo?: Date | null;
     /**
      * 
-     * @type {Array<number>}
-     * @memberof PriceTable
-     */
-    months?: Array<number> | null;
-    /**
-     * 
-     * @type {Array<number>}
-     * @memberof PriceTable
-     */
-    daysOfMonth?: Array<number> | null;
-    /**
-     * 
-     * @type {Array<number>}
-     * @memberof PriceTable
-     */
-    weekdays?: Array<number> | null;
-    /**
-     * 
      * @type {boolean}
      * @memberof PriceTable
      */
@@ -146,9 +128,6 @@ export function PriceTableFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'name': json['name'],
         'effectiveFrom': json['effectiveFrom'] == null ? undefined : (new Date(json['effectiveFrom'])),
         'effectiveTo': json['effectiveTo'] == null ? undefined : (new Date(json['effectiveTo'])),
-        'months': json['months'] == null ? undefined : json['months'],
-        'daysOfMonth': json['daysOfMonth'] == null ? undefined : json['daysOfMonth'],
-        'weekdays': json['weekdays'] == null ? undefined : json['weekdays'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'timeRanges': json['timeRanges'] == null ? undefined : ((json['timeRanges'] as Array<any>).map(PriceTimeRangeFromJSON)),
         'priceTableProducts': json['priceTableProducts'] == null ? undefined : ((json['priceTableProducts'] as Array<any>).map(PriceTableProductFromJSON)),
@@ -174,9 +153,6 @@ export function PriceTableToJSONTyped(value?: PriceTable | null, ignoreDiscrimin
         'name': value['name'],
         'effectiveFrom': value['effectiveFrom'] === null ? null : ((value['effectiveFrom'] as any)?.toISOString()),
         'effectiveTo': value['effectiveTo'] === null ? null : ((value['effectiveTo'] as any)?.toISOString()),
-        'months': value['months'],
-        'daysOfMonth': value['daysOfMonth'],
-        'weekdays': value['weekdays'],
         'isActive': value['isActive'],
         'timeRanges': value['timeRanges'] == null ? undefined : ((value['timeRanges'] as Array<any>).map(PriceTimeRangeToJSON)),
         'priceTableProducts': value['priceTableProducts'] == null ? undefined : ((value['priceTableProducts'] as Array<any>).map(PriceTableProductToJSON)),

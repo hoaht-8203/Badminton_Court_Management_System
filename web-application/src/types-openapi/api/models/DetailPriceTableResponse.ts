@@ -59,24 +59,6 @@ export interface DetailPriceTableResponse {
     effectiveTo?: Date | null;
     /**
      * 
-     * @type {Array<number>}
-     * @memberof DetailPriceTableResponse
-     */
-    months?: Array<number> | null;
-    /**
-     * 
-     * @type {Array<number>}
-     * @memberof DetailPriceTableResponse
-     */
-    daysOfMonth?: Array<number> | null;
-    /**
-     * 
-     * @type {Array<number>}
-     * @memberof DetailPriceTableResponse
-     */
-    weekdays?: Array<number> | null;
-    /**
-     * 
      * @type {Array<PriceTimeRangeDto>}
      * @memberof DetailPriceTableResponse
      */
@@ -107,9 +89,6 @@ export function DetailPriceTableResponseFromJSONTyped(json: any, ignoreDiscrimin
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'effectiveFrom': json['effectiveFrom'] == null ? undefined : (new Date(json['effectiveFrom'])),
         'effectiveTo': json['effectiveTo'] == null ? undefined : (new Date(json['effectiveTo'])),
-        'months': json['months'] == null ? undefined : json['months'],
-        'daysOfMonth': json['daysOfMonth'] == null ? undefined : json['daysOfMonth'],
-        'weekdays': json['weekdays'] == null ? undefined : json['weekdays'],
         'timeRanges': json['timeRanges'] == null ? undefined : ((json['timeRanges'] as Array<any>).map(PriceTimeRangeDtoFromJSON)),
     };
 }
@@ -130,9 +109,6 @@ export function DetailPriceTableResponseToJSONTyped(value?: DetailPriceTableResp
         'isActive': value['isActive'],
         'effectiveFrom': value['effectiveFrom'] === null ? null : ((value['effectiveFrom'] as any)?.toISOString()),
         'effectiveTo': value['effectiveTo'] === null ? null : ((value['effectiveTo'] as any)?.toISOString()),
-        'months': value['months'],
-        'daysOfMonth': value['daysOfMonth'],
-        'weekdays': value['weekdays'],
         'timeRanges': value['timeRanges'] == null ? undefined : ((value['timeRanges'] as Array<any>).map(PriceTimeRangeDtoToJSON)),
     };
 }

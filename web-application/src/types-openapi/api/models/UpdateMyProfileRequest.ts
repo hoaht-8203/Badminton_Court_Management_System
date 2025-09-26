@@ -57,6 +57,12 @@ export interface UpdateMyProfileRequest {
     ward?: string | null;
     /**
      * 
+     * @type {string}
+     * @memberof UpdateMyProfileRequest
+     */
+    avatarUrl?: string | null;
+    /**
+     * 
      * @type {Date}
      * @memberof UpdateMyProfileRequest
      */
@@ -88,6 +94,7 @@ export function UpdateMyProfileRequestFromJSONTyped(json: any, ignoreDiscriminat
         'city': json['city'] == null ? undefined : json['city'],
         'district': json['district'] == null ? undefined : json['district'],
         'ward': json['ward'] == null ? undefined : json['ward'],
+        'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'dateOfBirth': json['dateOfBirth'] == null ? undefined : (new Date(json['dateOfBirth'])),
     };
 }
@@ -109,6 +116,7 @@ export function UpdateMyProfileRequestToJSONTyped(value?: UpdateMyProfileRequest
         'city': value['city'],
         'district': value['district'],
         'ward': value['ward'],
+        'avatarUrl': value['avatarUrl'],
         'dateOfBirth': value['dateOfBirth'] === null ? null : ((value['dateOfBirth'] as any)?.toISOString()),
     };
 }

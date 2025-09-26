@@ -51,6 +51,12 @@ export interface CurrentUserResponse {
     emailConfirmed?: boolean;
     /**
      * 
+     * @type {string}
+     * @memberof CurrentUserResponse
+     */
+    avatarUrl?: string | null;
+    /**
+     * 
      * @type {Array<string>}
      * @memberof CurrentUserResponse
      */
@@ -82,6 +88,7 @@ export function CurrentUserResponseFromJSONTyped(json: any, ignoreDiscriminator:
         'fullName': json['fullName'],
         'email': json['email'],
         'emailConfirmed': json['emailConfirmed'] == null ? undefined : json['emailConfirmed'],
+        'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'roles': json['roles'] == null ? undefined : json['roles'],
     };
 }
@@ -102,6 +109,7 @@ export function CurrentUserResponseToJSONTyped(value?: CurrentUserResponse | nul
         'fullName': value['fullName'],
         'email': value['email'],
         'emailConfirmed': value['emailConfirmed'],
+        'avatarUrl': value['avatarUrl'],
         'roles': value['roles'],
     };
 }

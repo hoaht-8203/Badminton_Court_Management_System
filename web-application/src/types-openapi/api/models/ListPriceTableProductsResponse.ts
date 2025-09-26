@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { PriceTableProductItem } from './PriceTableProductItem';
+import {
+    PriceTableProductItemFromJSON,
+    PriceTableProductItemFromJSONTyped,
+    PriceTableProductItemToJSON,
+    PriceTableProductItemToJSONTyped,
+} from './PriceTableProductItem';
+
 /**
  * 
  * @export
@@ -27,10 +35,10 @@ export interface ListPriceTableProductsResponse {
     priceTableId?: number;
     /**
      * 
-     * @type {Array<number>}
+     * @type {Array<PriceTableProductItem>}
      * @memberof ListPriceTableProductsResponse
      */
-    productIds?: Array<number> | null;
+    items?: Array<PriceTableProductItem> | null;
 }
 
 /**
@@ -51,7 +59,7 @@ export function ListPriceTableProductsResponseFromJSONTyped(json: any, ignoreDis
     return {
         
         'priceTableId': json['priceTableId'] == null ? undefined : json['priceTableId'],
-        'productIds': json['productIds'] == null ? undefined : json['productIds'],
+        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(PriceTableProductItemFromJSON)),
     };
 }
 
@@ -67,7 +75,7 @@ export function ListPriceTableProductsResponseToJSONTyped(value?: ListPriceTable
     return {
         
         'priceTableId': value['priceTableId'],
-        'productIds': value['productIds'],
+        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(PriceTableProductItemToJSON)),
     };
 }
 

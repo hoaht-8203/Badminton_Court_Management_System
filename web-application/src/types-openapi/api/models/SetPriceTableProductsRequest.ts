@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { SetPriceTableProductItem } from './SetPriceTableProductItem';
+import {
+    SetPriceTableProductItemFromJSON,
+    SetPriceTableProductItemFromJSONTyped,
+    SetPriceTableProductItemToJSON,
+    SetPriceTableProductItemToJSONTyped,
+} from './SetPriceTableProductItem';
+
 /**
  * 
  * @export
@@ -27,10 +35,10 @@ export interface SetPriceTableProductsRequest {
     priceTableId: number;
     /**
      * 
-     * @type {Array<number>}
+     * @type {Array<SetPriceTableProductItem>}
      * @memberof SetPriceTableProductsRequest
      */
-    productIds: Array<number>;
+    items: Array<SetPriceTableProductItem>;
 }
 
 /**
@@ -38,7 +46,7 @@ export interface SetPriceTableProductsRequest {
  */
 export function instanceOfSetPriceTableProductsRequest(value: object): value is SetPriceTableProductsRequest {
     if (!('priceTableId' in value) || value['priceTableId'] === undefined) return false;
-    if (!('productIds' in value) || value['productIds'] === undefined) return false;
+    if (!('items' in value) || value['items'] === undefined) return false;
     return true;
 }
 
@@ -53,7 +61,7 @@ export function SetPriceTableProductsRequestFromJSONTyped(json: any, ignoreDiscr
     return {
         
         'priceTableId': json['priceTableId'],
-        'productIds': json['productIds'],
+        'items': ((json['items'] as Array<any>).map(SetPriceTableProductItemFromJSON)),
     };
 }
 
@@ -69,7 +77,7 @@ export function SetPriceTableProductsRequestToJSONTyped(value?: SetPriceTablePro
     return {
         
         'priceTableId': value['priceTableId'],
-        'productIds': value['productIds'],
+        'items': ((value['items'] as Array<any>).map(SetPriceTableProductItemToJSON)),
     };
 }
 

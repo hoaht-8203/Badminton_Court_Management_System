@@ -58,6 +58,12 @@ export interface PriceTableProduct {
      * @memberof PriceTableProduct
      */
     product?: Product;
+    /**
+     * 
+     * @type {number}
+     * @memberof PriceTableProduct
+     */
+    overrideSalePrice?: number | null;
 }
 
 /**
@@ -81,6 +87,7 @@ export function PriceTableProductFromJSONTyped(json: any, ignoreDiscriminator: b
         'priceTable': json['priceTable'] == null ? undefined : PriceTableFromJSON(json['priceTable']),
         'productId': json['productId'] == null ? undefined : json['productId'],
         'product': json['product'] == null ? undefined : ProductFromJSON(json['product']),
+        'overrideSalePrice': json['overrideSalePrice'] == null ? undefined : json['overrideSalePrice'],
     };
 }
 
@@ -99,6 +106,7 @@ export function PriceTableProductToJSONTyped(value?: PriceTableProduct | null, i
         'priceTable': PriceTableToJSON(value['priceTable']),
         'productId': value['productId'],
         'product': ProductToJSON(value['product']),
+        'overrideSalePrice': value['overrideSalePrice'],
     };
 }
 

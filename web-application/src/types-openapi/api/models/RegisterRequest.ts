@@ -24,6 +24,12 @@ export interface RegisterRequest {
      * @type {string}
      * @memberof RegisterRequest
      */
+    userName: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof RegisterRequest
+     */
     fullName: string | null;
     /**
      * 
@@ -37,12 +43,43 @@ export interface RegisterRequest {
      * @memberof RegisterRequest
      */
     password: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof RegisterRequest
+     */
+    address?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof RegisterRequest
+     */
+    city?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof RegisterRequest
+     */
+    district?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof RegisterRequest
+     */
+    ward?: string | null;
+    /**
+     * 
+     * @type {Date}
+     * @memberof RegisterRequest
+     */
+    dateOfBirth?: Date | null;
 }
 
 /**
  * Check if a given object implements the RegisterRequest interface.
  */
 export function instanceOfRegisterRequest(value: object): value is RegisterRequest {
+    if (!('userName' in value) || value['userName'] === undefined) return false;
     if (!('fullName' in value) || value['fullName'] === undefined) return false;
     if (!('email' in value) || value['email'] === undefined) return false;
     if (!('password' in value) || value['password'] === undefined) return false;
@@ -59,9 +96,15 @@ export function RegisterRequestFromJSONTyped(json: any, ignoreDiscriminator: boo
     }
     return {
         
+        'userName': json['userName'],
         'fullName': json['fullName'],
         'email': json['email'],
         'password': json['password'],
+        'address': json['address'] == null ? undefined : json['address'],
+        'city': json['city'] == null ? undefined : json['city'],
+        'district': json['district'] == null ? undefined : json['district'],
+        'ward': json['ward'] == null ? undefined : json['ward'],
+        'dateOfBirth': json['dateOfBirth'] == null ? undefined : (new Date(json['dateOfBirth'])),
     };
 }
 
@@ -76,9 +119,15 @@ export function RegisterRequestToJSONTyped(value?: RegisterRequest | null, ignor
 
     return {
         
+        'userName': value['userName'],
         'fullName': value['fullName'],
         'email': value['email'],
         'password': value['password'],
+        'address': value['address'],
+        'city': value['city'],
+        'district': value['district'],
+        'ward': value['ward'],
+        'dateOfBirth': value['dateOfBirth'] === null ? null : ((value['dateOfBirth'] as any)?.toISOString().substring(0,10)),
     };
 }
 

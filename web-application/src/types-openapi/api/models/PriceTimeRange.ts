@@ -57,12 +57,6 @@ export interface PriceTimeRange {
      * @memberof PriceTimeRange
      */
     endTime?: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof PriceTimeRange
-     */
-    price?: number;
 }
 
 /**
@@ -87,7 +81,6 @@ export function PriceTimeRangeFromJSONTyped(json: any, ignoreDiscriminator: bool
         'priceTable': json['priceTable'] == null ? undefined : PriceTableFromJSON(json['priceTable']),
         'startTime': json['startTime'] == null ? undefined : json['startTime'],
         'endTime': json['endTime'] == null ? undefined : json['endTime'],
-        'price': json['price'] == null ? undefined : json['price'],
     };
 }
 
@@ -107,7 +100,6 @@ export function PriceTimeRangeToJSONTyped(value?: PriceTimeRange | null, ignoreD
         'priceTable': PriceTableToJSON(value['priceTable']),
         'startTime': value['startTime'],
         'endTime': value['endTime'],
-        'price': value['price'],
     };
 }
 

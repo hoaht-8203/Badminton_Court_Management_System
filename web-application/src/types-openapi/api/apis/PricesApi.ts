@@ -70,6 +70,11 @@ export interface ApiPricesUpdatePutRequest {
     updatePriceTableRequest?: UpdatePriceTableRequest;
 }
 
+export interface ApiPricesUpdateStatusPutRequest {
+    id?: number;
+    isActive?: boolean;
+}
+
 /**
  * PricesApi - interface
  * 
@@ -169,6 +174,20 @@ export interface PricesApiInterface {
     /**
      */
     apiPricesUpdatePut(requestParameters: ApiPricesUpdatePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
+     * @param {number} [id] 
+     * @param {boolean} [isActive] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PricesApiInterface
+     */
+    apiPricesUpdateStatusPutRaw(requestParameters: ApiPricesUpdateStatusPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiPricesUpdateStatusPut(requestParameters: ApiPricesUpdateStatusPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
 }
 
@@ -410,6 +429,41 @@ export class PricesApi extends runtime.BaseAPI implements PricesApiInterface {
      */
     async apiPricesUpdatePut(requestParameters: ApiPricesUpdatePutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiPricesUpdatePutRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiPricesUpdateStatusPutRaw(requestParameters: ApiPricesUpdateStatusPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['id'] != null) {
+            queryParameters['id'] = requestParameters['id'];
+        }
+
+        if (requestParameters['isActive'] != null) {
+            queryParameters['isActive'] = requestParameters['isActive'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Prices/update-status`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiPricesUpdateStatusPut(requestParameters: ApiPricesUpdateStatusPutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiPricesUpdateStatusPutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

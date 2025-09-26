@@ -37,12 +37,6 @@ export interface PriceTimeRangeDto {
      * @memberof PriceTimeRangeDto
      */
     endTime: string;
-    /**
-     * 
-     * @type {number}
-     * @memberof PriceTimeRangeDto
-     */
-    price: number;
 }
 
 /**
@@ -51,7 +45,6 @@ export interface PriceTimeRangeDto {
 export function instanceOfPriceTimeRangeDto(value: object): value is PriceTimeRangeDto {
     if (!('startTime' in value) || value['startTime'] === undefined) return false;
     if (!('endTime' in value) || value['endTime'] === undefined) return false;
-    if (!('price' in value) || value['price'] === undefined) return false;
     return true;
 }
 
@@ -68,7 +61,6 @@ export function PriceTimeRangeDtoFromJSONTyped(json: any, ignoreDiscriminator: b
         'id': json['id'] == null ? undefined : json['id'],
         'startTime': json['startTime'],
         'endTime': json['endTime'],
-        'price': json['price'],
     };
 }
 
@@ -86,7 +78,6 @@ export function PriceTimeRangeDtoToJSONTyped(value?: PriceTimeRangeDto | null, i
         'id': value['id'],
         'startTime': value['startTime'],
         'endTime': value['endTime'],
-        'price': value['price'],
     };
 }
 

@@ -105,6 +105,12 @@ export interface MyProfileResponse {
     ward?: string | null;
     /**
      * 
+     * @type {string}
+     * @memberof MyProfileResponse
+     */
+    avatarUrl?: string | null;
+    /**
+     * 
      * @type {Date}
      * @memberof MyProfileResponse
      */
@@ -148,6 +154,7 @@ export function MyProfileResponseFromJSONTyped(json: any, ignoreDiscriminator: b
         'city': json['city'] == null ? undefined : json['city'],
         'district': json['district'] == null ? undefined : json['district'],
         'ward': json['ward'] == null ? undefined : json['ward'],
+        'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'dateOfBirth': json['dateOfBirth'] == null ? undefined : (new Date(json['dateOfBirth'])),
     };
 }
@@ -177,6 +184,7 @@ export function MyProfileResponseToJSONTyped(value?: MyProfileResponse | null, i
         'city': value['city'],
         'district': value['district'],
         'ward': value['ward'],
+        'avatarUrl': value['avatarUrl'],
         'dateOfBirth': value['dateOfBirth'] === null ? null : ((value['dateOfBirth'] as any)?.toISOString().substring(0,10)),
     };
 }

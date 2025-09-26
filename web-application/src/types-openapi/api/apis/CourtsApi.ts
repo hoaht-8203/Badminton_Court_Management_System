@@ -21,7 +21,6 @@ import type {
   CourtPricingRuleTemplateDtoListApiResponse,
   CreateCourtPricingRuleTemplateRequest,
   CreateCourtRequest,
-  DeleteCourtPricingRuleTemplateRequest,
   DeleteCourtRequest,
   DetailCourtResponseApiResponse,
   ListCourtResponseApiResponse,
@@ -42,8 +41,6 @@ import {
     CreateCourtPricingRuleTemplateRequestToJSON,
     CreateCourtRequestFromJSON,
     CreateCourtRequestToJSON,
-    DeleteCourtPricingRuleTemplateRequestFromJSON,
-    DeleteCourtPricingRuleTemplateRequestToJSON,
     DeleteCourtRequestFromJSON,
     DeleteCourtRequestToJSON,
     DetailCourtResponseApiResponseFromJSON,
@@ -75,7 +72,7 @@ export interface ApiCourtsDeleteDeleteRequest {
 }
 
 export interface ApiCourtsDeletePricingRuleTemplateDeleteRequest {
-    deleteCourtPricingRuleTemplateRequest?: DeleteCourtPricingRuleTemplateRequest;
+    id?: string;
 }
 
 export interface ApiCourtsDetailGetRequest {
@@ -157,7 +154,7 @@ export interface CourtsApiInterface {
 
     /**
      * 
-     * @param {DeleteCourtPricingRuleTemplateRequest} [deleteCourtPricingRuleTemplateRequest] 
+     * @param {string} [id] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof CourtsApiInterface
@@ -366,9 +363,11 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
     async apiCourtsDeletePricingRuleTemplateDeleteRaw(requestParameters: ApiCourtsDeletePricingRuleTemplateDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
         const queryParameters: any = {};
 
-        const headerParameters: runtime.HTTPHeaders = {};
+        if (requestParameters['id'] != null) {
+            queryParameters['Id'] = requestParameters['id'];
+        }
 
-        headerParameters['Content-Type'] = 'application/json';
+        const headerParameters: runtime.HTTPHeaders = {};
 
 
         let urlPath = `/api/Courts/delete-pricing-rule-template`;
@@ -378,7 +377,6 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
             method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
-            body: DeleteCourtPricingRuleTemplateRequestToJSON(requestParameters['deleteCourtPricingRuleTemplateRequest']),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));

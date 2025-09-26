@@ -93,7 +93,7 @@ const PriceManagementPage = () => {
         </Form>
       </Card>
 
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mt-4 mb-2 flex items-center justify-between">
         <div>
           <span className="font-bold text-green-500">Tổng số: {filteredData.length}</span>
         </div>
@@ -189,7 +189,7 @@ const PriceInformation = ({ record, onEdit, onDelete, onChangeStatus }: { record
         <Col span={12}>
           <Row gutter={8}>
             <Col span={8}>Trạng thái:</Col>
-            <Col span={16}><span className={`font-bold ${record.isActive ? "text-green-500" : "text-red-500"}`}>{record.isActive ? "Kích hoạt" : "Chưa áp dụng"}</span></Col>
+            <Col span={16}><span className={`font-bold ${record.isActive ? "text-green-500" : "text-red-500"}`}>{record.isActive ? "Kinh doanh" : "Không kinh doanh"}</span></Col>
           </Row>
         </Col>
       </Row>
@@ -204,7 +204,7 @@ const PriceInformation = ({ record, onEdit, onDelete, onChangeStatus }: { record
               <List.Item>
                 <Space>
                   <Tag>{it.startTime} - {it.endTime}</Tag>
-                  <span>Giá: {it.price}</span>
+                  
                 </Space>
               </List.Item>
             )}
@@ -280,22 +280,26 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
   }, [productIdsRes?.data, open]);
 
   const onSubmit = (values: any) => {
+    const cleanRanges = (values.ranges || [])
+      .map((r: any) => ({
+        startTime: r?.startTime ? dayjs(r.startTime).format("HH:mm:ss") : undefined,
+        endTime: r?.endTime ? dayjs(r.endTime).format("HH:mm:ss") : undefined,
+      }))
+      .filter((r: any) => !!r.startTime && !!r.endTime);
+
     const payload = {
-      id: values.id,
+      id: priceId ?? values.id,
       name: values.name,
       isActive: !!values.isActive,
-      months: values.months?.length ? values.months : undefined,
-      daysOfMonth: values.daysOfMonth?.length ? values.daysOfMonth : undefined,
-      weekdays: values.weekdays?.length ? values.weekdays : undefined,
       effectiveFrom: values.effective?.[0]?.toISOString?.(),
       effectiveTo: values.effective?.[1]?.toISOString?.(),
-      timeRanges: (values.ranges || []).map((r: any) => ({ startTime: r.startTime ? dayjs(r.startTime).format("HH:mm:ss") : undefined, endTime: r.endTime ? dayjs(r.endTime).format("HH:mm:ss") : undefined, price: r.price })),
+      timeRanges: cleanRanges,
     } as any;
 
     if (isCreate) {
       createMutation.mutate(payload, { onSuccess: () => { message.success("Tạo bảng giá thành công"); onSaved(); } });
     } else {
-      updateMutation.mutate(payload, { onSuccess: () => { message.success("Cập nhật bảng giá thành công"); onSaved(); } });
+      updateMutation.mutate(payload, { onSuccess: () => { message.success("Cập nhật bảng giá thành công"); onSaved(); }, onError: (e: any) => message.error(e?.message || "Lỗi cập nhật bảng giá") });
     }
   };
 
@@ -307,7 +311,7 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
             <Row gutter={12}>
               <Col span={12}><Form.Item name="name" label="Tên bảng giá" rules={[{ required: true, message: "Nhập tên" }]}><Input /></Form.Item></Col>
               <Col span={12}><Form.Item name="effective" label="Hiệu lực từ ngày - đến" ><DatePicker.RangePicker style={{ width: "100%" }} /></Form.Item></Col>
-              <Col span={6}><Form.Item name="isActive" label="Trạng thái"><Switch checkedChildren="Kích hoạt" unCheckedChildren="Chưa áp dụng" /></Form.Item></Col>
+              <Col span={6}><Form.Item name="isActive" label="Trạng thái"><Switch checkedChildren="Kinh doanh" unCheckedChildren="Không kinh doanh" /></Form.Item></Col>
             </Row>
 
             <Form.List name="ranges">
@@ -361,8 +365,16 @@ const ProductsSelector = ({ priceId, selected, onChangeSelected }: { priceId: nu
 
   const rowSelection = {
     selectedRowKeys: selected,
-    onChange: (keys: React.Key[]) => onChangeSelected(keys.map((k) => Number(k))),
-  };
+    onChange: (keys: React.Key[], selectedRows: any[]) => {
+      // block selecting inactive rows
+      const activeKeys = selectedRows.filter((r) => r.isActive).map((r) => r.id as number);
+      if (activeKeys.length !== selectedRows.length) {
+        message.warning("Không thể chọn sản phẩm Không kinh doanh");
+      }
+      onChangeSelected(activeKeys);
+    },
+    getCheckboxProps: (record: any) => ({ disabled: !record.isActive }),
+  } as any;
 
   const onSearch = (v: any) => {
     setParams({
@@ -381,6 +393,15 @@ const ProductsSelector = ({ priceId, selected, onChangeSelected }: { priceId: nu
 
   const onSave = () => {
     if (!priceId) return;
+    // disallow saving if any selected products are inactive (redundant safety)
+    const invalid = selected.some((id) => {
+      const row: any = rows.find((r: any) => r.id === id);
+      return row && !row.isActive;
+    });
+    if (invalid) {
+      message.error("Không thể lưu: có sản phẩm 'Không kinh doanh' trong lựa chọn");
+      return;
+    }
     const items = selected.map((id) => {
       const row = rows.find((r: any) => r.id === id);
       const value = rowsState[id] ?? row?.salePrice;
@@ -395,12 +416,39 @@ const ProductsSelector = ({ priceId, selected, onChangeSelected }: { priceId: nu
       title="Chọn sản phẩm áp dụng"
       extra={<Space><Button onClick={onReset}>Reset</Button><Button icon={<SearchOutlined />} type="primary" onClick={() => form.submit()}>Tìm kiếm</Button><Button type="primary" onClick={onSave}>Lưu</Button></Space>}
     >
-      <Form form={form} layout="inline" onFinish={onSearch} className="mb-3">
-        <Form.Item name="code" label="Mã code"><Input placeholder="Nhập mã" allowClear /></Form.Item>
-        <Form.Item name="name" label="Tên hàng"><Input placeholder="Nhập tên" allowClear /></Form.Item>
-        <Form.Item name="category" label="Nhóm hàng"><Input placeholder="Nhập nhóm" allowClear /></Form.Item>
-        <Form.Item name="menuType" label="Loại"><Select allowClear style={{ width: 160 }} options={[{ value: "Đồ ăn", label: "Đồ ăn" }, { value: "Đồ uống", label: "Đồ uống" }, { value: "Khác", label: "Khác" }]} /></Form.Item>
-        <Form.Item name="isActive" label="Trạng thái"><Select allowClear style={{ width: 160 }} options={[{ value: true, label: "Đang hoạt động" }, { value: false, label: "Ngừng hoạt động" }]} /></Form.Item>
+      <Form form={form} layout="vertical" onFinish={onSearch} className="mb-3">
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item name="code" label="Mã code">
+              <Input placeholder="Nhập mã" allowClear />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="name" label="Tên hàng">
+              <Input placeholder="Nhập tên" allowClear />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="category" label="Nhóm hàng">
+              <Input placeholder="Nhập nhóm" allowClear />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item name="menuType" label="Loại">
+              <Select allowClear placeholder="Chọn loại" options={[{ value: "Đồ ăn", label: "Đồ ăn" }, { value: "Đồ uống", label: "Đồ uống" }, { value: "Khác", label: "Khác" }]} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="isActive" label="Trạng thái">
+              <Select allowClear placeholder="Chọn trạng thái" options={[{ value: true, label: "Kinh doanh" }, { value: false, label: "Không kinh doanh" }]} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            {/* spacer to keep grid even */}
+          </Col>
+        </Row>
       </Form>
 
       <Table
@@ -417,7 +465,7 @@ const ProductsSelector = ({ priceId, selected, onChangeSelected }: { priceId: nu
           { title: "Giá áp dụng", key: "overrideSalePrice", render: (_: any, r: any) => (
             <InputNumber min={0} style={{ width: 140 }} value={rowsState[r.id] ?? r.salePrice} onChange={(val) => setRowsState((s) => ({ ...s, [r.id]: val as number }))} />
           ) },
-          { title: "Kinh doanh", dataIndex: "isActive", render: (v: boolean) => v ? <Tag color="green">Đang hoạt động</Tag> : <Tag color="red">Ngừng</Tag> },
+          { title: "Trạng thái", dataIndex: "isActive", render: (v: boolean) => v ? <Tag color="green">Kinh doanh</Tag> : <Tag color="red">Không kinh doanh</Tag> },
         ]}
       />
     </Card>

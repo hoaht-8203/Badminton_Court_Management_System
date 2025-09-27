@@ -27,6 +27,7 @@ import {
  * @interface ListPriceTableProductsResponse
  */
 export interface ListPriceTableProductsResponse {
+    productIds: never[];
     /**
      * 
      * @type {number}
@@ -57,10 +58,10 @@ export function ListPriceTableProductsResponseFromJSONTyped(json: any, ignoreDis
         return json;
     }
     return {
-        
-        'priceTableId': json['priceTableId'] == null ? undefined : json['priceTableId'],
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(PriceTableProductItemFromJSON)),
-    };
+    'priceTableId': json['priceTableId'] == null ? undefined : json['priceTableId'],
+    'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(PriceTableProductItemFromJSON)),
+    productIds: []
+};
 }
 
 export function ListPriceTableProductsResponseToJSON(json: any): ListPriceTableProductsResponse {

@@ -1,0 +1,9 @@
+    public async Task<ListPriceTableProductsResponse> GetProductsAsync(int priceTableId)
+    {
+        var items = await _context.PriceTableProducts
+            .Where(x => x.PriceTableId == priceTableId)
+            .Select(x => new PriceTableProductItem { ProductId = x.ProductId, OverrideSalePrice = x.OverrideSalePrice })
+            .ToListAsync();
+        var productIds = items.Select(x => x.ProductId).ToList();
+        return new ListPriceTableProductsResponse { PriceTableId = priceTableId, ProductIds = productIds, Items = items };
+    }

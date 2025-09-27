@@ -19,7 +19,12 @@ namespace ApiApplication.Controllers
         public async Task<ActionResult<ApiResponse<List<SalaryFormResponse>>>> GetAll()
         {
             var result = await _salaryFormService.GetAllSalaryFormsAsync();
-            return Ok(ApiResponse<List<SalaryFormResponse>>.SuccessResponse(result, "Get all salary forms successfully"));
+            return Ok(
+                ApiResponse<List<SalaryFormResponse>>.SuccessResponse(
+                    result,
+                    "Get all salary forms successfully"
+                )
+            );
         }
 
         [HttpGet("{id}")]
@@ -27,29 +32,49 @@ namespace ApiApplication.Controllers
         {
             var result = await _salaryFormService.GetSalaryFormByIdAsync(id);
             if (result == null)
-                return NotFound(ApiResponse<SalaryFormResponse>.ErrorResponse($"SalaryForm with id {id} not found"));
-            return Ok(ApiResponse<SalaryFormResponse>.SuccessResponse(result, "Get salary form by id successfully"));
+                return NotFound(
+                    ApiResponse<SalaryFormResponse>.ErrorResponse(
+                        $"SalaryForm with id {id} not found"
+                    )
+                );
+            return Ok(
+                ApiResponse<SalaryFormResponse>.SuccessResponse(
+                    result,
+                    "Get salary form by id successfully"
+                )
+            );
         }
 
         [HttpPost]
-        public async Task<ActionResult<ApiResponse<object?>>> Create([FromBody] SalaryFormRequest request)
+        public async Task<ActionResult<ApiResponse<object?>>> Create(
+            [FromBody] SalaryFormRequest request
+        )
         {
             await _salaryFormService.CreateSalaryFormAsync(request);
-            return Ok(ApiResponse<object?>.SuccessResponse(null, "Create salary form successfully"));
+            return Ok(
+                ApiResponse<object?>.SuccessResponse(null, "Create salary form successfully")
+            );
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponse<object?>>> Update(int id, [FromBody] SalaryFormRequest request)
+        public async Task<ActionResult<ApiResponse<object?>>> Update(
+            int id,
+            [FromBody] SalaryFormRequest request
+        )
         {
             await _salaryFormService.UpdateSalaryFormAsync(id, request);
-            return Ok(ApiResponse<object?>.SuccessResponse(null, "Update salary form successfully"));
+            return Ok(
+                ApiResponse<object?>.SuccessResponse(null, "Update salary form successfully")
+            );
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApiResponse<object?>>> Delete(int id)
         {
             await _salaryFormService.DeleteSalaryFormAsync(id);
-            return Ok(ApiResponse<object?>.SuccessResponse(null, "Delete salary form successfully"));
+            return Ok(
+                ApiResponse<object?>.SuccessResponse(null, "Delete salary form successfully")
+            );
         }
     }
 }

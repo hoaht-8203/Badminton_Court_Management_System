@@ -73,6 +73,14 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
                     throw new ArgumentException($"Mã hàng đã tồn tại: {request.Code}");
                 }
             }
+            if (!string.IsNullOrWhiteSpace(request.Name))
+            {
+                var existedName = await _context.Products.AnyAsync(p => p.Name == request.Name);
+                if (existedName)
+                {
+                    throw new ArgumentException($"Tên hàng đã tồn tại: {request.Name}");
+                }
+            }
 
             var entity = _mapper.Map<Product>(request);
             _context.Products.Add(entity);
@@ -103,6 +111,14 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             if (existed)
             {
                 throw new ArgumentException($"Mã hàng đã tồn tại: {request.Code}");
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(request.Name) && request.Name != entity.Name)
+        {
+            var existedName = await _context.Products.AnyAsync(p => p.Name == request.Name && p.Id != request.Id);
+            if (existedName)
+            {
+                throw new ArgumentException($"Tên hàng đã tồn tại: {request.Name}");
             }
         }
 
@@ -165,7 +181,7 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             var fileName = ExtractFileNameFromUrl(url);
             if (!string.IsNullOrWhiteSpace(fileName))
             {
-                await _storage.DeleteFileAsync(new DeleteFileRequest { FileName = fileName, Ct = request.Ct });
+                await _storage.DeleteFileAsync(new DeleteFileRequest { FileName = fileName });
             }
         }
 
@@ -173,7 +189,7 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         var newUrls = new List<string>();
         foreach (var file in request.Files)
         {
-            var uploaded = await _storage.UploadFileAsync(new UploadFileRequest { File = file, Ct = request.Ct });
+            var uploaded = await _storage.UploadFileAsync(new UploadFileRequest { File = file });
             newUrls.Add(uploaded.PublicUrl);
         }
 

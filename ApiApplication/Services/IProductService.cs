@@ -11,4 +11,4 @@ public interface IProductService
     Task DeleteAsync(DeleteProductRequest request);
     Task UpdateImagesAsync(UpdateProductImagesRequest request);
     Task UpdateStatusAsync(int id, bool isActive);
-} 
+}

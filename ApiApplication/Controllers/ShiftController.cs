@@ -1,5 +1,5 @@
-using ApiApplication.Exceptions;
 using ApiApplication.Dtos;
+using ApiApplication.Exceptions;
 using ApiApplication.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,28 +20,45 @@ namespace ApiApplication.Controllers
         public async Task<ActionResult<ApiResponse<List<ShiftResponse>>>> GetAll()
         {
             var result = await _shiftService.GetAllShiftsAsync();
-            return Ok(ApiResponse<List<ShiftResponse>>.SuccessResponse(result, "Lấy tất cả ca làm việc thành công"));
+            return Ok(
+                ApiResponse<List<ShiftResponse>>.SuccessResponse(
+                    result,
+                    "Lấy tất cả ca làm việc thành công"
+                )
+            );
         }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResponse<ShiftResponse>>> GetById(int id)
         {
             var result = await _shiftService.GetShiftByIdAsync(id);
-            return Ok(ApiResponse<ShiftResponse>.SuccessResponse(result, "Lấy ca làm việc theo id thành công"));
+            return Ok(
+                ApiResponse<ShiftResponse>.SuccessResponse(
+                    result,
+                    "Lấy ca làm việc theo id thành công"
+                )
+            );
         }
 
         [HttpPost]
-        public async Task<ActionResult<ApiResponse<object?>>> Create([FromBody] ShiftRequest request)
+        public async Task<ActionResult<ApiResponse<object?>>> Create(
+            [FromBody] ShiftRequest request
+        )
         {
             await _shiftService.CreateShiftAsync(request);
             return Ok(ApiResponse<object?>.SuccessResponse(null, "Tạo ca làm việc thành công"));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponse<object?>>> Update(int id, [FromBody] ShiftRequest request)
+        public async Task<ActionResult<ApiResponse<object?>>> Update(
+            int id,
+            [FromBody] ShiftRequest request
+        )
         {
             await _shiftService.UpdateShiftAsync(id, request);
-            return Ok(ApiResponse<object?>.SuccessResponse(null, "Cập nhật ca làm việc thành công"));
+            return Ok(
+                ApiResponse<object?>.SuccessResponse(null, "Cập nhật ca làm việc thành công")
+            );
         }
 
         [HttpDelete("{id}")]

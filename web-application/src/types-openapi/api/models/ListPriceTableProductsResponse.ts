@@ -35,6 +35,12 @@ export interface ListPriceTableProductsResponse {
     priceTableId?: number;
     /**
      * 
+     * @type {Array<number>}
+     * @memberof ListPriceTableProductsResponse
+     */
+    productIds?: Array<number> | null;
+    /**
+     * 
      * @type {Array<PriceTableProductItem>}
      * @memberof ListPriceTableProductsResponse
      */
@@ -59,6 +65,7 @@ export function ListPriceTableProductsResponseFromJSONTyped(json: any, ignoreDis
     return {
         
         'priceTableId': json['priceTableId'] == null ? undefined : json['priceTableId'],
+        'productIds': json['productIds'] == null ? undefined : json['productIds'],
         'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(PriceTableProductItemFromJSON)),
     };
 }
@@ -75,6 +82,7 @@ export function ListPriceTableProductsResponseToJSONTyped(value?: ListPriceTable
     return {
         
         'priceTableId': value['priceTableId'],
+        'productIds': value['productIds'],
         'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(PriceTableProductItemToJSON)),
     };
 }

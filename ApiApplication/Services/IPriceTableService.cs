@@ -12,4 +12,4 @@ public interface IPriceTableService
     Task SetProductsAsync(SetPriceTableProductsRequest request);
     Task<ListPriceTableProductsResponse> GetProductsAsync(int priceTableId);
     Task UpdateStatusAsync(int id, bool isActive);
-} 
+}

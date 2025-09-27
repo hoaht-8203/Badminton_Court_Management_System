@@ -30,8 +30,12 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
 
     public async Task<DetailPriceTableResponse> DetailAsync(int id)
     {
-        var item = await _context.Set<PriceTable>().Include(x => x.TimeRanges).FirstOrDefaultAsync(x => x.Id == id);
-        if (item == null) throw new ArgumentException($"Bảng giá không tồn tại: {id}");
+        var item = await _context
+            .Set<PriceTable>()
+            .Include(x => x.TimeRanges)
+            .FirstOrDefaultAsync(x => x.Id == id);
+        if (item == null)
+            throw new ArgumentException($"Bảng giá không tồn tại: {id}");
         return _mapper.Map<DetailPriceTableResponse>(item);
     }
 
@@ -39,6 +43,19 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
     {
         try
         {
+            // Unique name check
+            if (!string.IsNullOrWhiteSpace(request.Name))
+            {
+                var existed = await _context.PriceTables.AnyAsync(x => x.Name == request.Name);
+                if (existed)
+                {
+                    throw new ApiException(
+                        $"Tên bảng giá đã tồn tại: {request.Name}",
+                        System.Net.HttpStatusCode.BadRequest
+                    );
+                }
+            }
+
             var entity = _mapper.Map<PriceTable>(request);
             var ranges = request.TimeRanges ?? new List<PriceTimeRangeDto>();
             entity.TimeRanges = ranges
@@ -51,7 +68,10 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
         catch (DbUpdateException ex)
         {
             var msg = ex.InnerException?.Message ?? ex.Message;
-            throw new ApiException($"Create price table failed: {msg}", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                $"Create price table failed: {msg}",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
     }
 
@@ -59,8 +79,31 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
     {
         try
         {
-            var entity = await _context.Set<PriceTable>().Include(x => x.TimeRanges).FirstOrDefaultAsync(x => x.Id == request.Id);
-            if (entity == null) throw new ArgumentException($"Bảng giá không tồn tại: {request.Id}");
+            var entity = await _context
+                .Set<PriceTable>()
+                .Include(x => x.TimeRanges)
+                .FirstOrDefaultAsync(x => x.Id == request.Id);
+            if (entity == null)
+                throw new ArgumentException($"Bảng giá không tồn tại: {request.Id}");
+
+            // Unique name check (exclude current)
+            if (
+                !string.IsNullOrWhiteSpace(request.Name)
+                && !string.Equals(request.Name, entity.Name, StringComparison.Ordinal)
+            )
+            {
+                var existed = await _context.PriceTables.AnyAsync(x =>
+                    x.Name == request.Name && x.Id != request.Id
+                );
+                if (existed)
+                {
+                    throw new ApiException(
+                        $"Tên bảng giá đã tồn tại: {request.Name}",
+                        System.Net.HttpStatusCode.BadRequest
+                    );
+                }
+            }
+
             _mapper.Map(request, entity);
 
             // validate and normalize ranges
@@ -72,7 +115,10 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
             {
                 if (r.StartTime >= r.EndTime)
                 {
-                    throw new ApiException("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc", System.Net.HttpStatusCode.BadRequest);
+                    throw new ApiException(
+                        "Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc",
+                        System.Net.HttpStatusCode.BadRequest
+                    );
                 }
             }
 
@@ -80,15 +126,24 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
             _context.RemoveRange(entity.TimeRanges);
             await _context.SaveChangesAsync();
             entity.TimeRanges.Clear();
-            entity.TimeRanges.AddRange(ranges
-                .Select(r => new PriceTimeRange { PriceTableId = entity.Id, StartTime = r.StartTime, EndTime = r.EndTime }));
+            entity.TimeRanges.AddRange(
+                ranges.Select(r => new PriceTimeRange
+                {
+                    PriceTableId = entity.Id,
+                    StartTime = r.StartTime,
+                    EndTime = r.EndTime,
+                })
+            );
 
             await _context.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
             var msg = ex.InnerException?.Message ?? ex.Message;
-            throw new ApiException($"Update price table failed: {msg}", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                $"Update price table failed: {msg}",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
         catch (ApiException)
         {
@@ -96,54 +151,80 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
         }
         catch (Exception ex)
         {
-            throw new ApiException($"Update price table failed: {ex.Message}", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                $"Update price table failed: {ex.Message}",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
     }
 
     public async Task DeleteAsync(DeletePriceTableRequest request)
     {
         var entity = await _context.Set<PriceTable>().FirstOrDefaultAsync(x => x.Id == request.Id);
-        if (entity == null) throw new ArgumentException($"Bảng giá không tồn tại: {request.Id}");
+        if (entity == null)
+            throw new ArgumentException($"Bảng giá không tồn tại: {request.Id}");
         _context.Remove(entity);
         await _context.SaveChangesAsync();
     }
 
     public async Task SetProductsAsync(SetPriceTableProductsRequest request)
     {
-        var table = await _context.PriceTables.Include(x => x.PriceTableProducts).FirstOrDefaultAsync(x => x.Id == request.PriceTableId);
-        if (table == null) throw new ArgumentException($"Bảng giá không tồn tại: {request.PriceTableId}");
+        var table = await _context
+            .PriceTables.Include(x => x.PriceTableProducts)
+            .FirstOrDefaultAsync(x => x.Id == request.PriceTableId);
+        if (table == null)
+            throw new ArgumentException($"Bảng giá không tồn tại: {request.PriceTableId}");
 
-        var productIds = (request.Items ?? new List<SetPriceTableProductItem>()).Select(i => i.ProductId).ToList();
-        var validIds = await _context.Products.Where(p => productIds.Contains(p.Id)).Select(p => p.Id).ToListAsync();
+        var productIds = (request.Items ?? new List<SetPriceTableProductItem>())
+            .Select(i => i.ProductId)
+            .ToList();
+        var validIds = await _context
+            .Products.Where(p => productIds.Contains(p.Id))
+            .Select(p => p.Id)
+            .ToListAsync();
 
         table.PriceTableProducts.Clear();
         foreach (var it in request.Items ?? new List<SetPriceTableProductItem>())
         {
-            if (!validIds.Contains(it.ProductId)) continue;
-            table.PriceTableProducts.Add(new PriceTableProduct
-            {
-                PriceTableId = table.Id,
-                ProductId = it.ProductId,
-                OverrideSalePrice = it.OverrideSalePrice,
-            });
+            if (!validIds.Contains(it.ProductId))
+                continue;
+            table.PriceTableProducts.Add(
+                new PriceTableProduct
+                {
+                    PriceTableId = table.Id,
+                    ProductId = it.ProductId,
+                    OverrideSalePrice = it.OverrideSalePrice,
+                }
+            );
         }
         await _context.SaveChangesAsync();
     }
 
     public async Task<ListPriceTableProductsResponse> GetProductsAsync(int priceTableId)
     {
-        var items = await _context.PriceTableProducts
-            .Where(x => x.PriceTableId == priceTableId)
-            .Select(x => new PriceTableProductItem { ProductId = x.ProductId, OverrideSalePrice = x.OverrideSalePrice })
+        var items = await _context
+            .PriceTableProducts.Where(x => x.PriceTableId == priceTableId)
+            .Select(x => new PriceTableProductItem
+            {
+                ProductId = x.ProductId,
+                OverrideSalePrice = x.OverrideSalePrice,
+            })
             .ToListAsync();
-        return new ListPriceTableProductsResponse { PriceTableId = priceTableId, Items = items };
+        var productIds = items.Select(x => x.ProductId).ToList();
+        return new ListPriceTableProductsResponse
+        {
+            PriceTableId = priceTableId,
+            ProductIds = productIds,
+            Items = items,
+        };
     }
 
     public async Task UpdateStatusAsync(int id, bool isActive)
     {
         var entity = await _context.PriceTables.FirstOrDefaultAsync(x => x.Id == id);
-        if (entity == null) throw new ArgumentException($"Bảng giá không tồn tại: {id}");
+        if (entity == null)
+            throw new ArgumentException($"Bảng giá không tồn tại: {id}");
         entity.IsActive = isActive;
         await _context.SaveChangesAsync();
     }
-} 
+}

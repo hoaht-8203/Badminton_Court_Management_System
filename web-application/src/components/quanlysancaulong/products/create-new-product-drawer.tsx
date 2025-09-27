@@ -5,6 +5,8 @@ import { ApiError } from "@/lib/axios";
 import { productService } from "@/services/productService";
 import { CreateProductRequest } from "@/types-openapi/api";
 import { Button, Checkbox, Col, Drawer, Form, Input, InputNumber, Row, Space, Upload, UploadFile, UploadProps, message, Select } from "antd";
+import { Tooltip } from "antd";
+import { InfoCircleOutlined } from "@ant-design/icons";
 import { useState } from "react";
 
 const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
@@ -12,6 +14,7 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
   const createMutation = useCreateProduct();
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [manageInventory, setManageInventory] = useState(false);
 
   const uploadProps: UploadProps = {
     beforeUpload: () => false,
@@ -56,12 +59,41 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
       <Form form={form} layout="vertical" onFinish={onSubmit} initialValues={{ isDirectSale: true, manageInventory: false }}>
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item name="code" label="Mã code">
+            <Form.Item
+              name="code"
+              label="Mã code"
+              rules={[
+                {
+                  validator: async (_rule, value) => {
+                    if (!value) return Promise.resolve();
+                    const res = await productService.list({ code: value });
+                    const dup = (res.data || []).some((p) => (p.code || "").toLowerCase() === String(value).toLowerCase());
+                    if (dup) return Promise.reject(new Error("Mã hàng đã tồn tại"));
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+            >
               <Input placeholder="VD: SP001" />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="name" label="Tên hàng" rules={[{ required: true, message: "Vui lòng nhập tên hàng" }]}>
+            <Form.Item
+              name="name"
+              label="Tên hàng"
+              rules={[
+                { required: true, message: "Vui lòng nhập tên hàng" },
+                {
+                  validator: async (_rule, value) => {
+                    if (!value) return Promise.resolve();
+                    const res = await productService.list({ name: value });
+                    const dup = (res.data || []).some((p) => (p.name || "").toLowerCase() === String(value).toLowerCase());
+                    if (dup) return Promise.reject(new Error("Tên hàng đã tồn tại"));
+                    return Promise.resolve();
+                  },
+                },
+              ]}
+            >
               <Input />
             </Form.Item>
           </Col>
@@ -115,37 +147,6 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
         </Row>
 
         <Row gutter={16}>
-          <Col span={8}>
-            <Form.Item name="isDirectSale" valuePropName="checked" label="Bán trực tiếp">
-              <Checkbox />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item name="manageInventory" valuePropName="checked" label="Quản lý tồn kho">
-              <Checkbox />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={8}>
-            <Form.Item name="stock" label="Tồn kho">
-              <InputNumber min={0} style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item name="minStock" label="Ít nhất">
-              <InputNumber min={0} style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item name="maxStock" label="Nhiều nhất">
-              <InputNumber min={0} style={{ width: "100%" }} />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
           <Col span={24}>
             <Form.Item label="Ảnh sản phẩm">
               <Upload {...uploadProps}>
@@ -154,6 +155,39 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
             </Form.Item>
           </Col>
         </Row>
+
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item name="isDirectSale" valuePropName="checked" label="Bán trực tiếp">
+              <Checkbox />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="manageInventory" valuePropName="checked" label="Quản lý tồn kho">
+              <Checkbox onChange={(e) => setManageInventory(e.target.checked)} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {manageInventory && (
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item name="stock" label={<span>Tồn kho <Tooltip title="Số lượng tồn kho của sản phẩm (hệ thống sẽ tự động tạo phiếu kiểm kho nếu không nhập thì coi là 0)"><InfoCircleOutlined className="text-gray-400 hover:text-gray-600 cursor-help" /></Tooltip></span>}>
+                <InputNumber min={0} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="minStock" label={<span>Ít nhất <Tooltip title="Tồn ít nhất là tồn tối thiểu của 1 sản phẩm (hệ thống sẽ dựa vào thông tin này để cảnh báo tồn kho tối thiểu)"><InfoCircleOutlined className="text-gray-400 hover:text-gray-600 cursor-help" /></Tooltip></span>}>
+                <InputNumber min={0} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="maxStock" label={<span>Nhiều nhất <Tooltip title="Tồn nhiều nhất là tồn tối đa của 1 sản phẩm (hệ thống sẽ dựa vào thông tin này để cảnh báo khi hàng hóa vượt quá mức tồn cho phép)"><InfoCircleOutlined className="text-gray-400 hover:text-gray-600 cursor-help" /></Tooltip></span>}>
+                <InputNumber min={0} style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+          </Row>
+        )}
 
         <Row gutter={16}>
           <Col span={12}>
@@ -181,4 +215,4 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
   );
 };
 
-export default CreateNewProductDrawer; 
+export default CreateNewProductDrawer;

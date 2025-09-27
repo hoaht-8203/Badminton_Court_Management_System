@@ -42,7 +42,7 @@ export const useUpdateProduct = () => {
   const qc = useQueryClient();
   return useMutation<ApiResponse<null>, ApiError, UpdateProductRequest>({
     mutationFn: (payload) => productService.update(payload),
-    onSuccess: (_data, variables) => {
+    onSuccess: () => {
       // Reload lists
       qc.invalidateQueries({ queryKey: ["products"] });
       // Reload any product detail caches (expanded rows, drawers, etc.)

@@ -59,19 +59,22 @@ const ProductCategoryPage = () => {
         <SearchProducts onSearch={setSearchParams} onReset={() => setSearchParams({})} />
       </div>
 
-      <div className="mb-2 flex items-center justify-between">
-        <div>
-          <span className="font-bold text-green-500">Tổng số: {tableData.length}</span>
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <div>
+            <span className="font-bold text-green-500">Tổng số hàng hóa: {tableData.length}</span>
+          </div>
+          <div className="flex gap-2">
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenCreate(true)}>
+              Thêm hàng hóa
+            </Button>
+            <Button type="primary" icon={<ReloadOutlined />} onClick={() => refetch()}>
+              Tải lại
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button icon={<ReloadOutlined />} onClick={() => refetch()}>Tải lại</Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenCreate(true)}>
-            Thêm hàng hóa
-          </Button>
-        </div>
-      </div>
 
-      <Table<ListProductResponse>
+        <Table<ListProductResponse>
         {...tableProps}
         columns={[...productColumns!]}
         dataSource={tableData}
@@ -114,7 +117,8 @@ const ProductCategoryPage = () => {
             />
           ),
         }}
-      />
+        />
+      </div>
 
       <CreateNewProductDrawer open={openCreate} onClose={() => setOpenCreate(false)} />
       <UpdateProductDrawer open={openUpdate} onClose={() => setOpenUpdate(false)} productId={currentId ?? 0} />

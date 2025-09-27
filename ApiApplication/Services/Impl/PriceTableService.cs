@@ -39,6 +39,16 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
     {
         try
         {
+            // Unique name check
+            if (!string.IsNullOrWhiteSpace(request.Name))
+            {
+                var existed = await _context.PriceTables.AnyAsync(x => x.Name == request.Name);
+                if (existed)
+                {
+                    throw new ApiException($"Tên bảng giá đã tồn tại: {request.Name}", System.Net.HttpStatusCode.BadRequest);
+                }
+            }
+
             var entity = _mapper.Map<PriceTable>(request);
             var ranges = request.TimeRanges ?? new List<PriceTimeRangeDto>();
             entity.TimeRanges = ranges
@@ -61,6 +71,17 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
         {
             var entity = await _context.Set<PriceTable>().Include(x => x.TimeRanges).FirstOrDefaultAsync(x => x.Id == request.Id);
             if (entity == null) throw new ArgumentException($"Bảng giá không tồn tại: {request.Id}");
+
+            // Unique name check (exclude current)
+            if (!string.IsNullOrWhiteSpace(request.Name) && !string.Equals(request.Name, entity.Name, StringComparison.Ordinal))
+            {
+                var existed = await _context.PriceTables.AnyAsync(x => x.Name == request.Name && x.Id != request.Id);
+                if (existed)
+                {
+                    throw new ApiException($"Tên bảng giá đã tồn tại: {request.Name}", System.Net.HttpStatusCode.BadRequest);
+                }
+            }
+
             _mapper.Map(request, entity);
 
             // validate and normalize ranges

@@ -27,13 +27,18 @@ import {
  * @interface ListPriceTableProductsResponse
  */
 export interface ListPriceTableProductsResponse {
-    productIds: never[];
     /**
      * 
      * @type {number}
      * @memberof ListPriceTableProductsResponse
      */
     priceTableId?: number;
+    /**
+     * 
+     * @type {Array<number>}
+     * @memberof ListPriceTableProductsResponse
+     */
+    productIds?: Array<number> | null;
     /**
      * 
      * @type {Array<PriceTableProductItem>}
@@ -58,10 +63,11 @@ export function ListPriceTableProductsResponseFromJSONTyped(json: any, ignoreDis
         return json;
     }
     return {
-    'priceTableId': json['priceTableId'] == null ? undefined : json['priceTableId'],
-    'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(PriceTableProductItemFromJSON)),
-    productIds: []
-};
+        
+        'priceTableId': json['priceTableId'] == null ? undefined : json['priceTableId'],
+        'productIds': json['productIds'] == null ? undefined : json['productIds'],
+        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(PriceTableProductItemFromJSON)),
+    };
 }
 
 export function ListPriceTableProductsResponseToJSON(json: any): ListPriceTableProductsResponse {
@@ -76,6 +82,7 @@ export function ListPriceTableProductsResponseToJSONTyped(value?: ListPriceTable
     return {
         
         'priceTableId': value['priceTableId'],
+        'productIds': value['productIds'],
         'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(PriceTableProductItemToJSON)),
     };
 }

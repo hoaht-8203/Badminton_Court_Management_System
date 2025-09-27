@@ -1,0 +1,226 @@
+"use client";
+import React, { useState } from "react";
+import { Table, Button, Input, Select, DatePicker, Tag, Tooltip } from "antd";
+import AssignDrawer from "./assign-drawer";
+import { PlusOutlined, FileExcelOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+import weekOfYear from "dayjs/plugin/weekOfYear";
+dayjs.extend(weekOfYear);
+
+interface ScheduleCell {
+  name: string;
+  status: keyof typeof statusMap;
+}
+
+const daysOfWeek = [
+  { label: "Thứ 2", value: 1 },
+  { label: "Thứ 3", value: 2 },
+  { label: "Thứ 4", value: 3 },
+  { label: "Thứ 5", value: 4 },
+  { label: "Thứ 6", value: 5 },
+  { label: "Thứ 7", value: 6 },
+  { label: "Chủ nhật", value: 0 },
+];
+
+const shifts = [
+  { label: "Ca sáng", time: "08:00 - 12:00", key: "morning" },
+  { label: "Ca chiều", time: "13:00 - 17:00", key: "afternoon" },
+  { label: "Ca tối", time: "18:00 - 22:00", key: "evening" },
+];
+
+const statusMap = {
+  ON_TIME: { color: "#1890ff", text: "Đúng giờ" },
+  LATE: { color: "#9254de", text: "Đi muộn / Về sớm" },
+  MISSING: { color: "#ff4d4f", text: "Chấm công thiếu" },
+  NOT_CHECKED: { color: "#faad14", text: "Chưa chấm công" },
+  OFF: { color: "#bfbfbf", text: "Nghỉ làm" },
+} as const;
+
+// Dummy data for demo
+type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+interface ScheduleRow {
+  shiftKey: string;
+  data: Record<DayOfWeek, ScheduleCell[]>;
+}
+const scheduleData: ScheduleRow[] = [
+  {
+    shiftKey: "morning",
+    data: {
+      1: [
+        { name: "Hậu", status: "NOT_CHECKED" },
+        { name: "Khánh", status: "NOT_CHECKED" },
+      ],
+      2: [],
+      3: [],
+      4: [],
+      5: [],
+      6: [],
+      0: [],
+    },
+  },
+  {
+    shiftKey: "afternoon",
+    data: {
+      1: [{ name: "Hậu", status: "NOT_CHECKED" }],
+      2: [],
+      3: [],
+      4: [],
+      5: [],
+      6: [],
+      0: [],
+    },
+  },
+  {
+    shiftKey: "evening",
+    data: {
+      1: [{ name: "Khánh", status: "NOT_CHECKED" }],
+      2: [],
+      3: [],
+      4: [],
+      5: [],
+      6: [],
+      0: [],
+    },
+  },
+];
+
+const staffList = [
+  { id: 1, fullName: "Hậu" },
+  { id: 2, fullName: "Khánh" },
+];
+const shiftList = shifts.map((s) => ({ key: s.key, label: s.label }));
+
+const WorkScheduleTable: React.FC = () => {
+  const [assignDrawerOpen, setAssignDrawerOpen] = useState(false);
+  const [assignDate, setAssignDate] = useState<string>("");
+  const [assignShift, setAssignShift] = useState<string>("");
+  const [assignStaff, setAssignStaff] = useState<number | null>(null);
+  const [weekStart, setWeekStart] = useState(() => {
+    const today = dayjs();
+    return today.day() === 0 ? today.subtract(6, "day") : today.day(1);
+  });
+
+  const handleAssignClick = (date: string, shiftKey: string, staffId?: number) => {
+    setAssignDate(date);
+    setAssignShift(shiftKey);
+    setAssignStaff(staffId ?? null);
+    setAssignDrawerOpen(true);
+  };
+
+  const handleAssign = (values: any) => {
+    // TODO: Call API assign schedule
+    setAssignDrawerOpen(false);
+  };
+
+  return (
+    <div style={{ background: "#fff", borderRadius: 8, padding: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
+        <span style={{ fontWeight: 700, fontSize: 20, marginRight: 16 }}>Bảng chấm công</span>
+        <Input placeholder="Tìm kiếm nhân viên" style={{ width: 240, marginRight: 8 }} />
+        <Select defaultValue="all" style={{ width: 140, marginRight: 8 }} options={[{ label: "Theo tuần", value: "week" }]} />
+        {/* Custom week selector giống drawer */}
+        <div style={{ display: "flex", alignItems: "center", marginRight: 8 }}>
+          <Button type="default" onClick={() => setWeekStart(weekStart.subtract(1, "week"))}>
+            {"<"}
+          </Button>
+          <span style={{ fontWeight: 500, fontSize: 16, margin: "0 8px" }}>
+            Tuần {weekStart.week()} - Th.{weekStart.month() + 1} {weekStart.year()}
+          </span>
+          <Button type="default" onClick={() => setWeekStart(weekStart.add(1, "week"))}>
+            {">"}
+          </Button>
+        </div>
+        <Button>Chọn</Button>
+        <Select defaultValue="all" style={{ width: 120, marginLeft: 8 }} options={[{ label: "Xem theo ca", value: "shift" }]} />
+        <Button type="primary" icon={<FileExcelOutlined />} style={{ marginLeft: "auto" }}>
+          Xuất file
+        </Button>
+        <Button type="primary" style={{ marginLeft: 8 }} onClick={() => setAssignDrawerOpen(true)}>
+          Xếp lịch
+        </Button>
+      </div>
+      {/* Tuần bắt đầu từ thứ 2 */}
+      <div style={{ overflowX: "auto" }}>
+        {/* IIFE tuần bắt đầu từ thứ 2 */}
+        {(() => {
+          const monday = weekStart;
+          const currentWeek = monday;
+          const weekDays = daysOfWeek.map((d, idx) => {
+            const day = monday.add(idx, "day");
+            return { ...d, date: day.date(), fullDate: day.format("YYYY-MM-DD") };
+          });
+          return (
+            <>
+              <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: 140, textAlign: "left", padding: 8, background: "#fafafa", borderRight: "1px solid #f0f0f0" }}>
+                      Ca làm việc
+                    </th>
+                    {weekDays.map((d, idx) => (
+                      <th
+                        key={d.value}
+                        style={{
+                          minWidth: 120,
+                          textAlign: "center",
+                          padding: 8,
+                          background: idx === dayjs().day() - 1 ? "#e6f7ff" : "#fafafa",
+                          borderRight: "1px solid #f0f0f0",
+                        }}
+                      >
+                        {d.label} <span style={{ color: "#bfbfbf", fontSize: 12, marginLeft: 2 }}>{d.date}</span>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {shifts.map((shift) => (
+                    <tr key={shift.key}>
+                      <td style={{ borderRight: "1px solid #f0f0f0", padding: 8, fontWeight: 600 }}>
+                        <div>{shift.label}</div>
+                        <div style={{ fontWeight: 400, fontSize: 13, color: "#888" }}>{shift.time}</div>
+                      </td>
+                      {weekDays.map((d) => {
+                        const cellData = scheduleData.find((s) => s.shiftKey === shift.key)?.data[d.value as DayOfWeek] || [];
+                        return (
+                          <td key={d.value} style={{ minHeight: 60, padding: 4, verticalAlign: "top", position: "relative" }}>
+                            {cellData.map((item: ScheduleCell, idx: number) => (
+                              <div key={idx} style={{ background: "#fff7e6", borderRadius: 6, marginBottom: 6, padding: 6, fontSize: 14 }}>
+                                <div style={{ fontWeight: 500 }}>{item.name}</div>
+                                <div style={{ fontSize: 12, color: "#888" }}>-- --</div>
+                                <div style={{ fontSize: 12, color: statusMap[item.status]?.color || "#faad14" }}>
+                                  {statusMap[item.status]?.text || "Chưa chấm công"}
+                                </div>
+                              </div>
+                            ))}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          );
+        })()}
+      </div>
+      <div style={{ display: "flex", gap: 16, marginTop: 20, justifyContent: "center" }}>
+        <Tag color="#1890ff">Đúng giờ</Tag>
+        <Tag color="#9254de">Đi muộn / Về sớm</Tag>
+        <Tag color="#ff4d4f">Chấm công thiếu</Tag>
+        <Tag color="#faad14">Chưa chấm công</Tag>
+        <Tag color="#bfbfbf">Nghỉ làm</Tag>
+      </div>
+      <AssignDrawer
+        open={assignDrawerOpen}
+        onClose={() => setAssignDrawerOpen(false)}
+        onAssign={handleAssign}
+        staffList={staffList}
+        shiftList={shiftList}
+        date={assignDate}
+      />
+    </div>
+  );
+};
+
+export default WorkScheduleTable;

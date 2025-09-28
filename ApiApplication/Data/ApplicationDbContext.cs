@@ -70,13 +70,20 @@ public class ApplicationDbContext(
         // Price table mappings
         builder.Entity<PriceTable>(entity =>
         {
-            entity.HasMany(p => p.TimeRanges).WithOne(r => r.PriceTable).HasForeignKey(r => r.PriceTableId).OnDelete(DeleteBehavior.Cascade);
+            entity
+                .HasMany(p => p.TimeRanges)
+                .WithOne(r => r.PriceTable)
+                .HasForeignKey(r => r.PriceTableId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
         builder.Entity<PriceTimeRange>(entity => { });
         builder.Entity<PriceTableProduct>(entity =>
         {
             entity.HasKey(x => new { x.PriceTableId, x.ProductId });
-            entity.HasOne(x => x.PriceTable).WithMany(p => p.PriceTableProducts).HasForeignKey(x => x.PriceTableId);
+            entity
+                .HasOne(x => x.PriceTable)
+                .WithMany(p => p.PriceTableProducts)
+                .HasForeignKey(x => x.PriceTableId);
             entity.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId);
             entity.Property(x => x.OverrideSalePrice).HasColumnType("decimal(18,2)");
         });
@@ -145,9 +152,9 @@ public class ApplicationDbContext(
             CreatedBy = null,
             UpdatedAt = null,
             UpdatedBy = null,
+            PasswordHash =
+                "AQAAAAIAAYagAAAAEFqGX2kp4KdZKDMjapLakqUamDNwC0vTXnvlme/+yss14bhAg0PbRCxpq4LkX3TzyQ==",
         };
-
-        adminUser.PasswordHash = passwordHasher.HashPassword(adminUser, "admin123");
 
         builder.Entity<ApplicationUser>().HasData(adminUser);
 
@@ -182,9 +189,13 @@ public class ApplicationDbContext(
                     Ward = "Dịch Vọng",
                     IDCard = "123456789",
                     Note = "Khách hàng VIP - Thường xuyên đặt sân",
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
                     CreatedBy = "System",
-                    UpdatedAt = DateTime.UtcNow,
+                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
                 },
                 new Customer
                 {
@@ -200,9 +211,13 @@ public class ApplicationDbContext(
                     Ward = "Phường Bến Nghé",
                     IDCard = "987654321",
                     Note = "Khách hàng thường xuyên - Đặt sân cuối tuần",
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
                     CreatedBy = "System",
-                    UpdatedAt = DateTime.UtcNow,
+                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
                 },
                 new Customer
                 {
@@ -218,9 +233,13 @@ public class ApplicationDbContext(
                     Ward = "Láng Thượng",
                     IDCard = "456789123",
                     Note = "Khách hàng mới - Quan tâm đến sân cầu lông",
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
                     CreatedBy = "System",
-                    UpdatedAt = DateTime.UtcNow,
+                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
                 }
             );
     }
@@ -280,7 +299,9 @@ public class ApplicationDbContext(
                 && (e.State == EntityState.Added || e.State == EntityState.Modified)
             );
 
-        var username = string.IsNullOrWhiteSpace(_currentUser.Username) ? "System" : _currentUser.Username;
+        var username = string.IsNullOrWhiteSpace(_currentUser.Username)
+            ? "System"
+            : _currentUser.Username;
 
         foreach (var entityEntry in entries)
         {

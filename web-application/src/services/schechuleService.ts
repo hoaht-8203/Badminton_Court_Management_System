@@ -3,21 +3,20 @@ import { ScheduleByShiftResponse, ScheduleByStaffResponse, ScheduleRequest } fro
 import { ApiResponse } from "@/types/api";
 
 export const scheduleService = {
-  getScheduleByShift: async (request: ScheduleRequest): Promise<ApiResponse<ScheduleByShiftResponse>> => {
-    const response = await axiosInstance.post("/schedules/by-shift", request);
+  getScheduleByShift: async (request: ScheduleRequest): Promise<ApiResponse<ScheduleByShiftResponse[]>> => {
+    const response = await axiosInstance.get("/api/schedule/by-shift", { params: request });
     return response.data;
   },
-
-  getScheduleByStaff: async (request: ScheduleRequest): Promise<ApiResponse<ScheduleByStaffResponse>> => {
-    const response = await axiosInstance.post("/schedules/by-staff", request);
+  getScheduleByStaff: async (request: ScheduleRequest): Promise<ApiResponse<ScheduleByStaffResponse[]>> => {
+    const response = await axiosInstance.get("/api/schedule/by-staff", { params: request });
     return response.data;
   },
   assign: async (request: ScheduleRequest): Promise<ApiResponse<null>> => {
-    const response = await axiosInstance.post("/schedules/assign", request);
+    const response = await axiosInstance.post("/api/schedule/assign", request);
     return response.data;
   },
   remove: async (request: ScheduleRequest): Promise<ApiResponse<null>> => {
-    const response = await axiosInstance.post("/schedules/remove", request);
+    const response = await axiosInstance.post("/api/schedule/remove", request);
     return response.data;
   },
 };

@@ -1,10 +1,9 @@
-
+using System.Net;
 using ApiApplication.Data;
-using ApiApplication.Sessions;
 using ApiApplication.Exceptions;
+using ApiApplication.Sessions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace ApiApplication.Services.Impl
 {
@@ -32,7 +31,9 @@ namespace ApiApplication.Services.Impl
             // Check uniqueness for IdentificationNumber
             if (!string.IsNullOrEmpty(request.IdentificationNumber))
             {
-                var exists = await _context.Staffs.AnyAsync(s => s.IdentificationNumber == request.IdentificationNumber && s.Id != id);
+                var exists = await _context.Staffs.AnyAsync(s =>
+                    s.IdentificationNumber == request.IdentificationNumber && s.Id != id
+                );
                 if (exists)
                 {
                     throw new ApiException(
@@ -44,7 +45,9 @@ namespace ApiApplication.Services.Impl
             // Check uniqueness for PhoneNumber
             if (!string.IsNullOrEmpty(request.PhoneNumber))
             {
-                var exists = await _context.Staffs.AnyAsync(s => s.PhoneNumber == request.PhoneNumber && s.Id != id);
+                var exists = await _context.Staffs.AnyAsync(s =>
+                    s.PhoneNumber == request.PhoneNumber && s.Id != id
+                );
                 if (exists)
                 {
                     throw new ApiException(
@@ -64,7 +67,9 @@ namespace ApiApplication.Services.Impl
             // Check uniqueness for IdentificationNumber
             if (!string.IsNullOrEmpty(request.IdentificationNumber))
             {
-                var exists = await _context.Staffs.AnyAsync(s => s.IdentificationNumber == request.IdentificationNumber);
+                var exists = await _context.Staffs.AnyAsync(s =>
+                    s.IdentificationNumber == request.IdentificationNumber
+                );
                 if (exists)
                 {
                     throw new ApiException(
@@ -76,7 +81,9 @@ namespace ApiApplication.Services.Impl
             // Check uniqueness for PhoneNumber
             if (!string.IsNullOrEmpty(request.PhoneNumber))
             {
-                var exists = await _context.Staffs.AnyAsync(s => s.PhoneNumber == request.PhoneNumber);
+                var exists = await _context.Staffs.AnyAsync(s =>
+                    s.PhoneNumber == request.PhoneNumber
+                );
                 if (exists)
                 {
                     throw new ApiException(
@@ -107,8 +114,8 @@ namespace ApiApplication.Services.Impl
 
         public async Task<Dtos.StaffResponse?> GetStaffByIdAsync(int staffId)
         {
-            var staff = await _context.Staffs
-                .Include(s => s.User)
+            var staff = await _context
+                .Staffs.Include(s => s.User)
                 .FirstOrDefaultAsync(s => s.Id == staffId);
             if (staff == null)
             {
@@ -134,23 +141,45 @@ namespace ApiApplication.Services.Impl
             }
             if (request.DepartmentIds != null && request.DepartmentIds.Any())
             {
-                query = query.Where(s => s.DepartmentId.HasValue && request.DepartmentIds.Contains(s.DepartmentId.Value));
+                query = query.Where(s =>
+                    s.DepartmentId.HasValue && request.DepartmentIds.Contains(s.DepartmentId.Value)
+                );
             }
             if (request.BranchIds != null && request.BranchIds.Any())
             {
-                query = query.Where(s => s.BranchId.HasValue && request.BranchIds.Contains(s.BranchId.Value));
+                query = query.Where(s =>
+                    s.BranchId.HasValue && request.BranchIds.Contains(s.BranchId.Value)
+                );
             }
             if (!string.IsNullOrWhiteSpace(request.Keyword))
             {
                 query = query.Where(s =>
                     (s.FullName != null && s.FullName.Contains(request.Keyword))
                     || (s.PhoneNumber != null && s.PhoneNumber.Contains(request.Keyword))
-                    || (s.IdentificationNumber != null && s.IdentificationNumber.Contains(request.Keyword))
+                    || (
+                        s.IdentificationNumber != null
+                        && s.IdentificationNumber.Contains(request.Keyword)
+                    )
                 );
             }
 
             var staffs = await query.ToListAsync();
             return staffs.Select(s => _mapper.Map<Dtos.StaffResponse>(s)).ToList();
+        }
+
+        public async Task ChangeStaffStatusAsync(Dtos.ChangeStaffStatusRequest request)
+        {
+            var staff = await _context.Staffs.FindAsync(request.StaffId);
+            if (staff == null)
+            {
+                throw new ApiException(
+                    $"Nhân viên với Id {request.StaffId} không tồn tại",
+                    System.Net.HttpStatusCode.NotFound
+                );
+            }
+            staff.IsActive = request.IsActive;
+            _context.Staffs.Update(staff);
+            await _context.SaveChangesAsync();
         }
     }
 }

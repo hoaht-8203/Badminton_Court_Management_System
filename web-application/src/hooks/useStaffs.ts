@@ -48,6 +48,15 @@ export function useUpdateStaffStatus(staffId: number) {
     },
   });
 }
+export function useChangeStaffStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { staffId: number; isActive: boolean }) => staffService.changeStatus(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staffs"] });
+    },
+  });
+}
 
 // export function useDeleteStaff(staffId: number) {
 //   const queryClient = useQueryClient();

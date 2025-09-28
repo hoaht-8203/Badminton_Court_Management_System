@@ -7,4 +7,5 @@ public interface IStaffService
     Task DeleteStaffAsync(int staffId);
     Task<Dtos.StaffResponse?> GetStaffByIdAsync(int staffId);
     Task<List<Dtos.StaffResponse>> GetAllStaffAsync(Dtos.ListStaffRequest request);
+    Task ChangeStaffStatusAsync(Dtos.ChangeStaffStatusRequest request);
 }

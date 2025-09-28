@@ -15,12 +15,15 @@
 
 import * as runtime from '../runtime';
 import type {
+  ChangeStaffStatusRequest,
   ObjectApiResponse,
   StaffRequest,
   StaffResponseApiResponse,
   StaffResponseListApiResponse,
 } from '../models/index';
 import {
+    ChangeStaffStatusRequestFromJSON,
+    ChangeStaffStatusRequestToJSON,
     ObjectApiResponseFromJSON,
     ObjectApiResponseToJSON,
     StaffRequestFromJSON,
@@ -30,6 +33,10 @@ import {
     StaffResponseListApiResponseFromJSON,
     StaffResponseListApiResponseToJSON,
 } from '../models/index';
+
+export interface ApiStaffChangeStatusPostRequest {
+    changeStaffStatusRequest?: ChangeStaffStatusRequest;
+}
 
 export interface ApiStaffGetRequest {
     status?: number;
@@ -62,6 +69,19 @@ export interface ApiStaffPostRequest {
  * @interface StaffApiInterface
  */
 export interface StaffApiInterface {
+    /**
+     * 
+     * @param {ChangeStaffStatusRequest} [changeStaffStatusRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StaffApiInterface
+     */
+    apiStaffChangeStatusPostRaw(requestParameters: ApiStaffChangeStatusPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiStaffChangeStatusPost(requestParameters: ApiStaffChangeStatusPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
     /**
      * 
      * @param {number} [status] 
@@ -137,6 +157,36 @@ export interface StaffApiInterface {
  * 
  */
 export class StaffApi extends runtime.BaseAPI implements StaffApiInterface {
+
+    /**
+     */
+    async apiStaffChangeStatusPostRaw(requestParameters: ApiStaffChangeStatusPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Staff/change-status`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ChangeStaffStatusRequestToJSON(requestParameters['changeStaffStatusRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiStaffChangeStatusPost(requestParameters: ApiStaffChangeStatusPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiStaffChangeStatusPostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      */

@@ -5,6 +5,10 @@ import AssignDrawer from "./assign-drawer";
 import { PlusOutlined, FileExcelOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
+import { useListStaffs } from "@/hooks/useStaffs";
+import { ListStaffRequestFromJSON } from "@/types-openapi/api/models/ListStaffRequest";
+import { useListShifts } from "@/hooks/useShift";
+import { useGetScheduleByShift } from "@/hooks/useSchedule";
 dayjs.extend(weekOfYear);
 
 interface ScheduleCell {
@@ -22,11 +26,11 @@ const daysOfWeek = [
   { label: "Chủ nhật", value: 0 },
 ];
 
-const shifts = [
-  { label: "Ca sáng", time: "08:00 - 12:00", key: "morning" },
-  { label: "Ca chiều", time: "13:00 - 17:00", key: "afternoon" },
-  { label: "Ca tối", time: "18:00 - 22:00", key: "evening" },
-];
+// const shifts = [
+//   { label: "Ca sáng", time: "08:00 - 12:00", key: "morning" },
+//   { label: "Ca chiều", time: "13:00 - 17:00", key: "afternoon" },
+//   { label: "Ca tối", time: "18:00 - 22:00", key: "evening" },
+// ];
 
 const statusMap = {
   ON_TIME: { color: "#1890ff", text: "Đúng giờ" },
@@ -37,81 +41,100 @@ const statusMap = {
 } as const;
 
 // Dummy data for demo
-type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-interface ScheduleRow {
-  shiftKey: string;
-  data: Record<DayOfWeek, ScheduleCell[]>;
-}
-const scheduleData: ScheduleRow[] = [
-  {
-    shiftKey: "morning",
-    data: {
-      1: [
-        { name: "Hậu", status: "NOT_CHECKED" },
-        { name: "Khánh", status: "NOT_CHECKED" },
-      ],
-      2: [],
-      3: [],
-      4: [],
-      5: [],
-      6: [],
-      0: [],
-    },
-  },
-  {
-    shiftKey: "afternoon",
-    data: {
-      1: [{ name: "Hậu", status: "NOT_CHECKED" }],
-      2: [],
-      3: [],
-      4: [],
-      5: [],
-      6: [],
-      0: [],
-    },
-  },
-  {
-    shiftKey: "evening",
-    data: {
-      1: [{ name: "Khánh", status: "NOT_CHECKED" }],
-      2: [],
-      3: [],
-      4: [],
-      5: [],
-      6: [],
-      0: [],
-    },
-  },
-];
+// type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+// interface ScheduleRow {
+//   shiftKey: string;
+//   data: Record<DayOfWeek, ScheduleCell[]>;
+// }
+// const scheduleData: ScheduleRow[] = [
+//   {
+//     shiftKey: "morning",
+//     data: {
+//       1: [
+//         { name: "Hậu", status: "NOT_CHECKED" },
+//         { name: "Khánh", status: "NOT_CHECKED" },
+//       ],
+//       2: [],
+//       3: [],
+//       4: [],
+//       5: [],
+//       6: [],
+//       0: [],
+//     },
+//   },
+//   {
+//     shiftKey: "afternoon",
+//     data: {
+//       1: [{ name: "Hậu", status: "NOT_CHECKED" }],
+//       2: [],
+//       3: [],
+//       4: [],
+//       5: [],
+//       6: [],
+//       0: [],
+//     },
+//   },
+//   {
+//     shiftKey: "evening",
+//     data: {
+//       1: [{ name: "Khánh", status: "NOT_CHECKED" }],
+//       2: [],
+//       3: [],
+//       4: [],
+//       5: [],
+//       6: [],
+//       0: [],
+//     },
+//   },
+// ];
 
-const staffList = [
-  { id: 1, fullName: "Hậu" },
-  { id: 2, fullName: "Khánh" },
-];
-const shiftList = shifts.map((s) => ({ key: s.key, label: s.label }));
+// const staffList = [
+//   { id: 1, fullName: "Hậu" },
+//   { id: 2, fullName: "Khánh" },
+// ];
+// const shiftList = shifts.map((s) => ({ key: s.key, label: s.label }));
 
 const WorkScheduleTable: React.FC = () => {
   const [assignDrawerOpen, setAssignDrawerOpen] = useState(false);
-  const [assignDate, setAssignDate] = useState<string>("");
-  const [assignShift, setAssignShift] = useState<string>("");
-  const [assignStaff, setAssignStaff] = useState<number | null>(null);
   const [weekStart, setWeekStart] = useState(() => {
     const today = dayjs();
     return today.day() === 0 ? today.subtract(6, "day") : today.day(1);
   });
+  const [searchParams, setSearchParams] = useState(ListStaffRequestFromJSON({}));
+  const { data: staffs, isFetching: loadingStaffs, refetch: refetchStaffs } = useListStaffs(searchParams);
+  const { data: shifts, isFetching, refetch } = useListShifts();
 
-  const handleAssignClick = (date: string, shiftKey: string, staffId?: number) => {
-    setAssignDate(date);
-    setAssignShift(shiftKey);
-    setAssignStaff(staffId ?? null);
-    setAssignDrawerOpen(true);
-  };
+  const staffList =
+    staffs?.data
+      ?.filter((s) => typeof s.id === "number" && typeof s.fullName === "string")
+      .map((s) => ({ id: s.id as number, fullName: s.fullName as string })) || [];
+  const shiftList = shifts?.map((s) => ({ id: s.id, name: s.name, time: s.startTime?.substring(0, 5) + " - " + s.endTime?.substring(0, 5) })) || [];
 
-  const handleAssign = (values: any) => {
-    // TODO: Call API assign schedule
-    setAssignDrawerOpen(false);
-  };
+  // Tính ngày bắt đầu và kết thúc tuần hiện tại
+  const startDate = weekStart.format("YYYY-MM-DD");
+  const endDate = weekStart.add(6, "day").format("YYYY-MM-DD");
+  // Lấy lịch làm việc theo ca cho tuần hiện tại
+  const { data: scheduleByShiftRaw, isFetching: loadingSchedule } = useGetScheduleByShift({ startDate, endDate });
 
+  // Format lại dữ liệu trả về từ API thành dạng { [shiftId]: { [dayOfWeek]: ScheduleCell[] } }
+  const scheduleByShift: Record<string, Record<number, ScheduleCell[]>> = React.useMemo(() => {
+    const result: Record<string, Record<number, ScheduleCell[]>> = {};
+    if (!scheduleByShiftRaw?.data) return result;
+    for (const shiftItem of scheduleByShiftRaw.data) {
+      if (!shiftItem?.shift?.id) continue;
+      const shiftId = String(shiftItem.shift.id);
+      result[shiftId] = {};
+      if (!Array.isArray(shiftItem.days)) continue;
+      for (const day of shiftItem.days) {
+        if (typeof day?.dayOfWeek !== "number" || !Array.isArray(day?.staffs)) continue;
+        result[shiftId][day.dayOfWeek] = day.staffs.map((staff: any) => ({
+          name: staff?.fullName ?? "",
+          status: "NOT_CHECKED", // hoặc lấy từ API nếu có trạng thái
+        }));
+      }
+    }
+    return result;
+  }, [scheduleByShiftRaw]);
   return (
     <div style={{ background: "#fff", borderRadius: 8, padding: 16 }}>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
@@ -174,18 +197,40 @@ const WorkScheduleTable: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {shifts.map((shift) => (
-                    <tr key={shift.key}>
+                  {shiftList.map((shift) => (
+                    <tr key={shift.id}>
                       <td style={{ borderRight: "1px solid #f0f0f0", padding: 8, fontWeight: 600 }}>
-                        <div>{shift.label}</div>
+                        <div>{shift.name}</div>
                         <div style={{ fontWeight: 400, fontSize: 13, color: "#888" }}>{shift.time}</div>
                       </td>
                       {weekDays.map((d) => {
-                        const cellData = scheduleData.find((s) => s.shiftKey === shift.key)?.data[d.value as DayOfWeek] || [];
+                        // Lấy lịch làm việc từ API cho từng ca và ngày
+                        const cellData = scheduleByShift?.[String(shift.id)]?.[d.value] || [];
                         return (
-                          <td key={d.value} style={{ minHeight: 60, padding: 4, verticalAlign: "top", position: "relative" }}>
+                          <td
+                            key={d.value}
+                            style={{
+                              minHeight: 60,
+                              padding: 4,
+                              verticalAlign: "top",
+                              position: "relative",
+                              border: "1px solid #e0e0e0",
+                              boxSizing: "border-box",
+                              background: "#fff",
+                            }}
+                          >
                             {cellData.map((item: ScheduleCell, idx: number) => (
-                              <div key={idx} style={{ background: "#fff7e6", borderRadius: 6, marginBottom: 6, padding: 6, fontSize: 14 }}>
+                              <div
+                                key={idx}
+                                style={{
+                                  background: "#fff7e6",
+                                  borderRadius: 6,
+                                  marginBottom: 6,
+                                  padding: 6,
+                                  fontSize: 14,
+                                  border: "1px solid #ffd591",
+                                }}
+                              >
                                 <div style={{ fontWeight: 500 }}>{item.name}</div>
                                 <div style={{ fontSize: 12, color: "#888" }}>-- --</div>
                                 <div style={{ fontSize: 12, color: statusMap[item.status]?.color || "#faad14" }}>
@@ -214,10 +259,8 @@ const WorkScheduleTable: React.FC = () => {
       <AssignDrawer
         open={assignDrawerOpen}
         onClose={() => setAssignDrawerOpen(false)}
-        onAssign={handleAssign}
         staffList={staffList}
-        shiftList={shiftList}
-        date={assignDate}
+        shiftList={shifts?.map((s) => ({ key: String(s.id), label: s.name || "" })) || []}
       />
     </div>
   );

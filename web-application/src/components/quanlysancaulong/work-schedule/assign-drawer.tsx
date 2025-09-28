@@ -8,7 +8,7 @@ dayjs.extend(weekOfYear);
 interface AssignDrawerProps {
   open: boolean;
   onClose: () => void;
-  staffList: Array<{ id: number; fullName: string; code?: string }>;
+  staffList: Array<{ id: number; fullName: string }>;
   shiftList: Array<{ key: string; label: string }>;
   date?: string;
   onAssign?: (params: { staffId: number; date: string; shiftKey: string }) => void;
@@ -42,7 +42,7 @@ const dummySchedule: Record<number, Record<number, string[]>> = {
   2: { 1: ["morning", "evening"], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] }, // Khánh
 };
 
-const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, shiftList, date, onAssign }) => {
+const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, shiftList }) => {
   const [hoverCell, setHoverCell] = useState<{ staffId: number; day: number } | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalStaff, setModalStaff] = useState<{ id: number; fullName: string } | null>(null);
@@ -108,19 +108,37 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                 <tr key={staff.id}>
                   <td style={{ borderRight: "1px solid #f0f0f0", padding: 8 }}>
                     <div style={{ fontWeight: 600 }}>{staff.fullName}</div>
-                    <div style={{ fontSize: 13, color: "#888" }}>{staff.code || `NV${String(staff.id).padStart(6, "0")}`}</div>
+                    <div style={{ fontSize: 13, color: "#888" }}>{`NV${String(staff.id).padStart(6, "0")}`}</div>
                   </td>
                   {weekDays.map((d, idx) => {
                     const shiftsOfDay = dummySchedule[staff.id]?.[d.value] || [];
                     return (
                       <td
                         key={d.value}
-                        style={{ minHeight: 60, padding: 4, verticalAlign: "top", position: "relative" }}
+                        style={{
+                          minHeight: 60,
+                          padding: 4,
+                          verticalAlign: "top",
+                          position: "relative",
+                          border: "1px solid #e0e0e0",
+                          boxSizing: "border-box",
+                          background: "#fff"
+                        }}
                         onMouseEnter={() => setHoverCell({ staffId: staff.id, day: d.value })}
                         onMouseLeave={() => setHoverCell(null)}
                       >
                         {shiftsOfDay.map((shiftKey, idx2) => (
-                          <div key={idx2} style={{ background: shiftColors[shiftKey], borderRadius: 6, marginBottom: 6, padding: 6, fontSize: 14 }}>
+                          <div
+                            key={idx2}
+                            style={{
+                              background: shiftColors[shiftKey],
+                              borderRadius: 6,
+                              marginBottom: 6,
+                              padding: 6,
+                              fontSize: 14,
+                              border: "1px solid #b7eb8f"
+                            }}
+                          >
                             <span style={{ fontWeight: 500 }}>{shiftLabels[shiftKey]}</span>
                           </div>
                         ))}
@@ -156,6 +174,7 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
         onClose={() => setModalOpen(false)}
         staff={modalStaff ?? undefined}
         date={modalDate}
+        shiftList={shiftList}
         onSave={(values) => {
           // TODO: Xử lý lưu lịch làm việc
           setModalOpen(false);

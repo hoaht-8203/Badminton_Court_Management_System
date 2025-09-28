@@ -7,7 +7,7 @@ export function useGetScheduleByShift(request: ScheduleRequest) {
     queryKey: ["schedule", "by-shift", request],
     queryFn: async () => {
       const res = await scheduleService.getScheduleByShift(request);
-      return res.data;
+      return res;
     },
   });
 }

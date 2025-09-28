@@ -2,11 +2,7 @@ import React, { useState } from "react";
 import { Modal, Button, Checkbox, Switch, DatePicker, Select, Tag } from "antd";
 import dayjs from "dayjs";
 
-const shifts = [
-  { key: "morning", label: "Ca sáng", time: "08:00 - 12:00" },
-  { key: "afternoon", label: "Ca chiều", time: "13:00 - 17:00" },
-  { key: "evening", label: "Ca tối", time: "18:00 - 22:00" },
-];
+// shifts sẽ lấy từ prop shiftList
 
 const daysOfWeek = [
   { label: "Thứ 2", value: 1 },
@@ -23,16 +19,16 @@ interface ScheduleAssignModalProps {
   onClose: () => void;
   staff?: { id: number; fullName: string };
   date?: string;
+  shiftList: Array<{ key: string; label: string; time?: string }>;
   onSave?: (values: any) => void;
 }
 
-const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose, staff, date, onSave }) => {
+const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose, staff, date, shiftList, onSave }) => {
   const [selectedShifts, setSelectedShifts] = useState<string[]>([]);
   const [repeatWeekly, setRepeatWeekly] = useState(false);
   const [repeatDays, setRepeatDays] = useState<number[]>([]);
   const [repeatEnd, setRepeatEnd] = useState<string | null>(null);
   const [workOnHoliday, setWorkOnHoliday] = useState(false);
-  const [applyToOthers, setApplyToOthers] = useState(false);
 
   const handleShiftChange = (key: string, checked: boolean) => {
     setSelectedShifts((prev) => (checked ? [...prev, key] : prev.filter((k) => k !== key)));
@@ -47,7 +43,7 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
   };
 
   const handleSave = () => {
-    onSave?.({ selectedShifts, repeatWeekly, repeatDays, repeatEnd, workOnHoliday, applyToOthers });
+    onSave?.({ selectedShifts, repeatWeekly, repeatDays, repeatEnd, workOnHoliday });
     onClose();
   };
 
@@ -77,12 +73,12 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
           Chọn ca làm việc <Button type="link" icon={"+"} />
         </div>
         <div style={{ display: "flex", gap: 24 }}>
-          {shifts.map((shift) => (
+          {shiftList.map((shift) => (
             <div key={shift.key} style={{ minWidth: 120 }}>
               <Checkbox checked={selectedShifts.includes(shift.key)} onChange={(e) => handleShiftChange(shift.key, e.target.checked)}>
                 {shift.label}
               </Checkbox>
-              <div style={{ fontSize: 13, color: "#888" }}>{shift.time}</div>
+              {shift.time && <div style={{ fontSize: 13, color: "#888" }}>{shift.time}</div>}
             </div>
           ))}
         </div>
@@ -126,12 +122,7 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
           </>
         )}
       </div>
-      <div style={{ marginBottom: 18 }}>
-        <div style={{ fontWeight: 500, marginBottom: 8 }}>
-          Thêm lịch tương tự cho nhân viên khác
-          <Switch style={{ marginLeft: 12 }} checked={applyToOthers} onChange={setApplyToOthers} />
-        </div>
-      </div>
+
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 12 }}>
         <Button onClick={onClose}>Bỏ qua</Button>
         <Button type="primary" onClick={handleSave}>

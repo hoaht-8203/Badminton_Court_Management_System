@@ -1,3 +1,4 @@
+using System.Threading;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Customer;
 using ApiApplication.Services;
@@ -21,6 +22,23 @@ public class CustomersController(ICustomerService customerService) : ControllerB
         var result = await _customerService.ListCustomersAsync(request);
         return Ok(
             ApiResponse<List<ListCustomerResponse>>.SuccessResponse(
+                result,
+                "Get customer list successfully"
+            )
+        );
+    }
+
+    [HttpGet("list-paged")]
+    public async Task<
+        ActionResult<ApiResponse<PagedResponse<ListCustomerResponse>>>
+    > ListCustomersPaged(
+        [FromQuery] ListCustomerPagedRequest request,
+        CancellationToken cancellationToken
+    )
+    {
+        var result = await _customerService.ListCustomersPagedAsync(request, cancellationToken);
+        return Ok(
+            ApiResponse<PagedResponse<ListCustomerResponse>>.SuccessResponse(
                 result,
                 "Get customer list successfully"
             )

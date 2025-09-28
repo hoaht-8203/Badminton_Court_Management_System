@@ -5,6 +5,7 @@ using ApiApplication.Dtos.Customer;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
+using ApiApplication.Extensions;
 using ApiApplication.Sessions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +77,76 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
 
         var customers = await query.ToListAsync();
         return _mapper.Map<List<ListCustomerResponse>>(customers);
+    }
+
+    public async Task<PagedResponse<ListCustomerResponse>> ListCustomersPagedAsync(
+        ListCustomerPagedRequest request,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var query = _context.Customers.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(request.FullName))
+        {
+            var name = request.FullName.ToLower();
+            query = query.Where(c => c.FullName.ToLower().Contains(name));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Phone))
+        {
+            var phone = request.Phone;
+            query = query.Where(c => c.PhoneNumber.Contains(phone));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Gender))
+        {
+            var gender = request.Gender.ToLower();
+            query = query.Where(c => c.Gender != null && c.Gender.ToLower() == gender);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.City))
+        {
+            var city = request.City.ToLower();
+            query = query.Where(c => c.City != null && c.City!.ToLower().Contains(city));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Address))
+        {
+            var address = request.Address.ToLower();
+            query = query.Where(c => c.Address != null && c.Address!.ToLower().Contains(address));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.District))
+        {
+            var district = request.District.ToLower();
+            query = query.Where(c =>
+                c.District != null && c.District!.ToLower().Contains(district)
+            );
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Ward))
+        {
+            var ward = request.Ward.ToLower();
+            query = query.Where(c => c.Ward != null && c.Ward!.ToLower().Contains(ward));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Status))
+        {
+            var status = request.Status;
+            query = query.Where(c => c.Status == status);
+        }
+
+        query = query.OrderByDescending(c => c.CreatedAt);
+
+        return await query.ToPagedResponseAsync<Entities.Customer, ListCustomerResponse>(
+            new ApiApplication.Dto.PaginationRequest
+            {
+                Page = request.Page,
+                PageSize = request.PageSize,
+            },
+            _mapper,
+            cancellationToken
+        );
     }
 
     public async Task<DetailCustomerResponse> GetCustomerByIdAsync(DetailCustomerRequest request)

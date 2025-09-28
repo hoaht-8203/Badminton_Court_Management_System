@@ -1,18 +1,117 @@
 import { DayPilot, DayPilotScheduler } from "daypilot-pro-react";
 import { useEffect, useState } from "react";
 import PickCalendar from "./pick-calendar";
+import dayjs from "dayjs";
+
+function expandBookings(bookings: any[]) {
+  const events: any[] = [];
+
+  bookings.forEach((b) => {
+    // Kiểm tra xem có phải lịch cố định (recurring) hay lịch vãng lai (one-time)
+    const isRecurring = b.dayOfWeek && Array.isArray(b.dayOfWeek) && b.dayOfWeek.length > 0;
+
+    if (isRecurring) {
+      // Xử lý lịch cố định (recurring bookings)
+      let current = dayjs(b.startDate);
+      const endDate = dayjs(b.endDate);
+
+      while (current.isBefore(endDate) || current.isSame(endDate, "day")) {
+        // dayjs: Sunday=0, Monday=1, Tuesday=2, Wednesday=3, Thursday=4, Friday=5, Saturday=6
+        // DB: Monday=2, Tuesday=3, Wednesday=4, Thursday=5, Friday=6, Saturday=7, Sunday=8
+        const dayjsDow = current.day();
+        const dbDow = dayjsDow === 0 ? 8 : dayjsDow + 1; // Sunday=0 -> 8, others +1
+
+        if (b.dayOfWeek.includes(dbDow)) {
+          events.push({
+            id: b.id + "-" + current.format("YYYYMMDD"),
+            text: b.cusId,
+            start: current.format("YYYY-MM-DD") + "T" + b.startTime,
+            end: current.format("YYYY-MM-DD") + "T" + b.endTime,
+            resource: b.courtId,
+          });
+        }
+
+        current = current.add(1, "day");
+      }
+    } else {
+      // Xử lý lịch vãng lai (one-time bookings)
+      // Chỉ tạo 1 event cho ngày cụ thể
+      events.push({
+        id: b.id.toString(),
+        text: b.cusId,
+        start: b.startDate + "T" + b.startTime,
+        end: b.endDate + "T" + b.endTime,
+        resource: b.courtId,
+      });
+    }
+  });
+
+  return events;
+}
+
+const bookings = [
+  {
+    id: 1,
+    cusId: "Cus1",
+    courtId: "R1",
+    startTime: "07:00:00",
+    endTime: "10:00:00",
+    startDate: "2025-09-01",
+    endDate: "2025-09-30",
+    dayOfWeek: [3, 5, 7], // thứ 3, 5, 7 - lịch cố định
+  },
+  {
+    id: 2,
+    cusId: "Cus2",
+    courtId: "R1",
+    startTime: "10:00:00",
+    endTime: "14:00:00",
+    startDate: "2025-09-01",
+    endDate: "2025-09-15",
+    dayOfWeek: [2], // thứ 2 - lịch cố định
+  },
+  {
+    id: 3,
+    cusId: "Cus3",
+    courtId: "R2",
+    startTime: "15:00:00",
+    endTime: "17:00:00",
+    startDate: "2025-09-10",
+    endDate: "2025-09-10",
+    // Không có dayOfWeek - lịch vãng lai
+  },
+  {
+    id: 4,
+    cusId: "Cus4",
+    courtId: "R2",
+    startTime: "18:00:00",
+    endTime: "20:00:00",
+    startDate: "2025-09-15",
+    endDate: "2025-09-15",
+    dayOfWeek: [], // dayOfWeek rỗng - lịch vãng lai
+  },
+];
+
+const trueData = [
+  {
+    id: 1,
+    resource: "R1",
+    start: "2025-09-23T05:00:00",
+    end: "2025-09-23T09:00:00",
+    text: "Event 1",
+  },
+  {
+    id: 2,
+    resource: "R1",
+    start: "2025-09-30T05:00:00",
+    end: "2025-09-30T09:00:00",
+    text: "Event 1",
+  },
+];
 
 const CourtScheduler = () => {
   const [selectedDate, setSelectedDate] = useState<DayPilot.Date>(DayPilot.Date.today());
-  const [events, setEvents] = useState<DayPilot.EventData[]>([
-    {
-      id: 1,
-      resource: "R1",
-      start: "2025-09-23T05:00:00",
-      end: "2025-09-23T09:00:00",
-      text: "Event 1",
-    },
-  ]);
+  const [events, setEvents] = useState<DayPilot.EventData[]>(expandBookings(bookings));
   useEffect(() => {
     const demoEl = document.querySelector(".scheduler_default_corner > div[style*='background-color']");
     if (demoEl) {

@@ -1,3 +1,4 @@
+import { useAssignSchedule } from "@/hooks/useSchedule";
 import React, { useState } from "react";
 import { Modal, Button, Checkbox, Switch, DatePicker, Select, Tag } from "antd";
 import dayjs from "dayjs";
@@ -24,6 +25,7 @@ interface ScheduleAssignModalProps {
 }
 
 const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose, staff, date, shiftList, onSave }) => {
+  const assignMutation = useAssignSchedule();
   const [selectedShifts, setSelectedShifts] = useState<string[]>([]);
   const [repeatWeekly, setRepeatWeekly] = useState(false);
   const [repeatDays, setRepeatDays] = useState<number[]>([]);
@@ -42,7 +44,37 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
     setRepeatDays(daysOfWeek.map((d) => d.value));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!staff?.id || !date) return;
+    // Xử lý lặp lại
+    let isFixedShift = false;
+    let byDay: string[] | undefined = undefined;
+    if (repeatWeekly && repeatDays.length > 0) {
+      isFixedShift = true;
+      byDay = repeatDays.map((d) => {
+        if (d === 0) return "CN";
+        return `T${d + 1}`;
+      });
+    }
+    // Xác định endDate
+    let endDateValue: string | undefined = undefined;
+    if (repeatEnd && repeatEnd !== "unlimited") {
+      endDateValue = repeatEnd; // repeatEnd là ngày kết thúc do người dùng chọn
+    }
+    // Gọi API cho từng ca
+    for (const shiftKey of selectedShifts) {
+      const shiftObj = shiftList.find((s) => s.key === shiftKey);
+      if (!shiftObj) continue;
+      const request = {
+        staffId: staff.id,
+        shiftId: isNaN(Number(shiftKey)) ? undefined : Number(shiftKey),
+        startDate: date,
+        endDate: endDateValue,
+        isFixedShift,
+        byDay,
+      };
+      await assignMutation.mutateAsync(request);
+    }
     onSave?.({ selectedShifts, repeatWeekly, repeatDays, repeatEnd, workOnHoliday });
     onClose();
   };
@@ -69,9 +101,7 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
       }
     >
       <div style={{ marginBottom: 18 }}>
-        <div style={{ fontWeight: 500, marginBottom: 8 }}>
-          Chọn ca làm việc <Button type="link" icon={"+"} />
-        </div>
+        <div style={{ fontWeight: 500, marginBottom: 8 }}>Chọn ca làm việc</div>
         <div style={{ display: "flex", gap: 24 }}>
           {shiftList.map((shift) => (
             <div key={shift.key} style={{ minWidth: 120 }}>

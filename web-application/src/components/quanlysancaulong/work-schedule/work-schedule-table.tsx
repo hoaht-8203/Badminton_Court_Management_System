@@ -26,12 +26,6 @@ const daysOfWeek = [
   { label: "Chủ nhật", value: 0 },
 ];
 
-// const shifts = [
-//   { label: "Ca sáng", time: "08:00 - 12:00", key: "morning" },
-//   { label: "Ca chiều", time: "13:00 - 17:00", key: "afternoon" },
-//   { label: "Ca tối", time: "18:00 - 22:00", key: "evening" },
-// ];
-
 const statusMap = {
   ON_TIME: { color: "#1890ff", text: "Đúng giờ" },
   LATE: { color: "#9254de", text: "Đi muộn / Về sớm" },
@@ -39,60 +33,6 @@ const statusMap = {
   NOT_CHECKED: { color: "#faad14", text: "Chưa chấm công" },
   OFF: { color: "#bfbfbf", text: "Nghỉ làm" },
 } as const;
-
-// Dummy data for demo
-// type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-// interface ScheduleRow {
-//   shiftKey: string;
-//   data: Record<DayOfWeek, ScheduleCell[]>;
-// }
-// const scheduleData: ScheduleRow[] = [
-//   {
-//     shiftKey: "morning",
-//     data: {
-//       1: [
-//         { name: "Hậu", status: "NOT_CHECKED" },
-//         { name: "Khánh", status: "NOT_CHECKED" },
-//       ],
-//       2: [],
-//       3: [],
-//       4: [],
-//       5: [],
-//       6: [],
-//       0: [],
-//     },
-//   },
-//   {
-//     shiftKey: "afternoon",
-//     data: {
-//       1: [{ name: "Hậu", status: "NOT_CHECKED" }],
-//       2: [],
-//       3: [],
-//       4: [],
-//       5: [],
-//       6: [],
-//       0: [],
-//     },
-//   },
-//   {
-//     shiftKey: "evening",
-//     data: {
-//       1: [{ name: "Khánh", status: "NOT_CHECKED" }],
-//       2: [],
-//       3: [],
-//       4: [],
-//       5: [],
-//       6: [],
-//       0: [],
-//     },
-//   },
-// ];
-
-// const staffList = [
-//   { id: 1, fullName: "Hậu" },
-//   { id: 2, fullName: "Khánh" },
-// ];
-// const shiftList = shifts.map((s) => ({ key: s.key, label: s.label }));
 
 const WorkScheduleTable: React.FC = () => {
   const [assignDrawerOpen, setAssignDrawerOpen] = useState(false);
@@ -140,7 +80,7 @@ const WorkScheduleTable: React.FC = () => {
       <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
         <span style={{ fontWeight: 700, fontSize: 20, marginRight: 16 }}>Bảng chấm công</span>
         <Input placeholder="Tìm kiếm nhân viên" style={{ width: 240, marginRight: 8 }} />
-        <Select defaultValue="all" style={{ width: 140, marginRight: 8 }} options={[{ label: "Theo tuần", value: "week" }]} />
+
         {/* Custom week selector giống drawer */}
         <div style={{ display: "flex", alignItems: "center", marginRight: 8 }}>
           <Button type="default" onClick={() => setWeekStart(weekStart.subtract(1, "week"))}>
@@ -153,8 +93,7 @@ const WorkScheduleTable: React.FC = () => {
             {">"}
           </Button>
         </div>
-        <Button>Chọn</Button>
-        <Select defaultValue="all" style={{ width: 120, marginLeft: 8 }} options={[{ label: "Xem theo ca", value: "shift" }]} />
+
         <Button type="primary" icon={<FileExcelOutlined />} style={{ marginLeft: "auto" }}>
           Xuất file
         </Button>

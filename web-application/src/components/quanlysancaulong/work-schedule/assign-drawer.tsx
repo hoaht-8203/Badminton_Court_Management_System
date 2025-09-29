@@ -3,6 +3,8 @@ import ScheduleAssignModal from "./schedule-assign-modal";
 import { Drawer, Button, Tag } from "antd";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
+
+import { useGetScheduleByStaff } from "@/hooks/useSchedule";
 dayjs.extend(weekOfYear);
 
 interface AssignDrawerProps {
@@ -36,26 +38,40 @@ const shiftLabels: Record<string, string> = {
   evening: "Ca tối",
 };
 
-// Dummy schedule data for demo
-const dummySchedule: Record<number, Record<number, string[]>> = {
-  1: { 1: ["morning", "afternoon"], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] }, // Hậu
-  2: { 1: ["morning", "evening"], 2: [], 3: [], 4: [], 5: [], 6: [], 0: [] }, // Khánh
-};
-
 const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, shiftList }) => {
   const [hoverCell, setHoverCell] = useState<{ staffId: number; day: number } | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalStaff, setModalStaff] = useState<{ id: number; fullName: string } | null>(null);
   const [modalDate, setModalDate] = useState<string>("");
-
-  // Lấy ngày đầu tuần là thứ 2
-  const currentWeek = dayjs();
-  const monday = currentWeek.day() === 0 ? currentWeek.subtract(6, "day") : currentWeek.day(1);
+  // State tuần hiện tại
+  const [weekStart, setWeekStart] = useState(() => {
+    const today = dayjs();
+    return today.day() === 0 ? today.subtract(6, "day") : today.day(1);
+  });
+  const monday = weekStart;
   const weekDays = daysOfWeek.map((d, idx) => {
-    // Tính ngày thực tế của từng thứ trong tuần, bắt đầu từ thứ 2
     const day = monday.add(idx, "day");
     return { ...d, date: day.date(), fullDate: day.format("YYYY-MM-DD") };
   });
+  const startDate = weekStart.format("YYYY-MM-DD");
+  const endDate = weekStart.add(6, "day").format("YYYY-MM-DD");
+  const { data: scheduleByStaffRaw } = useGetScheduleByStaff({ startDate, endDate });
+
+  const staffScheduleMap: Record<number, Record<number, string[]>> = React.useMemo(() => {
+    const result: Record<number, Record<number, string[]>> = {};
+    if (!scheduleByStaffRaw?.data) return result;
+    for (const staffItem of scheduleByStaffRaw.data) {
+      const staffId = staffItem?.staff?.id;
+      if (typeof staffId !== "number") continue;
+      result[staffId] = {};
+      if (!Array.isArray(staffItem.days)) continue;
+      for (const day of staffItem.days) {
+        if (typeof day?.dayOfWeek !== "number" || !Array.isArray(day?.shifts)) continue;
+        result[staffId][day.dayOfWeek] = day.shifts.map((shift: any) => shift.name);
+      }
+    }
+    return result;
+  }, [scheduleByStaffRaw]);
 
   return (
     <>
@@ -72,13 +88,13 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
         }
       >
         <div style={{ marginBottom: 24 }}>
-          <Button type="default" style={{ marginRight: 8 }}>
+          <Button type="default" style={{ marginRight: 8 }} onClick={() => setWeekStart(weekStart.subtract(1, "week"))}>
             {"<"}
           </Button>
           <span style={{ fontWeight: 500, fontSize: 16 }}>
             Tuần {monday.week()} - Th.{monday.month() + 1} {monday.year()}
           </span>
-          <Button type="default" style={{ marginLeft: 8 }}>
+          <Button type="default" style={{ marginLeft: 8 }} onClick={() => setWeekStart(weekStart.add(1, "week"))}>
             {">"}
           </Button>
         </div>
@@ -94,11 +110,11 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                       minWidth: 120,
                       textAlign: "center",
                       padding: 8,
-                      background: idx === currentWeek.day() - 1 ? "#e6f7ff" : "#f5f5f5",
+                      background: idx === weekStart.day() - 1 ? "#e6f7ff" : "#f5f5f5",
                       borderRight: "1px solid #f0f0f0",
                     }}
                   >
-                    {d.label} <span style={{ color: "#1890ff", fontWeight: idx === currentWeek.day() - 1 ? 700 : 400 }}>{d.date}</span>
+                    {d.label} <span style={{ color: "#1890ff", fontWeight: idx === weekStart.day() - 1 ? 700 : 400 }}>{d.date}</span>
                   </th>
                 ))}
               </tr>
@@ -111,7 +127,7 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                     <div style={{ fontSize: 13, color: "#888" }}>{`NV${String(staff.id).padStart(6, "0")}`}</div>
                   </td>
                   {weekDays.map((d, idx) => {
-                    const shiftsOfDay = dummySchedule[staff.id]?.[d.value] || [];
+                    const shiftsOfDay = staffScheduleMap[staff.id]?.[d.value] || [];
                     return (
                       <td
                         key={d.value}
@@ -122,7 +138,7 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                           position: "relative",
                           border: "1px solid #e0e0e0",
                           boxSizing: "border-box",
-                          background: "#fff"
+                          background: "#fff",
                         }}
                         onMouseEnter={() => setHoverCell({ staffId: staff.id, day: d.value })}
                         onMouseLeave={() => setHoverCell(null)}
@@ -136,7 +152,7 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                               marginBottom: 6,
                               padding: 6,
                               fontSize: 14,
-                              border: "1px solid #b7eb8f"
+                              border: "1px solid #b7eb8f",
                             }}
                           >
                             <span style={{ fontWeight: 500 }}>{shiftLabels[shiftKey]}</span>

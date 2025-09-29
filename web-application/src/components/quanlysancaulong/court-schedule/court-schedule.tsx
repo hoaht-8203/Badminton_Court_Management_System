@@ -73,7 +73,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
       const scheduler = schedulerRef.current.control;
       scheduler.scrollTo(new DayPilot.Date());
     }
-  });
+  }, []);
 
   const handlePickDate = (date: string) => {
     console.log("GO TO HERE");
@@ -139,6 +139,9 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
           days={1}
           startDate={selectedDate}
           resources={resources}
+          onBeforeRowHeaderRender={(args) => {
+            args.row.cssClass = "resource-child-70";
+          }}
           onBeforeCellRender={(args) => {
             if (args.cell.isParent) {
               args.cell.properties.disabled = true;
@@ -229,8 +232,6 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
           }}
           treeEnabled={true}
           events={events}
-          rowMinHeight={50}
-          eventHeight={75}
           allowEventOverlap={false}
         />
       </div>

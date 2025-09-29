@@ -13,47 +13,90 @@ public class InvoiceService(ApplicationDbContext context, IMapper mapper) : IInv
 	private readonly ApplicationDbContext _context = context;
 	private readonly IMapper _mapper = mapper;
 
-	public async Task<DetailInvoiceResponse> CreateInvocieAsync(Guid bookingId)
+	public async Task<DetailInvoiceResponse> CreateInvocieAsync(CreateInvoiceRequest request)
 	{
 		var booking = await _context.BookingCourts
 			.Include(b => b.Customer)
 			.Include(b => b.Court)
-			.FirstOrDefaultAsync(b => b.Id == bookingId);
+			.FirstOrDefaultAsync(b => b.Id == request.BookingId);
 		if (booking == null)
 		{
-			throw new ApiException($"Booking không tồn tại: {bookingId}");
+			throw new ApiException($"Booking không tồn tại: {request.BookingId}");
 		}
 
-		var existed = await _context.Invoices.FirstOrDefaultAsync(i => i.BookingId == bookingId);
+		var existed = await _context.Invoices.FirstOrDefaultAsync(i => i.BookingId == request.BookingId);
 		if (existed != null)
 		{
 			return _mapper.Map<DetailInvoiceResponse>(existed);
 		}
 
-        var invoice = _mapper.Map<Invoice>(booking);
+		var invoice = _mapper.Map<Invoice>(booking);
 		invoice.Status = InvoiceStatus.Pending;
-        invoice.Amount = await CalculateBookingAmountAsync(booking);
-        await _context.Invoices.AddAsync(invoice);
-		await _context.SaveChangesAsync();
+		invoice.Amount = await CalculateBookingAmountAsync(booking);
+
+		// Generate formatted ID: HD-ddMMyyyy-000001
+		invoice.Id = await GenerateNextInvoiceIdAsync();
+
+		await _context.Invoices.AddAsync(invoice);
+
+		// Best-effort retry in case of rare collision under concurrency
+		for (var attempt = 0; attempt < 3; attempt++)
+		{
+			try
+			{
+				await _context.SaveChangesAsync();
+				break;
+			}
+			catch (DbUpdateException)
+			{
+				// Regenerate and retry once more
+				invoice.Id = await GenerateNextInvoiceIdAsync();
+			}
+		}
 
 		return _mapper.Map<DetailInvoiceResponse>(invoice);
 	}
 
-	public async Task<DetailInvoiceResponse?> GetByBookingIdAsync(Guid bookingId)
+	private async Task<string> GenerateNextInvoiceIdAsync()
+	{
+		var now = DateTime.Now;
+		var prefix = $"HD-{now:ddMMyyyy}-";
+
+		var lastId = await _context.Invoices
+			.AsNoTracking()
+			.Where(i => i.Id.StartsWith(prefix))
+			.OrderByDescending(i => i.Id)
+			.Select(i => i.Id)
+			.FirstOrDefaultAsync();
+
+		var next = 1;
+		if (!string.IsNullOrEmpty(lastId))
+		{
+			var numericPart = lastId.Substring(prefix.Length);
+			if (int.TryParse(numericPart, out var parsed))
+			{
+				next = parsed + 1;
+			}
+		}
+
+		return $"{prefix}{next.ToString("D6")}";
+	}
+
+	public async Task<DetailInvoiceResponse?> DetailByBookingIdAsync(DetailInvoiceByBookingIdRequest request)
 	{
 		var invoice = await _context.Invoices
 			.Include(i => i.Booking)!.ThenInclude(b => b!.Customer)
 			.Include(i => i.Booking)!.ThenInclude(b => b!.Court)
-			.FirstOrDefaultAsync(i => i.BookingId == bookingId);
+			.FirstOrDefaultAsync(i => i.BookingId == request.BookingId);
 		return invoice == null ? null : _mapper.Map<DetailInvoiceResponse>(invoice);
 	}
 
-	public async Task<DetailInvoiceResponse?> GetByIdAsync(Guid invoiceId)
+	public async Task<DetailInvoiceResponse?> DetailInvoiceByIdAsync(DetailInvoiceRequest request)
 	{
 		var invoice = await _context.Invoices
 			.Include(i => i.Booking)!.ThenInclude(b => b!.Customer)
 			.Include(i => i.Booking)!.ThenInclude(b => b!.Court)
-			.FirstOrDefaultAsync(i => i.Id == invoiceId);
+			.FirstOrDefaultAsync(i => i.Id == request.Id);
 		return invoice == null ? null : _mapper.Map<DetailInvoiceResponse>(invoice);
 	}
 

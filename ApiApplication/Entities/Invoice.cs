@@ -7,7 +7,7 @@ namespace ApiApplication.Entities;
 public class Invoice : BaseEntity
 {
     [Key]
-    public Guid Id { get; set; }
+    public required string Id { get; set; }
 
     public Guid BookingId { get; set; }
     public BookingCourt? Booking { get; set; }

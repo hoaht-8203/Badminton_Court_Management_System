@@ -10,6 +10,7 @@ public class DetailBookingCourtResponse
 	public TimeOnly EndTime { get; set; }
 	public int[]? DaysOfWeek { get; set; }
 	public string? Status { get; set; }
+	public decimal TotalHours { get; set; }
 }
 
 

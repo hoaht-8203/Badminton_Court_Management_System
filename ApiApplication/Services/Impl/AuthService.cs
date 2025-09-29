@@ -471,7 +471,7 @@ public class AuthService(
             UserId = user.Id,
             UserName = user.UserName,
             FullName = user.FullName,
-            Email = user.Email,
+            Email = user.Email!,
             EmailConfirmed = user.EmailConfirmed,
             AvatarUrl = user.AvatarUrl,
             Roles = roles.ToList(),

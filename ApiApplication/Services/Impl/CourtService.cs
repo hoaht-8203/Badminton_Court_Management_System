@@ -259,4 +259,10 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
         _context.CourtPricingRuleTemplates.Remove(courtPricingRuleTemplate);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<List<ListCourtGroupByCourtAreaResponse>> ListCourtGroupByCourtAreaAsync()
+    {
+        var courtAreas = await _context.CourtAreas.Include(c => c.Courts).ToListAsync();
+        return _mapper.Map<List<ListCourtGroupByCourtAreaResponse>>(courtAreas);
+    }
 }

@@ -9,6 +9,7 @@ import {
   DeleteCourtRequest,
   DetailCourtRequest,
   DetailCourtResponse,
+  ListCourtGroupByCourtAreaResponse,
   ListCourtRequest,
   ListCourtResponse,
   UpdateCourtPricingRuleTemplateRequest,
@@ -72,6 +73,11 @@ export const courtService = {
     const res = await axiosInstance.delete<ApiResponse<null>>("/api/Courts/delete-pricing-rule-template", {
       params: payload,
     });
+    return res.data;
+  },
+
+  async listCourtGroupByCourtArea(): Promise<ApiResponse<ListCourtGroupByCourtAreaResponse[]>> {
+    const res = await axiosInstance.get<ApiResponse<ListCourtGroupByCourtAreaResponse[]>>("/api/Courts/list-court-group-by-court-area");
     return res.data;
   },
 };

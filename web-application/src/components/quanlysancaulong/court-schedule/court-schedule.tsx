@@ -1,53 +1,9 @@
+import { expandBookings, getDayOfWeekToVietnamese } from "@/lib/common";
+import { ListCourtGroupByCourtAreaResponse } from "@/types-openapi/api";
 import { DayPilot, DayPilotScheduler } from "daypilot-pro-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import PickCalendar from "./pick-calendar";
-import dayjs from "dayjs";
-
-function expandBookings(bookings: any[]) {
-  const events: any[] = [];
-
-  bookings.forEach((b) => {
-    // Kiểm tra xem có phải lịch cố định (recurring) hay lịch vãng lai (one-time)
-    const isRecurring = b.dayOfWeek && Array.isArray(b.dayOfWeek) && b.dayOfWeek.length > 0;
-
-    if (isRecurring) {
-      // Xử lý lịch cố định (recurring bookings)
-      let current = dayjs(b.startDate);
-      const endDate = dayjs(b.endDate);
-
-      while (current.isBefore(endDate) || current.isSame(endDate, "day")) {
-        // dayjs: Sunday=0, Monday=1, Tuesday=2, Wednesday=3, Thursday=4, Friday=5, Saturday=6
-        // DB: Monday=2, Tuesday=3, Wednesday=4, Thursday=5, Friday=6, Saturday=7, Sunday=8
-        const dayjsDow = current.day();
-        const dbDow = dayjsDow === 0 ? 8 : dayjsDow + 1; // Sunday=0 -> 8, others +1
-
-        if (b.dayOfWeek.includes(dbDow)) {
-          events.push({
-            id: b.id + "-" + current.format("YYYYMMDD"),
-            text: b.cusId,
-            start: current.format("YYYY-MM-DD") + "T" + b.startTime,
-            end: current.format("YYYY-MM-DD") + "T" + b.endTime,
-            resource: b.courtId,
-          });
-        }
-
-        current = current.add(1, "day");
-      }
-    } else {
-      // Xử lý lịch vãng lai (one-time bookings)
-      // Chỉ tạo 1 event cho ngày cụ thể
-      events.push({
-        id: b.id.toString(),
-        text: b.cusId,
-        start: b.startDate + "T" + b.startTime,
-        end: b.endDate + "T" + b.endTime,
-        resource: b.courtId,
-      });
-    }
-  });
-
-  return events;
-}
+import { Modal } from "antd";
 
 const bookings = [
   {
@@ -92,30 +48,30 @@ const bookings = [
   },
 ];
 
-const trueData = [
-  {
-    id: 1,
-    resource: "R1",
-    start: "2025-09-23T05:00:00",
-    end: "2025-09-23T09:00:00",
-    text: "Event 1",
-  },
-  {
-    id: 2,
-    resource: "R1",
-    start: "2025-09-30T05:00:00",
-    end: "2025-09-30T09:00:00",
-    text: "Event 1",
-  },
-];
+interface CourtSchedulerProps {
+  courts: ListCourtGroupByCourtAreaResponse[];
+}
 
-const CourtScheduler = () => {
+const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
+  const schedulerRef = useRef<DayPilotScheduler>(null);
+  const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<DayPilot.Date>(DayPilot.Date.today());
   const [events, setEvents] = useState<DayPilot.EventData[]>(expandBookings(bookings));
+  const [newBooking, setNewBooking] = useState<{
+    start: DayPilot.Date;
+    end: DayPilot.Date;
+    resource: string;
+  } | null>(null);
+
   useEffect(() => {
     const demoEl = document.querySelector(".scheduler_default_corner > div[style*='background-color']");
     if (demoEl) {
-      demoEl.remove(); // Xoá hẳn cái div chứa chữ DEMO
+      demoEl.remove();
+    }
+
+    if (schedulerRef.current) {
+      const scheduler = schedulerRef.current.control;
+      scheduler.scrollTo(new DayPilot.Date());
     }
   });
 
@@ -123,6 +79,34 @@ const CourtScheduler = () => {
     console.log("GO TO HERE");
 
     setSelectedDate(new DayPilot.Date(date));
+  };
+
+  const resources: DayPilot.ResourceData[] = courts.map((courtArea) => ({
+    name: courtArea.name ?? "",
+    id: courtArea.id,
+    expanded: true,
+    children:
+      courtArea.courts?.map((court) => ({
+        name: court.name ?? "",
+        id: court.id,
+      })) ?? [],
+  }));
+
+  const handleCreateBooking = () => {
+    console.log("handleCreateBooking", newBooking);
+    setEvents([
+      ...events,
+      {
+        start: newBooking?.start ?? "",
+        end: newBooking?.end ?? "",
+        resource: newBooking?.resource ?? "",
+        text: `Sự kiện mới ${newBooking?.start.toString("HH:mm")} - ${newBooking?.end.toString("HH:mm")}`,
+        id: DayPilot.guid(),
+        status: "Booked",
+      },
+    ]);
+    setOpen(false);
+    setNewBooking(null);
   };
 
   return (
@@ -133,104 +117,104 @@ const CourtScheduler = () => {
 
       <div className="w-full">
         <DayPilotScheduler
+          ref={schedulerRef}
           cellWidthSpec={"Fixed"}
           cellWidth={60}
           timeHeaders={[
             {
               groupBy: "Day",
+              format: "dddd, dd/MM/yyyy",
             },
             {
               groupBy: "Hour",
+              format: "HH:mm",
             },
           ]}
+          separators={[{ color: "red", location: new DayPilot.Date().toString() }]}
           businessBeginsHour={0}
           businessEndsHour={24}
+          businessWeekends={true}
           scale={"Hour"}
           timeRangeSelectedHandling="Enabled"
           days={1}
           startDate={selectedDate}
-          resources={[
-            {
-              name: "Group 1",
-              id: "G1",
-              expanded: true,
-              children: [
-                {
-                  name: "Resource 1",
-                  id: "R1",
-                },
-                {
-                  name: "Resource 2",
-                  id: "R2",
-                },
-              ],
-            },
-            {
-              name: "Group 2",
-              id: "G2",
-              expanded: true,
-              children: [
-                {
-                  name: "Resource 3",
-                  id: "R3",
-                },
-                {
-                  name: "Resource 4",
-                  id: "R4",
-                },
-              ],
-            },
-          ]}
+          resources={resources}
           onBeforeCellRender={(args) => {
             if (args.cell.isParent) {
               args.cell.properties.disabled = true;
               args.cell.properties.backColor = "#f0f0f0";
             }
           }}
+          onBeforeEventRender={(args) => {
+            const eventStart = new DayPilot.Date(args.data.start);
+            const eventStatus = args.data.status;
+
+            const now = DayPilot.Date.now();
+
+            if (eventStatus === "Booked") {
+              args.data.barColor = "green";
+            }
+
+            if (eventStart.getTime() < now.getTime()) {
+              args.data.barColor = "#A9A9A9";
+            }
+
+            // Tùy chọn khác: Nếu sự kiện đang diễn ra
+            // else if (eventEnd.getTime() > now.getTime() && new DayPilot.Date(args.data.start).getTime() < now.getTime()) {
+            //     args.data.barColor = "orange"; // Màu cam cho sự kiện đang diễn ra
+            // }
+          }}
+          onBeforeTimeHeaderRender={(args) => {
+            if (args.header.level === 0) {
+              const date = args.header.start;
+              const dayOfWeekText = date.toString("dddd");
+              const dayOfWeekTextVietnamese = getDayOfWeekToVietnamese(dayOfWeekText);
+              const day = date.getDay();
+              const month = date.getMonth() + 1;
+              const year = date.getYear();
+              args.header.html = `${dayOfWeekTextVietnamese}, ngày ${day} tháng ${month} năm ${year}`;
+              args.header.cssClass = "custom-header";
+            }
+          }}
           onTimeRangeSelected={async (args) => {
-            const scheduler = args.control;
+            setOpen(true);
 
-            // Lấy start, end của event mới
-            const newStart = args.start;
-            const newEnd = args.end;
-            const resource = args.resource;
-
-            // Lấy danh sách events hiện tại
-            const existingEvents = scheduler.events.list;
-
-            // Hàm check overlap
-            const isOverlapping = existingEvents.some((ev) => {
-              // chỉ check trong cùng resource (cùng sân)
-              if (ev.resource !== resource) return false;
-
-              // DayPilot.Date có compareTo
-              const evStart = new DayPilot.Date(ev.start);
-              const evEnd = new DayPilot.Date(ev.end);
-
-              // nếu khoảng thời gian giao nhau
-              return newStart < evEnd && newEnd > evStart;
-            });
-
-            if (isOverlapping) {
-              DayPilot.Modal.alert("Thời gian này đã có sự kiện, vui lòng chọn slot khác.");
-              scheduler.clearSelection();
-              return;
-            }
-
-            const modal = await DayPilot.Modal.prompt("Tạo sự kiện mới:", "Sự kiện 1");
-            scheduler.clearSelection();
-            if (modal.canceled) {
-              return;
-            }
-            // check if the start and end event is existed
-
-            scheduler.events.add({
+            setNewBooking({
               start: args.start,
               end: args.end,
-              id: DayPilot.guid(),
-              resource: args.resource,
-              text: modal.result,
+              resource: args.resource.toString(),
             });
+
+            // // Lấy danh sách events hiện tại
+            // const existingEvents = scheduler.events.list;
+            // // Hàm check overlap
+            // const isOverlapping = existingEvents.some((ev) => {
+            //   // chỉ check trong cùng resource (cùng sân)
+            //   if (ev.resource !== resource) return false;
+            //   // DayPilot.Date có compareTo
+            //   const evStart = new DayPilot.Date(ev.start);
+            //   const evEnd = new DayPilot.Date(ev.end);
+            //   // nếu khoảng thời gian giao nhau
+            //   return newStart < evEnd && newEnd > evStart;
+            // });
+            // if (isOverlapping) {
+            //   DayPilot.Modal.alert("Thời gian này đã có sự kiện, vui lòng chọn slot khác.");
+            //   scheduler.clearSelection();
+            //   return;
+            // }
+            // const modal = await DayPilot.Modal.prompt("Tạo sự kiện mới:", "Sự kiện 1");
+            // scheduler.clearSelection();
+            // if (modal.canceled) {
+            //   return;
+            // }
+            // // check if the start and end event is existed
+            // scheduler.events.add({
+            //   start: args.start,
+            //   end: args.end,
+            //   id: DayPilot.guid(),
+            //   resource: args.resource,
+            //   text: modal.result,
+            // });
           }}
           eventMoveHandling="Update"
           onEventMove={async (args) => {
@@ -240,17 +224,30 @@ const CourtScheduler = () => {
           onEventResize={async (args) => {
             console.log("onEventResize", args);
           }}
-          eventDeleteHandling="Update"
-          onEventDeleted={async (args) => {
-            console.log("onEventDeleted", args);
-          }}
           onEventClick={async (args) => {
             console.log("onEventClick", args);
           }}
           treeEnabled={true}
           events={events}
+          rowMinHeight={50}
+          eventHeight={75}
+          allowEventOverlap={false}
         />
       </div>
+
+      <Modal
+        title="Thêm mới lịch đặt sân cầu lông"
+        maskClosable={false}
+        centered
+        open={open}
+        onOk={handleCreateBooking}
+        onCancel={() => setOpen(false)}
+        okText="Đặt sân"
+        cancelText="Bỏ qua"
+        width={1000}
+      >
+        Khoản thời gian {newBooking?.start.toString("HH:mm")} - {newBooking?.end.toString("HH:mm")} trên sân {newBooking?.resource}
+      </Modal>
     </div>
   );
 };

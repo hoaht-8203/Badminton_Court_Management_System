@@ -1,5 +1,5 @@
-using ApiApplication.Dtos;
 using ApiApplication.Dtos.Customer;
+using ApiApplication.Dtos.Pagination;
 
 namespace ApiApplication.Services;
 

@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.Supplier;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;

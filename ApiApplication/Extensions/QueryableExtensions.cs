@@ -1,4 +1,4 @@
-using ApiApplication.Dtos;
+using ApiApplication.Dtos.Pagination;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +9,7 @@ public static class QueryableExtensions
 {
     public static async Task<PagedResponse<TDest>> ToPagedResponseAsync<TSource, TDest>(
         this IQueryable<TSource> query,
-        ApiApplication.Dto.PaginationRequest request,
+        PaginationRequest request,
         IMapper mapper,
         CancellationToken cancellationToken = default
     )

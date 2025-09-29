@@ -1,5 +1,6 @@
 using System;
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.Role;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 

@@ -1,5 +1,6 @@
 using System;
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.Activity;
 
 namespace ApiApplication.Services.Impl;
 

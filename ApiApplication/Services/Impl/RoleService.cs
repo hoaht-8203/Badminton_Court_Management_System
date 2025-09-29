@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.Role;
 using ApiApplication.Entities;
 using ApiApplication.Exceptions;
 using AutoMapper;

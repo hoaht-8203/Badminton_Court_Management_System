@@ -3,6 +3,7 @@ using System.Net;
 using ApiApplication.Constants;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.User;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Enums;

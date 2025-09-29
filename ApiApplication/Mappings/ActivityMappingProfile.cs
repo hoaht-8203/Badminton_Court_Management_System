@@ -1,4 +1,5 @@
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.Activity;
 using ApiApplication.Entities;
 using AutoMapper;
 

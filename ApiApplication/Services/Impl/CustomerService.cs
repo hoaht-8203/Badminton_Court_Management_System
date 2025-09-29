@@ -1,7 +1,7 @@
 using System.Net;
 using ApiApplication.Data;
-using ApiApplication.Dtos;
 using ApiApplication.Dtos.Customer;
+using ApiApplication.Dtos.Pagination;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
@@ -139,11 +139,7 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         query = query.OrderByDescending(c => c.CreatedAt);
 
         return await query.ToPagedResponseAsync<Entities.Customer, ListCustomerResponse>(
-            new ApiApplication.Dto.PaginationRequest
-            {
-                Page = request.Page,
-                PageSize = request.PageSize,
-            },
+            new() { Page = request.Page, PageSize = request.PageSize },
             _mapper,
             cancellationToken
         );

@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Text;
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.Email;
 using ApiApplication.Entities;
 using ApiApplication.Options;
 using ApiApplication.Template;

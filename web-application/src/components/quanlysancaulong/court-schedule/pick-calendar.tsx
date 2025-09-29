@@ -1,9 +1,9 @@
 import dayjs from "dayjs";
-import React from "react";
+import React, { useState } from "react";
 
 import "dayjs/locale/zh-cn";
 
-import { Calendar, ConfigProvider, Flex, Radio, Select, theme } from "antd";
+import { Calendar, ConfigProvider, Flex, Radio, Select, theme, Button } from "antd";
 import viVN from "antd/locale/vi_VN";
 import "dayjs/locale/vi";
 import dayLocaleData from "dayjs/plugin/localeData";
@@ -17,6 +17,7 @@ interface PickCalendarProps {
 
 const PickCalendar = ({ onPickDate }: PickCalendarProps) => {
   const { token } = theme.useToken();
+  const [selectedDate, setSelectedDate] = useState<dayjs.Dayjs>(dayjs());
 
   const wrapperStyle: React.CSSProperties = {
     width: 300,
@@ -24,11 +25,17 @@ const PickCalendar = ({ onPickDate }: PickCalendarProps) => {
     borderRadius: token.borderRadiusLG,
   };
 
+  const handlePickToday = () => {
+    onPickDate(dayjs().format("YYYY-MM-DD"));
+    setSelectedDate(dayjs());
+  };
+
   return (
     <ConfigProvider locale={viVN}>
       <div style={wrapperStyle}>
         <Calendar
           fullscreen={false}
+          value={selectedDate}
           headerRender={({ value, type, onChange, onTypeChange }) => {
             const year = value.year();
             const month = value.month();
@@ -61,6 +68,7 @@ const PickCalendar = ({ onPickDate }: PickCalendarProps) => {
                     onChange={(newYear) => {
                       const now = value.clone().year(newYear);
                       onChange(now);
+                      setSelectedDate(now);
                     }}
                   />
                   <Select
@@ -71,6 +79,7 @@ const PickCalendar = ({ onPickDate }: PickCalendarProps) => {
                     onChange={(newMonth) => {
                       const now = value.clone().month(newMonth);
                       onChange(now);
+                      setSelectedDate(now);
                     }}
                   />
                 </Flex>
@@ -78,9 +87,16 @@ const PickCalendar = ({ onPickDate }: PickCalendarProps) => {
             );
           }}
           onSelect={(value) => {
+            setSelectedDate(value);
             onPickDate(value.format("YYYY-MM-DD"));
           }}
         />
+      </div>
+
+      <div className="mt-2 flex flex-row justify-center gap-2">
+        <Button variant="outlined" onClick={handlePickToday}>
+          Ngày hôm nay, {new Date().toLocaleDateString("vi-VN")}
+        </Button>
       </div>
     </ConfigProvider>
   );

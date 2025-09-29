@@ -1,5 +1,5 @@
 using System;
-using ApiApplication.Dtos;
+using ApiApplication.Dtos.Email;
 
 namespace ApiApplication.Template;
 

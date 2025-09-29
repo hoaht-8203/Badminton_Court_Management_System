@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.Activity;
 using ApiApplication.Entities;
 using ApiApplication.Sessions;
 using AutoMapper;

@@ -139,4 +139,18 @@ public class CourtsController(ICourtService courtService) : ControllerBase
             ApiResponse<object?>.SuccessResponse(null, "Delete pricing rule template successfully")
         );
     }
+
+    [HttpGet("list-court-group-by-court-area")]
+    public async Task<
+        ActionResult<ApiResponse<List<ListCourtGroupByCourtAreaResponse>>>
+    > ListCourtGroupByCourtArea()
+    {
+        var result = await _courtService.ListCourtGroupByCourtAreaAsync();
+        return Ok(
+            ApiResponse<List<ListCourtGroupByCourtAreaResponse>>.SuccessResponse(
+                result,
+                "List court group by court area successfully"
+            )
+        );
+    }
 }

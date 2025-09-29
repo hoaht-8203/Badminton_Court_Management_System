@@ -9,6 +9,7 @@ import {
   DeleteCourtRequest,
   DetailCourtRequest,
   DetailCourtResponse,
+  ListCourtGroupByCourtAreaResponse,
   ListCourtRequest,
   ListCourtResponse,
   UpdateCourtPricingRuleTemplateRequest,
@@ -25,6 +26,7 @@ export const courtsKeys = {
   details: () => [...courtsKeys.all, "detail"] as const,
   detail: (params: DetailCourtRequest) => [...courtsKeys.details(), params] as const,
   listPricingRuleTemplates: () => [...courtsKeys.all, "listPricingRuleTemplates"] as const,
+  listCourtGroupByCourtArea: () => [...courtsKeys.all, "listCourtGroupByCourtArea"] as const,
 };
 
 // List Courts
@@ -52,6 +54,7 @@ export const useCreateCourt = () => {
     mutationFn: (data: CreateCourtRequest) => courtService.createCourt(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: courtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: courtsKeys.listCourtGroupByCourtArea() });
     },
   });
 };
@@ -66,6 +69,7 @@ export const useUpdateCourt = () => {
       if (variables.id) {
         queryClient.invalidateQueries({ queryKey: courtsKeys.detail({ id: variables.id }) });
       }
+      queryClient.invalidateQueries({ queryKey: courtsKeys.listCourtGroupByCourtArea() });
     },
   });
 };
@@ -77,6 +81,7 @@ export const useDeleteCourt = () => {
     mutationFn: (data: DeleteCourtRequest) => courtService.deleteCourt(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: courtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: courtsKeys.listCourtGroupByCourtArea() });
     },
   });
 };
@@ -91,6 +96,7 @@ export const useChangeCourtStatus = () => {
       if (variables.id) {
         queryClient.invalidateQueries({ queryKey: courtsKeys.detail({ id: variables.id }) });
       }
+      queryClient.invalidateQueries({ queryKey: courtsKeys.listCourtGroupByCourtArea() });
     },
   });
 };
@@ -111,6 +117,7 @@ export const useCreateCourtPricingRuleTemplate = () => {
     mutationFn: (data: CreateCourtPricingRuleTemplateRequest) => courtService.createCourtPricingRuleTemplate(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: courtsKeys.listPricingRuleTemplates() });
+      queryClient.invalidateQueries({ queryKey: courtsKeys.listCourtGroupByCourtArea() });
     },
   });
 };
@@ -122,6 +129,7 @@ export const useUpdateCourtPricingRuleTemplate = () => {
     mutationFn: (data: UpdateCourtPricingRuleTemplateRequest) => courtService.updateCourtPricingRuleTemplate(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: courtsKeys.listPricingRuleTemplates() });
+      queryClient.invalidateQueries({ queryKey: courtsKeys.listCourtGroupByCourtArea() });
     },
   });
 };
@@ -133,6 +141,16 @@ export const useDeleteCourtPricingRuleTemplate = () => {
     mutationFn: (data: DeleteCourtPricingRuleTemplateRequest) => courtService.deleteCourtPricingRuleTemplate(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: courtsKeys.listPricingRuleTemplates() });
+      queryClient.invalidateQueries({ queryKey: courtsKeys.listCourtGroupByCourtArea() });
     },
+  });
+};
+
+// List Court Group By Court Area
+export const useListCourtGroupByCourtArea = () => {
+  return useQuery<ApiResponse<ListCourtGroupByCourtAreaResponse[]>, ApiError>({
+    queryKey: courtsKeys.listCourtGroupByCourtArea(),
+    queryFn: () => courtService.listCourtGroupByCourtArea(),
+    enabled: true,
   });
 };

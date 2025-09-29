@@ -31,7 +31,10 @@ public class CourtAreaService(
         var courtArea = await _context.CourtAreas.FirstOrDefaultAsync(c => c.Id == request.Id);
         if (courtArea == null)
         {
-            throw new ArgumentException($"Not found court area with ID: {request.Id}");
+            throw new ApiException(
+                $"Not found court area with ID: {request.Id}",
+                HttpStatusCode.BadRequest
+            );
         }
         return _mapper.Map<DetailCourtAreaResponse>(courtArea);
     }
@@ -43,7 +46,10 @@ public class CourtAreaService(
         );
         if (existingCourtArea != null)
         {
-            throw new ArgumentException($"Name {request.Name} has been used by other court area");
+            throw new ApiException(
+                $"Name {request.Name} has been used by other court area",
+                HttpStatusCode.BadRequest
+            );
         }
 
         var courtArea = _mapper.Map<CourtArea>(request);
@@ -57,7 +63,10 @@ public class CourtAreaService(
         var entity = await _context.CourtAreas.FirstOrDefaultAsync(c => c.Id == request.Id);
         if (entity == null)
         {
-            throw new ArgumentException($"Not found court area with ID: {request.Id}");
+            throw new ApiException(
+                $"Not found court area with ID: {request.Id}",
+                HttpStatusCode.BadRequest
+            );
         }
 
         var nameUsedByOther = await _context.CourtAreas.AnyAsync(c =>
@@ -65,7 +74,10 @@ public class CourtAreaService(
         );
         if (nameUsedByOther)
         {
-            throw new ArgumentException($"Name {request.Name} has been used by other court area");
+            throw new ApiException(
+                $"Name {request.Name} has been used by other court area",
+                HttpStatusCode.BadRequest
+            );
         }
 
         entity.Name = request.Name;
@@ -78,7 +90,10 @@ public class CourtAreaService(
         var entity = await _context.CourtAreas.FirstOrDefaultAsync(c => c.Id == request.Id);
         if (entity == null)
         {
-            throw new ArgumentException($"Not found court area with ID: {request.Id}");
+            throw new ApiException(
+                $"Not found court area with ID: {request.Id}",
+                HttpStatusCode.BadRequest
+            );
         }
 
         var hasCourts = await _context.Courts.AnyAsync(c => c.CourtAreaId == request.Id);

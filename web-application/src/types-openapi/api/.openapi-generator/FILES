@@ -101,12 +101,17 @@ models/ListAdministratorResponse.ts
 models/ListAdministratorResponseListApiResponse.ts
 models/ListCourtAreaResponse.ts
 models/ListCourtAreaResponseListApiResponse.ts
+models/ListCourtGroupByCourtAreaResponse.ts
+models/ListCourtGroupByCourtAreaResponseListApiResponse.ts
 models/ListCourtRequest.ts
 models/ListCourtResponse.ts
 models/ListCourtResponseApiResponse.ts
+models/ListCustomerPagedRequest.ts
 models/ListCustomerRequest.ts
 models/ListCustomerResponse.ts
 models/ListCustomerResponseListApiResponse.ts
+models/ListCustomerResponsePagedResponse.ts
+models/ListCustomerResponsePagedResponseApiResponse.ts
 models/ListPriceTableProductsResponse.ts
 models/ListPriceTableProductsResponseApiResponse.ts
 models/ListPriceTableRequest.ts
@@ -129,6 +134,7 @@ models/LoginRequest.ts
 models/MyProfileResponse.ts
 models/MyProfileResponseApiResponse.ts
 models/ObjectApiResponse.ts
+models/PaginationRequest.ts
 models/Payroll.ts
 models/PayrollItem.ts
 models/PriceTable.ts

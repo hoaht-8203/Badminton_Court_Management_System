@@ -8,7 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
 
-public class ProductService(ApplicationDbContext context, IMapper mapper, IStorageService storage) : IProductService
+public class ProductService(ApplicationDbContext context, IMapper mapper, IStorageService storage)
+    : IProductService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
@@ -73,6 +74,14 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
                     throw new ArgumentException($"Mã hàng đã tồn tại: {request.Code}");
                 }
             }
+            if (!string.IsNullOrWhiteSpace(request.Name))
+            {
+                var existedName = await _context.Products.AnyAsync(p => p.Name == request.Name);
+                if (existedName)
+                {
+                    throw new ArgumentException($"Tên hàng đã tồn tại: {request.Name}");
+                }
+            }
 
             var entity = _mapper.Map<Product>(request);
             _context.Products.Add(entity);
@@ -81,11 +90,17 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         catch (DbUpdateException ex)
         {
             var msg = ex.InnerException?.Message ?? ex.Message;
-            throw new ApiException($"Create product failed: {msg}", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                $"Create product failed: {msg}",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
         catch (Exception ex)
         {
-            throw new ApiException($"Create product failed: {ex.Message}", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                $"Create product failed: {ex.Message}",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
     }
 
@@ -99,10 +114,22 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
 
         if (!string.IsNullOrWhiteSpace(request.Code) && request.Code != entity.Code)
         {
-            var existed = await _context.Products.AnyAsync(p => p.Code == request.Code && p.Id != request.Id);
+            var existed = await _context.Products.AnyAsync(p =>
+                p.Code == request.Code && p.Id != request.Id
+            );
             if (existed)
             {
                 throw new ArgumentException($"Mã hàng đã tồn tại: {request.Code}");
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(request.Name) && request.Name != entity.Name)
+        {
+            var existedName = await _context.Products.AnyAsync(p =>
+                p.Name == request.Name && p.Id != request.Id
+            );
+            if (existedName)
+            {
+                throw new ArgumentException($"Tên hàng đã tồn tại: {request.Name}");
             }
         }
 
@@ -114,7 +141,10 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         catch (DbUpdateException ex)
         {
             var msg = ex.InnerException?.Message ?? ex.Message;
-            throw new ApiException($"Update product failed: {msg}", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                $"Update product failed: {msg}",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
     }
 
@@ -147,7 +177,10 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         catch (DbUpdateException ex)
         {
             var msg = ex.InnerException?.Message ?? ex.Message;
-            throw new ApiException($"Delete product failed: {msg}", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                $"Delete product failed: {msg}",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
     }
 
@@ -165,7 +198,7 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             var fileName = ExtractFileNameFromUrl(url);
             if (!string.IsNullOrWhiteSpace(fileName))
             {
-                await _storage.DeleteFileAsync(new DeleteFileRequest { FileName = fileName, Ct = request.Ct });
+                await _storage.DeleteFileAsync(new DeleteFileRequest { FileName = fileName });
             }
         }
 
@@ -173,7 +206,7 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         var newUrls = new List<string>();
         foreach (var file in request.Files)
         {
-            var uploaded = await _storage.UploadFileAsync(new UploadFileRequest { File = file, Ct = request.Ct });
+            var uploaded = await _storage.UploadFileAsync(new UploadFileRequest { File = file });
             newUrls.Add(uploaded.PublicUrl);
         }
 
@@ -195,13 +228,15 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
 
     private static string? ExtractFileNameFromUrl(string url)
     {
-        if (string.IsNullOrWhiteSpace(url)) return null;
+        if (string.IsNullOrWhiteSpace(url))
+            return null;
         try
         {
             // Expect pattern: {PublicBaseUrl}/{bucket}/{object}
             var uri = new Uri(url);
             var segments = uri.AbsolutePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            if (segments.Length < 2) return null;
+            if (segments.Length < 2)
+                return null;
             // Combine everything after bucket as object key
             return string.Join('/', segments.Skip(1));
         }
@@ -210,4 +245,4 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             return null;
         }
     }
-} 
+}

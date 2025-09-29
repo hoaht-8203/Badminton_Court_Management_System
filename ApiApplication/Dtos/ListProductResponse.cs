@@ -12,4 +12,4 @@ public class ListProductResponse
     public decimal SalePrice { get; set; }
     public bool IsDirectSale { get; set; }
     public bool IsActive { get; set; }
-} 
+}

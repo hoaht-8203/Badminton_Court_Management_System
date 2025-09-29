@@ -62,7 +62,7 @@ export interface ListCourtResponse {
      * @type {string}
      * @memberof ListCourtResponse
      */
-    name?: string | null;
+    name: string | null;
     /**
      * 
      * @type {string}
@@ -80,7 +80,7 @@ export interface ListCourtResponse {
      * @type {string}
      * @memberof ListCourtResponse
      */
-    courtAreaName?: string | null;
+    courtAreaName: string | null;
     /**
      * 
      * @type {Array<CourtPricingRuleDto>}
@@ -105,6 +105,8 @@ export interface ListCourtResponse {
  * Check if a given object implements the ListCourtResponse interface.
  */
 export function instanceOfListCourtResponse(value: object): value is ListCourtResponse {
+    if (!('name' in value) || value['name'] === undefined) return false;
+    if (!('courtAreaName' in value) || value['courtAreaName'] === undefined) return false;
     return true;
 }
 
@@ -123,10 +125,10 @@ export function ListCourtResponseFromJSONTyped(json: any, ignoreDiscriminator: b
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
         'id': json['id'] == null ? undefined : json['id'],
-        'name': json['name'] == null ? undefined : json['name'],
+        'name': json['name'],
         'imageUrl': json['imageUrl'] == null ? undefined : json['imageUrl'],
         'courtAreaId': json['courtAreaId'] == null ? undefined : json['courtAreaId'],
-        'courtAreaName': json['courtAreaName'] == null ? undefined : json['courtAreaName'],
+        'courtAreaName': json['courtAreaName'],
         'courtPricingRules': json['courtPricingRules'] == null ? undefined : ((json['courtPricingRules'] as Array<any>).map(CourtPricingRuleDtoFromJSON)),
         'note': json['note'] == null ? undefined : json['note'],
         'status': json['status'] == null ? undefined : json['status'],

@@ -23,4 +23,4 @@ public class DetailProductResponse
     public string? NoteTemplate { get; set; }
     public List<string> Images { get; set; } = new();
     public string? Unit { get; set; }
-} 
+}

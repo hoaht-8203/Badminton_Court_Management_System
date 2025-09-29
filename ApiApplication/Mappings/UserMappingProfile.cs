@@ -1,5 +1,7 @@
 using System;
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.Auth;
+using ApiApplication.Dtos.User;
 using ApiApplication.Entities;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;

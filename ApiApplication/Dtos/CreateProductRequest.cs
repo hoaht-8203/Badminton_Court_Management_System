@@ -33,4 +33,4 @@ public class CreateProductRequest
     public List<string> Images { get; set; } = new();
 
     public string? Unit { get; set; }
-} 
+}

@@ -203,7 +203,7 @@ namespace ApiApplication.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAELIGXPThp//GOkg54mqOBzOcOpp0qLH5GC0TT6OUHiDC+nUZNesAEXc4BRk4Shs0KQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEFqGX2kp4KdZKDMjapLakqUamDNwC0vTXnvlme/+yss14bhAg0PbRCxpq4LkX3TzyQ==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "a5fd6b0c-f96d-4c6b-b70c-95e8f4ff4423",
                             Status = "Active",
@@ -239,6 +239,62 @@ namespace ApiApplication.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ApplicationUserTokens");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.BookingCourt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CourtId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int[]>("DaysOfWeek")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourtId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("BookingCourts");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Branch", b =>
@@ -538,7 +594,7 @@ namespace ApiApplication.Migrations
                             Id = 1,
                             Address = "123 Đường ABC, Phường Dịch Vọng",
                             City = "Hà Nội",
-                            CreatedAt = new DateTime(2025, 9, 26, 15, 35, 42, 946, DateTimeKind.Utc).AddTicks(2550),
+                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
                             CreatedBy = "System",
                             District = "Cầu Giấy",
                             Email = "nguyenvanan@gmail.com",
@@ -548,7 +604,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng VIP - Thường xuyên đặt sân",
                             PhoneNumber = "0123456789",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 26, 15, 35, 42, 946, DateTimeKind.Utc).AddTicks(2550),
+                            UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
                             Ward = "Dịch Vọng"
                         },
                         new
@@ -556,7 +612,7 @@ namespace ApiApplication.Migrations
                             Id = 2,
                             Address = "456 Đường XYZ, Phường Bến Nghé",
                             City = "TP. Hồ Chí Minh",
-                            CreatedAt = new DateTime(2025, 9, 26, 15, 35, 42, 946, DateTimeKind.Utc).AddTicks(2550),
+                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
                             CreatedBy = "System",
                             District = "Quận 1",
                             Email = "tranthibinh@gmail.com",
@@ -566,7 +622,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng thường xuyên - Đặt sân cuối tuần",
                             PhoneNumber = "0987654321",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 26, 15, 35, 42, 946, DateTimeKind.Utc).AddTicks(2560),
+                            UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
                             Ward = "Phường Bến Nghé"
                         },
                         new
@@ -574,7 +630,7 @@ namespace ApiApplication.Migrations
                             Id = 3,
                             Address = "789 Đường DEF, Phường Láng Thượng",
                             City = "Hà Nội",
-                            CreatedAt = new DateTime(2025, 9, 26, 15, 35, 42, 946, DateTimeKind.Utc).AddTicks(2560),
+                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
                             CreatedBy = "System",
                             District = "Đống Đa",
                             Email = "levancuong@gmail.com",
@@ -584,7 +640,7 @@ namespace ApiApplication.Migrations
                             Note = "Khách hàng mới - Quan tâm đến sân cầu lông",
                             PhoneNumber = "0369852147",
                             Status = "Active",
-                            UpdatedAt = new DateTime(2025, 9, 26, 15, 35, 42, 946, DateTimeKind.Utc).AddTicks(2560),
+                            UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
                             Ward = "Láng Thượng"
                         });
                 });
@@ -622,6 +678,46 @@ namespace ApiApplication.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Departments");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.Invoice", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid>("BookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("InvoiceDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.ToTable("Invoices");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Payroll", b =>
@@ -1351,6 +1447,25 @@ namespace ApiApplication.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.BookingCourt", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.Court", "Court")
+                        .WithMany()
+                        .HasForeignKey("CourtId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiApplication.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Court");
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.CancelledShift", b =>
                 {
                     b.HasOne("ApiApplication.Entities.Shift", "Shift")
@@ -1388,6 +1503,17 @@ namespace ApiApplication.Migrations
                         .IsRequired();
 
                     b.Navigation("Court");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.Invoice", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.BookingCourt", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PayrollItem", b =>

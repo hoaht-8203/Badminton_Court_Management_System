@@ -1,17 +1,17 @@
 "use client";
 
-import CreateNewCourtDrawer from "@/components/quanlysancaulong/courts/create-new-court-drawer";
 import { columns } from "@/components/quanlysancaulong/courts/courts-columns";
+import CreateNewCourtDrawer from "@/components/quanlysancaulong/courts/create-new-court-drawer";
+import ManageCourtPricingRuleTemplateDrawer from "@/components/quanlysancaulong/courts/manage-court-pricing-rule-template-drawer";
 import SearchCourt from "@/components/quanlysancaulong/courts/search-court";
 import UpdateCourtDrawer from "@/components/quanlysancaulong/courts/update-court-drawer";
 import { useChangeCourtStatus, useDeleteCourt, useListCourts } from "@/hooks/useCourt";
 import { ApiError } from "@/lib/axios";
 import { ListCourtRequest, ListCourtResponse } from "@/types-openapi/api";
 import { CourtStatus } from "@/types/commons";
-import { CheckOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined, SettingOutlined, StopOutlined } from "@ant-design/icons";
-import { Breadcrumb, Button, Col, Divider, Image, Modal, Row, Table, TableProps, message } from "antd";
+import { CheckOutlined, EditOutlined, PlusOutlined, ReloadOutlined, SettingOutlined, StopOutlined } from "@ant-design/icons";
+import { Breadcrumb, Button, Col, Divider, Image, List, Modal, Row, Table, TableProps, Tag, Typography, message } from "antd";
 import { useState } from "react";
-import ManageCourtPricingRuleTemplateDrawer from "@/components/quanlysancaulong/courts/manage-court-pricing-rule-template-drawer";
 
 const tableProps: TableProps<ListCourtResponse> = {
   rowKey: "id",
@@ -42,31 +42,6 @@ const CourtPage = () => {
   const handleClickUpdate = (record: ListCourtResponse) => {
     setOpenUpdateDrawer(true);
     setCourtId(record.id ?? null);
-  };
-
-  const handleClickDelete = (record: ListCourtResponse) => {
-    modal.confirm({
-      title: "Xác nhận",
-      content: (
-        <div>
-          <p>Bạn có chắc chắn muốn xóa sân này?</p>
-          <p>
-            Lưu ý: Sân <span className="font-bold text-red-500">{record.name}</span> sẽ bị xóa vĩnh viễn và không thể khôi phục.
-          </p>
-        </div>
-      ),
-      onOk: () => {
-        deleteCourtMutation.mutate(
-          { id: record.id ?? "" },
-          {
-            onSuccess: () => message.success("Xóa sân thành công!"),
-            onError: (error: ApiError) => message.error(error.message),
-          },
-        );
-      },
-      okText: "Xác nhận",
-      cancelText: "Hủy",
-    });
   };
 
   const handleClickChangeStatus = (record: ListCourtResponse, status: string) => {
@@ -129,7 +104,6 @@ const CourtPage = () => {
                 <CourtInformation
                   record={record}
                   handleClickUpdate={() => handleClickUpdate(record)}
-                  handleClickDelete={() => handleClickDelete(record)}
                   handleClickChangeStatus={(payload) => handleClickChangeStatus(record, payload)}
                 />
               </div>
@@ -153,14 +127,14 @@ const CourtPage = () => {
 const CourtInformation = ({
   record,
   handleClickUpdate,
-  handleClickDelete,
   handleClickChangeStatus,
 }: {
   record: ListCourtResponse;
   handleClickUpdate: () => void;
-  handleClickDelete: () => void;
   handleClickChangeStatus: (payload: string) => void;
 }) => {
+  const dayLabel = (d: number) =>
+    d === 2 ? "T2" : d === 3 ? "T3" : d === 4 ? "T4" : d === 5 ? "T5" : d === 6 ? "T6" : d === 7 ? "T7" : d === 8 ? "CN" : String(d);
   return (
     <div>
       <Row gutter={16} className="mb-4">
@@ -191,10 +165,6 @@ const CourtInformation = ({
         <Col span={6}>
           <div className="mb-2">Khu vực: {record.courtAreaName}</div>
           <Divider size="small" />
-          <div className="mb-2">Ghi chú: {record.note || "-"}</div>
-        </Col>
-        <Divider type="vertical" size="small" style={{ height: "auto" }} />
-        <Col span={7}>
           <div className="mb-2">
             Trạng thái:{" "}
             {record.status === CourtStatus.Active ? (
@@ -205,6 +175,33 @@ const CourtInformation = ({
               <span className="font-bold text-red-500">Không hoạt động</span>
             )}
           </div>
+          <Divider size="small" />
+          <div className="mb-2">Ghi chú: {record.note || "-"}</div>
+        </Col>
+        <Divider type="vertical" size="small" style={{ height: "auto" }} />
+        <Col span={7}>
+          <Divider orientation="left" size="small">
+            Bảng giá theo khung giờ
+          </Divider>
+          <List
+            bordered
+            dataSource={record.courtPricingRules ?? []}
+            locale={{ emptyText: "Chưa có cấu hình giá" }}
+            renderItem={(item) => (
+              <List.Item>
+                <div className="w-full">
+                  <div className="mb-1">
+                    {(item.daysOfWeek ?? []).map((d) => (
+                      <Tag key={d}>{dayLabel(d)}</Tag>
+                    ))}
+                  </div>
+                  <Typography.Text>
+                    {`Khung giờ: ${item.startTime} - ${item.endTime} | Giá: ${Number(item.pricePerHour ?? 0).toLocaleString("vi-VN")}₫/giờ`}
+                  </Typography.Text>
+                </div>
+              </List.Item>
+            )}
+          />
         </Col>
       </Row>
 

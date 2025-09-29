@@ -43,4 +43,4 @@ public class PriceTableProduct
     public Product Product { get; set; } = null!;
 
     public decimal? OverrideSalePrice { get; set; }
-} 
+}

@@ -13,14 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { CancellationToken } from './CancellationToken';
-import {
-    CancellationTokenFromJSON,
-    CancellationTokenFromJSONTyped,
-    CancellationTokenToJSON,
-    CancellationTokenToJSONTyped,
-} from './CancellationToken';
-
 /**
  * 
  * @export
@@ -39,12 +31,6 @@ export interface UpdateProductImagesRequest {
      * @memberof UpdateProductImagesRequest
      */
     files: Array<Blob> | null;
-    /**
-     * 
-     * @type {CancellationToken}
-     * @memberof UpdateProductImagesRequest
-     */
-    ct?: CancellationToken;
 }
 
 /**
@@ -67,7 +53,6 @@ export function UpdateProductImagesRequestFromJSONTyped(json: any, ignoreDiscrim
         
         'id': json['id'] == null ? undefined : json['id'],
         'files': json['files'] == null ? null : json['files'],
-        'ct': json['ct'] == null ? undefined : CancellationTokenFromJSON(json['ct']),
     };
 }
 
@@ -84,7 +69,6 @@ export function UpdateProductImagesRequestToJSONTyped(value?: UpdateProductImage
         
         'id': value['id'],
         'files': value['files'],
-        'ct': CancellationTokenToJSON(value['ct']),
     };
 }
 

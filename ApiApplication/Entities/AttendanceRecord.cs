@@ -1,7 +1,4 @@
 namespace ApiApplication.Entities
 {
-    public class AttendanceRecord
-    {
-        
-    }
+    public class AttendanceRecord { }
 }

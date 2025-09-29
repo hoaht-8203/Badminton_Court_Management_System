@@ -264,11 +264,9 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
         id: d.id,
         name: d.name,
         isActive: d.isActive,
-        months: d.months || [],
-        daysOfMonth: d.daysOfMonth || [],
-        weekdays: d.weekdays || [],
+    
         effective: [d.effectiveFrom ? dayjs(d.effectiveFrom) : undefined, d.effectiveTo ? dayjs(d.effectiveTo) : undefined] as any,
-        ranges: (d.timeRanges || []).map((r) => ({ startTime: r.startTime ? dayjs(r.startTime, "HH:mm:ss") : undefined, endTime: r.endTime ? dayjs(r.endTime, "HH:mm:ss") : undefined, price: r.price })),
+        ranges: (d.timeRanges || []).map((r) => ({ startTime: r.startTime ? dayjs(r.startTime, "HH:mm:ss") : undefined, endTime: r.endTime ? dayjs(r.endTime, "HH:mm:ss") : undefined})),
       } as any);
     }
   }, [data?.data, open]);
@@ -309,7 +307,7 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
         { key: "info", label: "Thông tin", children: (
           <Form layout="vertical" form={form} onFinish={onSubmit}>
             <Row gutter={12}>
-              <Col span={12}><Form.Item name="name" label="Tên bảng giá" rules={[{ required: true, message: "Nhập tên" }]}><Input /></Form.Item></Col>
+              <Col span={12}><Form.Item name="name" label="Tên bảng giá" rules={[{ required: true, message: "Nhập tên" }, { validator: async (_r, v) => { if (!v) return Promise.resolve(); const res = await axios.get("/api/Prices/list", { params: { name: v } }); const arr = (res.data?.data || []) as any[]; const dup = arr.some((x: any) => (x.name || "").toLowerCase() === String(v).toLowerCase() && x.id !== priceId); if (dup) return Promise.reject(new Error("Tên bảng giá đã tồn tại")); return Promise.resolve(); } }]}><Input /></Form.Item></Col>
               <Col span={12}><Form.Item name="effective" label="Hiệu lực từ ngày - đến" ><DatePicker.RangePicker style={{ width: "100%" }} /></Form.Item></Col>
               <Col span={6}><Form.Item name="isActive" label="Trạng thái"><Switch checkedChildren="Kinh doanh" unCheckedChildren="Không kinh doanh" /></Form.Item></Col>
             </Row>
@@ -414,7 +412,7 @@ const ProductsSelector = ({ priceId, selected, onChangeSelected }: { priceId: nu
   return (
     <Card
       title="Chọn sản phẩm áp dụng"
-      extra={<Space><Button onClick={onReset}>Reset</Button><Button icon={<SearchOutlined />} type="primary" onClick={() => form.submit()}>Tìm kiếm</Button><Button type="primary" onClick={onSave}>Lưu</Button></Space>}
+      extra={<Space><Button onClick={onReset}>Reset</Button><Button icon={<SearchOutlined />} type="primary" onClick={() => form.submit()}>Tìm kiếm</Button></Space>}
     >
       <Form form={form} layout="vertical" onFinish={onSearch} className="mb-3">
         <Row gutter={16}>
@@ -468,6 +466,10 @@ const ProductsSelector = ({ priceId, selected, onChangeSelected }: { priceId: nu
           { title: "Trạng thái", dataIndex: "isActive", render: (v: boolean) => v ? <Tag color="green">Kinh doanh</Tag> : <Tag color="red">Không kinh doanh</Tag> },
         ]}
       />
+      
+      <div className="mt-4 text-right">
+        <Button type="primary" onClick={onSave}>Lưu</Button>
+      </div>
     </Card>
   );
 };

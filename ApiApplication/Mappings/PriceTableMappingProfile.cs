@@ -23,4 +23,4 @@ public class PriceTableMappingProfile : Profile
             .ForMember(d => d.TimeRanges, opt => opt.Ignore())
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
     }
-} 
+}

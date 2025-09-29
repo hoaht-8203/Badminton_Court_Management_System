@@ -1,7 +1,7 @@
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.Auth;
 using ApiApplication.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiApplication.Controllers

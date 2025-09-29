@@ -7,6 +7,7 @@ namespace ApiApplication.Dtos
         public int Id { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string? IdentificationNumber { get; set; }
+
         // public DepartmentResponse? Department { get; set; }
         // public BranchResponse? Branch { get; set; }
         public DateTime? DateOfBirth { get; set; }

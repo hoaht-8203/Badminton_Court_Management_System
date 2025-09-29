@@ -1,4 +1,5 @@
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.User;
 using ApiApplication.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

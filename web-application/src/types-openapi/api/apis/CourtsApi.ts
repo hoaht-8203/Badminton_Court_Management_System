@@ -23,6 +23,7 @@ import type {
   CreateCourtRequest,
   DeleteCourtRequest,
   DetailCourtResponseApiResponse,
+  ListCourtGroupByCourtAreaResponseListApiResponse,
   ListCourtResponseApiResponse,
   ObjectApiResponse,
   UpdateCourtPricingRuleTemplateRequest,
@@ -45,6 +46,8 @@ import {
     DeleteCourtRequestToJSON,
     DetailCourtResponseApiResponseFromJSON,
     DetailCourtResponseApiResponseToJSON,
+    ListCourtGroupByCourtAreaResponseListApiResponseFromJSON,
+    ListCourtGroupByCourtAreaResponseListApiResponseToJSON,
     ListCourtResponseApiResponseFromJSON,
     ListCourtResponseApiResponseToJSON,
     ObjectApiResponseFromJSON,
@@ -177,6 +180,18 @@ export interface CourtsApiInterface {
     /**
      */
     apiCourtsDetailGet(requestParameters: ApiCourtsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailCourtResponseApiResponse>;
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CourtsApiInterface
+     */
+    apiCourtsListCourtGroupByCourtAreaGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListCourtGroupByCourtAreaResponseListApiResponse>>;
+
+    /**
+     */
+    apiCourtsListCourtGroupByCourtAreaGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListCourtGroupByCourtAreaResponseListApiResponse>;
 
     /**
      * 
@@ -424,6 +439,33 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
      */
     async apiCourtsDetailGet(requestParameters: ApiCourtsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailCourtResponseApiResponse> {
         const response = await this.apiCourtsDetailGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiCourtsListCourtGroupByCourtAreaGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListCourtGroupByCourtAreaResponseListApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Courts/list-court-group-by-court-area`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListCourtGroupByCourtAreaResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiCourtsListCourtGroupByCourtAreaGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListCourtGroupByCourtAreaResponseListApiResponse> {
+        const response = await this.apiCourtsListCourtGroupByCourtAreaGetRaw(initOverrides);
         return await response.value();
     }
 

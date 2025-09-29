@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+.custom-header {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.resource-child-70 {
+  font-weight: bold;
+}

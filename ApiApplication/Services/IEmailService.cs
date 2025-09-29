@@ -1,6 +1,4 @@
-using System;
-using ApiApplication.Dtos;
-using ApiApplication.Entities;
+using ApiApplication.Dtos.Email;
 using ApiApplication.Template;
 
 namespace ApiApplication.Services;

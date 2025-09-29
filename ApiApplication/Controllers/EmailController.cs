@@ -1,4 +1,5 @@
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.Email;
 using ApiApplication.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

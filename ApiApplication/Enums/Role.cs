@@ -6,5 +6,5 @@ public enum Role
     User = 2,
     WareHouse = 3,
     Receptionist = 4,
-    Staff = 5
+    Staff = 5,
 }

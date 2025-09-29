@@ -35,4 +35,4 @@ public class UpdateProductRequest
     public List<string>? Images { get; set; }
 
     public string? Unit { get; set; }
-} 
+}

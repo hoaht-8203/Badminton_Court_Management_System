@@ -12,11 +12,14 @@ public class ProductMappingProfile : Profile
         CreateMap<Product, DetailProductResponse>();
 
         CreateMap<CreateProductRequest, Product>()
-            .ForMember(dest => dest.Images, opt => opt.MapFrom(src => (src.Images ?? new List<string>()).ToArray()));
+            .ForMember(
+                dest => dest.Images,
+                opt => opt.MapFrom(src => (src.Images ?? new List<string>()).ToArray())
+            );
 
         CreateMap<UpdateProductRequest, Product>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Images, opt => opt.Ignore())
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
     }
-} 
+}

@@ -5,10 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
 
-public class SalaryFormService(
-    ApplicationDbContext context,
-    IMapper mapper
-) : ISalaryFormService
+public class SalaryFormService(ApplicationDbContext context, IMapper mapper) : ISalaryFormService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
@@ -42,7 +39,8 @@ public class SalaryFormService(
     public async Task<SalaryFormResponse?> GetSalaryFormByIdAsync(int id)
     {
         var entity = await _context.SalaryForms.FindAsync(id);
-        if (entity == null) return null;
+        if (entity == null)
+            return null;
         return _mapper.Map<SalaryFormResponse>(entity);
     }
 

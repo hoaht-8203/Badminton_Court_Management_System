@@ -1,5 +1,3 @@
-
-
 using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Entities

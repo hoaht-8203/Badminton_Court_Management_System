@@ -10,4 +10,4 @@ public class ListProductRequest
     public string? MenuType { get; set; }
     public string? Category { get; set; }
     public bool? IsDirectSale { get; set; }
-} 
+}

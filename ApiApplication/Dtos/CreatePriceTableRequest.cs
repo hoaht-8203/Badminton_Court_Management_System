@@ -16,4 +16,4 @@ public class CreatePriceTableRequest
     public bool IsActive { get; set; } = true;
 
     public List<PriceTimeRangeDto> TimeRanges { get; set; } = new();
-} 
+}

@@ -1,15 +1,12 @@
-using ApiApplication.Exceptions;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
+using ApiApplication.Exceptions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
 
-public class ShiftService(
-    ApplicationDbContext context,
-    IMapper mapper
-) : IShiftService
+public class ShiftService(ApplicationDbContext context, IMapper mapper) : IShiftService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
@@ -62,7 +59,8 @@ public class ShiftService(
     public async Task<ShiftResponse?> GetShiftByIdAsync(int id)
     {
         var shift = await _context.Shifts.FindAsync(id);
-        if (shift == null) return null;
+        if (shift == null)
+            return null;
         return _mapper.Map<ShiftResponse>(shift);
     }
 
@@ -71,11 +69,16 @@ public class ShiftService(
         var shifts = await _context.Shifts.OrderBy(s => s.StartTime).ToListAsync();
         return shifts.Select(s => _mapper.Map<ShiftResponse>(s)).ToList();
     }
+
     public bool IsTimeOverlap(TimeOnly startTime, TimeOnly endTime, int? excludeId = null)
     {
         return _context.Shifts.Any(s =>
-            (excludeId == null || s.Id != excludeId) &&
-            ((startTime < s.EndTime && endTime > s.StartTime) || startTime == s.StartTime || endTime == s.EndTime)
+            (excludeId == null || s.Id != excludeId)
+            && (
+                (startTime < s.EndTime && endTime > s.StartTime)
+                || startTime == s.StartTime
+                || endTime == s.EndTime
+            )
         );
     }
 }

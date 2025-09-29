@@ -10,5 +10,12 @@ public class AttendanceStatus
     public const string Absent = "Absent";
     public const string InComplete = "InComplete";
 
-    public static readonly string[] ValidAttendanceStatus = [NotYet, Attended, Late, Absent, InComplete];
+    public static readonly string[] ValidAttendanceStatus =
+    [
+        NotYet,
+        Attended,
+        Late,
+        Absent,
+        InComplete,
+    ];
 }

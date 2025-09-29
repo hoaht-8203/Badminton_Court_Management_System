@@ -8,6 +8,7 @@ public class ScheduleByStaffResponse
     public StaffResponse Staff { get; set; } = new();
     public List<StaffShiftDto> Days { get; set; } = new();
 }
+
 public class StaffShiftDto
 {
     public DateTime Date { get; set; }

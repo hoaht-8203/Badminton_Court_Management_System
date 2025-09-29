@@ -1,6 +1,6 @@
-using AutoMapper;
-using ApiApplication.Entities;
 using ApiApplication.Dtos;
+using ApiApplication.Entities;
+using AutoMapper;
 
 namespace ApiApplication.Mappings
 {

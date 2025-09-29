@@ -1,6 +1,6 @@
-using AutoMapper;
-using ApiApplication.Entities;
 using ApiApplication.Dtos;
+using ApiApplication.Entities;
+using AutoMapper;
 
 namespace ApiApplication.Mappings
 {
@@ -11,7 +11,10 @@ namespace ApiApplication.Mappings
             CreateMap<Staff, StaffResponse>();
 
             CreateMap<StaffRequest, Staff>()
-                .ForMember(dest => dest.SalarySettings, opt => opt.MapFrom(src => src.SalarySettings));
+                .ForMember(
+                    dest => dest.SalarySettings,
+                    opt => opt.MapFrom(src => src.SalarySettings)
+                );
         }
     }
 }

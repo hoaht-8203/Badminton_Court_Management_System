@@ -68,7 +68,9 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     if (demoEl) {
       demoEl.remove();
     }
+  });
 
+  useEffect(() => {
     if (schedulerRef.current) {
       const scheduler = schedulerRef.current.control;
       scheduler.scrollTo(new DayPilot.Date());

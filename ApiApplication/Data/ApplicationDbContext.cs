@@ -35,6 +35,8 @@ public class ApplicationDbContext(
     public DbSet<CourtArea> CourtAreas { get; set; }
     public DbSet<CourtPricingRules> CourtPricingRules { get; set; }
     public DbSet<CourtPricingRuleTemplate> CourtPricingRuleTemplates { get; set; }
+    public DbSet<BookingCourt> BookingCourts { get; set; }
+    public DbSet<Invoice> Invoices { get; set; }
 
     // public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
     public DbSet<CancelledShift> CancelledShifts { get; set; }

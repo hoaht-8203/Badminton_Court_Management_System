@@ -129,27 +129,23 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
 
         // Update basic court information
         _mapper.Map(request, court);
+        var oldRules = court.CourtPricingRules.ToList();
+        foreach (var rule in oldRules)
+        {
+            _context.CourtPricingRules.Remove(rule);
+        }
 
-        // Remove existing pricing rules
-        _context.CourtPricingRules.RemoveRange(court.CourtPricingRules);
-
-        // Add new pricing rules
+        // --- Add new pricing rules ---
         foreach (var pricingRuleRequest in request.CourtPricingRules)
         {
             var pricingRule = _mapper.Map<CourtPricingRules>(pricingRuleRequest);
             pricingRule.CourtId = court.Id;
-            court.CourtPricingRules.Add(pricingRule);
+            _context.CourtPricingRules.Add(pricingRule);
         }
 
         await _context.SaveChangesAsync();
 
-        // Reload the court with pricing rules for response
-        var updatedCourt = await _context
-            .Courts.Include(c => c.CourtPricingRules)
-            .Include(c => c.CourtArea)
-            .FirstOrDefaultAsync(c => c.Id == request.Id);
-
-        return _mapper.Map<DetailCourtResponse>(updatedCourt);
+        return _mapper.Map<DetailCourtResponse>(court);
     }
 
     public async Task<bool> DeleteCourtAsync(DeleteCourtRequest request)

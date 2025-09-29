@@ -52,7 +52,10 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
 
         if (courts == null)
         {
-            throw new ArgumentException($"Not found customer with ID: {request.Id}");
+            throw new ApiException(
+                $"Not found court with ID: {request.Id}",
+                HttpStatusCode.BadRequest
+            );
         }
 
         return _mapper.Map<DetailCourtResponse>(courts);
@@ -66,7 +69,10 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
             )
         )
         {
-            throw new ArgumentException($"Court name {request.Name} already exists in this area");
+            throw new ApiException(
+                $"Court name {request.Name} already exists in this area",
+                HttpStatusCode.BadRequest
+            );
         }
 
         var court = _mapper.Map<Court>(request);
@@ -100,7 +106,10 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
 
         if (court == null)
         {
-            throw new ArgumentException($"Not found court with ID: {request.Id}");
+            throw new ApiException(
+                $"Not found court with ID: {request.Id}",
+                HttpStatusCode.BadRequest
+            );
         }
 
         if (!string.IsNullOrEmpty(request.Name) && request.Name != court.Name)
@@ -111,8 +120,9 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
 
             if (isExist)
             {
-                throw new ArgumentException(
-                    $"Court name {request.Name} already exists in this area"
+                throw new ApiException(
+                    $"Court name {request.Name} already exists in this area",
+                    HttpStatusCode.BadRequest
                 );
             }
         }
@@ -148,7 +158,10 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
 
         if (courts == null)
         {
-            throw new ArgumentException($"Not found court with ID: {request.Id}");
+            throw new ApiException(
+                $"Not found court with ID: {request.Id}",
+                HttpStatusCode.BadRequest
+            );
         }
 
         courts.Status = CourtStatus.Deleted;
@@ -163,7 +176,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
 
         if (courts == null)
         {
-            throw new ApiException("Customer does not exist", HttpStatusCode.BadRequest);
+            throw new ApiException("Court does not exist", HttpStatusCode.BadRequest);
         }
 
         if (!request.IsValidStatus())
@@ -226,8 +239,9 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
     {
         var courtPricingRuleTemplate =
             await _context.CourtPricingRuleTemplates.FirstOrDefaultAsync(c => c.Id == request.Id)
-            ?? throw new ArgumentException(
-                $"Not found court pricing rule template with ID: {request.Id}"
+            ?? throw new ApiException(
+                $"Not found court pricing rule template with ID: {request.Id}",
+                HttpStatusCode.BadRequest
             );
 
         _mapper.Map(request, courtPricingRuleTemplate);
@@ -241,8 +255,9 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
     {
         var courtPricingRuleTemplate =
             await _context.CourtPricingRuleTemplates.FirstOrDefaultAsync(c => c.Id == request.Id)
-            ?? throw new ArgumentException(
-                $"Not found court pricing rule template with ID: {request.Id}"
+            ?? throw new ApiException(
+                $"Not found court pricing rule template with ID: {request.Id}",
+                HttpStatusCode.BadRequest
             );
 
         _context.CourtPricingRuleTemplates.Remove(courtPricingRuleTemplate);

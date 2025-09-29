@@ -62,7 +62,7 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper) : ISu
 
         if (supplierDetail == null)
         {
-            throw new ArgumentException($"Nhà cung cấp không tồn tại: {id}");
+            throw new ApiException($"Nhà cung cấp không tồn tại: {id}", HttpStatusCode.BadRequest);
         }
 
         return _mapper.Map<DetailSupplierResponse>(supplierDetail);
@@ -75,7 +75,7 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper) : ISu
         );
         if (existingSupplier != null)
         {
-            throw new ArgumentException($"Email {request.Email} đã tồn tại");
+            throw new ApiException($"Email {request.Email} đã tồn tại", HttpStatusCode.BadRequest);
         }
         var supplier = _mapper.Map<Supplier>(request);
         supplier.Status = SupplierStatus.Active;
@@ -90,7 +90,10 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper) : ISu
 
         if (supplier == null)
         {
-            throw new ArgumentException($"Nhà cung cấp không tồn tại: {request.Id}");
+            throw new ApiException(
+                $"Nhà cung cấp không tồn tại: {request.Id}",
+                HttpStatusCode.BadRequest
+            );
         }
 
         if (!string.IsNullOrEmpty(request.Email) && request.Email != supplier.Email)
@@ -101,7 +104,10 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper) : ISu
 
             if (existingSupplier != null)
             {
-                throw new ArgumentException($"Email {request.Email} đã tồn tại");
+                throw new ApiException(
+                    $"Email {request.Email} đã tồn tại",
+                    HttpStatusCode.BadRequest
+                );
             }
         }
 
@@ -116,7 +122,10 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper) : ISu
 
         if (supplier == null)
         {
-            throw new ArgumentException($"Nhà cung cấp không tồn tại: {request.Id}");
+            throw new ApiException(
+                $"Nhà cung cấp không tồn tại: {request.Id}",
+                HttpStatusCode.BadRequest
+            );
         }
 
         supplier.Status = SupplierStatus.Deleted;

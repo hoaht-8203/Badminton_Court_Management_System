@@ -151,7 +151,10 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
 
         if (customer == null)
         {
-            throw new ArgumentException($"Not found customer with ID: {request.Id}");
+            throw new ApiException(
+                $"Not found customer with ID: {request.Id}",
+                HttpStatusCode.BadRequest
+            );
         }
 
         return _mapper.Map<DetailCustomerResponse>(customer);
@@ -165,7 +168,10 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
 
         if (existingCustomer != null)
         {
-            throw new ArgumentException($"Email {request.Email} has been used by other customers");
+            throw new ApiException(
+                $"Email {request.Email} has been used by other customers",
+                HttpStatusCode.BadRequest
+            );
         }
 
         var customer = _mapper.Map<Customer>(request);
@@ -183,7 +189,10 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
 
         if (customer == null)
         {
-            throw new ArgumentException($"Not found customer with ID: {request.Id}");
+            throw new ApiException(
+                $"Not found customer with ID: {request.Id}",
+                HttpStatusCode.BadRequest
+            );
         }
 
         if (!string.IsNullOrEmpty(request.Email) && request.Email != customer.Email)
@@ -194,8 +203,9 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
 
             if (existingCustomer != null)
             {
-                throw new ArgumentException(
-                    $"Email {request.Email} has been used by other customers"
+                throw new ApiException(
+                    $"Email {request.Email} has been used by other customers",
+                    HttpStatusCode.BadRequest
                 );
             }
         }
@@ -230,7 +240,10 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
 
         if (customer == null)
         {
-            throw new ArgumentException($"Not found customer with ID: {request.Id}");
+            throw new ApiException(
+                $"Not found customer with ID: {request.Id}",
+                HttpStatusCode.BadRequest
+            );
         }
 
         customer.Status = CustomerStatus.Deleted;

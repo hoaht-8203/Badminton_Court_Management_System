@@ -19,7 +19,7 @@ public class InvoiceMappingProfile : Profile
 
         // BookingCourt -> Invoice (Pending) for creation
         CreateMap<BookingCourt, Invoice>()
-            .ForMember(d => d.Id, opt => opt.MapFrom(_ => Guid.NewGuid()))
+            .ForMember(d => d.Id, opt => opt.Ignore())
             .ForMember(d => d.BookingId, opt => opt.MapFrom(s => s.Id))
             .ForMember(d => d.InvoiceDate, opt => opt.MapFrom(_ => DateTime.UtcNow))
             .ForMember(d => d.Amount, opt => opt.Ignore())

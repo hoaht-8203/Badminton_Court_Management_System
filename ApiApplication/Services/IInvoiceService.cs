@@ -1,12 +1,13 @@
+using ApiApplication.Dtos.BookingCourt;
 using ApiApplication.Dtos.Invoice;
 
 namespace ApiApplication.Services;
 
 public interface IInvoiceService
 {
-	Task<DetailInvoiceResponse> CreateInvocieAsync(Guid bookingId);
-	Task<DetailInvoiceResponse?> GetByBookingIdAsync(Guid bookingId);
-	Task<DetailInvoiceResponse?> GetByIdAsync(Guid invoiceId);
+	Task<DetailInvoiceResponse> CreateInvocieAsync(CreateInvoiceRequest request);
+	Task<DetailInvoiceResponse?> DetailByBookingIdAsync(DetailInvoiceByBookingIdRequest request);
+	Task<DetailInvoiceResponse?> DetailInvoiceByIdAsync(DetailInvoiceRequest request);
 }
 
 

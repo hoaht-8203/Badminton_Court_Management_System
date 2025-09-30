@@ -5,6 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using AutoMapper;
 using ApiApplication.Services;
 using ApiApplication.Entities.Shared;
+using ApiApplication.Exceptions;
+using System.Net;
+using ApiApplication.Dtos.Invoice;
 
 namespace ApiApplication.Services.Impl;
 
@@ -19,25 +22,25 @@ public class BookingCourtService(ApplicationDbContext context, IMapper mapper, I
         // Validate & normalize DayOfWeek: Monday=2 ... Sunday=8
         if (request.StartTime >= request.EndTime)
         {
-            throw new InvalidOperationException("Giờ bắt đầu phải nhỏ hơn giờ kết thúc.");
+            throw new ApiException("Giờ bắt đầu phải nhỏ hơn giờ kết thúc.", HttpStatusCode.BadRequest);
         }
 
         // Không cho đặt các ngày đã qua
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         if (request.EndDate < today)
         {
-            throw new InvalidOperationException("Không thể đặt cho ngày đã qua.");
+            throw new ApiException("Không thể đặt cho ngày đã qua.", HttpStatusCode.BadRequest);
         }
         if (request.StartDate < today)
         {
-            throw new InvalidOperationException("Ngày bắt đầu phải từ hôm nay trở đi.");
+            throw new ApiException("Ngày bắt đầu phải từ hôm nay trở đi.", HttpStatusCode.BadRequest);
         }
 
         if (request.DaysOfWeek == null)
         {
             if (request.StartDate != request.EndDate)
             {
-                throw new InvalidOperationException("Booking vãng lai phải có StartDate = EndDate và DayOfWeek = null.");
+                throw new ApiException("Booking vãng lai phải có StartDate = EndDate và DayOfWeek = null.", HttpStatusCode.BadRequest);
             }
             // set as empty for consistency with entity schema
             request.DaysOfWeek = Array.Empty<int>();
@@ -51,14 +54,17 @@ public class BookingCourtService(ApplicationDbContext context, IMapper mapper, I
                 .ToArray();
             if (normalized.Length == 0)
             {
-                throw new InvalidOperationException("DayOfWeek phải nằm trong khoảng 2..8 (T2..CN).");
+                throw new ApiException("DayOfWeek phải nằm trong khoảng 2..8 (T2..CN).", HttpStatusCode.BadRequest);
             }
             request.DaysOfWeek = normalized;
             if (request.StartDate > request.EndDate)
             {
-                throw new InvalidOperationException("StartDate phải nhỏ hơn hoặc bằng EndDate.");
+                throw new ApiException("StartDate phải nhỏ hơn hoặc bằng EndDate.", HttpStatusCode.BadRequest);
             }
         }
+
+        // Kiểm tra cấu hình giá/khung giờ: nếu sân chưa cấu hình cho khoảng giờ đặt → chặn
+        await EnsurePricingConfiguredForRequestAsync(request);
 
         var query = _context.BookingCourts
 			.Where(b => b.CourtId == request.CourtId);
@@ -95,7 +101,7 @@ public class BookingCourtService(ApplicationDbContext context, IMapper mapper, I
         var exists = await query.AnyAsync();
 		if (exists)
 		{
-			throw new InvalidOperationException("Khoảng thời gian/sân đã được đặt trước, vui lòng chọn thời gian khác.");
+			throw new ApiException("Khoảng thời gian/sân đã được đặt trước, vui lòng chọn thời gian khác.", HttpStatusCode.BadRequest);
 		}
 
         var entity = _mapper.Map<BookingCourt>(request);
@@ -106,7 +112,7 @@ public class BookingCourtService(ApplicationDbContext context, IMapper mapper, I
         await _context.SaveChangesAsync();
 
         // Tạo hóa đơn pending ngay sau khi tạo booking
-        await _invoiceService.CreateInvocieAsync(entity.Id);
+        await _invoiceService.CreateInvocieAsync(new CreateInvoiceRequest { BookingId = entity.Id });
 
         return _mapper.Map<DetailBookingCourtResponse>(entity);
 	}
@@ -115,6 +121,32 @@ public class BookingCourtService(ApplicationDbContext context, IMapper mapper, I
     {
         var sys = (int)date.DayOfWeek; // Sunday=0..Saturday=6
         return sys == 0 ? 8 : sys + 1; // Monday=2..Sunday=8
+    }
+
+    private async Task EnsurePricingConfiguredForRequestAsync(CreateBookingCourtRequest request)
+    {
+        var start = request.StartTime;
+        var end = request.EndTime;
+        var days = (request.DaysOfWeek == null || request.DaysOfWeek.Length == 0)
+            ? new int[] { GetCustomDayOfWeek(request.StartDate) }
+            : request.DaysOfWeek;
+
+        foreach (var dow in days)
+        {
+            var covered = await _context.CourtPricingRules.AnyAsync(r =>
+                r.CourtId == request.CourtId
+                && r.DaysOfWeek.Contains(dow)
+                && r.StartTime <= start
+                && r.EndTime >= end
+            );
+            if (!covered)
+            {
+                throw new ApiException(
+                    $"Sân này chưa được cấu hình giá theo khung giờ {start:HH\\:mm}-{end:HH\\:mm}.",
+                    HttpStatusCode.BadRequest
+                );
+            }
+        }
     }
 
     public async Task<List<ListBookingCourtResponse>> ListBookingCourtsAsync(ListBookingCourtRequest request)

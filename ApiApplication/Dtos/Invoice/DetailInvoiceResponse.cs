@@ -2,7 +2,7 @@ namespace ApiApplication.Dtos.Invoice;
 
 public class DetailInvoiceResponse
 {
-	public Guid Id { get; set; }
+	public string Id { get; set; } = string.Empty;
 	public Guid BookingId { get; set; }
 	public DateTime InvoiceDate { get; set; }
 	public decimal Amount { get; set; }

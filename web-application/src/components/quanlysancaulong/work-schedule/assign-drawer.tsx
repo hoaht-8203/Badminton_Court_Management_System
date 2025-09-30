@@ -26,19 +26,15 @@ const daysOfWeek = [
   { label: "Chủ nhật", value: 0 },
 ];
 
-const shiftColors: Record<string, string> = {
-  morning: "#e6f7ff",
-  afternoon: "#e6ffed",
-  evening: "#fff7e6",
-};
-
-const shiftLabels: Record<string, string> = {
-  morning: "Ca sáng",
-  afternoon: "Ca chiều",
-  evening: "Ca tối",
-};
+// Danh sách 10 màu cố định
+const shiftColors = ["#e6f7ff", "#e6ffed", "#fff7e6", "#f9e6ff", "#ffe6e6", "#e6f9ff", "#e6ffe6", "#fffbe6", "#e6e6ff", "#f6ffe6"];
 
 const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, shiftList }) => {
+  // Map shiftId với màu, shiftList lấy từ props
+  function getShiftColorById(shiftId: string) {
+    const idx = shiftList.findIndex((s: { key: string; label: string }) => String(s.key) === String(shiftId));
+    return shiftColors[idx >= 0 ? idx % shiftColors.length : 0];
+  }
   const [hoverCell, setHoverCell] = useState<{ staffId: number; day: number } | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalStaff, setModalStaff] = useState<{ id: number; fullName: string } | null>(null);
@@ -127,6 +123,8 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                     <div style={{ fontSize: 13, color: "#888" }}>{`NV${String(staff.id).padStart(6, "0")}`}</div>
                   </td>
                   {weekDays.map((d, idx) => {
+                    // shiftList: [{key, label}], staffScheduleMap lưu theo shift.name
+                    // Để map màu đúng, cần lấy shiftId từ shiftList dựa vào tên ca
                     const shiftsOfDay = staffScheduleMap[staff.id]?.[d.value] || [];
                     return (
                       <td
@@ -143,21 +141,26 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                         onMouseEnter={() => setHoverCell({ staffId: staff.id, day: d.value })}
                         onMouseLeave={() => setHoverCell(null)}
                       >
-                        {shiftsOfDay.map((shiftKey, idx2) => (
-                          <div
-                            key={idx2}
-                            style={{
-                              background: shiftColors[shiftKey],
-                              borderRadius: 6,
-                              marginBottom: 6,
-                              padding: 6,
-                              fontSize: 14,
-                              border: "1px solid #b7eb8f",
-                            }}
-                          >
-                            <span style={{ fontWeight: 500 }}>{shiftLabels[shiftKey]}</span>
-                          </div>
-                        ))}
+                        {shiftsOfDay.map((shiftName, idx2) => {
+                          // Tìm shiftId theo tên ca
+                          const shiftObj = shiftList.find((s) => s.label === shiftName);
+                          const shiftId = shiftObj ? shiftObj.key : String(idx2);
+                          return (
+                            <div
+                              key={idx2}
+                              style={{
+                                background: getShiftColorById(shiftId),
+                                borderRadius: 6,
+                                marginBottom: 6,
+                                padding: 6,
+                                fontSize: 14,
+                                border: "1px solid #b7eb8f",
+                              }}
+                            >
+                              <span style={{ fontWeight: 500 }}>{shiftName}</span>
+                            </div>
+                          );
+                        })}
                         {hoverCell && hoverCell.staffId === staff.id && hoverCell.day === d.value && (
                           <Button
                             type="link"
@@ -179,10 +182,27 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
             </tbody>
           </table>
         </div>
+        {/* thêm chú thích màu */}
         <div style={{ display: "flex", gap: 16, marginTop: 20, justifyContent: "center" }}>
-          <Tag color="#e6f7ff">Ca sáng</Tag>
-          <Tag color="#e6ffed">Ca chiều</Tag>
-          <Tag color="#fff7e6">Ca tối</Tag>
+          {shiftList.map((shift, idx) => (
+            <Tag
+              key={shift.key}
+              color={shiftColors[idx % shiftColors.length]}
+              style={{
+                width: 120,
+                textAlign: "center",
+                fontWeight: 500,
+                fontSize: 16,
+                opacity: 1,
+                background: shiftColors[idx % shiftColors.length],
+                border: "none",
+                padding: "8px 0",
+                color: "#000",
+              }}
+            >
+              {shift.label}
+            </Tag>
+          ))}
         </div>
       </Drawer>
       <ScheduleAssignModal

@@ -21,10 +21,7 @@ export const setOnUnauthorized = (cb: (() => void) | undefined) => {
   onUnauthorized = cb;
 };
 
-const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL && process.env.NEXT_PUBLIC_API_BASE_URL.trim().length > 0
-    ? process.env.NEXT_PUBLIC_API_BASE_URL
-    : "caulong365-fsbkbpdhgbgdhxa5.canadacentral-01.azurewebsites.net"; // Use relative URLs by default so it works behind proxies
+const apiBaseUrl = "caulong365-fsbkbpdhgbgdhxa5.canadacentral-01.azurewebsites.net"; // Use relative URLs by default so it works behind proxies
 
 export const axiosInstance = axios.create({
   baseURL: apiBaseUrl,

@@ -28,8 +28,7 @@ const normalizeBaseUrl = (url: string): string => {
   return withProtocol.replace(/\/+$/g, "");
 };
 
-const resolvedBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5039";
-const apiBaseUrl = normalizeBaseUrl(resolvedBaseUrl);
+const apiBaseUrl = "https://caulong365-fsbkbpdhgbgdhxa5.canadacentral-01.azurewebsites.net";
 
 export const axiosInstance = axios.create({
   baseURL: apiBaseUrl,

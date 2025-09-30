@@ -1,5 +1,4 @@
 import WorkScheduleTable from "@/components/quanlysancaulong/work-schedule/work-schedule-table";
-import { useGetScheduleByShift, useGetScheduleByStaff, useAssignSchedule, useRemoveSchedule } from "@/hooks/useSchedule";
 import { Breadcrumb } from "antd";
 
 export default function WorkSchedulePage() {

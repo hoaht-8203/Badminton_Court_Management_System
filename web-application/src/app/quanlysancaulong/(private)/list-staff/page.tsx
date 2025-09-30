@@ -1,13 +1,12 @@
 "use client";
-import React from "react";
-import { useState } from "react";
-import StaffList from "@/components/quanlysancaulong/staffs/list-staff/staffs-list";
 import StaffModal from "@/components/quanlysancaulong/staffs/list-staff/staff-modal";
-import { useListStaffs, useCreateStaff, useUpdateStaff, useChangeStaffStatus } from "@/hooks/useStaffs";
+import StaffList from "@/components/quanlysancaulong/staffs/list-staff/staffs-list";
+import { useChangeStaffStatus, useCreateStaff, useListStaffs, useUpdateStaff } from "@/hooks/useStaffs";
+import { useState } from "react";
 
-import { Breadcrumb, Button, Card, Col, Form, Input, Row, Select, Radio, Space, message, Avatar, Table, Pagination } from "antd";
-import { SearchOutlined, ReloadOutlined, PlusOutlined, FileExcelOutlined } from "@ant-design/icons";
 import { ListStaffRequest, ListStaffRequestFromJSON, StaffRequest } from "@/types-openapi/api";
+import { FileExcelOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
+import { Breadcrumb, Button, Card, Col, Form, Input, Radio, Row, Select, message } from "antd";
 // Dummy roles and status for filter
 const branches = [
   { value: 1, label: "Chi nhánh A" },

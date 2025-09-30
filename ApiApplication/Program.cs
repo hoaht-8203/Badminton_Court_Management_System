@@ -228,27 +228,10 @@ builder
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
-        "Frontend",
+        "AllowAll",
         builder =>
         {
-            builder
-                .WithOrigins("http://localhost:3000")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
-        }
-    );
-    options.AddPolicy(
-        "Azure",
-        builder =>
-        {
-            builder
-                .WithOrigins(
-                    "https://caulong365-fsbkbpdhgbgdhxa5.canadacentral-01.azurewebsites.net"
-                )
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials();
+            builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
         }
     );
 });
@@ -289,8 +272,7 @@ app.MapScalarApiReference(options =>
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
-app.UseCors("Frontend");
-app.UseCors("Azure");
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 

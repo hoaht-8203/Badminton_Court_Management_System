@@ -227,11 +227,24 @@ builder
 
 builder.Services.AddCors(options =>
 {
+    var configuredOrigins =
+        builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
+        ?? (
+            Environment
+                .GetEnvironmentVariable("ALLOWED_ORIGINS")
+                ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            ?? ["https://purple-cliff-047082910.2.azurestaticapps.net"]
+        );
+
     options.AddPolicy(
-        "AllowAll",
+        "AllowFrontend",
         builder =>
         {
-            builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+            builder
+                .WithOrigins(configuredOrigins)
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowCredentials();
         }
     );
 });
@@ -272,7 +285,7 @@ app.MapScalarApiReference(options =>
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 

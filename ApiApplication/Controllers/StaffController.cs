@@ -66,6 +66,17 @@ namespace ApiApplication.Controllers
             return Ok(ApiResponse<object?>.SuccessResponse(null, "Cập nhật nhân viên thành công"));
         }
 
+        [HttpPost("change-status")]
+        public async Task<ActionResult<ApiResponse<object?>>> ChangeStatus(
+            [FromBody] ChangeStaffStatusRequest request
+        )
+        {
+            await _staffService.ChangeStaffStatusAsync(request);
+            return Ok(
+                ApiResponse<object?>.SuccessResponse(null, "Đổi trạng thái nhân viên thành công")
+            );
+        }
+
         [HttpDelete("{id}")]
         public async Task<ActionResult<ApiResponse<object?>>> Delete(int id)
         {

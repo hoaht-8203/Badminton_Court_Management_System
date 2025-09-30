@@ -166,5 +166,20 @@ namespace ApiApplication.Services.Impl
             var staffs = await query.ToListAsync();
             return staffs.Select(s => _mapper.Map<Dtos.StaffResponse>(s)).ToList();
         }
+
+        public async Task ChangeStaffStatusAsync(Dtos.ChangeStaffStatusRequest request)
+        {
+            var staff = await _context.Staffs.FindAsync(request.StaffId);
+            if (staff == null)
+            {
+                throw new ApiException(
+                    $"Nhân viên với Id {request.StaffId} không tồn tại",
+                    System.Net.HttpStatusCode.NotFound
+                );
+            }
+            staff.IsActive = request.IsActive;
+            _context.Staffs.Update(staff);
+            await _context.SaveChangesAsync();
+        }
     }
 }

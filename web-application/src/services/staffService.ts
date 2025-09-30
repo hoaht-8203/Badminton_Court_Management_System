@@ -23,4 +23,8 @@ export const staffService = {
     const response = await axiosInstance.put(`api/staff/${staffId}`, data);
     return response.data;
   },
+  async changeStatus(data: { staffId: number; isActive: boolean }): Promise<ApiResponse<null>> {
+    const response = await axiosInstance.post(`api/staff/change-status`, data);
+    return response.data;
+  },
 };

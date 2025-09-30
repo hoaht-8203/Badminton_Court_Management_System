@@ -1,4 +1,3 @@
-.openapi-generator-ignore
 apis/ActivityApi.ts
 apis/AuthApi.ts
 apis/CourtAreasApi.ts
@@ -27,6 +26,7 @@ models/CancellationToken.ts
 models/CancelledShift.ts
 models/ChangeCourtStatusRequest.ts
 models/ChangeCustomerStatusRequest.ts
+models/ChangeStaffStatusRequest.ts
 models/ChangeSupplierStatusRequest.ts
 models/ChangeUserStatusRequest.ts
 models/Court.ts

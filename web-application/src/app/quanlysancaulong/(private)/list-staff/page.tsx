@@ -1,13 +1,12 @@
 "use client";
-import React from "react";
-import { useState } from "react";
-import StaffList from "@/components/quanlysancaulong/staffs/list-staff/staffs-list";
 import StaffModal from "@/components/quanlysancaulong/staffs/list-staff/staff-modal";
-import { useListStaffs, useCreateStaff, useUpdateStaff } from "@/hooks/useStaffs";
+import StaffList from "@/components/quanlysancaulong/staffs/list-staff/staffs-list";
+import { useChangeStaffStatus, useCreateStaff, useListStaffs, useUpdateStaff } from "@/hooks/useStaffs";
+import { useState } from "react";
 
-import { Breadcrumb, Button, Card, Col, Form, Input, Row, Select, Radio, Space, message, Avatar, Table, Pagination } from "antd";
-import { SearchOutlined, ReloadOutlined, PlusOutlined, FileExcelOutlined } from "@ant-design/icons";
 import { ListStaffRequest, ListStaffRequestFromJSON, StaffRequest } from "@/types-openapi/api";
+import { FileExcelOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
+import { Breadcrumb, Button, Card, Col, Form, Input, Radio, Row, Select, message } from "antd";
 // Dummy roles and status for filter
 const branches = [
   { value: 1, label: "Chi nhánh A" },
@@ -34,6 +33,16 @@ export default function ListStaffPage() {
   // CRUD hooks
   const createStaff = useCreateStaff();
   const updateStaff = useUpdateStaff(editingStaff?.id);
+  const changeStaffStatus = useChangeStaffStatus();
+
+  const handleChangeStaffStatus = async (staffId: number, isActive: boolean) => {
+    try {
+      await changeStaffStatus.mutateAsync({ staffId, isActive });
+      message.success("Đổi trạng thái nhân viên thành công");
+    } catch (error: any) {
+      message.error(error?.message || "Có lỗi xảy ra, vui lòng thử lại");
+    }
+  };
 
   const handleSearch = (values: ListStaffRequest) => {
     setSearchParams({
@@ -145,7 +154,7 @@ export default function ListStaffPage() {
           </Button>
         </div>
       </div>
-      <StaffList staffList={staffsData?.data ?? []} onEditStaff={handleEditStaff} />
+      <StaffList staffList={staffsData?.data ?? []} onEditStaff={handleEditStaff} onChangeStaffStatus={handleChangeStaffStatus} />
       <StaffModal open={openStaffModal} onClose={handleStaffModalClose} onSubmit={handleStaffModalSubmit} staff={editingStaff} />
     </section>
   );

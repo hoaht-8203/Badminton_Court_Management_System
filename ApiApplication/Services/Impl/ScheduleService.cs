@@ -31,7 +31,9 @@ namespace ApiApplication.Services.Impl
                 .ToListAsync();
             var fixedSchedules = await _context
                 .Schedules.Where(s =>
-                    s.IsFixedShift && s.StartDate <= endDate && s.EndDate >= startDate
+                    s.IsFixedShift
+                    && s.StartDate <= endDate
+                    && (s.EndDate >= startDate || s.EndDate == null)
                 )
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
@@ -77,7 +79,9 @@ namespace ApiApplication.Services.Impl
                 .Include(s => s.Staff)
                 .ToListAsync();
             var fixedSchedules = await _context
-                .Schedules.Where(s => s.StartDate <= endDate && s.EndDate >= startDate)
+                .Schedules.Where(s =>
+                    s.StartDate <= endDate && (s.EndDate >= startDate || s.EndDate == null)
+                )
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
                 .ToListAsync();

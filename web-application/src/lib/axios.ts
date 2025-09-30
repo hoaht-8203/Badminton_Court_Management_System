@@ -21,7 +21,15 @@ export const setOnUnauthorized = (cb: (() => void) | undefined) => {
   onUnauthorized = cb;
 };
 
-const apiBaseUrl = "caulong365-fsbkbpdhgbgdhxa5.canadacentral-01.azurewebsites.net"; // Use relative URLs by default so it works behind proxies
+// Normalize and resolve API base URL. Ensure absolute URL with protocol to avoid being treated as a relative path.
+const normalizeBaseUrl = (url: string): string => {
+  const trimmed = url.trim();
+  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  return withProtocol.replace(/\/+$/g, "");
+};
+
+const resolvedBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+const apiBaseUrl = normalizeBaseUrl(resolvedBaseUrl);
 
 export const axiosInstance = axios.create({
   baseURL: apiBaseUrl,

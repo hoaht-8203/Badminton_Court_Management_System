@@ -238,6 +238,19 @@ builder.Services.AddCors(options =>
                 .AllowCredentials();
         }
     );
+    options.AddPolicy(
+        "Azure",
+        builder =>
+        {
+            builder
+                .WithOrigins(
+                    "https://caulong365-fsbkbpdhgbgdhxa5.canadacentral-01.azurewebsites.net"
+                )
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+    );
 });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -277,6 +290,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
+app.UseCors("Azure");
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -1,0 +1,132 @@
+using ApiApplication.Data;
+using ApiApplication.Dtos.Payment;
+using ApiApplication.Entities;
+using ApiApplication.Entities.Shared;
+using ApiApplication.Exceptions;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+
+namespace ApiApplication.Services.Impl;
+
+public class PaymentService(ApplicationDbContext context, IMapper mapper) : IPaymentService
+{
+    private readonly ApplicationDbContext _context = context;
+    private readonly IMapper _mapper = mapper;
+
+    public async Task<DetailPaymentResponse> CreatePaymentAsync(CreatePaymentRequest request)
+    {
+        var booking = await _context
+            .BookingCourts.Include(b => b.Customer)
+            .Include(b => b.Court)
+            .FirstOrDefaultAsync(b => b.Id == request.BookingId);
+        if (booking == null)
+        {
+            throw new ApiException($"Booking không tồn tại: {request.BookingId}");
+        }
+
+        var existed = await _context.Payments.FirstOrDefaultAsync(i =>
+            i.BookingId == request.BookingId
+        );
+        if (existed != null)
+        {
+            return _mapper.Map<DetailPaymentResponse>(existed);
+        }
+
+        var payment = _mapper.Map<Payment>(booking);
+        payment.Status = PaymentStatus.PendingPayment;
+        payment.Amount = await CalculateBookingAmountAsync(booking);
+        payment.Id = await GenerateNextPaymentIdAsync();
+
+        await _context.Payments.AddAsync(payment);
+        await _context.SaveChangesAsync();
+        return _mapper.Map<DetailPaymentResponse>(payment);
+    }
+
+    public async Task<DetailPaymentResponse?> DetailByBookingIdAsync(
+        DetailPaymentByBookingIdRequest request
+    )
+    {
+        var payment = await _context
+            .Payments.Include(i => i.Booking)!
+            .ThenInclude(b => b!.Customer)
+            .Include(i => i.Booking)!
+            .ThenInclude(b => b!.Court)
+            .FirstOrDefaultAsync(i => i.BookingId == request.BookingId);
+        return payment == null ? null : _mapper.Map<DetailPaymentResponse>(payment);
+    }
+
+    public async Task<DetailPaymentResponse?> DetailPaymentByIdAsync(DetailPaymentRequest request)
+    {
+        var payment = await _context
+            .Payments.Include(i => i.Booking)!
+            .ThenInclude(b => b!.Customer)
+            .Include(i => i.Booking)!
+            .ThenInclude(b => b!.Court)
+            .FirstOrDefaultAsync(i => i.Id == request.Id);
+        return payment == null ? null : _mapper.Map<DetailPaymentResponse>(payment);
+    }
+
+    private async Task<string> GenerateNextPaymentIdAsync()
+    {
+        var now = DateTime.Now;
+        var prefix = $"PM-{now:ddMMyyyy}-";
+        var lastId = await _context
+            .Payments.AsNoTracking()
+            .Where(i => i.Id.StartsWith(prefix))
+            .OrderByDescending(i => i.Id)
+            .Select(i => i.Id)
+            .FirstOrDefaultAsync();
+        var next = 1;
+        if (!string.IsNullOrEmpty(lastId))
+        {
+            var numericPart = lastId.Substring(prefix.Length);
+            if (int.TryParse(numericPart, out var parsed))
+            {
+                next = parsed + 1;
+            }
+        }
+        return $"{prefix}{next.ToString("D6")}";
+    }
+
+    private async Task<decimal> CalculateBookingAmountAsync(BookingCourt booking)
+    {
+        var dow = GetCustomDayOfWeek(booking.StartDate);
+        var rules = await _context
+            .CourtPricingRules.Where(r =>
+                r.CourtId == booking.CourtId
+                && r.DaysOfWeek.Contains(dow)
+                && r.EndTime > booking.StartTime
+                && r.StartTime < booking.EndTime
+            )
+            .ToListAsync();
+        if (rules.Count == 0)
+        {
+            return 0m;
+        }
+        var total = 0m;
+        var bStart = booking.StartTime;
+        var bEnd = booking.EndTime;
+        foreach (var r in rules)
+        {
+            var overlapStart = Max(r.StartTime, bStart);
+            var overlapEnd = Min(r.EndTime, bEnd);
+            if (overlapEnd > overlapStart)
+            {
+                var hours = (decimal)
+                    (overlapEnd.ToTimeSpan() - overlapStart.ToTimeSpan()).TotalHours;
+                total += r.PricePerHour * hours;
+            }
+        }
+        return Math.Round(total, 2);
+    }
+
+    private static TimeOnly Max(TimeOnly a, TimeOnly b) => a > b ? a : b;
+
+    private static TimeOnly Min(TimeOnly a, TimeOnly b) => a < b ? a : b;
+
+    private static int GetCustomDayOfWeek(DateOnly date)
+    {
+        var sys = (int)date.DayOfWeek;
+        return sys == 0 ? 8 : sys + 1;
+    }
+}

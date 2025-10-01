@@ -10,6 +10,7 @@ export * from './CancellationToken';
 export * from './CancelledShift';
 export * from './ChangeCourtStatusRequest';
 export * from './ChangeCustomerStatusRequest';
+export * from './ChangeStaffStatusRequest';
 export * from './ChangeSupplierStatusRequest';
 export * from './ChangeUserStatusRequest';
 export * from './Court';

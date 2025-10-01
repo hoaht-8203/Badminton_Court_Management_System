@@ -36,7 +36,7 @@ public class ApplicationDbContext(
     public DbSet<CourtPricingRules> CourtPricingRules { get; set; }
     public DbSet<CourtPricingRuleTemplate> CourtPricingRuleTemplates { get; set; }
     public DbSet<BookingCourt> BookingCourts { get; set; }
-    public DbSet<Invoice> Invoices { get; set; }
+    public DbSet<Payment> Payments { get; set; }
 
     // public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
     public DbSet<CancelledShift> CancelledShifts { get; set; }
@@ -49,6 +49,12 @@ public class ApplicationDbContext(
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        // Payment mappings
+        builder.Entity<Payment>(entity =>
+        {
+            entity.Property(p => p.Amount).HasColumnType("decimal(18,2)");
+            entity.HasIndex(p => p.Id).IsUnique();
+        });
 
         // Store Staff.SalarySettings as jsonb
         builder.Entity<Staff>().Property(s => s.SalarySettings).HasColumnType("jsonb");

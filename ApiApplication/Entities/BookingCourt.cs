@@ -31,4 +31,7 @@ public class BookingCourt : BaseEntity
 
     public string? Note { get; set; }
     public string Status { get; set; } = BookingCourtStatus.Active;
+
+    // Hold expiry for PendingPayment bookings
+    public DateTime? HoldExpiresAtUtc { get; set; }
 }

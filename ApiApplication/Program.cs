@@ -69,7 +69,7 @@ builder.Services.AddScoped<ICourtAreaService, CourtAreaService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IPriceTableService, PriceTableService>();
 builder.Services.AddScoped<IBookingCourtService, BookingCourtService>();
-builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -86,7 +86,8 @@ builder.Services.AddAutoMapper(config => config.AddProfile<SupplierMappingProfil
 builder.Services.AddAutoMapper(config => config.AddProfile<ProductMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<PriceTableMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<BookingCourtMappingProfile>());
-builder.Services.AddAutoMapper(config => config.AddProfile<InvoiceMappingProfile>());
+
+builder.Services.AddAutoMapper(config => config.AddProfile<PaymentMappingProfile>());
 builder.Services.Configure<MinioOptions>(
     builder.Configuration.GetSection(MinioOptions.MinioOptionsKey)
 );
@@ -198,6 +199,7 @@ builder
 
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddHostedService<BookingHoldExpiryHostedService>();
 builder
     .Services.AddControllers()
     .AddJsonOptions(options =>

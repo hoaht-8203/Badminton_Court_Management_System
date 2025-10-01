@@ -1,7 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { StaffApi } from "@/types-openapi/api";
-import type { ListStaffRequest, StaffRequest, StaffResponse, StaffResponseListApiResponse } from "@/types-openapi/api";
 import { staffService } from "@/services/staffService";
+import type { ListStaffRequest, StaffRequest } from "@/types-openapi/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useListStaffs(params: ListStaffRequest) {
   return useQuery({
@@ -45,6 +44,15 @@ export function useUpdateStaffStatus(staffId: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["staffs"] });
       queryClient.invalidateQueries({ queryKey: ["staff", staffId] });
+    },
+  });
+}
+export function useChangeStaffStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { staffId: number; isActive: boolean }) => staffService.changeStatus(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["staffs"] });
     },
   });
 }

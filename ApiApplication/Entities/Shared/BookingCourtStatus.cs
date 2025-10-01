@@ -2,9 +2,16 @@ namespace ApiApplication.Entities.Shared;
 
 public static class BookingCourtStatus
 {
+    public const string PendingPayment = "PendingPayment"; // Khi đặt sân thành công nhưng chưa thanh toán
     public const string Active = "Active";
-    public const string Cancelled = "Cancelled";
+    public const string Cancelled = "Cancelled"; // Khi đặt sân thành công nhưng bị hủy
     public const string Completed = "Completed";
 
-    public static readonly string[] ValidCustomerStatus = [Active, Cancelled, Completed];
+    public static readonly string[] ValidCustomerStatus =
+    [
+        PendingPayment,
+        Active,
+        Cancelled,
+        Completed,
+    ];
 }

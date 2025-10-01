@@ -1,9 +1,8 @@
-import React, { useState } from "react";
-import dayjs from "dayjs";
-import { Drawer, Tabs, Form, Input, Button, Row, Col, Space, Upload, DatePicker, Select, Avatar } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
 import { StaffRequest } from "@/types-openapi/api/models/StaffRequest";
-import { Rows } from "lucide";
+import { UploadOutlined } from "@ant-design/icons";
+import { Avatar, Button, Col, DatePicker, Drawer, Form, Input, Row, Space, Tabs, Upload } from "antd";
+import dayjs from "dayjs";
+import React, { useState } from "react";
 
 interface StaffModalProps {
   open: boolean;
@@ -147,26 +146,28 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
     >
       <Tabs
         defaultActiveKey="info"
-        items={[{
-          key: "info",
-          label: "Thông tin",
-          children: (
-            <Form form={form} layout="vertical" onFinish={handleFinish}>
-              {renderBasicFields()}
-              <div style={{ margin: "16px 0" }}>
-                <Button type="dashed" onClick={() => setExpanded((e) => !e)}>
-                  {expanded ? "Ẩn thông tin" : "Thêm thông tin"}
-                </Button>
-              </div>
-              {expanded && <div style={{ marginBottom: 16 }}>{renderExtraFields()}</div>}
-            </Form>
-          ),
-        },
-        {
-          key: "salary",
-          label: "Thiết lập lương",
-          children: <div>Chưa có nội dung</div>,
-        }]}
+        items={[
+          {
+            key: "info",
+            label: "Thông tin",
+            children: (
+              <Form form={form} layout="vertical" onFinish={handleFinish}>
+                {renderBasicFields()}
+                <div style={{ margin: "16px 0" }}>
+                  <Button type="dashed" onClick={() => setExpanded((e) => !e)}>
+                    {expanded ? "Ẩn thông tin" : "Thêm thông tin"}
+                  </Button>
+                </div>
+                {expanded && <div style={{ marginBottom: 16 }}>{renderExtraFields()}</div>}
+              </Form>
+            ),
+          },
+          {
+            key: "salary",
+            label: "Thiết lập lương",
+            children: <div>Chưa có nội dung</div>,
+          },
+        ]}
       />
     </Drawer>
   );

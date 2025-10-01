@@ -21,14 +21,7 @@ export const setOnUnauthorized = (cb: (() => void) | undefined) => {
   onUnauthorized = cb;
 };
 
-// Normalize and resolve API base URL. Ensure absolute URL with protocol to avoid being treated as a relative path.
-const normalizeBaseUrl = (url: string): string => {
-  const trimmed = url.trim();
-  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-  return withProtocol.replace(/\/+$/g, "");
-};
-
-const apiBaseUrl = "https://caulong365-fsbkbpdhgbgdhxa5.canadacentral-01.azurewebsites.net";
+const apiBaseUrl = "https://caulong365-api.azurewebsites.net/";
 
 export const axiosInstance = axios.create({
   baseURL: apiBaseUrl,

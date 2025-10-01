@@ -40,8 +40,8 @@ public class PaymentWebhooksController(ApplicationDbContext context) : Controlle
     )
     {
         var header = Request.Headers.Authorization.ToString();
-        // var expected = $"Apikey {Environment.GetEnvironmentVariable("SEPAY_API_KEY")}";
-        var expected = $"Apikey 1234567890";
+        var expected = $"Apikey {Environment.GetEnvironmentVariable("SEPAY_API_KEY")}";
+
         if (
             string.IsNullOrWhiteSpace(header)
             || !string.Equals(header, expected, StringComparison.Ordinal)

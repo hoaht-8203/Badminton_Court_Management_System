@@ -233,7 +233,12 @@ builder.Services.AddCors(options =>
             Environment
                 .GetEnvironmentVariable("ALLOWED_ORIGINS")
                 ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            ?? ["https://purple-cliff-047082910.2.azurestaticapps.net"]
+            ??
+            [
+                "https://purple-cliff-047082910.2.azurestaticapps.net",
+                "http://localhost:3000",
+                "caulong365.store",
+            ]
         );
 
     options.AddPolicy(

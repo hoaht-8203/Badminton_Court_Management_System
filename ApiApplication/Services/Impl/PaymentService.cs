@@ -24,7 +24,9 @@ public class PaymentService(ApplicationDbContext context, IMapper mapper) : IPay
             throw new ApiException($"Booking không tồn tại: {request.BookingId}");
         }
 
-        var existed = await _context.Payments.FirstOrDefaultAsync(i => i.BookingId == request.BookingId);
+        var existed = await _context.Payments.FirstOrDefaultAsync(i =>
+            i.BookingId == request.BookingId
+        );
         if (existed != null)
         {
             return _mapper.Map<DetailPaymentResponse>(existed);
@@ -40,7 +42,9 @@ public class PaymentService(ApplicationDbContext context, IMapper mapper) : IPay
         return _mapper.Map<DetailPaymentResponse>(payment);
     }
 
-    public async Task<DetailPaymentResponse?> DetailByBookingIdAsync(DetailPaymentByBookingIdRequest request)
+    public async Task<DetailPaymentResponse?> DetailByBookingIdAsync(
+        DetailPaymentByBookingIdRequest request
+    )
     {
         var payment = await _context
             .Payments.Include(i => i.Booking)!
@@ -108,7 +112,8 @@ public class PaymentService(ApplicationDbContext context, IMapper mapper) : IPay
             var overlapEnd = Min(r.EndTime, bEnd);
             if (overlapEnd > overlapStart)
             {
-                var hours = (decimal)(overlapEnd.ToTimeSpan() - overlapStart.ToTimeSpan()).TotalHours;
+                var hours = (decimal)
+                    (overlapEnd.ToTimeSpan() - overlapStart.ToTimeSpan()).TotalHours;
                 total += r.PricePerHour * hours;
             }
         }
@@ -116,12 +121,12 @@ public class PaymentService(ApplicationDbContext context, IMapper mapper) : IPay
     }
 
     private static TimeOnly Max(TimeOnly a, TimeOnly b) => a > b ? a : b;
+
     private static TimeOnly Min(TimeOnly a, TimeOnly b) => a < b ? a : b;
+
     private static int GetCustomDayOfWeek(DateOnly date)
     {
         var sys = (int)date.DayOfWeek;
         return sys == 0 ? 8 : sys + 1;
     }
 }
-
-

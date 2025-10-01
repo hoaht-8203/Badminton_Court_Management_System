@@ -88,10 +88,20 @@ public class PaymentWebhooksController(ApplicationDbContext context) : Controlle
         )
         {
             payment.Status = PaymentStatus.Paid;
+
             if (payment.Booking != null)
             {
-                payment.Booking.Status = BookingCourtStatus.Active;
+                if (payment.Booking.Status == BookingCourtStatus.PendingPayment)
+                {
+                    payment.Booking.Status = BookingCourtStatus.Active;
+                }
+                else if (payment.Booking.Status == BookingCourtStatus.Cancelled)
+                {
+                    payment.Note =
+                        "Người dùng đã thanh toán sau khi booking đã hủy bỏ hoặc hết hạn";
+                }
             }
+
             await _context.SaveChangesAsync();
             return Ok(ApiResponse<object?>.SuccessResponse(null, "Payment confirmed"));
         }

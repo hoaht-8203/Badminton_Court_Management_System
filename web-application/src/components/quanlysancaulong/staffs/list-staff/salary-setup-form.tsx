@@ -1,3 +1,5 @@
+// ...existing code...
+
 import React from "react";
 import { Card, Form, Select, Switch, Button, Tabs, Input, Tooltip } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
@@ -13,14 +15,30 @@ const salaryTemplates = [
 ];
 
 import type { FormInstance } from "antd/es/form";
+import { shiftService } from "@/services/shiftService";
 
 interface SalarySetupFormProps {
   onSubmit?: (values: any) => void;
   onCancel?: () => void;
   form?: FormInstance<any>;
+  onSalaryDataChange?: (data: any) => void;
 }
 
-export default function SalarySetupForm({ onSubmit, onCancel, form }: SalarySetupFormProps) {
+export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryDataChange }: SalarySetupFormProps) {
+  // ...existing code...
+  // ...existing code...
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
+  const [shiftOptions, setShiftOptions] = React.useState<{ value: string; label: string }[]>([]);
+  // Lấy danh sách ca khi bật nâng cao hoặc khi mount
+  React.useEffect(() => {
+    if (showAdvanced) {
+      shiftService.list().then((res) => {
+        if (Array.isArray(res.data)) {
+          setShiftOptions(res.data.map((shift) => ({ value: shift.id?.toString() || "", label: shift.name || "" })));
+        }
+      });
+    }
+  }, [showAdvanced]);
   const [showDeductionConfig, setShowDeductionConfig] = React.useState(false);
   // Hàm lấy dữ liệu submit
   const getSalaryData = () => {
@@ -32,7 +50,6 @@ export default function SalarySetupForm({ onSubmit, onCancel, form }: SalarySetu
       return { salaryAmount: usedForm.getFieldValue("salaryAmount") };
     }
   };
-  const [showAdvanced, setShowAdvanced] = React.useState(false);
   type AdvancedRow = {
     shiftType: string;
     amount: number | undefined;
@@ -52,6 +69,17 @@ export default function SalarySetupForm({ onSubmit, onCancel, form }: SalarySetu
       specialDay: "100%",
     },
   ]);
+
+  // Sync advancedRows and showAdvanced from form initial values (for edit mode)
+  React.useEffect(() => {
+    const values = form ? form.getFieldsValue() : {};
+    if (values && typeof values.showAdvanced !== "undefined") {
+      setShowAdvanced(!!values.showAdvanced);
+      if (values.showAdvanced && Array.isArray(values.advancedRows)) {
+        setAdvancedRows(values.advancedRows);
+      }
+    }
+  }, [form]);
 
   const handleAddAdvancedRow = () => {
     setAdvancedRows([
@@ -77,6 +105,26 @@ export default function SalarySetupForm({ onSubmit, onCancel, form }: SalarySetu
   const [internalForm] = Form.useForm();
   const usedForm = form ? form : internalForm;
   const [salaryType, setSalaryType] = React.useState<string | undefined>(undefined);
+  // Truyền dữ liệu nâng cao lên parent mỗi khi thay đổi
+  React.useEffect(() => {
+    if (typeof onSalaryDataChange === "function") {
+      if (showAdvanced) {
+        onSalaryDataChange({ showAdvanced, advancedRows });
+      } else {
+        onSalaryDataChange({ showAdvanced, salaryAmount: usedForm.getFieldValue("salaryAmount") });
+      }
+    }
+  }, [showAdvanced, advancedRows, usedForm, onSalaryDataChange]);
+  // Truyền dữ liệu nâng cao lên parent mỗi khi thay đổi
+  React.useEffect(() => {
+    if (typeof onSalaryDataChange === "function") {
+      if (showAdvanced) {
+        onSalaryDataChange({ showAdvanced, advancedRows });
+      } else {
+        onSalaryDataChange({ showAdvanced, salaryAmount: usedForm.getFieldValue("salaryAmount") });
+      }
+    }
+  }, [showAdvanced, advancedRows, usedForm, onSalaryDataChange]);
 
   React.useEffect(() => {
     // Sync salaryType state with form value
@@ -89,184 +137,173 @@ export default function SalarySetupForm({ onSubmit, onCancel, form }: SalarySetu
 
   return (
     <Form layout="vertical" style={{ background: "#fff", padding: 0 }} form={usedForm}>
-      <div>
-        <Card style={{ marginBottom: 16, padding: 16 }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>
-            Mẫu lương{" "}
-            <Tooltip title="Chọn mẫu lương có sẵn">
-              <InfoCircleOutlined style={{ marginLeft: 4 }} />
-            </Tooltip>
-          </div>
-          <Form.Item name="salaryTemplate">
-            <Select options={salaryTemplates} placeholder="Chọn mẫu lương có sẵn" allowClear />
-          </Form.Item>
-        </Card>
-        <Card style={{ marginBottom: 16, padding: 16 }}>
-          <div style={{ fontWeight: 600, marginBottom: 8 }}>Lương chính</div>
-          <Form.Item label="Loại lương" name="salaryType">
-            <Select options={salaryTypes} placeholder="Chọn Loại lương" allowClear onChange={(val) => setSalaryType(val)} />
-          </Form.Item>
-          {salaryType && (
-            <>
-              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 8 }}>
-                <span style={{ minWidth: 100 }}>Mức lương</span>
-                {!showAdvanced && (
-                  <Form.Item name="salaryAmount" style={{ marginBottom: 0, flex: 1 }}>
-                    <Input style={{ width: 240 }} addonAfter={salaryUnit} />
-                  </Form.Item>
-                )}
-                <div style={{ flex: 1 }} />
-                {salaryType !== "fixed" && (
-                  <span style={{ marginLeft: "auto" }}>
-                    Thiết lập nâng cao <Switch style={{ marginLeft: 8 }} checked={showAdvanced} onChange={setShowAdvanced} />
-                  </span>
-                )}
-              </div>
-              {showAdvanced && salaryType && salaryType !== "fixed" && (
-                <div style={{ marginTop: 16 }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", background: "#fafafa", marginBottom: 8 }}>
-                    <thead>
-                      <tr style={{ background: "#e5e5e5" }}>
-                        <th style={{ padding: 8, border: "1px solid #eee" }}>Ca</th>
-                        <th style={{ padding: 8, border: "1px solid #eee" }}>Lương/ca</th>
-                        <th style={{ padding: 8, border: "1px solid #eee" }}>Thứ 7</th>
-                        <th style={{ padding: 8, border: "1px solid #eee" }}>Chủ nhật</th>
-                        <th style={{ padding: 8, border: "1px solid #eee" }}>Ngày nghỉ</th>
-                        <th style={{ padding: 8, border: "1px solid #eee" }}>Ngày lễ tết</th>
-                        <th style={{ padding: 8, border: "1px solid #eee" }}></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {advancedRows.map((row, idx) => (
-                        <tr key={idx}>
-                          <td style={{ padding: 8, border: "1px solid #eee" }}>
-                            {idx === 0 ? (
-                              <span style={{ fontWeight: 500 }}>Mặc định</span>
-                            ) : (
-                              <Select
-                                placeholder="Chọn ca"
-                                style={{ width: 120 }}
-                                value={row.shiftType}
-                                onChange={(val) => handleAdvancedChange(idx, "shiftType", val)}
-                                options={[]}
-                              />
-                            )}
-                          </td>
-                          <td style={{ padding: 8, border: "1px solid #eee" }}>
-                            <Input
-                              placeholder="Lương/ca"
-                              value={row.amount}
-                              type="number"
-                              addonAfter={salaryUnit}
-                              onChange={(e) => handleAdvancedChange(idx, "amount", e.target.value)}
-                            />
-                          </td>
-                          <td style={{ padding: 8, border: "1px solid #eee" }}>
-                            <Input
-                              value={row.saturday}
-                              style={{ width: 80 }}
-                              onChange={(e) => handleAdvancedChange(idx, "saturday", e.target.value)}
-                            />
-                          </td>
-                          <td style={{ padding: 8, border: "1px solid #eee" }}>
-                            <Input value={row.sunday} style={{ width: 80 }} onChange={(e) => handleAdvancedChange(idx, "sunday", e.target.value)} />
-                          </td>
-                          <td style={{ padding: 8, border: "1px solid #eee" }}>
-                            <Input value={row.holiday} style={{ width: 80 }} onChange={(e) => handleAdvancedChange(idx, "holiday", e.target.value)} />
-                          </td>
-                          <td style={{ padding: 8, border: "1px solid #eee" }}>
-                            <Input
-                              value={row.specialDay}
-                              style={{ width: 80 }}
-                              onChange={(e) => handleAdvancedChange(idx, "specialDay", e.target.value)}
-                            />
-                          </td>
-                          <td style={{ padding: 8, border: "1px solid #eee", textAlign: "center" }}>
-                            {advancedRows.length > 1 && idx !== 0 && (
-                              <Button danger size="small" onClick={() => handleRemoveAdvancedRow(idx)}>
-                                Xóa
-                              </Button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <Button type="dashed" onClick={handleAddAdvancedRow}>
-                    Thêm điều kiện
-                  </Button>
-                </div>
+      {/* <Card style={{ marginBottom: 16, padding: 16 }}>
+        <div style={{ fontWeight: 600, marginBottom: 8 }}>
+          Mẫu lương{" "}
+          <Tooltip title="Chọn mẫu lương có sẵn">
+            <InfoCircleOutlined style={{ marginLeft: 4 }} />
+          </Tooltip>
+        </div>
+        <Form.Item name="salaryTemplate">
+          <Select options={salaryTemplates} placeholder="Chọn mẫu lương có sẵn" allowClear />
+        </Form.Item>
+      </Card> */}
+      <Card style={{ marginBottom: 16, padding: 16 }}>
+        <div style={{ fontWeight: 600, marginBottom: 8 }}>Lương chính</div>
+        <Form.Item label="Loại lương" name="salaryType">
+          <Select options={salaryTypes} placeholder="Chọn Loại lương" allowClear onChange={(val) => setSalaryType(val)} />
+        </Form.Item>
+        {salaryType && (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 8 }}>
+              <span style={{ minWidth: 100 }}>Mức lương</span>
+              {!showAdvanced && (
+                <Form.Item name="salaryAmount" style={{ marginBottom: 0, flex: 1 }} rules={[{ required: true, message: "Vui lòng nhập mức lương" }]}>
+                  <Input style={{ width: 240 }} addonAfter={salaryUnit} />
+                </Form.Item>
               )}
-            </>
-          )}
-        </Card>
-        <Card style={{ marginBottom: 16, padding: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div>
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>Giảm trừ</div>
-              <div style={{ color: "#888", marginBottom: 8 }}>Thiết lập giảm trừ cho đi muộn và về sớm</div>
+              <div style={{ flex: 1 }} />
+              {salaryType !== "fixed" && (
+                <span style={{ marginLeft: "auto" }}>
+                  Thiết lập nâng cao <Switch style={{ marginLeft: 8 }} checked={showAdvanced} onChange={setShowAdvanced} />
+                </span>
+              )}
             </div>
-            <Switch checked={showDeductionConfig} onChange={setShowDeductionConfig} />
+            {showAdvanced && salaryType && salaryType !== "fixed" && (
+              <div style={{ marginTop: 16 }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", background: "#fafafa", marginBottom: 8 }}>
+                  <thead>
+                    <tr style={{ background: "#e5e5e5" }}>
+                      <th style={{ padding: 8, border: "1px solid #eee" }}>Ca</th>
+                      <th style={{ padding: 8, border: "1px solid #eee" }}>Lương/ca</th>
+                      <th style={{ padding: 8, border: "1px solid #eee" }}>Thứ 7</th>
+                      <th style={{ padding: 8, border: "1px solid #eee" }}>Chủ nhật</th>
+                      <th style={{ padding: 8, border: "1px solid #eee" }}>Ngày nghỉ</th>
+                      <th style={{ padding: 8, border: "1px solid #eee" }}>Ngày lễ tết</th>
+                      <th style={{ padding: 8, border: "1px solid #eee" }}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {advancedRows.map((row, idx) => (
+                      <tr key={idx}>
+                        <td style={{ padding: 8, border: "1px solid #eee" }}>
+                          {idx === 0 ? (
+                            <span style={{ fontWeight: 500 }}>Mặc định</span>
+                          ) : (
+                            <Select
+                              placeholder="Chọn ca"
+                              style={{ width: 120 }}
+                              value={row.shiftType}
+                              onChange={(val) => handleAdvancedChange(idx, "shiftType", val)}
+                              options={shiftOptions}
+                            />
+                          )}
+                        </td>
+                        <td style={{ padding: 8, border: "1px solid #eee" }}>
+                          <Input
+                            placeholder="Lương/ca"
+                            value={row.amount}
+                            type="number"
+                            addonAfter={salaryUnit}
+                            onChange={(e) => handleAdvancedChange(idx, "amount", e.target.value)}
+                          />
+                        </td>
+                        <td style={{ padding: 8, border: "1px solid #eee" }}>
+                          <Input value={row.saturday} style={{ width: 80 }} onChange={(e) => handleAdvancedChange(idx, "saturday", e.target.value)} />
+                        </td>
+                        <td style={{ padding: 8, border: "1px solid #eee" }}>
+                          <Input value={row.sunday} style={{ width: 80 }} onChange={(e) => handleAdvancedChange(idx, "sunday", e.target.value)} />
+                        </td>
+                        <td style={{ padding: 8, border: "1px solid #eee" }}>
+                          <Input value={row.holiday} style={{ width: 80 }} onChange={(e) => handleAdvancedChange(idx, "holiday", e.target.value)} />
+                        </td>
+                        <td style={{ padding: 8, border: "1px solid #eee" }}>
+                          <Input
+                            value={row.specialDay}
+                            style={{ width: 80 }}
+                            onChange={(e) => handleAdvancedChange(idx, "specialDay", e.target.value)}
+                          />
+                        </td>
+                        <td style={{ padding: 8, border: "1px solid #eee", textAlign: "center" }}>
+                          {advancedRows.length > 1 && idx !== 0 && (
+                            <Button danger size="small" onClick={() => handleRemoveAdvancedRow(idx)}>
+                              Xóa
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <Button type="dashed" onClick={handleAddAdvancedRow}>
+                  Thêm điều kiện
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </Card>
+      <Card style={{ marginBottom: 16, padding: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <div style={{ fontWeight: 600, marginBottom: 8 }}>Giảm trừ</div>
+            <div style={{ color: "#888", marginBottom: 8 }}>Thiết lập giảm trừ cho đi muộn và về sớm</div>
           </div>
-          {showDeductionConfig && (
-            <div style={{ marginTop: 8 }}>
-              <div style={{ fontWeight: 500, marginBottom: 4 }}>Đi muộn</div>
-              <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-                <Form.Item label="Hình thức" name="deductionLateMethod" initialValue="count" style={{ marginBottom: 0 }}>
-                  <Select
-                    options={[
-                      { value: "count", label: "Theo số lần" },
-                      { value: "minute", label: "Theo số phút" },
-                    ]}
-                    style={{ width: 140 }}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Số tiền phạt (VNĐ)"
-                  name="deductionLateValue"
-                  rules={[{ required: true, message: "Nhập giá trị" }]}
-                  style={{ marginBottom: 0 }}
-                >
-                  <Input type="number" style={{ width: 120 }} min={0} />
-                </Form.Item>
-                /
-                <Form.Item label="Đơn vị" name="deductionLateParam" rules={[{ required: true, message: "Nhập tham số" }]} style={{ marginBottom: 0 }}>
-                  <Input type="number" style={{ width: 120 }} min={1} />
-                </Form.Item>
-              </div>
-              <div style={{ fontWeight: 500, marginBottom: 4 }}>Về sớm</div>
-              <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-                <Form.Item label="Hình thức" name="deductionEarlyMethod" initialValue="count" style={{ marginBottom: 0 }}>
-                  <Select
-                    options={[
-                      { value: "count", label: "Theo số lần" },
-                      { value: "minute", label: "Theo số phút" },
-                    ]}
-                    style={{ width: 140 }}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Số tiền phạt (VNĐ)"
-                  name="deductionEarlyValue"
-                  rules={[{ required: true, message: "Nhập giá trị" }]}
-                  style={{ marginBottom: 0 }}
-                >
-                  <Input type="number" style={{ width: 120 }} min={0} />
-                </Form.Item>
-                /
-                <Form.Item
-                  label="Đơn vị"
-                  name="deductionEarlyParam"
-                  rules={[{ required: true, message: "Nhập tham số" }]}
-                  style={{ marginBottom: 0 }}
-                >
-                  <Input type="number" style={{ width: 120 }} min={1} />
-                </Form.Item>
-              </div>
+          <Switch checked={showDeductionConfig} onChange={setShowDeductionConfig} />
+        </div>
+        {showDeductionConfig && (
+          <div style={{ marginTop: 8 }}>
+            <div style={{ fontWeight: 500, marginBottom: 4 }}>Đi muộn</div>
+            <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+              <Form.Item label="Hình thức" name="deductionLateMethod" initialValue="count" style={{ marginBottom: 0 }}>
+                <Select
+                  options={[
+                    { value: "count", label: "Theo số lần" },
+                    { value: "minute", label: "Theo số phút" },
+                  ]}
+                  style={{ width: 140 }}
+                />
+              </Form.Item>
+              <Form.Item
+                label="Số tiền phạt (VNĐ)"
+                name="deductionLateValue"
+                rules={[{ required: true, message: "Nhập giá trị" }]}
+                style={{ marginBottom: 0 }}
+              >
+                <Input type="number" style={{ width: 120 }} min={0} />
+              </Form.Item>
+              /
+              <Form.Item label="Đơn vị" name="deductionLateParam" rules={[{ required: true, message: "Nhập tham số" }]} style={{ marginBottom: 0 }}>
+                <Input type="number" style={{ width: 120 }} min={1} />
+              </Form.Item>
             </div>
-          )}
-        </Card>
-      </div>
+            <div style={{ fontWeight: 500, marginBottom: 4 }}>Về sớm</div>
+            <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+              <Form.Item label="Hình thức" name="deductionEarlyMethod" initialValue="count" style={{ marginBottom: 0 }}>
+                <Select
+                  options={[
+                    { value: "count", label: "Theo số lần" },
+                    { value: "minute", label: "Theo số phút" },
+                  ]}
+                  style={{ width: 140 }}
+                />
+              </Form.Item>
+              <Form.Item
+                label="Số tiền phạt (VNĐ)"
+                name="deductionEarlyValue"
+                rules={[{ required: true, message: "Nhập giá trị" }]}
+                style={{ marginBottom: 0 }}
+              >
+                <Input type="number" style={{ width: 120 }} min={0} />
+              </Form.Item>
+              /
+              <Form.Item label="Đơn vị" name="deductionEarlyParam" rules={[{ required: true, message: "Nhập tham số" }]} style={{ marginBottom: 0 }}>
+                <Input type="number" style={{ width: 120 }} min={1} />
+              </Form.Item>
+            </div>
+          </div>
+        )}
+      </Card>
     </Form>
   );
 }

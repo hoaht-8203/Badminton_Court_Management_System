@@ -24,8 +24,9 @@ const allFields = [
 ];
 
 const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff }) => {
+  const [salaryData, setSalaryData] = React.useState<any>({});
   const [form] = Form.useForm();
-    const [salaryForm] = Form.useForm(); // Ensure SalarySetupForm always receives a connected form instance
+  const [salaryForm] = Form.useForm(); // Ensure SalarySetupForm always receives a connected form instance
   const [expanded, setExpanded] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [fileList, setFileList] = useState<any[]>([]);
@@ -64,13 +65,21 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
   }, [open, staff, form, salaryForm]);
 
   const handleFinish = async (values: any) => {
+    console.log(values);
+
     // Chuyển đổi ngày về kiểu Date nếu có
     if (values.dateOfBirth && values.dateOfBirth.toDate) values.dateOfBirth = values.dateOfBirth.toDate();
     if (values.dateOfJoining && values.dateOfJoining.toDate) values.dateOfJoining = values.dateOfJoining.toDate();
     if (staff && staff.id) values.id = staff.id;
     // Lấy dữ liệu lương từ form lương
     const salaryValues = await salaryForm.getFieldsValue();
-    values.salarySettings = JSON.stringify(salaryValues);
+    let salarySettings;
+    if (salaryData.showAdvanced) {
+      salarySettings = { ...salaryValues, ...salaryData };
+    } else {
+      salarySettings = { ...salaryValues, salaryAmount: salaryValues.salaryAmount };
+    }
+    values.salarySettings = JSON.stringify(salarySettings);
     onSubmit(values);
     form.resetFields();
     salaryForm.resetFields();
@@ -160,31 +169,31 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
         </Space>
       }
     >
-          <Tabs
-            defaultActiveKey="info"
-            items={[
-              {
-                key: "info",
-                label: "Thông tin",
-                children: (
-                  <Form form={form} layout="vertical" onFinish={handleFinish}>
-                    {renderBasicFields()}
-                    <div style={{ margin: "16px 0" }}>
-                      <Button type="dashed" onClick={() => setExpanded((e) => !e)}>
-                        {expanded ? "Ẩn thông tin" : "Thêm thông tin"}
-                      </Button>
-                    </div>
-                    {expanded && <div style={{ marginBottom: 16 }}>{renderExtraFields()}</div>}
-                  </Form>
-                ),
-              },
-              {
-                key: "salary",
-                label: "Thiết lập lương",
-                children: <SalarySetupForm form={salaryForm} />, // Ensure SalarySetupForm always receives a connected form instance
-              },
-            ]}
-          />
+      <Tabs
+        defaultActiveKey="info"
+        items={[
+          {
+            key: "info",
+            label: "Thông tin",
+            children: (
+              <Form form={form} layout="vertical" onFinish={handleFinish}>
+                {renderBasicFields()}
+                <div style={{ margin: "16px 0" }}>
+                  <Button type="dashed" onClick={() => setExpanded((e) => !e)}>
+                    {expanded ? "Ẩn thông tin" : "Thêm thông tin"}
+                  </Button>
+                </div>
+                {expanded && <div style={{ marginBottom: 16 }}>{renderExtraFields()}</div>}
+              </Form>
+            ),
+          },
+          {
+            key: "salary",
+            label: "Thiết lập lương",
+            children: <SalarySetupForm form={salaryForm} onSalaryDataChange={setSalaryData} />, // Truyền callback để nhận dữ liệu nâng cao
+          },
+        ]}
+      />
     </Drawer>
   );
 };

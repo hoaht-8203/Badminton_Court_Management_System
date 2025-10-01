@@ -4,7 +4,7 @@ using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Entities;
 
-public class Invoice : BaseEntity
+public class Payment : BaseEntity
 {
     [Key]
     public required string Id { get; set; }
@@ -12,9 +12,9 @@ public class Invoice : BaseEntity
     public Guid BookingId { get; set; }
     public BookingCourt? Booking { get; set; }
 
-    public DateTime InvoiceDate { get; set; } = DateTime.UtcNow;
+    public DateTime PaymentCreatedAt { get; set; } = DateTime.UtcNow;
 
     public decimal Amount { get; set; }
-    public string Status { get; set; } = InvoiceStatus.Pending;
+    public string Status { get; set; } = PaymentStatus.PendingPayment;
     public string? Note { get; set; }
 }

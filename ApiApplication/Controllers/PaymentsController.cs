@@ -2,6 +2,7 @@ using System.Net;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Entities.Shared;
+using ApiApplication.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,23 +37,20 @@ public class PaymentWebhooksController(ApplicationDbContext context) : Controlle
         [FromBody] SePayWebhookRequest request
     )
     {
-        var header = Request.Headers["Authorization"].ToString();
+        var header = Request.Headers.Authorization.ToString();
         var expected = $"Apikey {Environment.GetEnvironmentVariable("SEPAY_API_KEY")}";
         if (
             string.IsNullOrWhiteSpace(header)
             || !string.Equals(header, expected, StringComparison.Ordinal)
         )
         {
-            return StatusCode(
-                (int)HttpStatusCode.Unauthorized,
-                ApiResponse<object?>.ErrorResponse("Unauthorized")
-            );
+            throw new ApiException("Unauthorized", HttpStatusCode.Unauthorized);
         }
 
         var probe = (request.Content ?? request.Description ?? string.Empty).Trim();
         if (string.IsNullOrEmpty(probe))
         {
-            return Ok(ApiResponse<object?>.SuccessResponse(null, "Ignored: no content"));
+            throw new ApiException("Ignored: no content", HttpStatusCode.BadRequest);
         }
 
         // Prefer PM- prefix for Payment Ids, fallback to raw probe
@@ -61,13 +59,11 @@ public class PaymentWebhooksController(ApplicationDbContext context) : Controlle
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                 .FirstOrDefault(s => s.StartsWith("PM-")) ?? probe;
 
-        var payment = await _context
-            .Payments.Include(i => i.Booking)
-            .FirstOrDefaultAsync(i => i.Id == paymentId);
-        if (payment == null)
-        {
-            return Ok(ApiResponse<object?>.SuccessResponse(null, "Ignored: payment not found"));
-        }
+        var payment =
+            await _context
+                .Payments.Include(i => i.Booking)
+                .FirstOrDefaultAsync(i => i.Id == paymentId)
+            ?? throw new ApiException("Payment not found", HttpStatusCode.BadRequest);
 
         if (
             string.Equals(request.TransferType, "in", StringComparison.OrdinalIgnoreCase)

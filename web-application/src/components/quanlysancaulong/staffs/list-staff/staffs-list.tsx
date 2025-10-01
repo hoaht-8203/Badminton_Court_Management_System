@@ -18,7 +18,7 @@ const getColumns = (): ColumnsType<any> => [
     render: (text: string, record: any) => (
       <div style={{ display: "flex", alignItems: "center" }}>
         <Avatar src={record.avatar ? record.avatar : null} />
-        <span style={{ marginLeft: 8 }}>NV{text}</span>
+        <span style={{ marginLeft: 8 }}>{`NV${String(text).padStart(6, "0")}`}</span>
       </div>
     ),
   },

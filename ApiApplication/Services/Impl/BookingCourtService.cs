@@ -84,6 +84,18 @@ public class BookingCourtService(
             }
         }
 
+        var court =
+            await _context.Courts.FirstOrDefaultAsync(c => c.Id == request.CourtId)
+            ?? throw new ApiException("Sân này không tồn tại.", HttpStatusCode.BadRequest);
+        if (court.Status == CourtStatus.Inactive)
+        {
+            throw new ApiException("Sân này không khả dụng.", HttpStatusCode.BadRequest);
+        }
+        if (court.Status == CourtStatus.Maintenance)
+        {
+            throw new ApiException("Sân này đang được bảo trì.", HttpStatusCode.BadRequest);
+        }
+
         // Kiểm tra cấu hình giá/khung giờ: nếu sân chưa cấu hình cho khoảng giờ đặt → chặn
         await EnsurePricingConfiguredForRequestAsync(request);
 
@@ -121,17 +133,25 @@ public class BookingCourtService(
         var nowUtc = DateTime.UtcNow;
 
         var exists = await query.AnyAsync(b =>
-            b.Status != Entities.Shared.BookingCourtStatus.PendingPayment
+            // Only Active and Completed bookings block new bookings
+            (
+                b.Status == Entities.Shared.BookingCourtStatus.Active
+                || b.Status == Entities.Shared.BookingCourtStatus.Completed
+            )
             || (
-                // If explicit expiry exists, require it to be in the future to block
-                (b.HoldExpiresAtUtc != null && b.HoldExpiresAtUtc > nowUtc)
-                // Otherwise fallback to CreatedAt + HoldMinutes
-                || (
-                    b.HoldExpiresAtUtc == null
-                    && (
-                        holdMinutes == null
-                            ? true
-                            : b.CreatedAt > nowUtc.AddMinutes(-holdMinutes.Value)
+                // PendingPayment bookings only block if they haven't expired
+                b.Status == Entities.Shared.BookingCourtStatus.PendingPayment
+                && (
+                    // If explicit expiry exists, require it to be in the future to block
+                    (b.HoldExpiresAtUtc != null && b.HoldExpiresAtUtc > nowUtc)
+                    // Otherwise fallback to CreatedAt + HoldMinutes
+                    || (
+                        b.HoldExpiresAtUtc == null
+                        && (
+                            holdMinutes == null
+                                ? true
+                                : b.CreatedAt > nowUtc.AddMinutes(-holdMinutes.Value)
+                        )
                     )
                 )
             )

@@ -3,6 +3,7 @@ import { UploadOutlined } from "@ant-design/icons";
 import { Avatar, Button, Col, DatePicker, Drawer, Form, Input, Row, Space, Tabs, Upload } from "antd";
 import dayjs from "dayjs";
 import React, { useState } from "react";
+import SalarySetupForm from "@/components/quanlysancaulong/staffs/list-staff/salary-setup-form";
 
 interface StaffModalProps {
   open: boolean;
@@ -24,6 +25,7 @@ const allFields = [
 
 const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff }) => {
   const [form] = Form.useForm();
+    const [salaryForm] = Form.useForm(); // Ensure SalarySetupForm always receives a connected form instance
   const [expanded, setExpanded] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [fileList, setFileList] = useState<any[]>([]);
@@ -36,6 +38,15 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
         dateOfBirth: staff.dateOfBirth ? (typeof staff.dateOfBirth === "string" ? dayjs(staff.dateOfBirth) : staff.dateOfBirth) : undefined,
         dateOfJoining: staff.dateOfJoining ? (typeof staff.dateOfJoining === "string" ? dayjs(staff.dateOfJoining) : staff.dateOfJoining) : undefined,
       });
+      // Fill salary form nếu có dữ liệu
+      if (staff.salarySettings) {
+        try {
+          const salaryObj = JSON.parse(staff.salarySettings);
+          salaryForm.setFieldsValue(salaryObj);
+        } catch {}
+      } else {
+        salaryForm.resetFields();
+      }
       if (staff.avatarUrl) {
         setAvatarPreview(staff.avatarUrl);
         setFileList([]);
@@ -46,18 +57,23 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
     }
     if (open && !staff) {
       form.resetFields();
+      salaryForm.resetFields();
       setAvatarPreview(undefined);
       setFileList([]);
     }
-  }, [open, staff, form]);
+  }, [open, staff, form, salaryForm]);
 
-  const handleFinish = (values: any) => {
+  const handleFinish = async (values: any) => {
     // Chuyển đổi ngày về kiểu Date nếu có
     if (values.dateOfBirth && values.dateOfBirth.toDate) values.dateOfBirth = values.dateOfBirth.toDate();
     if (values.dateOfJoining && values.dateOfJoining.toDate) values.dateOfJoining = values.dateOfJoining.toDate();
     if (staff && staff.id) values.id = staff.id;
+    // Lấy dữ liệu lương từ form lương
+    const salaryValues = await salaryForm.getFieldsValue();
+    values.salarySettings = JSON.stringify(salaryValues);
     onSubmit(values);
     form.resetFields();
+    salaryForm.resetFields();
     setAvatarPreview(undefined);
     setFileList([]);
     setExpanded(false);
@@ -144,31 +160,31 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
         </Space>
       }
     >
-      <Tabs
-        defaultActiveKey="info"
-        items={[
-          {
-            key: "info",
-            label: "Thông tin",
-            children: (
-              <Form form={form} layout="vertical" onFinish={handleFinish}>
-                {renderBasicFields()}
-                <div style={{ margin: "16px 0" }}>
-                  <Button type="dashed" onClick={() => setExpanded((e) => !e)}>
-                    {expanded ? "Ẩn thông tin" : "Thêm thông tin"}
-                  </Button>
-                </div>
-                {expanded && <div style={{ marginBottom: 16 }}>{renderExtraFields()}</div>}
-              </Form>
-            ),
-          },
-          {
-            key: "salary",
-            label: "Thiết lập lương",
-            children: <div>Chưa có nội dung</div>,
-          },
-        ]}
-      />
+          <Tabs
+            defaultActiveKey="info"
+            items={[
+              {
+                key: "info",
+                label: "Thông tin",
+                children: (
+                  <Form form={form} layout="vertical" onFinish={handleFinish}>
+                    {renderBasicFields()}
+                    <div style={{ margin: "16px 0" }}>
+                      <Button type="dashed" onClick={() => setExpanded((e) => !e)}>
+                        {expanded ? "Ẩn thông tin" : "Thêm thông tin"}
+                      </Button>
+                    </div>
+                    {expanded && <div style={{ marginBottom: 16 }}>{renderExtraFields()}</div>}
+                  </Form>
+                ),
+              },
+              {
+                key: "salary",
+                label: "Thiết lập lương",
+                children: <SalarySetupForm form={salaryForm} />, // Ensure SalarySetupForm always receives a connected form instance
+              },
+            ]}
+          />
     </Drawer>
   );
 };

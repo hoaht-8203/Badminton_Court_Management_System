@@ -237,7 +237,7 @@ builder.Services.AddCors(options =>
             [
                 "https://purple-cliff-047082910.2.azurestaticapps.net",
                 "http://localhost:3000",
-                "caulong365.store",
+                "https://caulong365.store",
             ]
         );
 

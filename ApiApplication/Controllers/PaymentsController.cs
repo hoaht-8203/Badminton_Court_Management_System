@@ -15,18 +15,18 @@ public class PaymentWebhooksController(ApplicationDbContext context) : Controlle
 
     public class SePayWebhookRequest
     {
-        public int id { get; set; }
-        public string? gateway { get; set; }
-        public string? transactionDate { get; set; }
-        public string? accountNumber { get; set; }
-        public string? code { get; set; }
-        public string? content { get; set; }
-        public string? transferType { get; set; }
-        public long transferAmount { get; set; }
-        public long accumulated { get; set; }
-        public string? subAccount { get; set; }
-        public string? referenceCode { get; set; }
-        public string? description { get; set; }
+        public int Id { get; set; }
+        public string? Gateway { get; set; }
+        public string? TransactionDate { get; set; }
+        public string? AccountNumber { get; set; }
+        public string? Code { get; set; }
+        public string? Content { get; set; }
+        public string? TransferType { get; set; }
+        public long TransferAmount { get; set; }
+        public long Accumulated { get; set; }
+        public string? SubAccount { get; set; }
+        public string? ReferenceCode { get; set; }
+        public string? Description { get; set; }
     }
 
     [HttpPost("sepay/webhook")]
@@ -49,7 +49,7 @@ public class PaymentWebhooksController(ApplicationDbContext context) : Controlle
             );
         }
 
-        var probe = (request.content ?? request.description ?? string.Empty).Trim();
+        var probe = (request.Content ?? request.Description ?? string.Empty).Trim();
         if (string.IsNullOrEmpty(probe))
         {
             return Ok(ApiResponse<object?>.SuccessResponse(null, "Ignored: no content"));
@@ -70,8 +70,8 @@ public class PaymentWebhooksController(ApplicationDbContext context) : Controlle
         }
 
         if (
-            string.Equals(request.transferType, "in", StringComparison.OrdinalIgnoreCase)
-            && request.transferAmount >= (long)Math.Round(payment.Amount, 0)
+            string.Equals(request.TransferType, "in", StringComparison.OrdinalIgnoreCase)
+            && request.TransferAmount >= (long)Math.Round(payment.Amount, 0)
         )
         {
             payment.Status = PaymentStatus.Paid;

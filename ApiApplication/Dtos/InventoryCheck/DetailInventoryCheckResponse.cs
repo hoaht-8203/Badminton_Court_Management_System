@@ -1,0 +1,20 @@
+using ApiApplication.Entities.Shared;
+
+namespace ApiApplication.Dtos.InventoryCheck;
+
+public class DetailInventoryCheckResponse
+{
+    public int Id { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public DateTime CheckTime { get; set; }
+    public InventoryCheckStatus Status { get; set; }
+    public string? Note { get; set; }
+    public DateTime? BalancedAt { get; set; }
+    public string? CreatedBy { get; set; }
+    public List<InventoryCheckItemResponse> Items { get; set; } = new();
+
+    public int TotalActual => Items.Sum(i => i.ActualQuantity);
+    public int TotalDeltaIncrease => Items.Sum(i => Math.Max(0, i.DeltaQuantity));
+    public int TotalDeltaDecrease => Items.Sum(i => Math.Max(0, -i.DeltaQuantity));
+    public int TotalDelta => Items.Sum(i => i.DeltaQuantity);
+} 

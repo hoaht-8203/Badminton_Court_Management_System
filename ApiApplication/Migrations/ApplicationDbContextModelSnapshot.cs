@@ -680,6 +680,90 @@ namespace ApiApplication.Migrations
                     b.ToTable("Departments");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.InventoryCheck", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("BalancedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CheckTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("InventoryChecks");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.InventoryCheckItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ActualQuantity")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("InventoryCheckId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SystemQuantity")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryCheckId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("InventoryCheckItems");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Invoice", b =>
                 {
                     b.Property<string>("Id")
@@ -1505,6 +1589,25 @@ namespace ApiApplication.Migrations
                     b.Navigation("Court");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.InventoryCheckItem", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.InventoryCheck", "InventoryCheck")
+                        .WithMany("Items")
+                        .HasForeignKey("InventoryCheckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiApplication.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("InventoryCheck");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Invoice", b =>
                 {
                     b.HasOne("ApiApplication.Entities.BookingCourt", "Booking")
@@ -1667,6 +1770,11 @@ namespace ApiApplication.Migrations
             modelBuilder.Entity("ApiApplication.Entities.CourtArea", b =>
                 {
                     b.Navigation("Courts");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.InventoryCheck", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Payroll", b =>

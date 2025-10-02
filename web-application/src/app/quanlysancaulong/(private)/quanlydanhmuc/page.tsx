@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeleteProduct, useListProducts, useUpdateProduct, useDetailProduct } from "@/hooks/useProducts";
+import { useDeleteProduct, useListProducts, /* useUpdateProduct, */ useDetailProduct } from "@/hooks/useProducts";
 import { ApiError, axiosInstance } from "@/lib/axios";
 import { DetailProductResponse, ListProductRequest, ListProductResponse } from "@/types-openapi/api";
 import { Breadcrumb, Button, Col, Divider, Image, message, Modal, Row, Table, TableProps } from "antd";
@@ -30,12 +30,12 @@ const ProductCategoryPage = () => {
 
   const { data, isFetching, refetch } = useListProducts(searchParams);
   const deleteMutation = useDeleteProduct();
-  const updateMutation = useUpdateProduct();
+  // const updateMutation = useUpdateProduct(); // Unused - comment out
 
   const tableData = useMemo(() => {
     let arr = [...(data?.data ?? [])];
     if (typeof searchParams.isActive === "boolean") {
-      arr = arr.filter((x) => (!!x.isActive) === searchParams.isActive);
+      arr = arr.filter((x) => !!x.isActive === searchParams.isActive);
     }
     if (searchParams.priceSort === "ascend") {
       arr.sort((a, b) => (a.salePrice ?? 0) - (b.salePrice ?? 0));
@@ -75,48 +75,50 @@ const ProductCategoryPage = () => {
         </div>
 
         <Table<ListProductResponse>
-        {...tableProps}
-        columns={[...productColumns!]}
-        dataSource={tableData}
-        loading={isFetching}
-        expandable={{
-          expandRowByClick: true,
-          expandedRowRender: (record) => (
-            <ProductInformation
-              record={record}
-              onEdit={() => {
-                setCurrentId(record.id!);
-                setOpenUpdate(true);
-              }}
-              onDelete={() => {
-                modal.confirm({
-                  title: "Xác nhận",
-                  content: `Xóa hàng hóa ${record.name}?`,
-                  onOk: () =>
-                    deleteMutation.mutate(
-                      { id: record.id! },
-                      { onSuccess: () => message.success("Xóa thành công"), onError: (e: ApiError) => message.error(e.message) },
-                    ),
-                });
-              }}
-              onChangeStatus={(active) =>
-                modal.confirm({
-                  title: "Xác nhận",
-                  content: active ? "Bạn có chắc chắn muốn mở kinh doanh cho hàng hóa này?" : "Bạn có chắc chắn muốn ngừng kinh doanh hàng hóa này?",
-                  onOk: async () => {
-                    try {
-                      await updateStatus(record.id!, active);
-                      message.success("Cập nhật trạng thái thành công");
-                      refetch();
-                    } catch (e: any) {
-                      message.error(e?.message || "Lỗi cập nhật trạng thái");
-                    }
-                  },
-                })
-              }
-            />
-          ),
-        }}
+          {...tableProps}
+          columns={[...productColumns!]}
+          dataSource={tableData}
+          loading={isFetching}
+          expandable={{
+            expandRowByClick: true,
+            expandedRowRender: (record) => (
+              <ProductInformation
+                record={record}
+                onEdit={() => {
+                  setCurrentId(record.id!);
+                  setOpenUpdate(true);
+                }}
+                onDelete={() => {
+                  modal.confirm({
+                    title: "Xác nhận",
+                    content: `Xóa hàng hóa ${record.name}?`,
+                    onOk: () =>
+                      deleteMutation.mutate(
+                        { id: record.id! },
+                        { onSuccess: () => message.success("Xóa thành công"), onError: (e: ApiError) => message.error(e.message) },
+                      ),
+                  });
+                }}
+                onChangeStatus={(active) =>
+                  modal.confirm({
+                    title: "Xác nhận",
+                    content: active
+                      ? "Bạn có chắc chắn muốn mở kinh doanh cho hàng hóa này?"
+                      : "Bạn có chắc chắn muốn ngừng kinh doanh hàng hóa này?",
+                    onOk: async () => {
+                      try {
+                        await updateStatus(record.id!, active);
+                        message.success("Cập nhật trạng thái thành công");
+                        refetch();
+                      } catch (e: any) {
+                        message.error(e?.message || "Lỗi cập nhật trạng thái");
+                      }
+                    },
+                  })
+                }
+              />
+            ),
+          }}
         />
       </div>
 
@@ -128,7 +130,17 @@ const ProductCategoryPage = () => {
   );
 };
 
-const ProductInformation = ({ record, onEdit, onDelete, onChangeStatus }: { record: ListProductResponse; onEdit: () => void; onDelete: () => void; onChangeStatus: (active: boolean) => void }) => {
+const ProductInformation = ({
+  record,
+  onEdit,
+  onDelete,
+  onChangeStatus,
+}: {
+  record: ListProductResponse;
+  onEdit: () => void;
+  onDelete: () => void;
+  onChangeStatus: (active: boolean) => void;
+}) => {
   const isActive = !!record.isActive;
   const { data: detail } = useDetailProduct({ id: record.id! }, true);
   const d = detail?.data as DetailProductResponse | undefined;
@@ -200,7 +212,14 @@ const ProductInformation = ({ record, onEdit, onDelete, onChangeStatus }: { reco
           <div className="mb-2 font-semibold">Hình ảnh</div>
           <Image.PreviewGroup>
             {d.images.map((url, idx) => (
-              <Image key={idx} src={url} width={96} height={96} style={{ objectFit: "cover", marginRight: 8, borderRadius: 6 }} />
+              <Image
+                key={idx}
+                src={url}
+                alt={`Product image ${idx + 1}`}
+                width={96}
+                height={96}
+                style={{ objectFit: "cover", marginRight: 8, borderRadius: 6 }}
+              />
             ))}
           </Image.PreviewGroup>
         </div>
@@ -221,7 +240,11 @@ const ProductInformation = ({ record, onEdit, onDelete, onChangeStatus }: { reco
               Ngừng hoạt động
             </Button>
           ) : (
-            <Button className="!bg-green-500 !text-white !border-green-500 hover:!bg-green-500 hover:!text-white hover:!border-green-500 focus:!shadow-none active:!bg-green-500" icon={<CheckOutlined />} onClick={() => onChangeStatus(true)}>
+            <Button
+              className="!border-green-500 !bg-green-500 !text-white hover:!border-green-500 hover:!bg-green-500 hover:!text-white focus:!shadow-none active:!bg-green-500"
+              icon={<CheckOutlined />}
+              onClick={() => onChangeStatus(true)}
+            >
               Kinh doanh
             </Button>
           )}
@@ -231,4 +254,4 @@ const ProductInformation = ({ record, onEdit, onDelete, onChangeStatus }: { reco
   );
 };
 
-export default ProductCategoryPage; 
+export default ProductCategoryPage;

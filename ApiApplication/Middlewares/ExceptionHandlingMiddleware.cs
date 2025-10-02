@@ -51,7 +51,9 @@ public class ExceptionHandlingMiddleware
                     break;
                 default:
                     response.StatusCode = StatusCodes.Status500InternalServerError;
-                    errorResponse.Message = "An internal server error occurred.";
+                    // show detailed error in development
+                    var isDev = context.RequestServices.GetRequiredService<IHostEnvironment>().IsDevelopment();
+                    errorResponse.Message = isDev ? error.Message : "An internal server error occurred.";
                     break;
             }
 

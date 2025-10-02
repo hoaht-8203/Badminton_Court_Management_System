@@ -25,10 +25,67 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
     }
   }, [data?.data, open, form]);
 
+  // Import inventory hooks at the top of the file
+  const createInventoryCheck = async (productCode: string, productName: string, productId: number, stock: number, previousStock: number) => {
+    try {
+      const inventoryService = (await import("@/services/inventoryService")).inventoryService;
+      const productService = (await import("@/services/productService")).productService;
+
+      // Get product ID if needed
+      let prodId = productId;
+      if (!prodId) {
+        const products = await productService.list({ code: productCode });
+        if (products.data && products.data.length > 0) {
+          prodId = products.data[0].id!;
+        }
+      }
+
+      if (!prodId) {
+        console.error("Could not find product ID");
+        return;
+      }
+
+      // Create inventory check
+      const now = new Date();
+      const checkData = {
+        code: `KK${now.getTime().toString().substring(5)}`,
+        checkTime: now,
+        note: `Phiếu kiểm kho được tạo tự động khi cập nhật Hàng hóa:${productName}`,
+        status: 1, // Đã cân bằng kho
+        items: [
+          {
+            productId: prodId,
+            productCode: productCode,
+            productName: productName,
+            systemQuantity: previousStock || 0,
+            actualQuantity: stock || 0,
+            // deltaQuantity will be calculated on the server side
+          },
+        ],
+      };
+
+      await inventoryService.create(checkData);
+      message.success("Đã tạo phiếu kiểm kho tự động");
+    } catch (error) {
+      console.error("Failed to create inventory check:", error);
+      message.warning("Cập nhật hàng hóa thành công nhưng không thể tạo phiếu kiểm kho tự động");
+    }
+  };
+
   const onSubmit = (values: UpdateProductRequest) => {
+    const previousStock = data?.data?.stock || 0;
+    const newStock = values.stock || 0;
+    const stockChanged = values.manageInventory && previousStock !== newStock;
+
     updateMutation.mutate(values, {
-      onSuccess: () => {
+      onSuccess: async () => {
         message.success("Cập nhật hàng hóa thành công");
+
+        // Create inventory check if stock changed
+        if (stockChanged && values.code && values.name) {
+          await createInventoryCheck(values.code, values.name, values.id!, newStock, previousStock);
+        }
+
         onClose();
       },
       onError: (err: ApiError) => message.error(err.message),
@@ -42,24 +99,38 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
           <Form.Item name="id" hidden>
             <InputNumber />
           </Form.Item>
-          <Form.Item name="code" label="Mã code" rules={[{
-            validator: async (_rule, value) => {
-              if (!value) return Promise.resolve();
-              const res = await (await import("@/services/productService")).productService.list({ code: value });
-              const dup = (res.data || []).some((p: any) => (p.code || "").toLowerCase() === String(value).toLowerCase() && p.id !== productId);
-              if (dup) return Promise.reject(new Error("Mã hàng đã tồn tại"));
-              return Promise.resolve();
-            }
-          }]}>
+          <Form.Item
+            name="code"
+            label="Mã code"
+            rules={[
+              {
+                validator: async (_rule, value) => {
+                  if (!value) return Promise.resolve();
+                  const res = await (await import("@/services/productService")).productService.list({ code: value });
+                  const dup = (res.data || []).some((p: any) => (p.code || "").toLowerCase() === String(value).toLowerCase() && p.id !== productId);
+                  if (dup) return Promise.reject(new Error("Mã hàng đã tồn tại"));
+                  return Promise.resolve();
+                },
+              },
+            ]}
+          >
             <Input placeholder="VD: SP001" />
           </Form.Item>
-          <Form.Item name="name" label="Tên hàng" rules={[{ validator: async (_rule, value) => {
-            if (!value) return Promise.resolve();
-            const res = await (await import("@/services/productService")).productService.list({ name: value });
-            const dup = (res.data || []).some((p: any) => (p.name || "").toLowerCase() === String(value).toLowerCase() && p.id !== productId);
-            if (dup) return Promise.reject(new Error("Tên hàng đã tồn tại"));
-            return Promise.resolve();
-          }}]}>
+          <Form.Item
+            name="name"
+            label="Tên hàng"
+            rules={[
+              {
+                validator: async (_rule, value) => {
+                  if (!value) return Promise.resolve();
+                  const res = await (await import("@/services/productService")).productService.list({ name: value });
+                  const dup = (res.data || []).some((p: any) => (p.name || "").toLowerCase() === String(value).toLowerCase() && p.id !== productId);
+                  if (dup) return Promise.reject(new Error("Tên hàng đã tồn tại"));
+                  return Promise.resolve();
+                },
+              },
+            ]}
+          >
             <Input />
           </Form.Item>
           <Form.Item name="menuType" label="Loại thực đơn">
@@ -95,13 +166,43 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
           </Form.Item>
           {manageInventory && (
             <>
-              <Form.Item name="stock" label={<span>Tồn kho <Tooltip title="Số lượng tồn kho của sản phẩm (hệ thống sẽ tự động tạo phiếu kiểm kho nếu không nhập thì coi là 0)"><InfoCircleOutlined className="text-gray-400 hover:text-gray-600 cursor-help" /></Tooltip></span>}>
+              <Form.Item
+                name="stock"
+                label={
+                  <span>
+                    Tồn kho{" "}
+                    <Tooltip title="Số lượng tồn kho của sản phẩm (hệ thống sẽ tự động tạo phiếu kiểm kho giống như phần mềm Kiot Việt)">
+                      <InfoCircleOutlined className="cursor-help text-gray-400 hover:text-gray-600" />
+                    </Tooltip>
+                  </span>
+                }
+              >
                 <InputNumber min={0} style={{ width: "100%" }} />
               </Form.Item>
-              <Form.Item name="minStock" label={<span>Ít nhất <Tooltip title="Tồn ít nhất là tồn tối thiểu của 1 sản phẩm (hệ thống sẽ dựa vào thông tin này để cảnh báo tồn kho tối thiểu)"><InfoCircleOutlined className="text-gray-400 hover:text-gray-600 cursor-help" /></Tooltip></span>}>
+              <Form.Item
+                name="minStock"
+                label={
+                  <span>
+                    Ít nhất{" "}
+                    <Tooltip title="Tồn ít nhất là tồn tối thiểu của 1 sản phẩm (hệ thống sẽ dựa vào thông tin này để cảnh báo tồn kho tối thiểu)">
+                      <InfoCircleOutlined className="cursor-help text-gray-400 hover:text-gray-600" />
+                    </Tooltip>
+                  </span>
+                }
+              >
                 <InputNumber min={0} style={{ width: "100%" }} />
               </Form.Item>
-              <Form.Item name="maxStock" label={<span>Nhiều nhất <Tooltip title="Tồn nhiều nhất là tồn tối đa của 1 sản phẩm (hệ thống sẽ dựa vào thông tin này để cảnh báo khi hàng hóa vượt quá mức tồn cho phép)"><InfoCircleOutlined className="text-gray-400 hover:text-gray-600 cursor-help" /></Tooltip></span>}>
+              <Form.Item
+                name="maxStock"
+                label={
+                  <span>
+                    Nhiều nhất{" "}
+                    <Tooltip title="Tồn nhiều nhất là tồn tối đa của 1 sản phẩm (hệ thống sẽ dựa vào thông tin này để cảnh báo khi hàng hóa vượt quá mức tồn cho phép)">
+                      <InfoCircleOutlined className="cursor-help text-gray-400 hover:text-gray-600" />
+                    </Tooltip>
+                  </span>
+                }
+              >
                 <InputNumber min={0} style={{ width: "100%" }} />
               </Form.Item>
             </>

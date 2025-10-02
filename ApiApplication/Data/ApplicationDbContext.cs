@@ -46,6 +46,9 @@ public class ApplicationDbContext(
     public DbSet<PriceTimeRange> PriceTimeRanges { get; set; }
     public DbSet<PriceTableProduct> PriceTableProducts { get; set; }
 
+    public DbSet<InventoryCheck> InventoryChecks { get; set; }
+    public DbSet<InventoryCheckItem> InventoryCheckItems { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -72,22 +75,33 @@ public class ApplicationDbContext(
         // Price table mappings
         builder.Entity<PriceTable>(entity =>
         {
-            entity
-                .HasMany(p => p.TimeRanges)
-                .WithOne(r => r.PriceTable)
-                .HasForeignKey(r => r.PriceTableId)
-                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(p => p.TimeRanges).WithOne(r => r.PriceTable).HasForeignKey(r => r.PriceTableId).OnDelete(DeleteBehavior.Cascade);
         });
         builder.Entity<PriceTimeRange>(entity => { });
         builder.Entity<PriceTableProduct>(entity =>
         {
             entity.HasKey(x => new { x.PriceTableId, x.ProductId });
-            entity
-                .HasOne(x => x.PriceTable)
-                .WithMany(p => p.PriceTableProducts)
-                .HasForeignKey(x => x.PriceTableId);
+            entity.HasOne(x => x.PriceTable).WithMany(p => p.PriceTableProducts).HasForeignKey(x => x.PriceTableId);
             entity.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId);
             entity.Property(x => x.OverrideSalePrice).HasColumnType("decimal(18,2)");
+        });
+
+        // Inventory check mappings
+        builder.Entity<InventoryCheck>(entity =>
+        {
+            entity.Property(p => p.Code).HasMaxLength(20);
+            entity.Property(p => p.Note).HasMaxLength(500);
+            entity.HasMany(p => p.Items)
+                .WithOne(i => i.InventoryCheck)
+                .HasForeignKey(i => i.InventoryCheckId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<InventoryCheckItem>(entity =>
+        {
+            entity.HasOne(i => i.Product)
+                .WithMany()
+                .HasForeignKey(i => i.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder
@@ -158,6 +172,8 @@ public class ApplicationDbContext(
                 "AQAAAAIAAYagAAAAEFqGX2kp4KdZKDMjapLakqUamDNwC0vTXnvlme/+yss14bhAg0PbRCxpq4LkX3TzyQ==",
         };
 
+        
+
         builder.Entity<ApplicationUser>().HasData(adminUser);
 
         // Gán role Admin cho user
@@ -172,7 +188,7 @@ public class ApplicationDbContext(
             );
     }
 
-    private static void SeedCustomerData(ModelBuilder builder)
+     private static void SeedCustomerData(ModelBuilder builder)
     {
         builder
             .Entity<Customer>()
@@ -301,9 +317,7 @@ public class ApplicationDbContext(
                 && (e.State == EntityState.Added || e.State == EntityState.Modified)
             );
 
-        var username = string.IsNullOrWhiteSpace(_currentUser.Username)
-            ? "System"
-            : _currentUser.Username;
+        var username = string.IsNullOrWhiteSpace(_currentUser.Username) ? "System" : _currentUser.Username;
 
         foreach (var entityEntry in entries)
         {

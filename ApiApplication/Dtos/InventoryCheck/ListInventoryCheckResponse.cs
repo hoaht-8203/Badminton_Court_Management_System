@@ -1,0 +1,16 @@
+using ApiApplication.Entities.Shared;
+
+namespace ApiApplication.Dtos.InventoryCheck;
+
+public class ListInventoryCheckResponse
+{
+    public int Id { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public DateTime CheckTime { get; set; }
+    public InventoryCheckStatus Status { get; set; }
+    public DateTime? BalancedAt { get; set; }
+    public string? Note { get; set; }
+    public int TotalDeltaIncrease { get; set; }
+    public int TotalDeltaDecrease { get; set; }
+    public int TotalDelta { get; set; }
+} 

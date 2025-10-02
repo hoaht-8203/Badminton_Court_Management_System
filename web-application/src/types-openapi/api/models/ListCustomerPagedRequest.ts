@@ -21,54 +21,6 @@ import { mapValues } from '../runtime';
 export interface ListCustomerPagedRequest {
     /**
      * 
-     * @type {string}
-     * @memberof ListCustomerPagedRequest
-     */
-    fullName?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCustomerPagedRequest
-     */
-    phone?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCustomerPagedRequest
-     */
-    gender?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCustomerPagedRequest
-     */
-    address?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCustomerPagedRequest
-     */
-    city?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCustomerPagedRequest
-     */
-    district?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCustomerPagedRequest
-     */
-    ward?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListCustomerPagedRequest
-     */
-    status?: string | null;
-    /**
-     * 
      * @type {number}
      * @memberof ListCustomerPagedRequest
      */
@@ -79,6 +31,12 @@ export interface ListCustomerPagedRequest {
      * @memberof ListCustomerPagedRequest
      */
     pageSize?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListCustomerPagedRequest
+     */
+    keyword?: string | null;
 }
 
 /**
@@ -98,16 +56,9 @@ export function ListCustomerPagedRequestFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'fullName': json['fullName'] == null ? undefined : json['fullName'],
-        'phone': json['phone'] == null ? undefined : json['phone'],
-        'gender': json['gender'] == null ? undefined : json['gender'],
-        'address': json['address'] == null ? undefined : json['address'],
-        'city': json['city'] == null ? undefined : json['city'],
-        'district': json['district'] == null ? undefined : json['district'],
-        'ward': json['ward'] == null ? undefined : json['ward'],
-        'status': json['status'] == null ? undefined : json['status'],
         'page': json['page'] == null ? undefined : json['page'],
         'pageSize': json['pageSize'] == null ? undefined : json['pageSize'],
+        'keyword': json['keyword'] == null ? undefined : json['keyword'],
     };
 }
 
@@ -122,16 +73,9 @@ export function ListCustomerPagedRequestToJSONTyped(value?: ListCustomerPagedReq
 
     return {
         
-        'fullName': value['fullName'],
-        'phone': value['phone'],
-        'gender': value['gender'],
-        'address': value['address'],
-        'city': value['city'],
-        'district': value['district'],
-        'ward': value['ward'],
-        'status': value['status'],
         'page': value['page'],
         'pageSize': value['pageSize'],
+        'keyword': value['keyword'],
     };
 }
 

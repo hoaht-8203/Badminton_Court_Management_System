@@ -10,6 +10,7 @@ import {
   CopyOutlined,
   DeleteOutlined,
   EditOutlined,
+  HolderOutlined,
   InfoCircleOutlined,
   LoadingOutlined,
   SaveOutlined,
@@ -43,6 +44,10 @@ import { CarouselRef } from "antd/es/carousel";
 import FormItem from "antd/es/form/FormItem";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import ManageCourtPricingRuleTemplateDrawer from "./manage-court-pricing-rule-template-drawer";
 import CreateNewCourtAreaDrawer from "./create-new-court-area-drawer";
 import { fileService } from "@/services/fileService";
@@ -53,11 +58,50 @@ interface UpdateCourtDrawerProps {
   courtId: string;
 }
 
+// Sortable Item Component
+const SortableItem = ({ id, children }: { id: string; children: React.ReactNode }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div
+          {...listeners}
+          style={{
+            cursor: "grab",
+            padding: "4px",
+            display: "flex",
+            alignItems: "center",
+            color: "#999",
+          }}
+        >
+          <HolderOutlined />
+        </div>
+        <div style={{ flex: 1 }}>{children}</div>
+      </div>
+    </div>
+  );
+};
+
 const UpdateCourtDrawer = ({ open, onClose, courtId }: UpdateCourtDrawerProps) => {
   const [form] = Form.useForm();
   const { data: detailData, isFetching: loadingDetail, refetch } = useDetailCourt({ id: courtId });
   const { data: courtAreas, isFetching: loadingCourtAreas } = useListCourtAreas();
   const updateMutation = useUpdateCourt();
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
   const {
     data: courtPricingRuleTemplates,
@@ -107,11 +151,12 @@ const UpdateCourtDrawer = ({ open, onClose, courtId }: UpdateCourtDrawerProps) =
     setCourtImageUrl(d.imageUrl ?? null);
 
     if (Array.isArray(d.courtPricingRules)) {
-      const mapped: CreateCourtPricingRulesRequest[] = d.courtPricingRules.map((r: any) => ({
+      const mapped: CreateCourtPricingRulesRequest[] = d.courtPricingRules.map((r: any, index: number) => ({
         daysOfWeek: r.daysOfWeek,
         startTime: r.startTime,
         endTime: r.endTime,
         pricePerHour: r.pricePerHour,
+        order: r.order || index + 1,
       }));
       setCourtPricingRules(mapped);
     } else {
@@ -183,6 +228,7 @@ const UpdateCourtDrawer = ({ open, onClose, courtId }: UpdateCourtDrawerProps) =
       startTime: dayjs(newRuleStartTime).format("HH:mm:ss"),
       endTime: dayjs(newRuleEndTime).format("HH:mm:ss"),
       pricePerHour: newRulePricePerHour,
+      order: courtPricingRules.length + 1,
     };
     setCourtPricingRules((prev) => [...prev, rule]);
     setNewRuleDaysOfWeek([]);
@@ -196,17 +242,38 @@ const UpdateCourtDrawer = ({ open, onClose, courtId }: UpdateCourtDrawerProps) =
     if (!courtPricingRuleTemplates) return;
     setIsUsingPricingRuleTemplate(true);
     setCourtPricingRules(
-      courtPricingRuleTemplates.data?.map((template) => ({
+      courtPricingRuleTemplates.data?.map((template, index) => ({
         daysOfWeek: template.daysOfWeek,
         startTime: template.startTime,
         endTime: template.endTime,
         pricePerHour: template.pricePerHour,
+        order: index + 1,
       })) || [],
     );
   };
 
   const handleCancelUsingPricingRuleTemplate = () => {
     setIsUsingPricingRuleTemplate(false);
+  };
+
+  // Handle drag end for reordering
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      setCourtPricingRules((items) => {
+        const oldIndex = items.findIndex((item, index) => `item-${index}` === active.id);
+        const newIndex = items.findIndex((item, index) => `item-${index}` === over.id);
+
+        const newItems = arrayMove(items, oldIndex, newIndex);
+
+        // Update order for all items
+        return newItems.map((item, index) => ({
+          ...item,
+          order: index + 1,
+        }));
+      });
+    }
   };
 
   const handleRemoveCourtImageUrl = () => {
@@ -436,70 +503,86 @@ const UpdateCourtDrawer = ({ open, onClose, courtId }: UpdateCourtDrawerProps) =
 
               <>
                 <Divider orientation="left">Danh sách cấu hình</Divider>
-                <List
-                  bordered
-                  dataSource={courtPricingRules}
-                  loading={loadingCourtPricingRuleTemplates}
-                  header={
-                    <>
-                      {isUsingPricingRuleTemplate && (
-                        <div className="flex gap-2">
-                          <Button icon={<EditOutlined />} onClick={() => setOpenManageCourtPricingRuleTemplateDrawer(true)}>
-                            Chỉnh sửa cấu hình mẫu
-                          </Button>
-                          <Button
-                            icon={<CopyOutlined />}
-                            onClick={() => {
-                              refetchCourtPricingRuleTemplates();
-                              if (!courtPricingRuleTemplates) return;
-                              setCourtPricingRules(
-                                courtPricingRuleTemplates?.data?.map((template) => ({
-                                  daysOfWeek: template.daysOfWeek,
-                                  startTime: template.startTime,
-                                  endTime: template.endTime,
-                                  pricePerHour: template.pricePerHour,
-                                })) || [],
-                              );
-                            }}
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={courtPricingRules.map((_, index) => `item-${index}`)} strategy={verticalListSortingStrategy}>
+                    <List
+                      bordered
+                      dataSource={courtPricingRules}
+                      loading={loadingCourtPricingRuleTemplates}
+                      header={
+                        <>
+                          {isUsingPricingRuleTemplate && (
+                            <div className="flex gap-2">
+                              <Button icon={<EditOutlined />} onClick={() => setOpenManageCourtPricingRuleTemplateDrawer(true)}>
+                                Chỉnh sửa cấu hình mẫu
+                              </Button>
+                              <Button
+                                icon={<CopyOutlined />}
+                                onClick={() => {
+                                  refetchCourtPricingRuleTemplates();
+                                  if (!courtPricingRuleTemplates) return;
+                                  setCourtPricingRules(
+                                    courtPricingRuleTemplates?.data?.map((template, index) => ({
+                                      daysOfWeek: template.daysOfWeek,
+                                      startTime: template.startTime,
+                                      endTime: template.endTime,
+                                      pricePerHour: template.pricePerHour,
+                                      order: index + 1,
+                                    })) || [],
+                                  );
+                                }}
+                              >
+                                Tải lại dữ liệu mẫu
+                              </Button>
+                              <Button color="orange" variant="outlined" icon={<CloseOutlined />} onClick={handleCancelUsingPricingRuleTemplate}>
+                                Huỷ sử dụng cấu hình mẫu
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      }
+                      renderItem={(item, index) => (
+                        <SortableItem key={`item-${index}`} id={`item-${index}`}>
+                          <List.Item
+                            actions={[
+                              <Popconfirm
+                                key="remove"
+                                title="Xóa cấu hình này?"
+                                okText="Xóa"
+                                cancelText="Hủy"
+                                onConfirm={() => {
+                                  setCourtPricingRules((prev) => {
+                                    const newItems = prev.filter((_, i) => i !== index);
+                                    // Reorder remaining items
+                                    return newItems.map((item, newIndex) => ({
+                                      ...item,
+                                      order: newIndex + 1,
+                                    }));
+                                  });
+                                }}
+                              >
+                                <Button danger size="small" icon={<DeleteOutlined />}>
+                                  Xóa cấu hình
+                                </Button>
+                              </Popconfirm>,
+                            ]}
                           >
-                            Tải lại dữ liệu mẫu
-                          </Button>
-                          <Button color="orange" variant="outlined" icon={<CloseOutlined />} onClick={handleCancelUsingPricingRuleTemplate}>
-                            Huỷ sử dụng cấu hình mẫu
-                          </Button>
-                        </div>
+                            <Space direction="vertical" style={{ width: "100%" }} size={2}>
+                              <Space wrap>
+                                {item.daysOfWeek?.map((d) => (
+                                  <Tag key={d}>{daysOptions.find((opt) => opt.value === d)?.label}</Tag>
+                                ))}
+                              </Space>
+                              <Typography.Text>
+                                {`Khung giờ: ${item.startTime} - ${item.endTime} | Giá: ${item.pricePerHour.toLocaleString("vi-VN")}₫/giờ | Thứ tự: ${item.order}`}
+                              </Typography.Text>
+                            </Space>
+                          </List.Item>
+                        </SortableItem>
                       )}
-                    </>
-                  }
-                  renderItem={(item, index) => (
-                    <List.Item
-                      actions={[
-                        <Popconfirm
-                          key="remove"
-                          title="Xóa cấu hình này?"
-                          okText="Xóa"
-                          cancelText="Hủy"
-                          onConfirm={() => setCourtPricingRules((prev) => prev.filter((_, i) => i !== index))}
-                        >
-                          <Button danger size="small" icon={<DeleteOutlined />}>
-                            Xóa cấu hình
-                          </Button>
-                        </Popconfirm>,
-                      ]}
-                    >
-                      <Space direction="vertical" style={{ width: "100%" }} size={2}>
-                        <Space wrap>
-                          {item.daysOfWeek?.map((d) => (
-                            <Tag key={d}>{daysOptions.find((opt) => opt.value === d)?.label}</Tag>
-                          ))}
-                        </Space>
-                        <Typography.Text>
-                          {`Khung giờ: ${item.startTime} - ${item.endTime} | Giá: ${item.pricePerHour.toLocaleString("vi-VN")}₫/giờ`}
-                        </Typography.Text>
-                      </Space>
-                    </List.Item>
-                  )}
-                />
+                    />
+                  </SortableContext>
+                </DndContext>
               </>
             </div>
           </div>
@@ -514,11 +597,12 @@ const UpdateCourtDrawer = ({ open, onClose, courtId }: UpdateCourtDrawerProps) =
           refetchCourtPricingRuleTemplates();
           if (!courtPricingRuleTemplates) return;
           setCourtPricingRules(
-            courtPricingRuleTemplates?.data?.map((template) => ({
+            courtPricingRuleTemplates?.data?.map((template, index) => ({
               daysOfWeek: template.daysOfWeek,
               startTime: template.startTime,
               endTime: template.endTime,
               pricePerHour: template.pricePerHour,
+              order: index + 1,
             })) || [],
           );
         }}

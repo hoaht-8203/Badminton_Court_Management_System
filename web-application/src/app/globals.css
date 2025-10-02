@@ -3,8 +3,14 @@
 .custom-header {
   font-weight: bold;
   font-size: 15px;
+  background-color: white !important;
 }
 
-.resource-child-70 {
+.resource-css {
   font-weight: bold;
+  background-color: white !important;
+}
+
+.scheduler_default_corner {
+  background-color: white !important;
 }

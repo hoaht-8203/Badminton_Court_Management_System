@@ -505,6 +505,9 @@ namespace ApiApplication.Migrations
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time without time zone");
 
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("PricePerHour")
                         .HasColumnType("numeric");
 

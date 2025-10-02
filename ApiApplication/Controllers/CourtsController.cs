@@ -153,4 +153,18 @@ public class CourtsController(ICourtService courtService) : ControllerBase
             )
         );
     }
+
+    [HttpGet("list-pricing-rule-by-court-id")]
+    public async Task<
+        ActionResult<ApiResponse<List<ListCourtPricingRuleByCourtIdResponse>>>
+    > ListCourtPricingRuleByCourtId([FromQuery] ListCourtPricingRuleByCourtIdRequest request)
+    {
+        var result = await _courtService.ListCourtPricingRuleByCourtIdAsync(request);
+        return Ok(
+            ApiResponse<List<ListCourtPricingRuleByCourtIdResponse>>.SuccessResponse(
+                result,
+                "List pricing rule by court id successfully"
+            )
+        );
+    }
 }

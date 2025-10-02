@@ -13,9 +13,11 @@ using ApiApplication.Services;
 using ApiApplication.Services.Impl;
 using ApiApplication.Sessions;
 using ApiApplication.Sessions.Impl;
+using ApiApplication.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -200,6 +202,7 @@ builder
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHostedService<BookingHoldExpiryHostedService>();
+builder.Services.AddSignalR();
 builder
     .Services.AddControllers()
     .AddJsonOptions(options =>
@@ -234,7 +237,7 @@ builder.Services.AddCors(options =>
         builder =>
         {
             builder
-                .WithOrigins("http://localhost:3000")
+                .WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -283,5 +286,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseWebSockets();
+app.MapHub<BookingHub>("/hubs/booking");
 
 app.Run();

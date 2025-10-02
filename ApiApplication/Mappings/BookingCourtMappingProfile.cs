@@ -23,7 +23,9 @@ public class BookingCourtMappingProfile : Profile
                     opt.MapFrom(s =>
                         (decimal)(s.EndTime.ToTimeSpan() - s.StartTime.ToTimeSpan()).TotalHours
                     )
-            );
+            )
+            .ForMember(d => d.CustomerName, opt => opt.MapFrom(s => s.Customer!.FullName));
+
         CreateMap<CreateBookingCourtRequest, BookingCourt>()
             .ForMember(d => d.Id, opt => opt.MapFrom(_ => Guid.NewGuid()));
     }

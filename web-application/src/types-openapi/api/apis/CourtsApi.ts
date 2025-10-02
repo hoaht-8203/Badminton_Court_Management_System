@@ -24,6 +24,7 @@ import type {
   DeleteCourtRequest,
   DetailCourtResponseApiResponse,
   ListCourtGroupByCourtAreaResponseListApiResponse,
+  ListCourtPricingRuleByCourtIdResponseListApiResponse,
   ListCourtResponseApiResponse,
   ObjectApiResponse,
   UpdateCourtPricingRuleTemplateRequest,
@@ -48,6 +49,8 @@ import {
     DetailCourtResponseApiResponseToJSON,
     ListCourtGroupByCourtAreaResponseListApiResponseFromJSON,
     ListCourtGroupByCourtAreaResponseListApiResponseToJSON,
+    ListCourtPricingRuleByCourtIdResponseListApiResponseFromJSON,
+    ListCourtPricingRuleByCourtIdResponseListApiResponseToJSON,
     ListCourtResponseApiResponseFromJSON,
     ListCourtResponseApiResponseToJSON,
     ObjectApiResponseFromJSON,
@@ -86,6 +89,10 @@ export interface ApiCourtsListGetRequest {
     name?: string;
     courtAreaId?: number;
     status?: string;
+}
+
+export interface ApiCourtsListPricingRuleByCourtIdGetRequest {
+    courtId: string;
 }
 
 export interface ApiCourtsUpdatePricingRuleTemplatePutRequest {
@@ -207,6 +214,19 @@ export interface CourtsApiInterface {
     /**
      */
     apiCourtsListGet(requestParameters: ApiCourtsListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListCourtResponseApiResponse>;
+
+    /**
+     * 
+     * @param {string} courtId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CourtsApiInterface
+     */
+    apiCourtsListPricingRuleByCourtIdGetRaw(requestParameters: ApiCourtsListPricingRuleByCourtIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListCourtPricingRuleByCourtIdResponseListApiResponse>>;
+
+    /**
+     */
+    apiCourtsListPricingRuleByCourtIdGet(requestParameters: ApiCourtsListPricingRuleByCourtIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListCourtPricingRuleByCourtIdResponseListApiResponse>;
 
     /**
      * 
@@ -505,6 +525,44 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
      */
     async apiCourtsListGet(requestParameters: ApiCourtsListGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListCourtResponseApiResponse> {
         const response = await this.apiCourtsListGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiCourtsListPricingRuleByCourtIdGetRaw(requestParameters: ApiCourtsListPricingRuleByCourtIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListCourtPricingRuleByCourtIdResponseListApiResponse>> {
+        if (requestParameters['courtId'] == null) {
+            throw new runtime.RequiredError(
+                'courtId',
+                'Required parameter "courtId" was null or undefined when calling apiCourtsListPricingRuleByCourtIdGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['courtId'] != null) {
+            queryParameters['CourtId'] = requestParameters['courtId'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Courts/list-pricing-rule-by-court-id`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListCourtPricingRuleByCourtIdResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiCourtsListPricingRuleByCourtIdGet(requestParameters: ApiCourtsListPricingRuleByCourtIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListCourtPricingRuleByCourtIdResponseListApiResponse> {
+        const response = await this.apiCourtsListPricingRuleByCourtIdGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

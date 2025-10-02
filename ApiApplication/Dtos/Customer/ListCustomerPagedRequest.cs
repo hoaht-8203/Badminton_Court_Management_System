@@ -1,7 +1,8 @@
+using ApiApplication.Dtos.Pagination;
+
 namespace ApiApplication.Dtos.Customer;
 
-public class ListCustomerPagedRequest : ListCustomerRequest
+public class ListCustomerPagedRequest : PaginationRequest
 {
-    public int Page { get; set; } = 1;
-    public int PageSize { get; set; } = 2;
+    public string? Keyword { get; set; }
 }

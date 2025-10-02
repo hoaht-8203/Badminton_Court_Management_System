@@ -3,15 +3,22 @@ using ApiApplication.Dtos.Payment;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
+using ApiApplication.SignalR;
 using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
 
-public class PaymentService(ApplicationDbContext context, IMapper mapper) : IPaymentService
+public class PaymentService(
+    ApplicationDbContext context,
+    IMapper mapper,
+    IHubContext<BookingHub> hub
+) : IPaymentService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
+    private readonly IHubContext<BookingHub> _hub = hub;
 
     public async Task<DetailPaymentResponse> CreatePaymentAsync(CreatePaymentRequest request)
     {
@@ -39,6 +46,16 @@ public class PaymentService(ApplicationDbContext context, IMapper mapper) : IPay
 
         await _context.Payments.AddAsync(payment);
         await _context.SaveChangesAsync();
+        await _hub.Clients.All.SendAsync(
+            "paymentCreated",
+            new
+            {
+                id = payment.Id,
+                bookingId = payment.BookingId,
+                status = payment.Status.ToString(),
+                amount = payment.Amount,
+            }
+        );
         return _mapper.Map<DetailPaymentResponse>(payment);
     }
 
@@ -63,7 +80,20 @@ public class PaymentService(ApplicationDbContext context, IMapper mapper) : IPay
             .Include(i => i.Booking)!
             .ThenInclude(b => b!.Court)
             .FirstOrDefaultAsync(i => i.Id == request.Id);
-        return payment == null ? null : _mapper.Map<DetailPaymentResponse>(payment);
+        if (payment == null)
+            return null;
+        var dto = _mapper.Map<DetailPaymentResponse>(payment);
+        await _hub.Clients.All.SendAsync(
+            "paymentUpdated",
+            new
+            {
+                id = dto.Id,
+                bookingId = dto.BookingId,
+                status = dto.Status?.ToString(),
+                amount = dto.Amount,
+            }
+        );
+        return dto;
     }
 
     private async Task<string> GenerateNextPaymentIdAsync()
@@ -91,32 +121,52 @@ public class PaymentService(ApplicationDbContext context, IMapper mapper) : IPay
     private async Task<decimal> CalculateBookingAmountAsync(BookingCourt booking)
     {
         var dow = GetCustomDayOfWeek(booking.StartDate);
+
+        // Lấy tất cả rules phù hợp với ngày trong tuần và sắp xếp theo order
         var rules = await _context
             .CourtPricingRules.Where(r =>
-                r.CourtId == booking.CourtId
-                && r.DaysOfWeek.Contains(dow)
-                && r.EndTime > booking.StartTime
-                && r.StartTime < booking.EndTime
+                r.CourtId == booking.CourtId && r.DaysOfWeek.Contains(dow)
             )
+            .OrderBy(r => r.Order) // Sắp xếp theo order (order nhỏ hơn = ưu tiên cao hơn)
             .ToListAsync();
+
         if (rules.Count == 0)
         {
             return 0m;
         }
+
         var total = 0m;
-        var bStart = booking.StartTime;
-        var bEnd = booking.EndTime;
-        foreach (var r in rules)
+        var currentTime = booking.StartTime;
+        var endTime = booking.EndTime;
+
+        // Chia thời gian theo từng rule theo thứ tự order
+        while (currentTime < endTime)
         {
-            var overlapStart = Max(r.StartTime, bStart);
-            var overlapEnd = Min(r.EndTime, bEnd);
-            if (overlapEnd > overlapStart)
+            // Tìm rule phù hợp cho thời điểm hiện tại
+            var applicableRule = rules.FirstOrDefault(r =>
+                currentTime >= r.StartTime && currentTime < r.EndTime
+            );
+
+            if (applicableRule == null)
             {
-                var hours = (decimal)
-                    (overlapEnd.ToTimeSpan() - overlapStart.ToTimeSpan()).TotalHours;
-                total += r.PricePerHour * hours;
+                // Không tìm thấy rule phù hợp, dừng tính toán
+                break;
             }
+
+            // Tính thời gian áp dụng rule này
+            var ruleEndTime = applicableRule.EndTime < endTime ? applicableRule.EndTime : endTime;
+
+            // Tính số giờ trong rule này
+            var hours = (decimal)(ruleEndTime.ToTimeSpan() - currentTime.ToTimeSpan()).TotalHours;
+
+            // Tính giá cho khoảng thời gian này
+            var priceForThisPeriod = applicableRule.PricePerHour * hours;
+            total += priceForThisPeriod;
+
+            // Chuyển sang thời gian tiếp theo
+            currentTime = ruleEndTime;
         }
+
         return Math.Round(total, 2);
     }
 

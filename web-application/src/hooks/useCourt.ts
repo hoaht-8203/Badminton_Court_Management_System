@@ -10,6 +10,8 @@ import {
   DetailCourtRequest,
   DetailCourtResponse,
   ListCourtGroupByCourtAreaResponse,
+  ListCourtPricingRuleByCourtIdRequest,
+  ListCourtPricingRuleByCourtIdResponse,
   ListCourtRequest,
   ListCourtResponse,
   UpdateCourtPricingRuleTemplateRequest,
@@ -26,6 +28,8 @@ export const courtsKeys = {
   details: () => [...courtsKeys.all, "detail"] as const,
   detail: (params: DetailCourtRequest) => [...courtsKeys.details(), params] as const,
   listPricingRuleTemplates: () => [...courtsKeys.all, "listPricingRuleTemplates"] as const,
+  listPricingRuleByCourtId: () => [...courtsKeys.all, "listPricingRuleByCourtId"] as const,
+  listPricingRuleByCourtIdDetail: (params: ListCourtPricingRuleByCourtIdRequest) => [...courtsKeys.listPricingRuleByCourtId(), params] as const,
   listCourtGroupByCourtArea: () => [...courtsKeys.all, "listCourtGroupByCourtArea"] as const,
 };
 
@@ -143,6 +147,15 @@ export const useDeleteCourtPricingRuleTemplate = () => {
       queryClient.invalidateQueries({ queryKey: courtsKeys.listPricingRuleTemplates() });
       queryClient.invalidateQueries({ queryKey: courtsKeys.listCourtGroupByCourtArea() });
     },
+  });
+};
+
+// List Court Pricing Rule By Court Id
+export const useListCourtPricingRuleByCourtId = (params: ListCourtPricingRuleByCourtIdRequest) => {
+  return useQuery<ApiResponse<ListCourtPricingRuleByCourtIdResponse[]>, ApiError>({
+    queryKey: courtsKeys.listPricingRuleByCourtIdDetail(params),
+    queryFn: () => courtService.listCourtPricingRuleByCourtId(params),
+    enabled: !!params.courtId,
   });
 };
 

@@ -11,9 +11,11 @@ namespace ApiApplication.Controllers;
 
 [Route("api/payment-webhooks")]
 [ApiController]
-public class PaymentWebhooksController(ApplicationDbContext context) : ControllerBase
+public class PaymentWebhooksController(ApplicationDbContext context, IConfiguration configuration)
+    : ControllerBase
 {
     private readonly ApplicationDbContext _context = context;
+    private readonly IConfiguration _configuration = configuration;
 
     public class SePayWebhookRequest
     {
@@ -40,20 +42,28 @@ public class PaymentWebhooksController(ApplicationDbContext context) : Controlle
     )
     {
         var header = Request.Headers.Authorization.ToString();
-        var expected = $"Apikey {Environment.GetEnvironmentVariable("SEPAY_API_KEY")}";
+        var expected = string.Empty;
+        if (_configuration.GetValue<bool>("IsDevelopment"))
+        {
+            expected = $"Apikey {_configuration.GetValue<string>("SEPAY_API_KEY")}";
+        }
+        else
+        {
+            expected = $"Apikey {Environment.GetEnvironmentVariable("SEPAY_API_KEY")}";
+        }
 
         if (
             string.IsNullOrWhiteSpace(header)
             || !string.Equals(header, expected, StringComparison.Ordinal)
         )
         {
-            throw new ApiException("Unauthorized", HttpStatusCode.Unauthorized);
+            throw new ApiException("Không có quyền truy cập", HttpStatusCode.Unauthorized);
         }
 
         var probe = (request.Content ?? request.Description ?? string.Empty).Trim();
         if (string.IsNullOrEmpty(probe))
         {
-            throw new ApiException("Ignored: no content", HttpStatusCode.BadRequest);
+            throw new ApiException("Không có nội dung", HttpStatusCode.BadRequest);
         }
 
         // Extract Payment ID from content - handle both PM- and PM formats
@@ -80,7 +90,7 @@ public class PaymentWebhooksController(ApplicationDbContext context) : Controlle
             await _context
                 .Payments.Include(i => i.Booking)
                 .FirstOrDefaultAsync(i => i.Id == paymentId)
-            ?? throw new ApiException("Payment not found", HttpStatusCode.BadRequest);
+            ?? throw new ApiException("Không tìm thấy thanh toán", HttpStatusCode.BadRequest);
 
         if (
             string.Equals(request.TransferType, "in", StringComparison.OrdinalIgnoreCase)
@@ -98,19 +108,16 @@ public class PaymentWebhooksController(ApplicationDbContext context) : Controlle
                 else if (payment.Booking.Status == BookingCourtStatus.Cancelled)
                 {
                     payment.Note =
-                        "Người dùng đã thanh toán sau khi booking đã hủy bỏ hoặc hết hạn";
+                        "Người dùng đã thanh toán sau khi đặt sân đã hủy bỏ hoặc hết hạn";
                 }
             }
 
             await _context.SaveChangesAsync();
-            return Ok(ApiResponse<object?>.SuccessResponse(null, "Payment confirmed"));
+            return Ok(ApiResponse<object?>.SuccessResponse(null, "Thanh toán đã được xác nhận"));
         }
 
         return Ok(
-            ApiResponse<object?>.SuccessResponse(
-                null,
-                "Ignored: not incoming or amount insufficient"
-            )
+            ApiResponse<object?>.SuccessResponse(null, "Không có nội dung hoặc số tiền không đủ")
         );
     }
 }

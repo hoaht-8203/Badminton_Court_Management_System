@@ -30,4 +30,8 @@ public interface ICourtService
     Task DeleteCourtPricingRuleTemplateAsync(DeleteCourtPricingRuleTemplateRequest request);
 
     Task<List<ListCourtGroupByCourtAreaResponse>> ListCourtGroupByCourtAreaAsync();
+
+    Task<List<ListCourtPricingRuleByCourtIdResponse>> ListCourtPricingRuleByCourtIdAsync(
+        ListCourtPricingRuleByCourtIdRequest request
+    );
 }

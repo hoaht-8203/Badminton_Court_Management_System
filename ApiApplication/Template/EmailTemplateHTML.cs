@@ -81,6 +81,11 @@ public class EmailTemplateHTML
                 Subject = "Mật khẩu mới",
                 TemplatePath = "NewPasswordTemplate.html",
             },
+            EmailTemplateType.EmailVerify => new EmailTemplate
+            {
+                Subject = "Xác minh email",
+                TemplatePath = "VerifyTemplate.html",
+            },
             _ => throw new NotImplementedException(
                 $"Template type {templateType} is not implemented"
             ),

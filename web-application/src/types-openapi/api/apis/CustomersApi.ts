@@ -71,16 +71,9 @@ export interface ApiCustomersListGetRequest {
 }
 
 export interface ApiCustomersListPagedGetRequest {
+    keyword?: string;
     page?: number;
     pageSize?: number;
-    fullName?: string;
-    phone?: string;
-    gender?: string;
-    address?: string;
-    city?: string;
-    district?: string;
-    ward?: string;
-    status?: string;
 }
 
 export interface ApiCustomersUpdatePutRequest {
@@ -168,16 +161,9 @@ export interface CustomersApiInterface {
 
     /**
      * 
+     * @param {string} [keyword] 
      * @param {number} [page] 
      * @param {number} [pageSize] 
-     * @param {string} [fullName] 
-     * @param {string} [phone] 
-     * @param {string} [gender] 
-     * @param {string} [address] 
-     * @param {string} [city] 
-     * @param {string} [district] 
-     * @param {string} [ward] 
-     * @param {string} [status] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof CustomersApiInterface
@@ -400,44 +386,16 @@ export class CustomersApi extends runtime.BaseAPI implements CustomersApiInterfa
     async apiCustomersListPagedGetRaw(requestParameters: ApiCustomersListPagedGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListCustomerResponsePagedResponseApiResponse>> {
         const queryParameters: any = {};
 
+        if (requestParameters['keyword'] != null) {
+            queryParameters['Keyword'] = requestParameters['keyword'];
+        }
+
         if (requestParameters['page'] != null) {
             queryParameters['Page'] = requestParameters['page'];
         }
 
         if (requestParameters['pageSize'] != null) {
             queryParameters['PageSize'] = requestParameters['pageSize'];
-        }
-
-        if (requestParameters['fullName'] != null) {
-            queryParameters['FullName'] = requestParameters['fullName'];
-        }
-
-        if (requestParameters['phone'] != null) {
-            queryParameters['Phone'] = requestParameters['phone'];
-        }
-
-        if (requestParameters['gender'] != null) {
-            queryParameters['Gender'] = requestParameters['gender'];
-        }
-
-        if (requestParameters['address'] != null) {
-            queryParameters['Address'] = requestParameters['address'];
-        }
-
-        if (requestParameters['city'] != null) {
-            queryParameters['City'] = requestParameters['city'];
-        }
-
-        if (requestParameters['district'] != null) {
-            queryParameters['District'] = requestParameters['district'];
-        }
-
-        if (requestParameters['ward'] != null) {
-            queryParameters['Ward'] = requestParameters['ward'];
-        }
-
-        if (requestParameters['status'] != null) {
-            queryParameters['Status'] = requestParameters['status'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

@@ -222,20 +222,65 @@ public class BookingCourtService(
 
         foreach (var dow in days)
         {
-            var covered = await _context.CourtPricingRules.AnyAsync(r =>
-                r.CourtId == request.CourtId
-                && r.DaysOfWeek.Contains(dow)
-                && r.StartTime <= start
-                && r.EndTime >= end
-            );
-            if (!covered)
+            // Lấy tất cả rules phù hợp với ngày trong tuần và sắp xếp theo order
+            var rules = await _context
+                .CourtPricingRules.Where(r =>
+                    r.CourtId == request.CourtId && r.DaysOfWeek.Contains(dow)
+                )
+                .OrderBy(r => r.Order)
+                .ToListAsync();
+
+            if (rules.Count == 0)
             {
                 throw new ApiException(
-                    $"Sân này chưa được cấu hình giá theo khung giờ {start:HH\\:mm}-{end:HH\\:mm}.",
+                    $"Sân này chưa được cấu hình giá cho ngày {GetDayName(dow)}.",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            // Kiểm tra xem có thể tính được giá cho toàn bộ khoảng thời gian không
+            var currentTime = start;
+            var canCalculateFullPeriod = true;
+
+            while (currentTime < end && canCalculateFullPeriod)
+            {
+                var applicableRule = rules.FirstOrDefault(r =>
+                    currentTime >= r.StartTime && currentTime < r.EndTime
+                );
+
+                if (applicableRule == null)
+                {
+                    canCalculateFullPeriod = false;
+                    break;
+                }
+
+                // Chuyển sang thời gian tiếp theo
+                currentTime = applicableRule.EndTime < end ? applicableRule.EndTime : end;
+            }
+
+            if (!canCalculateFullPeriod)
+            {
+                throw new ApiException(
+                    $"Sân này chưa được cấu hình giá đầy đủ cho khung giờ {start:HH\\:mm}-{end:HH\\:mm} vào ngày {GetDayName(dow)}.",
                     HttpStatusCode.BadRequest
                 );
             }
         }
+    }
+
+    private static string GetDayName(int dayOfWeek)
+    {
+        return dayOfWeek switch
+        {
+            2 => "Thứ 2",
+            3 => "Thứ 3",
+            4 => "Thứ 4",
+            5 => "Thứ 5",
+            6 => "Thứ 6",
+            7 => "Thứ 7",
+            8 => "Chủ nhật",
+            _ => $"Ngày {dayOfWeek}",
+        };
     }
 
     public async Task<List<ListBookingCourtResponse>> ListBookingCourtsAsync(

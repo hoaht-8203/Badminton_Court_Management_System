@@ -120,6 +120,9 @@ models/ListCourtAreaResponse.ts
 models/ListCourtAreaResponseListApiResponse.ts
 models/ListCourtGroupByCourtAreaResponse.ts
 models/ListCourtGroupByCourtAreaResponseListApiResponse.ts
+models/ListCourtPricingRuleByCourtIdRequest.ts
+models/ListCourtPricingRuleByCourtIdResponse.ts
+models/ListCourtPricingRuleByCourtIdResponseListApiResponse.ts
 models/ListCourtRequest.ts
 models/ListCourtResponse.ts
 models/ListCourtResponseApiResponse.ts

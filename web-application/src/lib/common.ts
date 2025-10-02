@@ -78,3 +78,5 @@ export function getDayOfWeekToVietnamese(dayOfWeek: string) {
 
   return dayOfWeek;
 }
+
+export const toTimeString = (d: Date) => d.toTimeString().split(" ")[0];

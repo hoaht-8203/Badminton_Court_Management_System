@@ -29,6 +29,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   const queryClient = useQueryClient();
   const connectionRef = useRef<HubConnection | null>(null);
   const hasStartedRef = useRef(false);
+  const unmountedRef = useRef(false);
 
   const { data: bookingCourts } = useListBookingCourts({
     fromDate: selectedDate.toDate(),
@@ -86,7 +87,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     const conn = new HubConnectionBuilder()
       .withUrl(`${apiBaseUrl}/hubs/booking`, { withCredentials: true, skipNegotiation: true, transport: HttpTransportType.WebSockets })
       .withAutomaticReconnect()
-      .configureLogging(LogLevel.Warning)
+      .configureLogging(LogLevel.None)
       .build();
     connectionRef.current = conn;
 
@@ -107,6 +108,13 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     });
 
     let isAlive = true;
+    const handleBeforeUnload = () => {
+      // Ensure connection is stopped before page is unloaded
+      try {
+        conn.stop();
+      } catch {}
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
     (async () => {
       try {
         await conn.start();
@@ -131,17 +139,17 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
 
     return () => {
       isAlive = false;
+      unmountedRef.current = true;
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       // Only stop if we actually started, and avoid stopping if already disconnected
-      if (hasStartedRef.current && conn.state !== "Disconnected") {
-        conn
-          .stop()
-          .then(() => {
-            console.log("SignalR disconnected");
-          })
-          .catch(() => {
-            // swallow stop race errors
-          });
-      }
+      conn
+        .stop()
+        .then(() => {
+          // disconnected
+        })
+        .catch(() => {
+          // swallow stop race errors
+        });
     };
   }, [queryClient]);
 
@@ -326,7 +334,14 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
           />
         </div>
 
-        <ModelCreateNewBooking open={open} onClose={() => setOpen(false)} newBooking={newBooking} />
+        <ModelCreateNewBooking
+          open={open}
+          onClose={() => {
+            setOpen(false);
+            setNewBooking(null);
+          }}
+          newBooking={newBooking}
+        />
       </div>
     </>
   );

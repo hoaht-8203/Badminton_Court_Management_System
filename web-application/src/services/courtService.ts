@@ -10,6 +10,8 @@ import {
   DetailCourtRequest,
   DetailCourtResponse,
   ListCourtGroupByCourtAreaResponse,
+  ListCourtPricingRuleByCourtIdRequest,
+  ListCourtPricingRuleByCourtIdResponse,
   ListCourtRequest,
   ListCourtResponse,
   UpdateCourtPricingRuleTemplateRequest,
@@ -78,6 +80,13 @@ export const courtService = {
 
   async listCourtGroupByCourtArea(): Promise<ApiResponse<ListCourtGroupByCourtAreaResponse[]>> {
     const res = await axiosInstance.get<ApiResponse<ListCourtGroupByCourtAreaResponse[]>>("/api/Courts/list-court-group-by-court-area");
+    return res.data;
+  },
+
+  async listCourtPricingRuleByCourtId(payload: ListCourtPricingRuleByCourtIdRequest): Promise<ApiResponse<ListCourtPricingRuleByCourtIdResponse[]>> {
+    const res = await axiosInstance.get<ApiResponse<ListCourtPricingRuleByCourtIdResponse[]>>("/api/Courts/list-pricing-rule-by-court-id", {
+      params: payload,
+    });
     return res.data;
   },
 };

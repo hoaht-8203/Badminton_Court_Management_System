@@ -22,7 +22,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
     {
         var query = _context
             .Courts.Include(c => c.CourtArea)
-            .Include(c => c.CourtPricingRules)
+            .Include(c => c.CourtPricingRules.OrderBy(r => r.Order))
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Name))
@@ -46,7 +46,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
     public async Task<DetailCourtResponse> DetailCourtAsync(DetailCourtRequest request)
     {
         var courts = await _context
-            .Courts.Include(c => c.CourtPricingRules)
+            .Courts.Include(c => c.CourtPricingRules.OrderBy(r => r.Order))
             .Include(c => c.CourtArea)
             .FirstOrDefaultAsync(c => c.Id == request.Id);
 
@@ -91,7 +91,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
 
         // Reload the court with pricing rules for response
         var createdCourt = await _context
-            .Courts.Include(c => c.CourtPricingRules)
+            .Courts.Include(c => c.CourtPricingRules.OrderBy(r => r.Order))
             .Include(c => c.CourtArea)
             .FirstOrDefaultAsync(c => c.Id == newCourt.Entity.Id);
 
@@ -101,7 +101,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
     public async Task<DetailCourtResponse> UpdateCourtAsync(UpdateCourtRequest request)
     {
         var court = await _context
-            .Courts.Include(c => c.CourtPricingRules)
+            .Courts.Include(c => c.CourtPricingRules.OrderBy(r => r.Order))
             .FirstOrDefaultAsync(c => c.Id == request.Id);
 
         if (court == null)
@@ -264,5 +264,16 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
     {
         var courtAreas = await _context.CourtAreas.Include(c => c.Courts).ToListAsync();
         return _mapper.Map<List<ListCourtGroupByCourtAreaResponse>>(courtAreas);
+    }
+
+    public async Task<
+        List<ListCourtPricingRuleByCourtIdResponse>
+    > ListCourtPricingRuleByCourtIdAsync(ListCourtPricingRuleByCourtIdRequest request)
+    {
+        var courtPricingRules = await _context
+            .CourtPricingRules.Where(c => c.CourtId == request.CourtId)
+            .OrderBy(r => r.Order)
+            .ToListAsync();
+        return _mapper.Map<List<ListCourtPricingRuleByCourtIdResponse>>(courtPricingRules);
     }
 }

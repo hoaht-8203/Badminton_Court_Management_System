@@ -13,101 +13,79 @@
  */
 
 import { mapValues } from '../runtime';
-import type { Court } from './Court';
-import {
-    CourtFromJSON,
-    CourtFromJSONTyped,
-    CourtToJSON,
-    CourtToJSONTyped,
-} from './Court';
-
 /**
  * 
  * @export
- * @interface CourtPricingRules
+ * @interface ListCourtPricingRuleByCourtIdResponse
  */
-export interface CourtPricingRules {
+export interface ListCourtPricingRuleByCourtIdResponse {
     /**
      * 
      * @type {Date}
-     * @memberof CourtPricingRules
+     * @memberof ListCourtPricingRuleByCourtIdResponse
      */
     createdAt?: Date;
     /**
      * 
      * @type {Date}
-     * @memberof CourtPricingRules
+     * @memberof ListCourtPricingRuleByCourtIdResponse
      */
     updatedAt?: Date | null;
     /**
      * 
      * @type {string}
-     * @memberof CourtPricingRules
+     * @memberof ListCourtPricingRuleByCourtIdResponse
      */
     createdBy?: string | null;
     /**
      * 
      * @type {string}
-     * @memberof CourtPricingRules
+     * @memberof ListCourtPricingRuleByCourtIdResponse
      */
     updatedBy?: string | null;
     /**
      * 
      * @type {string}
-     * @memberof CourtPricingRules
-     */
-    id: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CourtPricingRules
+     * @memberof ListCourtPricingRuleByCourtIdResponse
      */
     courtId: string;
     /**
      * 
-     * @type {Court}
-     * @memberof CourtPricingRules
-     */
-    court: Court;
-    /**
-     * 
      * @type {Array<number>}
-     * @memberof CourtPricingRules
+     * @memberof ListCourtPricingRuleByCourtIdResponse
      */
     daysOfWeek: Array<number> | null;
     /**
      * 
      * @type {string}
-     * @memberof CourtPricingRules
+     * @memberof ListCourtPricingRuleByCourtIdResponse
      */
     startTime: string;
     /**
      * 
      * @type {string}
-     * @memberof CourtPricingRules
+     * @memberof ListCourtPricingRuleByCourtIdResponse
      */
     endTime: string;
     /**
      * 
      * @type {number}
-     * @memberof CourtPricingRules
+     * @memberof ListCourtPricingRuleByCourtIdResponse
      */
     pricePerHour: number;
     /**
      * 
      * @type {number}
-     * @memberof CourtPricingRules
+     * @memberof ListCourtPricingRuleByCourtIdResponse
      */
     order: number;
 }
 
 /**
- * Check if a given object implements the CourtPricingRules interface.
+ * Check if a given object implements the ListCourtPricingRuleByCourtIdResponse interface.
  */
-export function instanceOfCourtPricingRules(value: object): value is CourtPricingRules {
-    if (!('id' in value) || value['id'] === undefined) return false;
+export function instanceOfListCourtPricingRuleByCourtIdResponse(value: object): value is ListCourtPricingRuleByCourtIdResponse {
     if (!('courtId' in value) || value['courtId'] === undefined) return false;
-    if (!('court' in value) || value['court'] === undefined) return false;
     if (!('daysOfWeek' in value) || value['daysOfWeek'] === undefined) return false;
     if (!('startTime' in value) || value['startTime'] === undefined) return false;
     if (!('endTime' in value) || value['endTime'] === undefined) return false;
@@ -116,11 +94,11 @@ export function instanceOfCourtPricingRules(value: object): value is CourtPricin
     return true;
 }
 
-export function CourtPricingRulesFromJSON(json: any): CourtPricingRules {
-    return CourtPricingRulesFromJSONTyped(json, false);
+export function ListCourtPricingRuleByCourtIdResponseFromJSON(json: any): ListCourtPricingRuleByCourtIdResponse {
+    return ListCourtPricingRuleByCourtIdResponseFromJSONTyped(json, false);
 }
 
-export function CourtPricingRulesFromJSONTyped(json: any, ignoreDiscriminator: boolean): CourtPricingRules {
+export function ListCourtPricingRuleByCourtIdResponseFromJSONTyped(json: any, ignoreDiscriminator: boolean): ListCourtPricingRuleByCourtIdResponse {
     if (json == null) {
         return json;
     }
@@ -130,9 +108,7 @@ export function CourtPricingRulesFromJSONTyped(json: any, ignoreDiscriminator: b
         'updatedAt': json['updatedAt'] == null ? undefined : (new Date(json['updatedAt'])),
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
-        'id': json['id'],
         'courtId': json['courtId'],
-        'court': CourtFromJSON(json['court']),
         'daysOfWeek': json['daysOfWeek'] == null ? null : json['daysOfWeek'],
         'startTime': json['startTime'],
         'endTime': json['endTime'],
@@ -141,11 +117,11 @@ export function CourtPricingRulesFromJSONTyped(json: any, ignoreDiscriminator: b
     };
 }
 
-export function CourtPricingRulesToJSON(json: any): CourtPricingRules {
-    return CourtPricingRulesToJSONTyped(json, false);
+export function ListCourtPricingRuleByCourtIdResponseToJSON(json: any): ListCourtPricingRuleByCourtIdResponse {
+    return ListCourtPricingRuleByCourtIdResponseToJSONTyped(json, false);
 }
 
-export function CourtPricingRulesToJSONTyped(value?: CourtPricingRules | null, ignoreDiscriminator: boolean = false): any {
+export function ListCourtPricingRuleByCourtIdResponseToJSONTyped(value?: ListCourtPricingRuleByCourtIdResponse | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
@@ -156,9 +132,7 @@ export function CourtPricingRulesToJSONTyped(value?: CourtPricingRules | null, i
         'updatedAt': value['updatedAt'] === null ? null : ((value['updatedAt'] as any)?.toISOString()),
         'createdBy': value['createdBy'],
         'updatedBy': value['updatedBy'],
-        'id': value['id'],
         'courtId': value['courtId'],
-        'court': CourtToJSON(value['court']),
         'daysOfWeek': value['daysOfWeek'],
         'startTime': value['startTime'],
         'endTime': value['endTime'],

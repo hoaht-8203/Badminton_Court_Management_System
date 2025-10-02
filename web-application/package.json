@@ -27,7 +27,8 @@
     "next": "15.5.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "reactjs-otp-input": "^2.0.10"
+    "reactjs-otp-input": "^2.0.10",
+    "@microsoft/signalr": "^8.0.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

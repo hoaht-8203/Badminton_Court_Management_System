@@ -3,15 +3,22 @@ using ApiApplication.Dtos.Payment;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
+using ApiApplication.SignalR;
 using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
 
-public class PaymentService(ApplicationDbContext context, IMapper mapper) : IPaymentService
+public class PaymentService(
+    ApplicationDbContext context,
+    IMapper mapper,
+    IHubContext<BookingHub> hub
+) : IPaymentService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
+    private readonly IHubContext<BookingHub> _hub = hub;
 
     public async Task<DetailPaymentResponse> CreatePaymentAsync(CreatePaymentRequest request)
     {
@@ -39,6 +46,16 @@ public class PaymentService(ApplicationDbContext context, IMapper mapper) : IPay
 
         await _context.Payments.AddAsync(payment);
         await _context.SaveChangesAsync();
+        await _hub.Clients.All.SendAsync(
+            "paymentCreated",
+            new
+            {
+                id = payment.Id,
+                bookingId = payment.BookingId,
+                status = payment.Status.ToString(),
+                amount = payment.Amount,
+            }
+        );
         return _mapper.Map<DetailPaymentResponse>(payment);
     }
 
@@ -63,7 +80,20 @@ public class PaymentService(ApplicationDbContext context, IMapper mapper) : IPay
             .Include(i => i.Booking)!
             .ThenInclude(b => b!.Court)
             .FirstOrDefaultAsync(i => i.Id == request.Id);
-        return payment == null ? null : _mapper.Map<DetailPaymentResponse>(payment);
+        if (payment == null)
+            return null;
+        var dto = _mapper.Map<DetailPaymentResponse>(payment);
+        await _hub.Clients.All.SendAsync(
+            "paymentUpdated",
+            new
+            {
+                id = dto.Id,
+                bookingId = dto.BookingId,
+                status = dto.Status.ToString(),
+                amount = dto.Amount,
+            }
+        );
+        return dto;
     }
 
     private async Task<string> GenerateNextPaymentIdAsync()

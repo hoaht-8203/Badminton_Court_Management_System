@@ -53,7 +53,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
         if (courts == null)
         {
             throw new ApiException(
-                $"Not found court with ID: {request.Id}",
+                $"Không tìm thấy sân với ID: {request.Id}",
                 HttpStatusCode.BadRequest
             );
         }
@@ -70,7 +70,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
         )
         {
             throw new ApiException(
-                $"Court name {request.Name} already exists in this area",
+                $"Tên sân {request.Name} đã được sử dụng bởi sân khác",
                 HttpStatusCode.BadRequest
             );
         }
@@ -107,7 +107,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
         if (court == null)
         {
             throw new ApiException(
-                $"Not found court with ID: {request.Id}",
+                $"Không tìm thấy sân với ID: {request.Id}",
                 HttpStatusCode.BadRequest
             );
         }
@@ -121,7 +121,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
             if (isExist)
             {
                 throw new ApiException(
-                    $"Court name {request.Name} already exists in this area",
+                    $"Tên sân {request.Name} đã được sử dụng bởi sân khác",
                     HttpStatusCode.BadRequest
                 );
             }
@@ -155,7 +155,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
         if (courts == null)
         {
             throw new ApiException(
-                $"Not found court with ID: {request.Id}",
+                $"Không tìm thấy sân với ID: {request.Id}",
                 HttpStatusCode.BadRequest
             );
         }
@@ -172,13 +172,13 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
 
         if (courts == null)
         {
-            throw new ApiException("Court does not exist", HttpStatusCode.BadRequest);
+            throw new ApiException("Sân không tồn tại", HttpStatusCode.BadRequest);
         }
 
         if (!request.IsValidStatus())
         {
             throw new ApiException(
-                $"Invalid status: {request.Status}. Valid statuses are: Active, Inactive, Deleted",
+                $"Trạng thái không hợp lệ: {request.Status}. Trạng thái hợp lệ là: Active, Inactive, Deleted",
                 HttpStatusCode.BadRequest
             );
         }
@@ -199,7 +199,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
             if (dayOfWeek < 2 || dayOfWeek > 8)
             {
                 throw new ApiException(
-                    "Các ngày trong tuần phải là từ 2 đến chủ nhật",
+                    "Các ngày trong tuần phải là từ 2 đến 8",
                     HttpStatusCode.BadRequest
                 );
             }
@@ -208,7 +208,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
         if (request.StartTime >= request.EndTime)
         {
             throw new ApiException(
-                "Thời gian bắt đầu phải trước thời gian kết thúc",
+                "Thời gian bắt đầu phải trước thời gian kết thúc.",
                 HttpStatusCode.BadRequest
             );
         }
@@ -236,7 +236,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
         var courtPricingRuleTemplate =
             await _context.CourtPricingRuleTemplates.FirstOrDefaultAsync(c => c.Id == request.Id)
             ?? throw new ApiException(
-                $"Not found court pricing rule template with ID: {request.Id}",
+                $"Không tìm thấy template giá sân với ID: {request.Id}",
                 HttpStatusCode.BadRequest
             );
 
@@ -252,7 +252,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
         var courtPricingRuleTemplate =
             await _context.CourtPricingRuleTemplates.FirstOrDefaultAsync(c => c.Id == request.Id)
             ?? throw new ApiException(
-                $"Not found court pricing rule template with ID: {request.Id}",
+                $"Không tìm thấy template giá sân với ID: {request.Id}",
                 HttpStatusCode.BadRequest
             );
 

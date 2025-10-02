@@ -4,6 +4,7 @@ public class ListBookingCourtResponse
 {
     public Guid Id { get; set; }
     public int CustomerId { get; set; }
+    public string? CustomerName { get; set; }
     public Guid CourtId { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }

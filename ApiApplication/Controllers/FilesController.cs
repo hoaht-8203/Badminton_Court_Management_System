@@ -17,7 +17,7 @@ public class FilesController(IStorageService storageService) : ControllerBase
 
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
-    [RequestSizeLimit(104857600)] // 100 MB
+    [RequestSizeLimit(3145728)] // 3 MB
     public async Task<ActionResult<ApiResponse<UploadFileResponse>>> UploadFile(
         [FromForm] UploadFileRequest request
     )
@@ -27,23 +27,20 @@ public class FilesController(IStorageService storageService) : ControllerBase
 
         if (!allowedExtensions.Contains(fileExtension))
         {
-            throw new ApiException("Only image files are allowed", HttpStatusCode.BadRequest);
+            throw new ApiException("Chỉ hỗ trợ file ảnh", HttpStatusCode.BadRequest);
         }
 
         try
         {
             var response = await _storageService.UploadFileAsync(request);
             return Ok(
-                ApiResponse<UploadFileResponse>.SuccessResponse(
-                    response,
-                    "File uploaded successfully"
-                )
+                ApiResponse<UploadFileResponse>.SuccessResponse(response, "Tải lên file thành công")
             );
         }
         catch (Exception ex)
         {
             throw new ApiException(
-                $"Upload failed: {ex.Message}",
+                $"Tải lên file thất bại: {ex.Message}",
                 HttpStatusCode.InternalServerError
             );
         }
@@ -58,16 +55,16 @@ public class FilesController(IStorageService storageService) : ControllerBase
         {
             if (!await _storageService.FileExistsAsync(request.FileName, request.Ct))
             {
-                throw new ApiException("File not found", HttpStatusCode.BadRequest);
+                throw new ApiException("File không tồn tại", HttpStatusCode.BadRequest);
             }
 
             await _storageService.DeleteFileAsync(request);
-            return Ok(ApiResponse<object?>.SuccessResponse(null, "File deleted successfully"));
+            return Ok(ApiResponse<object?>.SuccessResponse(null, "Xóa file thành công"));
         }
         catch (Exception ex)
         {
             throw new ApiException(
-                $"Delete failed: {ex.Message}",
+                $"Xóa file thất bại: {ex.Message}",
                 HttpStatusCode.InternalServerError
             );
         }
@@ -79,17 +76,12 @@ public class FilesController(IStorageService storageService) : ControllerBase
         try
         {
             await _storageService.SetBucketPublicPolicyAsync(ct);
-            return Ok(
-                ApiResponse<object?>.SuccessResponse(
-                    null,
-                    "Bucket policy set to public read successfully"
-                )
-            );
+            return Ok(ApiResponse<object?>.SuccessResponse(null, "Cấu hình bucket thành công"));
         }
         catch (Exception ex)
         {
             return Ok(
-                ApiResponse<object?>.ErrorResponse($"Failed to set bucket policy: {ex.Message}")
+                ApiResponse<object?>.ErrorResponse($"Cấu hình bucket thất bại: {ex.Message}")
             );
         }
     }

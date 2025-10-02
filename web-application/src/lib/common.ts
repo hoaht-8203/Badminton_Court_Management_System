@@ -1,11 +1,15 @@
+import { ListBookingCourtResponse } from "@/types-openapi/api";
 import dayjs from "dayjs";
+import { DayPilot } from "daypilot-pro-react";
 
-export function expandBookings(bookings: any[]) {
-  const events: any[] = [];
+interface BookingCourtEvent extends DayPilot.EventData, Omit<ListBookingCourtResponse, "id"> {}
+
+export function expandBookings(bookings: ListBookingCourtResponse[]) {
+  const events: BookingCourtEvent[] = [];
 
   bookings.forEach((b) => {
     // Kiểm tra xem có phải lịch cố định (recurring) hay lịch vãng lai (one-time)
-    const isRecurring = b.dayOfWeek && Array.isArray(b.dayOfWeek) && b.dayOfWeek.length > 0;
+    const isRecurring = b.daysOfWeek && Array.isArray(b.daysOfWeek) && b.daysOfWeek.length > 0;
 
     if (isRecurring) {
       // Xử lý lịch cố định (recurring bookings)
@@ -18,13 +22,14 @@ export function expandBookings(bookings: any[]) {
         const dayjsDow = current.day();
         const dbDow = dayjsDow === 0 ? 8 : dayjsDow + 1; // Sunday=0 -> 8, others +1
 
-        if (b.dayOfWeek.includes(dbDow)) {
+        if (b.daysOfWeek?.includes(dbDow)) {
           events.push({
             id: b.id + "-" + current.format("YYYYMMDD"),
-            text: b.cusId,
+            text: b.customerId?.toString() ?? "",
             start: current.format("YYYY-MM-DD") + "T" + b.startTime,
             end: current.format("YYYY-MM-DD") + "T" + b.endTime,
             resource: b.courtId,
+            ...b,
           });
         }
 
@@ -34,11 +39,12 @@ export function expandBookings(bookings: any[]) {
       // Xử lý lịch vãng lai (one-time bookings)
       // Chỉ tạo 1 event cho ngày cụ thể
       events.push({
-        id: b.id.toString(),
-        text: b.cusId,
+        id: b.id?.toString() ?? "",
+        text: b.customerName ?? "",
         start: b.startDate + "T" + b.startTime,
         end: b.endDate + "T" + b.endTime,
         resource: b.courtId,
+        ...b,
       });
     }
   });

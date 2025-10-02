@@ -4,7 +4,9 @@ using ApiApplication.Dtos.BookingCourt;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
+using ApiApplication.SignalR;
 using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
@@ -13,13 +15,15 @@ public class BookingCourtService(
     ApplicationDbContext context,
     IMapper mapper,
     IPaymentService paymentService,
-    IConfiguration configuration
+    IConfiguration configuration,
+    IHubContext<BookingHub> hub
 ) : IBookingCourtService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
     private readonly IPaymentService _paymentService = paymentService;
     private readonly IConfiguration _configuration = configuration;
+    private readonly IHubContext<BookingHub> _hub = hub;
 
     public async Task<DetailBookingCourtResponse> CreateBookingCourtAsync(
         CreateBookingCourtRequest request
@@ -174,6 +178,23 @@ public class BookingCourtService(
         await _context.BookingCourts.AddAsync(entity);
         await _context.SaveChangesAsync();
 
+        // Broadcast booking created (pending payment) event
+        await _hub.Clients.All.SendAsync(
+            "bookingCreated",
+            new
+            {
+                id = entity.Id,
+                status = entity.Status.ToString(),
+                courtId = entity.CourtId,
+                customerId = entity.CustomerId,
+                startDate = entity.StartDate,
+                endDate = entity.EndDate,
+                startTime = entity.StartTime,
+                endTime = entity.EndTime,
+                daysOfWeek = entity.DaysOfWeek,
+            }
+        );
+
         // Tạo payment pending ngay sau khi tạo booking
         await _paymentService.CreatePaymentAsync(
             new Dtos.Payment.CreatePaymentRequest { BookingId = entity.Id }
@@ -233,16 +254,19 @@ public class BookingCourtService(
         }
         if (request.FromDate.HasValue)
         {
-            query = query.Where(x => x.EndDate >= request.FromDate.Value);
+            var fromDate = DateOnly.FromDateTime(request.FromDate.Value);
+            query = query.Where(x => x.EndDate >= fromDate);
         }
         if (request.ToDate.HasValue)
         {
-            query = query.Where(x => x.StartDate <= request.ToDate.Value);
+            var toDate = DateOnly.FromDateTime(request.ToDate.Value);
+            query = query.Where(x => x.StartDate <= toDate);
         }
 
         var items = await query
             .OrderByDescending(x => x.StartDate)
             .ThenBy(x => x.StartTime)
+            .Include(x => x.Customer)
             .ToListAsync();
         return _mapper.Map<List<ListBookingCourtResponse>>(items);
     }

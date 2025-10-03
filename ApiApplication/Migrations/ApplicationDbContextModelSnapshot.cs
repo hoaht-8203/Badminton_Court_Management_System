@@ -269,6 +269,9 @@ namespace ApiApplication.Migrations
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time without time zone");
 
+                    b.Property<DateTime?>("HoldExpiresAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
@@ -502,6 +505,9 @@ namespace ApiApplication.Migrations
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time without time zone");
 
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("PricePerHour")
                         .HasColumnType("numeric");
 
@@ -680,13 +686,13 @@ namespace ApiApplication.Migrations
                     b.ToTable("Departments");
                 });
 
-            modelBuilder.Entity("ApiApplication.Entities.Invoice", b =>
+            modelBuilder.Entity("ApiApplication.Entities.Payment", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid>("BookingId")
                         .HasColumnType("uuid");
@@ -697,11 +703,11 @@ namespace ApiApplication.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("InvoiceDate")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Note")
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("PaymentCreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -717,7 +723,10 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.ToTable("Invoices");
+                    b.HasIndex("Id")
+                        .IsUnique();
+
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Payroll", b =>
@@ -1505,7 +1514,7 @@ namespace ApiApplication.Migrations
                     b.Navigation("Court");
                 });
 
-            modelBuilder.Entity("ApiApplication.Entities.Invoice", b =>
+            modelBuilder.Entity("ApiApplication.Entities.Payment", b =>
                 {
                     b.HasOne("ApiApplication.Entities.BookingCourt", "Booking")
                         .WithMany()

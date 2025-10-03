@@ -93,6 +93,12 @@ export interface CourtPricingRules {
      * @memberof CourtPricingRules
      */
     pricePerHour: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof CourtPricingRules
+     */
+    order: number;
 }
 
 /**
@@ -106,6 +112,7 @@ export function instanceOfCourtPricingRules(value: object): value is CourtPricin
     if (!('startTime' in value) || value['startTime'] === undefined) return false;
     if (!('endTime' in value) || value['endTime'] === undefined) return false;
     if (!('pricePerHour' in value) || value['pricePerHour'] === undefined) return false;
+    if (!('order' in value) || value['order'] === undefined) return false;
     return true;
 }
 
@@ -130,6 +137,7 @@ export function CourtPricingRulesFromJSONTyped(json: any, ignoreDiscriminator: b
         'startTime': json['startTime'],
         'endTime': json['endTime'],
         'pricePerHour': json['pricePerHour'],
+        'order': json['order'],
     };
 }
 
@@ -155,6 +163,7 @@ export function CourtPricingRulesToJSONTyped(value?: CourtPricingRules | null, i
         'startTime': value['startTime'],
         'endTime': value['endTime'],
         'pricePerHour': value['pricePerHour'],
+        'order': value['order'],
     };
 }
 

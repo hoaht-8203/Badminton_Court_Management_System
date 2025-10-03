@@ -21,8 +21,10 @@ export const setOnUnauthorized = (cb: (() => void) | undefined) => {
   onUnauthorized = cb;
 };
 
+export const apiBaseUrl = "http://localhost:5039";
+
 export const axiosInstance = axios.create({
-  baseURL: "http://localhost:5039/",
+  baseURL: apiBaseUrl,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",

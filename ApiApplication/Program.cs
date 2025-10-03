@@ -13,9 +13,11 @@ using ApiApplication.Services;
 using ApiApplication.Services.Impl;
 using ApiApplication.Sessions;
 using ApiApplication.Sessions.Impl;
+using ApiApplication.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -69,7 +71,7 @@ builder.Services.AddScoped<ICourtAreaService, CourtAreaService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IPriceTableService, PriceTableService>();
 builder.Services.AddScoped<IBookingCourtService, BookingCourtService>();
-builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -86,7 +88,8 @@ builder.Services.AddAutoMapper(config => config.AddProfile<SupplierMappingProfil
 builder.Services.AddAutoMapper(config => config.AddProfile<ProductMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<PriceTableMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<BookingCourtMappingProfile>());
-builder.Services.AddAutoMapper(config => config.AddProfile<InvoiceMappingProfile>());
+
+builder.Services.AddAutoMapper(config => config.AddProfile<PaymentMappingProfile>());
 builder.Services.Configure<MinioOptions>(
     builder.Configuration.GetSection(MinioOptions.MinioOptionsKey)
 );
@@ -198,6 +201,8 @@ builder
 
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddHostedService<BookingHoldExpiryHostedService>();
+builder.Services.AddSignalR();
 builder
     .Services.AddControllers()
     .AddJsonOptions(options =>
@@ -232,7 +237,7 @@ builder.Services.AddCors(options =>
         builder =>
         {
             builder
-                .WithOrigins("http://localhost:3000")
+                .WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials();
@@ -281,5 +286,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseWebSockets();
+app.MapHub<BookingHub>("/hubs/booking");
 
 app.Run();

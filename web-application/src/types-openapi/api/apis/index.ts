@@ -2,11 +2,14 @@
 /* eslint-disable */
 export * from './ActivityApi';
 export * from './AuthApi';
+export * from './BookingCourtsApi';
 export * from './CourtAreasApi';
 export * from './CourtsApi';
 export * from './CustomersApi';
 export * from './EmailApi';
 export * from './FilesApi';
+export * from './PaymentWebhooksApi';
+export * from './PaymentsApi';
 export * from './PricesApi';
 export * from './ProductsApi';
 export * from './RolesApi';

@@ -25,6 +25,7 @@ const allFields = [
 
 const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff }) => {
   const [salaryData, setSalaryData] = React.useState<any>({});
+  const [salarySettingsLoaded, setSalarySettingsLoaded] = useState(false);
   const [form] = Form.useForm();
   const [salaryForm] = Form.useForm(); // Ensure SalarySetupForm always receives a connected form instance
   const [expanded, setExpanded] = useState(false);
@@ -44,9 +45,12 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
         try {
           const salaryObj = JSON.parse(staff.salarySettings);
           salaryForm.setFieldsValue(salaryObj);
+          setSalarySettingsLoaded(false);
+          setTimeout(() => setSalarySettingsLoaded(true), 0);
         } catch {}
       } else {
         salaryForm.resetFields();
+        setSalarySettingsLoaded(false);
       }
       if (staff.avatarUrl) {
         setAvatarPreview(staff.avatarUrl);
@@ -61,6 +65,7 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
       salaryForm.resetFields();
       setAvatarPreview(undefined);
       setFileList([]);
+      setSalarySettingsLoaded(false);
     }
   }, [open, staff, form, salaryForm]);
 
@@ -190,7 +195,7 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
           {
             key: "salary",
             label: "Thiết lập lương",
-            children: <SalarySetupForm form={salaryForm} onSalaryDataChange={setSalaryData} />, // Truyền callback để nhận dữ liệu nâng cao
+            children: salaryForm ? <SalarySetupForm form={salaryForm} onSalaryDataChange={setSalaryData} staff={staff} /> : null,
           },
         ]}
       />

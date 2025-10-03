@@ -17,9 +17,9 @@ namespace ApiApplication.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<List<ShiftResponse>>>> GetAll()
+        public async Task<ActionResult<ApiResponse<List<ShiftResponse>>>> GetAll([FromQuery] bool includeInactive = false)
         {
-            var result = await _shiftService.GetAllShiftsAsync();
+            var result = await _shiftService.GetAllShiftsAsync(includeInactive);
             return Ok(
                 ApiResponse<List<ShiftResponse>>.SuccessResponse(
                     result,

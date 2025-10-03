@@ -3,6 +3,7 @@
 import React from "react";
 import { Card, Form, Select, Switch, Button, Tabs, Input, Tooltip } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
+import { shiftService } from "@/services/shiftService";
 
 const salaryTypes = [
   { value: "fixed", label: "Lương cố định" },
@@ -15,30 +16,102 @@ const salaryTemplates = [
 ];
 
 import type { FormInstance } from "antd/es/form";
-import { shiftService } from "@/services/shiftService";
 
 interface SalarySetupFormProps {
+  staff?: any;
   onSubmit?: (values: any) => void;
   onCancel?: () => void;
-  form?: FormInstance<any>;
+  form: FormInstance<any>;
   onSalaryDataChange?: (data: any) => void;
+  salarySettingsLoaded?: boolean;
 }
 
-export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryDataChange }: SalarySetupFormProps) {
-  // ...existing code...
-  // ...existing code...
+export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryDataChange, staff }: SalarySetupFormProps) {
+  // State declarations
   const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [shiftOptions, setShiftOptions] = React.useState<{ value: string; label: string }[]>([]);
+
   // Lấy danh sách ca khi bật nâng cao hoặc khi mount
   React.useEffect(() => {
     if (showAdvanced) {
       shiftService.list().then((res) => {
-        if (Array.isArray(res.data)) {
+        if (res.data && Array.isArray(res.data)) {
           setShiftOptions(res.data.map((shift) => ({ value: shift.id?.toString() || "", label: shift.name || "" })));
         }
       });
     }
   }, [showAdvanced]);
+  // Only keep the first declaration and useEffect above
+
+  React.useEffect(() => {
+    if (staff && staff.salarySettings) {
+      let salaryObj = staff.salarySettings;
+      if (typeof salaryObj === "string") {
+        try {
+          salaryObj = JSON.parse(salaryObj);
+        } catch {}
+      }
+      // Đồng bộ nâng cao
+      if (typeof salaryObj.showAdvanced !== "undefined") {
+        setShowAdvanced(!!salaryObj.showAdvanced);
+        if (salaryObj.showAdvanced && Array.isArray(salaryObj.advancedRows)) {
+          // Đảm bảo advancedRows có đủ shiftId và shiftName
+          const mappedRows = salaryObj.advancedRows.map((row: any, idx: number) => {
+            if (idx === 0) {
+              return {
+                ...row,
+                shiftId: 0,
+                shiftName: "Mặc định",
+              };
+            }
+            // Nếu đã có shiftId và shiftName thì giữ nguyên, nếu chưa thì lấy từ shiftType
+            if (typeof row.shiftId === "undefined" && typeof row.shiftType !== "undefined") {
+              // Tìm shiftName từ shiftOptions nếu có
+              const found = shiftOptions.find((opt) => opt.value === row.shiftType);
+              return {
+                ...row,
+                shiftId: row.shiftType,
+                shiftName: found ? found.label : "",
+              };
+            }
+            return row;
+          });
+          setAdvancedRows(mappedRows);
+        }
+      }
+      // Đồng bộ giảm trừ
+      const hasDeduction =
+        salaryObj.deductionLateMethod ||
+        salaryObj.deductionLateValue ||
+        salaryObj.deductionLateParam ||
+        salaryObj.deductionEarlyMethod ||
+        salaryObj.deductionEarlyValue ||
+        salaryObj.deductionEarlyParam;
+      setShowDeductionConfig(!!hasDeduction);
+    }
+  }, [staff?.salarySettings, shiftOptions]);
+  // Khi staff.salarySettings thay đổi, đồng bộ lại state nâng cao
+  React.useEffect(() => {
+    if (staff && staff.salarySettings) {
+      let salaryObj = staff.salarySettings;
+      if (typeof salaryObj === "string") {
+        try {
+          salaryObj = JSON.parse(salaryObj);
+        } catch {}
+      }
+      if (typeof salaryObj.showAdvanced !== "undefined") {
+        setShowAdvanced(!!salaryObj.showAdvanced);
+        if (salaryObj.showAdvanced && Array.isArray(salaryObj.advancedRows)) {
+          setAdvancedRows(salaryObj.advancedRows);
+        }
+      }
+    }
+  }, [staff?.salarySettings]);
+  if (!form) {
+    throw new Error("SalarySetupForm requires a connected form instance via the 'form' prop.");
+  }
+  // ...existing code...
+  // Remove duplicate declarations and useEffect
   const [showDeductionConfig, setShowDeductionConfig] = React.useState(false);
   // Hàm lấy dữ liệu submit
   const getSalaryData = () => {
@@ -47,11 +120,12 @@ export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryData
       return { advancedRows };
     } else {
       // Nếu không, chỉ lấy salaryAmount
-      return { salaryAmount: usedForm.getFieldValue("salaryAmount") };
+      return { salaryAmount: form?.getFieldValue("salaryAmount") };
     }
   };
   type AdvancedRow = {
-    shiftType: string;
+    shiftId: string | number;
+    shiftName: string;
     amount: number | undefined;
     saturday: string;
     sunday: string;
@@ -61,7 +135,8 @@ export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryData
   };
   const [advancedRows, setAdvancedRows] = React.useState<AdvancedRow[]>([
     {
-      shiftType: "Mặc định",
+      shiftId: 0,
+      shiftName: "Mặc định",
       amount: 0,
       saturday: "100%",
       sunday: "100%",
@@ -71,21 +146,22 @@ export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryData
   ]);
 
   // Sync advancedRows and showAdvanced from form initial values (for edit mode)
-  React.useEffect(() => {
-    const values = form ? form.getFieldsValue() : {};
-    if (values && typeof values.showAdvanced !== "undefined") {
-      setShowAdvanced(!!values.showAdvanced);
-      if (values.showAdvanced && Array.isArray(values.advancedRows)) {
-        setAdvancedRows(values.advancedRows);
+  // Đồng bộ showAdvanced và advancedRows mỗi khi giá trị form thay đổi
+  const handleFormValuesChange = (changedValues: any, allValues: any) => {
+    if (typeof allValues.showAdvanced !== "undefined") {
+      setShowAdvanced(!!allValues.showAdvanced);
+      if (allValues.showAdvanced && Array.isArray(allValues.advancedRows)) {
+        setAdvancedRows(allValues.advancedRows);
       }
     }
-  }, [form]);
+  };
 
   const handleAddAdvancedRow = () => {
     setAdvancedRows([
       ...advancedRows,
       {
-        shiftType: "",
+        shiftId: "",
+        shiftName: "",
         amount: undefined,
         saturday: "100%",
         sunday: "100%",
@@ -96,14 +172,19 @@ export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryData
   };
   const handleAdvancedChange = (idx: number, field: string, value: any) => {
     const newRows = [...advancedRows];
-    newRows[idx][field] = value;
+    if (field === "shiftId") {
+      newRows[idx].shiftId = value;
+      // Tìm shiftName từ shiftOptions
+      const found = shiftOptions.find((opt) => opt.value === value);
+      newRows[idx].shiftName = found ? found.label : "";
+    } else {
+      newRows[idx][field] = value;
+    }
     setAdvancedRows(newRows);
   };
   const handleRemoveAdvancedRow = (idx: number) => {
     setAdvancedRows(advancedRows.filter((_, i) => i !== idx));
   };
-  const [internalForm] = Form.useForm();
-  const usedForm = form ? form : internalForm;
   const [salaryType, setSalaryType] = React.useState<string | undefined>(undefined);
   // Truyền dữ liệu nâng cao lên parent mỗi khi thay đổi
   React.useEffect(() => {
@@ -111,32 +192,22 @@ export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryData
       if (showAdvanced) {
         onSalaryDataChange({ showAdvanced, advancedRows });
       } else {
-        onSalaryDataChange({ showAdvanced, salaryAmount: usedForm.getFieldValue("salaryAmount") });
+        onSalaryDataChange({ showAdvanced, salaryAmount: form?.getFieldValue("salaryAmount") });
       }
     }
-  }, [showAdvanced, advancedRows, usedForm, onSalaryDataChange]);
-  // Truyền dữ liệu nâng cao lên parent mỗi khi thay đổi
-  React.useEffect(() => {
-    if (typeof onSalaryDataChange === "function") {
-      if (showAdvanced) {
-        onSalaryDataChange({ showAdvanced, advancedRows });
-      } else {
-        onSalaryDataChange({ showAdvanced, salaryAmount: usedForm.getFieldValue("salaryAmount") });
-      }
-    }
-  }, [showAdvanced, advancedRows, usedForm, onSalaryDataChange]);
+  }, [showAdvanced, advancedRows, form, onSalaryDataChange]);
 
   React.useEffect(() => {
     // Sync salaryType state with form value
-    setSalaryType(usedForm.getFieldValue("salaryType"));
-  }, [usedForm]);
+    setSalaryType(form?.getFieldValue("salaryType"));
+  }, [form]);
   let salaryUnit = "";
   if (salaryType === "fixed") salaryUnit = "/ tháng";
   else if (salaryType === "hourly") salaryUnit = "/ giờ";
   else if (salaryType === "shift") salaryUnit = "/ ca";
 
   return (
-    <Form layout="vertical" style={{ background: "#fff", padding: 0 }} form={usedForm}>
+    <Form layout="vertical" style={{ background: "#fff", padding: 0 }} form={form} onValuesChange={handleFormValuesChange}>
       {/* <Card style={{ marginBottom: 16, padding: 16 }}>
         <div style={{ fontWeight: 600, marginBottom: 8 }}>
           Mẫu lương{" "}
@@ -193,8 +264,8 @@ export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryData
                             <Select
                               placeholder="Chọn ca"
                               style={{ width: 120 }}
-                              value={row.shiftType}
-                              onChange={(val) => handleAdvancedChange(idx, "shiftType", val)}
+                              value={row.shiftId}
+                              onChange={(val) => handleAdvancedChange(idx, "shiftId", val)}
                               options={shiftOptions}
                             />
                           )}

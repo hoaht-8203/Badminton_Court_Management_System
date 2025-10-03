@@ -14,5 +14,10 @@ public interface IScheduleService
         DateOnly startDate,
         DateOnly endDate
     );
+    Task<List<ScheduleResponse>> GetScheduleOfWeekByStaffIdAsync(
+        DateOnly startDate,
+        DateOnly endDate,
+        int staffId
+    );
     Task<bool> RemoveStaffFromShiftAsync(ScheduleRequest request);
 }

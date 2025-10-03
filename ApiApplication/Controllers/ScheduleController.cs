@@ -43,6 +43,19 @@ namespace ApiApplication.Controllers
                 )
             );
         }
+        [HttpGet("by-staff/{staffId}")]
+        public async Task<
+            ActionResult<ApiResponse<List<ScheduleResponse>>>
+        > GetScheduleOfWeekByStaffId([FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate, int staffId)
+        {
+            var result = await _scheduleService.GetScheduleOfWeekByStaffIdAsync(startDate, endDate, staffId);
+            return Ok(
+                ApiResponse<List<ScheduleResponse>>.SuccessResponse(
+                    result,
+                    "Get schedule of week by staff successfully"
+                )
+            );
+        }
 
         [HttpPost("assign")]
         public async Task<ActionResult<ApiResponse<bool>>> AssignSchedule(

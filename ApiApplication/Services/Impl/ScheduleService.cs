@@ -112,6 +112,26 @@ namespace ApiApplication.Services.Impl
 
             return grouped;
         }
+        public async Task<List<ScheduleResponse>> GetScheduleOfWeekByStaffIdAsync(
+            DateOnly startDate,
+            DateOnly endDate,
+            int staffId
+        )
+        {
+            var result = await _context
+                .Schedules.Where(s =>
+                    s.StaffId == staffId
+                )
+                .Include(s => s.Shift)
+                .Include(s => s.Staff)
+                .ToListAsync();
+            return Helpers.ScheduleHelper.StandardizeSchedule(
+                result,
+                startDate,
+                endDate,
+                _mapper
+            );
+        }
 
         public async Task<bool> RemoveStaffFromShiftAsync(ScheduleRequest request)
         {

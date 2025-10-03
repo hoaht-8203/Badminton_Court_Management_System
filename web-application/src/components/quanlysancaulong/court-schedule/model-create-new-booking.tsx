@@ -1,7 +1,7 @@
 import { useListCourts, useListCourtPricingRuleByCourtId } from "@/hooks/useCourt";
 import { customerService } from "@/services/customerService";
 import { CreateBookingCourtRequest, DetailCustomerResponse } from "@/types-openapi/api";
-import { Card, Col, DatePicker, Descriptions, Form, Modal, Radio, Row, Select, TimePicker } from "antd";
+import { Card, Col, DatePicker, Descriptions, Form, message, Modal, Radio, Row, Select, TimePicker } from "antd";
 import { CheckboxGroupProps } from "antd/es/checkbox";
 import FormItem from "antd/es/form/FormItem";
 import dayjs from "dayjs";
@@ -43,8 +43,6 @@ const daysOfWeekOptions = [
 ];
 
 const ModelCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBookingProps) => {
-  console.log("newBooking", newBooking);
-
   const [form] = Form.useForm();
   const startDateWatch = Form.useWatch("startDate", form);
   const startTimeWatch = Form.useWatch("startTime", form);
@@ -98,22 +96,27 @@ const ModelCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
         if (rule.daysOfWeek && !rule.daysOfWeek.includes(dayOfWeek)) {
           return false;
         }
+        // Chuyển đổi format thời gian để so sánh (HH:mm:ss -> HH:mm)
+        const ruleStartTime = rule.startTime.substring(0, 5); // "07:00:00" -> "07:00"
+        const ruleEndTime = rule.endTime.substring(0, 5); // "14:00:00" -> "14:00"
         // Kiểm tra thời gian hiện tại có nằm trong khung giờ rule không
-        return currentTime >= rule.startTime && currentTime < rule.endTime;
+        return currentTime >= ruleStartTime && currentTime < ruleEndTime;
       });
 
       if (!applicableRule) {
         // Không tìm thấy rule phù hợp, dừng tính toán
         console.warn(`No pricing rule found for time ${currentTime} on day ${dayOfWeek}`);
+        message.error("Không tìm thấy rule phù hợp cho thời gian đặt sân");
         break;
       }
 
-      // Tính thời gian áp dụng rule này
-      const ruleEndTime = applicableRule.endTime < endTimeStr ? applicableRule.endTime : endTimeStr;
+      // Tính thời gian áp dụng rule này (chuyển đổi format)
+      const ruleEndTime = applicableRule.endTime.substring(0, 5); // "14:00:00" -> "14:00"
+      const actualEndTime = ruleEndTime < endTimeStr ? ruleEndTime : endTimeStr;
 
       // Tính số giờ trong rule này
       const startMinutes = parseInt(currentTime.split(":")[0]) * 60 + parseInt(currentTime.split(":")[1]);
-      const endMinutes = parseInt(ruleEndTime.split(":")[0]) * 60 + parseInt(ruleEndTime.split(":")[1]);
+      const endMinutes = parseInt(actualEndTime.split(":")[0]) * 60 + parseInt(actualEndTime.split(":")[1]);
       const hoursInThisRule = (endMinutes - startMinutes) / 60;
 
       // Tính giá cho khoảng thời gian này
@@ -121,11 +124,11 @@ const ModelCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
       totalPrice += priceForThisPeriod;
 
       console.log(
-        `Applied rule order ${applicableRule.order}: ${currentTime} - ${ruleEndTime} (${hoursInThisRule.toFixed(2)}h) = ${priceForThisPeriod.toLocaleString("vi-VN")}đ`,
+        `Applied rule order ${applicableRule.order}: ${currentTime} - ${actualEndTime} (${hoursInThisRule.toFixed(2)}h) = ${priceForThisPeriod.toLocaleString("vi-VN")}đ`,
       );
 
       // Chuyển sang thời gian tiếp theo
-      currentTime = ruleEndTime;
+      currentTime = actualEndTime;
     }
 
     console.log("Total calculated price:", totalPrice.toLocaleString("vi-VN") + "đ");

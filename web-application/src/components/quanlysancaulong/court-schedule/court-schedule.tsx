@@ -116,9 +116,13 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
 
   useEffect(() => {
     const conn = new HubConnectionBuilder()
-      .withUrl(`${apiBaseUrl}/hubs/booking`, { withCredentials: true, skipNegotiation: true, transport: HttpTransportType.WebSockets })
+      .withUrl(`${apiBaseUrl}/hubs/booking`, {
+        withCredentials: true,
+        skipNegotiation: false, // Allow negotiation to try different transports
+        transport: HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling,
+      })
       .withAutomaticReconnect()
-      .configureLogging(LogLevel.None)
+      .configureLogging(LogLevel.Information) // Enable logging to see detailed errors
       .build();
     connectionRef.current = conn;
 

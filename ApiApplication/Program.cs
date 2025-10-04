@@ -202,7 +202,13 @@ builder
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHostedService<BookingHoldExpiryHostedService>();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+    options.HandshakeTimeout = TimeSpan.FromSeconds(15);
+});
 builder
     .Services.AddControllers()
     .AddJsonOptions(options =>
@@ -301,7 +307,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.UseWebSockets();
-app.MapHub<BookingHub>("/hubs/booking");
+app.MapHub<BookingHub>("/hubs/booking").RequireCors("AllowFrontend");
 
 using (var scope = app.Services.CreateScope())
 {

@@ -3,5 +3,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace ApiApplication.SignalR;
 
-[Authorize]
+// Temporarily remove [Authorize] to test SignalR connection
+// [Authorize]
 public class BookingHub : Hub { }

@@ -21,7 +21,7 @@ export const setOnUnauthorized = (cb: (() => void) | undefined) => {
   onUnauthorized = cb;
 };
 
-export const apiBaseUrl = "https://caulong365-api.azurewebsites.net/";
+export const apiBaseUrl = "https://caulong365-api.azurewebsites.net";
 
 export const axiosInstance = axios.create({
   baseURL: apiBaseUrl,

@@ -1,30 +1,82 @@
 "use client";
 
-import { Breadcrumb, Button, Card, Col, DatePicker, Drawer, Form, Input, InputNumber, List, Modal, Row, Select, Space, Table, Tabs, Tag, TimePicker, message, Switch } from "antd";
-import { PlusOutlined, ReloadOutlined, SaveOutlined, SearchOutlined, EditOutlined, DeleteOutlined, CheckOutlined, StopOutlined } from "@ant-design/icons";
+import {
+  Breadcrumb,
+  Button,
+  Card,
+  Col,
+  DatePicker,
+  Drawer,
+  Form,
+  Input,
+  InputNumber,
+  List,
+  Modal,
+  Row,
+  Select,
+  Space,
+  Table,
+  Tabs,
+  Tag,
+  TimePicker,
+  message,
+  Switch,
+} from "antd";
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  SaveOutlined,
+  SearchOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  CheckOutlined,
+  StopOutlined,
+} from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useMemo, useState } from "react";
-import { useCreatePrice, useDeletePrice, useDetailPrice, useGetPriceTableProducts, useListPrices, useSetPriceTableProducts, useUpdatePrice } from "@/hooks/usePrices";
-import { DetailPriceTableRequest, DetailPriceTableResponse, ListPriceTableRequest, ListPriceTableResponse, PriceTimeRangeDto } from "@/types-openapi/api";
+import {
+  useCreatePrice,
+  useDeletePrice,
+  useDetailPrice,
+  useGetPriceTableProducts,
+  useListPrices,
+  useSetPriceTableProducts,
+  useUpdatePrice,
+} from "@/hooks/usePrices";
+import {
+  DetailPriceTableRequest,
+  DetailPriceTableResponse,
+  ListPriceTableRequest,
+  ListPriceTableResponse,
+  PriceTimeRangeDto,
+} from "@/types-openapi/api";
 import { useListProducts } from "@/hooks/useProducts";
-import { ApiError } from "@/lib/axios";
+// import { ApiError } from "@/lib/axios"; // Unused
 import React from "react";
 import { useDetailProduct } from "@/hooks/useProducts";
 import { axiosInstance as axios } from "@/lib/axios";
 
 const columns = [
   { title: "Tên bảng giá", dataIndex: "name", key: "name" },
-  { title: "Hiệu lực", key: "range", render: (_: any, r: ListPriceTableResponse) => {
+  {
+    title: "Hiệu lực",
+    key: "range",
+    render: (_: any, r: ListPriceTableResponse) => {
       const a = r.effectiveFrom ? dayjs(r.effectiveFrom).format("DD/MM/YYYY") : "---";
       const b = r.effectiveTo ? dayjs(r.effectiveTo).format("DD/MM/YYYY") : "---";
       return `${a} - ${b}`;
-    }
+    },
   },
-  { title: "Trạng thái", dataIndex: "isActive", key: "isActive", render: (v: boolean) => v ? <Tag color="green">Kích hoạt</Tag> : <Tag color="red">Chưa áp dụng</Tag> },
+  {
+    title: "Trạng thái",
+    dataIndex: "isActive",
+    key: "isActive",
+    render: (v: boolean) => (v ? <Tag color="green">Kích hoạt</Tag> : <Tag color="red">Chưa áp dụng</Tag>),
+  },
 ];
 
 const PriceManagementPage = () => {
-  const [filters, setFilters] = useState<ListPriceTableRequest>({});
+  const [filters] = useState<ListPriceTableRequest>({}); // Remove setFilters if not used
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -32,16 +84,22 @@ const PriceManagementPage = () => {
   const [searchValues, setSearchValues] = useState<{ name?: string; range?: [Dayjs, Dayjs] }>({});
 
   const { data, isFetching, refetch } = useListPrices(filters);
-  const createMutation = useCreatePrice();
-  const updateMutation = useUpdatePrice();
+  // const createMutation = useCreatePrice(); // Unused
+  // const updateMutation = useUpdatePrice(); // Unused
   const deleteMutation = useDeletePrice();
   const [modal, contextHolder] = Modal.useModal();
 
-  const onCreate = () => { setEditingId(null); setOpen(true); };
-  const onEdit = (id: number) => { setEditingId(id); setOpen(true); };
+  const onCreate = () => {
+    setEditingId(null);
+    setOpen(true);
+  };
+  const onEdit = (id: number) => {
+    setEditingId(id);
+    setOpen(true);
+  };
 
-  const listData = data?.data ?? [];
   const filteredData = useMemo(() => {
+    const listData = data?.data ?? [];
     const name = (searchValues.name || "").trim().toLowerCase();
     const range = searchValues.range;
     return listData.filter((x) => {
@@ -51,15 +109,19 @@ const PriceManagementPage = () => {
       const to = range[1]?.endOf("day");
       const effFrom = x.effectiveFrom ? dayjs(x.effectiveFrom) : null;
       const effTo = x.effectiveTo ? dayjs(x.effectiveTo) : null;
-      const overlap = (!effFrom || !to || effFrom.isBefore(to.add(1, "millisecond"))) && (!effTo || !from || effTo.isAfter(from.subtract(1, "millisecond")));
+      const overlap =
+        (!effFrom || !to || effFrom.isBefore(to.add(1, "millisecond"))) && (!effTo || !from || effTo.isAfter(from.subtract(1, "millisecond")));
       return okName && overlap;
     });
-  }, [listData, searchValues]);
+  }, [data?.data, searchValues]);
 
   const onSearchSubmit = (vals: any) => {
     setSearchValues(vals || {});
   };
-  const onSearchReset = () => { searchForm.resetFields(); setSearchValues({}); };
+  const onSearchReset = () => {
+    searchForm.resetFields();
+    setSearchValues({});
+  };
 
   return (
     <section>
@@ -72,7 +134,9 @@ const PriceManagementPage = () => {
         title="Lọc dữ liệu"
         extra={
           <Space>
-            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>Tìm kiếm</Button>
+            <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+              Tìm kiếm
+            </Button>
             <Button onClick={onSearchReset}>Reset</Button>
           </Space>
         }
@@ -98,8 +162,12 @@ const PriceManagementPage = () => {
           <span className="font-bold text-green-500">Tổng số: {filteredData.length}</span>
         </div>
         <div className="flex gap-2">
-          <Button icon={<ReloadOutlined />} onClick={() => refetch()}>Tải lại</Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>Thêm bảng giá</Button>
+          <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
+            Tải lại
+          </Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>
+            Thêm bảng giá
+          </Button>
         </div>
       </div>
 
@@ -118,7 +186,16 @@ const PriceManagementPage = () => {
                 modal.confirm({
                   title: "Xác nhận",
                   content: `Xoá bảng giá ${record.name}?`,
-                  onOk: () => deleteMutation.mutate({ id: record.id! }, { onSuccess: () => { message.success("Đã xoá"); refetch(); } }),
+                  onOk: () =>
+                    deleteMutation.mutate(
+                      { id: record.id! },
+                      {
+                        onSuccess: () => {
+                          message.success("Đã xoá");
+                          refetch();
+                        },
+                      },
+                    ),
                 })
               }
               onChangeStatus={(active) =>
@@ -142,7 +219,15 @@ const PriceManagementPage = () => {
       />
 
       {open && (
-        <PriceDrawer open={open} onClose={() => setOpen(false)} priceId={editingId} onSaved={() => { setOpen(false); refetch(); }} />
+        <PriceDrawer
+          open={open}
+          onClose={() => setOpen(false)}
+          priceId={editingId}
+          onSaved={() => {
+            setOpen(false);
+            refetch();
+          }}
+        />
       )}
 
       {contextHolder}
@@ -150,13 +235,25 @@ const PriceManagementPage = () => {
   );
 };
 
-const PriceInformation = ({ record, onEdit, onDelete, onChangeStatus }: { record: ListPriceTableResponse; onEdit: () => void; onDelete: () => void; onChangeStatus: (active: boolean) => void }) => {
+const PriceInformation = ({
+  record,
+  onEdit,
+  onDelete,
+  onChangeStatus,
+}: {
+  record: ListPriceTableResponse;
+  onEdit: () => void;
+  onDelete: () => void;
+  onChangeStatus: (active: boolean) => void;
+}) => {
   const { data } = useDetailPrice({ id: record.id! }, true);
   const d = data?.data as DetailPriceTableResponse | undefined;
   const { data: mapped } = useGetPriceTableProducts(record.id!, true);
   const mapData: any = mapped?.data as any;
-  const itemsFromApi: Array<any> = (mapData?.items || mapData?.Items) || [];
-  const selectedIdToPrice = new Map<number, number | undefined>(itemsFromApi.map((i: any) => [i.productId ?? i.ProductId, i.overrideSalePrice ?? i.OverrideSalePrice ?? undefined]));
+  const itemsFromApi: Array<any> = mapData?.items || mapData?.Items || [];
+  const selectedIdToPrice = new Map<number, number | undefined>(
+    itemsFromApi.map((i: any) => [i.productId ?? i.ProductId, i.overrideSalePrice ?? i.OverrideSalePrice ?? undefined]),
+  );
   const { data: allProducts } = useListProducts({} as any);
   const products = (allProducts?.data || []).filter((x) => selectedIdToPrice.has(x.id!));
 
@@ -173,14 +270,23 @@ const PriceInformation = ({ record, onEdit, onDelete, onChangeStatus }: { record
           <Row gutter={8}>
             <Col span={8}>Tên bảng giá:</Col>
             <Col span={16}>{record.name}</Col>
-            <Col span={24}><hr /></Col>
+            <Col span={24}>
+              <hr />
+            </Col>
             <Col span={8}>Hiệu lực:</Col>
-            <Col span={16}>{(record.effectiveFrom ? dayjs(record.effectiveFrom).format("DD/MM/YYYY") : "---") + " - " + (record.effectiveTo ? dayjs(record.effectiveTo).format("DD/MM/YYYY") : "---")}</Col>
+            <Col span={16}>
+              {(record.effectiveFrom ? dayjs(record.effectiveFrom).format("DD/MM/YYYY") : "---") +
+                " - " +
+                (record.effectiveTo ? dayjs(record.effectiveTo).format("DD/MM/YYYY") : "---")}
+            </Col>
             {record.effectiveFrom || record.effectiveTo ? (
               <>
                 <Col span={8}></Col>
                 <Col span={16}>
-                  <small className="text-gray-500">(Từ {record.effectiveFrom ? dayjs(record.effectiveFrom).format("DD/MM/YYYY HH:mm") : "---"} đến {record.effectiveTo ? dayjs(record.effectiveTo).format("DD/MM/YYYY HH:mm") : "---"})</small>
+                  <small className="text-gray-500">
+                    (Từ {record.effectiveFrom ? dayjs(record.effectiveFrom).format("DD/MM/YYYY HH:mm") : "---"} đến{" "}
+                    {record.effectiveTo ? dayjs(record.effectiveTo).format("DD/MM/YYYY HH:mm") : "---"})
+                  </small>
                 </Col>
               </>
             ) : null}
@@ -189,7 +295,11 @@ const PriceInformation = ({ record, onEdit, onDelete, onChangeStatus }: { record
         <Col span={12}>
           <Row gutter={8}>
             <Col span={8}>Trạng thái:</Col>
-            <Col span={16}><span className={`font-bold ${record.isActive ? "text-green-500" : "text-red-500"}`}>{record.isActive ? "Kinh doanh" : "Không kinh doanh"}</span></Col>
+            <Col span={16}>
+              <span className={`font-bold ${record.isActive ? "text-green-500" : "text-red-500"}`}>
+                {record.isActive ? "Kinh doanh" : "Không kinh doanh"}
+              </span>
+            </Col>
           </Row>
         </Col>
       </Row>
@@ -203,8 +313,9 @@ const PriceInformation = ({ record, onEdit, onDelete, onChangeStatus }: { record
             renderItem={(it) => (
               <List.Item>
                 <Space>
-                  <Tag>{it.startTime} - {it.endTime}</Tag>
-                  
+                  <Tag>
+                    {it.startTime} - {it.endTime}
+                  </Tag>
                 </Space>
               </List.Item>
             )}
@@ -233,12 +344,24 @@ const PriceInformation = ({ record, onEdit, onDelete, onChangeStatus }: { record
         <div></div>
         <div className="flex gap-2">
           {record.isActive ? (
-            <Button danger icon={<StopOutlined />} onClick={() => onChangeStatus(false)}>Ngừng áp dụng</Button>
+            <Button danger icon={<StopOutlined />} onClick={() => onChangeStatus(false)}>
+              Ngừng áp dụng
+            </Button>
           ) : (
-            <Button className="!bg-green-500 !text-white !border-green-500 hover:!bg-green-500 hover:!text-white hover:!border-green-500 focus:!shadow-none active:!bg-green-500" icon={<CheckOutlined />} onClick={() => onChangeStatus(true)}>Kích hoạt</Button>
+            <Button
+              className="!border-green-500 !bg-green-500 !text-white hover:!border-green-500 hover:!bg-green-500 hover:!text-white focus:!shadow-none active:!bg-green-500"
+              icon={<CheckOutlined />}
+              onClick={() => onChangeStatus(true)}
+            >
+              Kích hoạt
+            </Button>
           )}
-          <Button type="primary" icon={<EditOutlined />} onClick={onEdit}>Sửa bảng giá</Button>
-          <Button danger icon={<DeleteOutlined />} onClick={onDelete}>Xoá</Button>
+          <Button type="primary" icon={<EditOutlined />} onClick={onEdit}>
+            Sửa bảng giá
+          </Button>
+          <Button danger icon={<DeleteOutlined />} onClick={onDelete}>
+            Xoá
+          </Button>
         </div>
       </div>
     </div>
@@ -247,10 +370,18 @@ const PriceInformation = ({ record, onEdit, onDelete, onChangeStatus }: { record
 
 const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClose: () => void; priceId: number | null; onSaved: () => void }) => {
   const [activeTab, setActiveTab] = useState<string>("info");
-  const [form] = Form.useForm<DetailPriceTableResponse & { ranges: PriceTimeRangeDto[]; months?: number[]; daysOfMonth?: number[]; weekdays?: number[]; effective?: [Dayjs, Dayjs] }>();
+  const [form] = Form.useForm<
+    DetailPriceTableResponse & {
+      ranges: PriceTimeRangeDto[];
+      months?: number[];
+      daysOfMonth?: number[];
+      weekdays?: number[];
+      effective?: [Dayjs, Dayjs];
+    }
+  >();
   const isCreate = !priceId;
 
-  const { data, isFetching } = useDetailPrice({ id: priceId || 0 } as DetailPriceTableRequest, !!priceId);
+  const { data } = useDetailPrice({ id: priceId || 0 } as DetailPriceTableRequest, !!priceId);
   const createMutation = useCreatePrice();
   const updateMutation = useUpdatePrice();
 
@@ -264,12 +395,15 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
         id: d.id,
         name: d.name,
         isActive: d.isActive,
-    
+
         effective: [d.effectiveFrom ? dayjs(d.effectiveFrom) : undefined, d.effectiveTo ? dayjs(d.effectiveTo) : undefined] as any,
-        ranges: (d.timeRanges || []).map((r) => ({ startTime: r.startTime ? dayjs(r.startTime, "HH:mm:ss") : undefined, endTime: r.endTime ? dayjs(r.endTime, "HH:mm:ss") : undefined})),
+        ranges: (d.timeRanges || []).map((r) => ({
+          startTime: r.startTime ? dayjs(r.startTime, "HH:mm:ss") : undefined,
+          endTime: r.endTime ? dayjs(r.endTime, "HH:mm:ss") : undefined,
+        })),
       } as any);
     }
-  }, [data?.data, open]);
+  }, [data?.data, open, form]);
 
   useEffect(() => {
     if (productIdsRes?.data && open) {
@@ -295,47 +429,132 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
     } as any;
 
     if (isCreate) {
-      createMutation.mutate(payload, { onSuccess: () => { message.success("Tạo bảng giá thành công"); onSaved(); } });
+      createMutation.mutate(payload, {
+        onSuccess: () => {
+          message.success("Tạo bảng giá thành công");
+          onSaved();
+        },
+      });
     } else {
-      updateMutation.mutate(payload, { onSuccess: () => { message.success("Cập nhật bảng giá thành công"); onSaved(); }, onError: (e: any) => message.error(e?.message || "Lỗi cập nhật bảng giá") });
+      updateMutation.mutate(payload, {
+        onSuccess: () => {
+          message.success("Cập nhật bảng giá thành công");
+          onSaved();
+        },
+        onError: (e: any) => message.error(e?.message || "Lỗi cập nhật bảng giá"),
+      });
     }
   };
 
   return (
     <Drawer width={900} open={open} onClose={onClose} destroyOnClose title={isCreate ? "Thêm bảng giá" : "Cập nhật bảng giá"}>
-      <Tabs activeKey={activeTab} onChange={setActiveTab} items={[
-        { key: "info", label: "Thông tin", children: (
-          <Form layout="vertical" form={form} onFinish={onSubmit}>
-            <Row gutter={12}>
-              <Col span={12}><Form.Item name="name" label="Tên bảng giá" rules={[{ required: true, message: "Nhập tên" }, { validator: async (_r, v) => { if (!v) return Promise.resolve(); const res = await axios.get("/api/Prices/list", { params: { name: v } }); const arr = (res.data?.data || []) as any[]; const dup = arr.some((x: any) => (x.name || "").toLowerCase() === String(v).toLowerCase() && x.id !== priceId); if (dup) return Promise.reject(new Error("Tên bảng giá đã tồn tại")); return Promise.resolve(); } }]}><Input /></Form.Item></Col>
-              <Col span={12}><Form.Item name="effective" label="Hiệu lực từ ngày - đến" ><DatePicker.RangePicker style={{ width: "100%" }} /></Form.Item></Col>
-              <Col span={6}><Form.Item name="isActive" label="Trạng thái"><Switch checkedChildren="Kinh doanh" unCheckedChildren="Không kinh doanh" /></Form.Item></Col>
-            </Row>
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={[
+          {
+            key: "info",
+            label: "Thông tin",
+            children: (
+              <Form layout="vertical" form={form} onFinish={onSubmit}>
+                <Row gutter={12}>
+                  <Col span={12}>
+                    <Form.Item
+                      name="name"
+                      label="Tên bảng giá"
+                      rules={[
+                        { required: true, message: "Nhập tên" },
+                        {
+                          validator: async (_r, v) => {
+                            if (!v) return Promise.resolve();
+                            const res = await axios.get("/api/Prices/list", { params: { name: v } });
+                            const arr = (res.data?.data || []) as any[];
+                            const dup = arr.some((x: any) => (x.name || "").toLowerCase() === String(v).toLowerCase() && x.id !== priceId);
+                            if (dup) return Promise.reject(new Error("Tên bảng giá đã tồn tại"));
+                            return Promise.resolve();
+                          },
+                        },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item name="effective" label="Hiệu lực từ ngày - đến">
+                      <DatePicker.RangePicker style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Col>
+                  <Col span={6}>
+                    <Form.Item name="isActive" label="Trạng thái">
+                      <Switch checkedChildren="Kinh doanh" unCheckedChildren="Không kinh doanh" />
+                    </Form.Item>
+                  </Col>
+                </Row>
 
-            <Form.List name="ranges">
-              {(fields, { add, remove }) => (
-                <Card title="Khung giờ" extra={<Button onClick={() => add({ startTime: dayjs("08:00", "HH:mm"), endTime: dayjs("12:00", "HH:mm") })} icon={<PlusOutlined />}>Thêm khung giờ</Button>}>
-                  {fields.map((field) => (
-                    <Row key={field.key} gutter={12} align="middle" className="mb-2">
-                      <Col span={7}><Form.Item name={[field.name, "startTime"]} label="Từ giờ" rules={[{ required: true }]}><TimePicker format="HH:mm" style={{ width: "100%" }} /></Form.Item></Col>
-                      <Col span={7}><Form.Item name={[field.name, "endTime"]} label="Đến" rules={[{ required: true }]}><TimePicker format="HH:mm" style={{ width: "100%" }} /></Form.Item></Col>
-                      <Col span={4}><Button danger onClick={() => remove(field.name)}>Xoá</Button></Col>
-                    </Row>
-                  ))}
-                </Card>
-              )}
-            </Form.List>
+                <Form.List name="ranges">
+                  {(fields, { add, remove }) => (
+                    <Card
+                      title="Khung giờ"
+                      extra={
+                        <Button onClick={() => add({ startTime: dayjs("08:00", "HH:mm"), endTime: dayjs("12:00", "HH:mm") })} icon={<PlusOutlined />}>
+                          Thêm khung giờ
+                        </Button>
+                      }
+                    >
+                      {fields.map((field) => (
+                        <Row key={field.key} gutter={12} align="middle" className="mb-2">
+                          <Col span={7}>
+                            <Form.Item name={[field.name, "startTime"]} label="Từ giờ" rules={[{ required: true }]}>
+                              <TimePicker format="HH:mm" style={{ width: "100%" }} />
+                            </Form.Item>
+                          </Col>
+                          <Col span={7}>
+                            <Form.Item name={[field.name, "endTime"]} label="Đến" rules={[{ required: true }]}>
+                              <TimePicker format="HH:mm" style={{ width: "100%" }} />
+                            </Form.Item>
+                          </Col>
+                          <Col span={4}>
+                            <Button danger onClick={() => remove(field.name)}>
+                              Xoá
+                            </Button>
+                          </Col>
+                        </Row>
+                      ))}
+                    </Card>
+                  )}
+                </Form.List>
 
-            <div className="mt-3 text-right"><Space><Button onClick={onClose}>Đóng</Button><Button type="primary" htmlType="submit" icon={<SaveOutlined />}>Lưu</Button></Space></div>
-          </Form>
-        ) },
-        { key: "scope", label: "Phạm vi áp dụng", children: <ProductsSelector priceId={priceId} selected={selectedProductIds} onChangeSelected={setSelectedProductIds} /> },
-      ]} />
+                <div className="mt-3 text-right">
+                  <Space>
+                    <Button onClick={onClose}>Đóng</Button>
+                    <Button type="primary" htmlType="submit" icon={<SaveOutlined />}>
+                      Lưu
+                    </Button>
+                  </Space>
+                </div>
+              </Form>
+            ),
+          },
+          {
+            key: "scope",
+            label: "Phạm vi áp dụng",
+            children: <ProductsSelector priceId={priceId} selected={selectedProductIds} onChangeSelected={setSelectedProductIds} />,
+          },
+        ]}
+      />
     </Drawer>
   );
 };
 
-const ProductsSelector = ({ priceId, selected, onChangeSelected }: { priceId: number | null; selected: number[]; onChangeSelected: (v: number[]) => void }) => {
+const ProductsSelector = ({
+  priceId,
+  selected,
+  onChangeSelected,
+}: {
+  priceId: number | null;
+  selected: number[];
+  onChangeSelected: (v: number[]) => void;
+}) => {
   const [params, setParams] = useState<any>({});
   const [form] = Form.useForm<any>();
   const { data: productsRes, isFetching } = useListProducts(params);
@@ -354,12 +573,14 @@ const ProductsSelector = ({ priceId, selected, onChangeSelected }: { priceId: nu
     if (mapped?.data && priceId) {
       const initial: Record<number, number | undefined> = {};
       const md: any = mapped.data as any;
-      const arr: Array<any> = (md?.items || md?.Items || (md?.productIds || []).map((id: number) => ({ productId: id })));
-      arr.forEach((i: any) => { initial[i.productId ?? i.ProductId] = i.overrideSalePrice ?? i.OverrideSalePrice ?? undefined; });
+      const arr: Array<any> = md?.items || md?.Items || (md?.productIds || []).map((id: number) => ({ productId: id }));
+      arr.forEach((i: any) => {
+        initial[i.productId ?? i.ProductId] = i.overrideSalePrice ?? i.OverrideSalePrice ?? undefined;
+      });
       setRowsState(initial);
       onChangeSelected(arr.map((i: any) => i.productId ?? i.ProductId));
     }
-  }, [mapped?.data, priceId]);
+  }, [mapped?.data, priceId, onChangeSelected]);
 
   const rowSelection = {
     selectedRowKeys: selected,
@@ -412,7 +633,14 @@ const ProductsSelector = ({ priceId, selected, onChangeSelected }: { priceId: nu
   return (
     <Card
       title="Chọn sản phẩm áp dụng"
-      extra={<Space><Button onClick={onReset}>Reset</Button><Button icon={<SearchOutlined />} type="primary" onClick={() => form.submit()}>Tìm kiếm</Button></Space>}
+      extra={
+        <Space>
+          <Button onClick={onReset}>Reset</Button>
+          <Button icon={<SearchOutlined />} type="primary" onClick={() => form.submit()}>
+            Tìm kiếm
+          </Button>
+        </Space>
+      }
     >
       <Form form={form} layout="vertical" onFinish={onSearch} className="mb-3">
         <Row gutter={16}>
@@ -435,17 +663,30 @@ const ProductsSelector = ({ priceId, selected, onChangeSelected }: { priceId: nu
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item name="menuType" label="Loại">
-              <Select allowClear placeholder="Chọn loại" options={[{ value: "Đồ ăn", label: "Đồ ăn" }, { value: "Đồ uống", label: "Đồ uống" }, { value: "Khác", label: "Khác" }]} />
+              <Select
+                allowClear
+                placeholder="Chọn loại"
+                options={[
+                  { value: "Đồ ăn", label: "Đồ ăn" },
+                  { value: "Đồ uống", label: "Đồ uống" },
+                  { value: "Khác", label: "Khác" },
+                ]}
+              />
             </Form.Item>
           </Col>
           <Col span={8}>
             <Form.Item name="isActive" label="Trạng thái">
-              <Select allowClear placeholder="Chọn trạng thái" options={[{ value: true, label: "Kinh doanh" }, { value: false, label: "Không kinh doanh" }]} />
+              <Select
+                allowClear
+                placeholder="Chọn trạng thái"
+                options={[
+                  { value: true, label: "Kinh doanh" },
+                  { value: false, label: "Không kinh doanh" },
+                ]}
+              />
             </Form.Item>
           </Col>
-          <Col span={8}>
-            {/* spacer to keep grid even */}
-          </Col>
+          <Col span={8}>{/* spacer to keep grid even */}</Col>
         </Row>
       </Form>
 
@@ -460,18 +701,33 @@ const ProductsSelector = ({ priceId, selected, onChangeSelected }: { priceId: nu
           { title: "Tên hàng", dataIndex: "name" },
           { title: "Nhóm", dataIndex: "category" },
           { title: "Giá vốn", key: "costPrice", render: (_: any, r: any) => <CostCell productId={r.id} /> },
-          { title: "Giá áp dụng", key: "overrideSalePrice", render: (_: any, r: any) => (
-            <InputNumber min={0} style={{ width: 140 }} value={rowsState[r.id] ?? r.salePrice} onChange={(val) => setRowsState((s) => ({ ...s, [r.id]: val as number }))} />
-          ) },
-          { title: "Trạng thái", dataIndex: "isActive", render: (v: boolean) => v ? <Tag color="green">Kinh doanh</Tag> : <Tag color="red">Không kinh doanh</Tag> },
+          {
+            title: "Giá áp dụng",
+            key: "overrideSalePrice",
+            render: (_: any, r: any) => (
+              <InputNumber
+                min={0}
+                style={{ width: 140 }}
+                value={rowsState[r.id] ?? r.salePrice}
+                onChange={(val) => setRowsState((s) => ({ ...s, [r.id]: val as number }))}
+              />
+            ),
+          },
+          {
+            title: "Trạng thái",
+            dataIndex: "isActive",
+            render: (v: boolean) => (v ? <Tag color="green">Kinh doanh</Tag> : <Tag color="red">Không kinh doanh</Tag>),
+          },
         ]}
       />
-      
+
       <div className="mt-4 text-right">
-        <Button type="primary" onClick={onSave}>Lưu</Button>
+        <Button type="primary" onClick={onSave}>
+          Lưu
+        </Button>
       </div>
     </Card>
   );
 };
 
-export default PriceManagementPage; 
+export default PriceManagementPage;

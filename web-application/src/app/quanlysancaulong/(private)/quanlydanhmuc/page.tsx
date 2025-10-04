@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeleteProduct, useListProducts, useUpdateProduct, useDetailProduct } from "@/hooks/useProducts";
+import { useDeleteProduct, useListProducts, /* useUpdateProduct, */ useDetailProduct } from "@/hooks/useProducts";
 import { ApiError, axiosInstance } from "@/lib/axios";
 import { DetailProductResponse, ListProductRequest, ListProductResponse } from "@/types-openapi/api";
 import { Breadcrumb, Button, Col, Divider, Image, message, Modal, Row, Table, TableProps } from "antd";
@@ -30,12 +30,12 @@ const ProductCategoryPage = () => {
 
   const { data, isFetching, refetch } = useListProducts(searchParams);
   const deleteMutation = useDeleteProduct();
-  const updateMutation = useUpdateProduct();
+  // const updateMutation = useUpdateProduct(); // Unused - comment out
 
   const tableData = useMemo(() => {
     let arr = [...(data?.data ?? [])];
     if (typeof searchParams.isActive === "boolean") {
-      arr = arr.filter((x) => (!!x.isActive) === searchParams.isActive);
+      arr = arr.filter((x) => !!x.isActive === searchParams.isActive);
     }
     if (searchParams.priceSort === "ascend") {
       arr.sort((a, b) => (a.salePrice ?? 0) - (b.salePrice ?? 0));
@@ -75,48 +75,50 @@ const ProductCategoryPage = () => {
         </div>
 
         <Table<ListProductResponse>
-        {...tableProps}
-        columns={[...productColumns!]}
-        dataSource={tableData}
-        loading={isFetching}
-        expandable={{
-          expandRowByClick: true,
-          expandedRowRender: (record) => (
-            <ProductInformation
-              record={record}
-              onEdit={() => {
-                setCurrentId(record.id!);
-                setOpenUpdate(true);
-              }}
-              onDelete={() => {
-                modal.confirm({
-                  title: "Xác nhận",
-                  content: `Xóa hàng hóa ${record.name}?`,
-                  onOk: () =>
-                    deleteMutation.mutate(
-                      { id: record.id! },
-                      { onSuccess: () => message.success("Xóa thành công"), onError: (e: ApiError) => message.error(e.message) },
-                    ),
-                });
-              }}
-              onChangeStatus={(active) =>
-                modal.confirm({
-                  title: "Xác nhận",
-                  content: active ? "Bạn có chắc chắn muốn mở kinh doanh cho hàng hóa này?" : "Bạn có chắc chắn muốn ngừng kinh doanh hàng hóa này?",
-                  onOk: async () => {
-                    try {
-                      await updateStatus(record.id!, active);
-                      message.success("Cập nhật trạng thái thành công");
-                      refetch();
-                    } catch (e: any) {
-                      message.error(e?.message || "Lỗi cập nhật trạng thái");
-                    }
-                  },
-                })
-              }
-            />
-          ),
-        }}
+          {...tableProps}
+          columns={[...productColumns!]}
+          dataSource={tableData}
+          loading={isFetching}
+          expandable={{
+            expandRowByClick: true,
+            expandedRowRender: (record) => (
+              <ProductInformation
+                record={record}
+                onEdit={() => {
+                  setCurrentId(record.id!);
+                  setOpenUpdate(true);
+                }}
+                onDelete={() => {
+                  modal.confirm({
+                    title: "Xác nhận",
+                    content: `Xóa hàng hóa ${record.name}?`,
+                    onOk: () =>
+                      deleteMutation.mutate(
+                        { id: record.id! },
+                        { onSuccess: () => message.success("Xóa thành công"), onError: (e: ApiError) => message.error(e.message) },
+                      ),
+                  });
+                }}
+                onChangeStatus={(active) =>
+                  modal.confirm({
+                    title: "Xác nhận",
+                    content: active
+                      ? "Bạn có chắc chắn muốn mở kinh doanh cho hàng hóa này?"
+                      : "Bạn có chắc chắn muốn ngừng kinh doanh hàng hóa này?",
+                    onOk: async () => {
+                      try {
+                        await updateStatus(record.id!, active);
+                        message.success("Cập nhật trạng thái thành công");
+                        refetch();
+                      } catch (e: any) {
+                        message.error(e?.message || "Lỗi cập nhật trạng thái");
+                      }
+                    },
+                  })
+                }
+              />
+            ),
+          }}
         />
       </div>
 
@@ -128,7 +130,17 @@ const ProductCategoryPage = () => {
   );
 };
 
-const ProductInformation = ({ record, onEdit, onDelete, onChangeStatus }: { record: ListProductResponse; onEdit: () => void; onDelete: () => void; onChangeStatus: (active: boolean) => void }) => {
+const ProductInformation = ({
+  record,
+  onEdit,
+  onDelete,
+  onChangeStatus,
+}: {
+  record: ListProductResponse;
+  onEdit: () => void;
+  onDelete: () => void;
+  onChangeStatus: (active: boolean) => void;
+}) => {
   const isActive = !!record.isActive;
   const { data: detail } = useDetailProduct({ id: record.id! }, true);
   const d = detail?.data as DetailProductResponse | undefined;
@@ -136,75 +148,110 @@ const ProductInformation = ({ record, onEdit, onDelete, onChangeStatus }: { reco
   return (
     <div>
       <Row gutter={16} className="mb-4">
-        <Col span={8}>
-          <Row gutter={16}>
-            <Col span={10}>Mã hàng:</Col>
-            <Col span={14}>{record.id}</Col>
-            <Col span={24}>
-              <Divider size="small" />
+        <Col span={18}>
+          <Row gutter={[16, 0]}>
+            <Col span={8}>
+              <div>
+                <div className="flex">
+                  <div className="w-32 font-medium">Mã hàng:</div>
+                  <div>{record.id}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Mã code:</div>
+                  <div>{record.code || "-"}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Tên hàng:</div>
+                  <div>{record.name}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+              </div>
             </Col>
-            <Col span={10}>Mã code:</Col>
-            <Col span={14}>{record.code || "-"}</Col>
-            <Col span={24}>
-              <Divider size="small" />
+
+            <Col span={8}>
+              <div>
+                <div className="flex">
+                  <div className="w-32 font-medium">Nhóm hàng:</div>
+                  <div>{record.category || "-"}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Loại thực đơn:</div>
+                  <div>{record.menuType || "-"}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Kinh doanh:</div>
+                  <div>
+                    <span className={`font-bold ${isActive ? "text-green-500" : "text-red-500"}`}>
+                      {isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
+                    </span>
+                  </div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+              </div>
             </Col>
-            <Col span={10}>Tên hàng:</Col>
-            <Col span={14}>{record.name}</Col>
+
+            <Col span={8}>
+              <div>
+                <div className="flex">
+                  <div className="w-32 font-medium">Giá vốn:</div>
+                  <div>{d?.costPrice ?? "-"}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Giá bán:</div>
+                  <div>{record.salePrice}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Tồn kho:</div>
+                  <div>{d?.stock ?? 0}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Ngưỡng min/max:</div>
+                  <div>{d ? `${d.minStock} / ${d.maxStock}` : "-"}</div>
+                </div>
+              </div>
+            </Col>
           </Row>
         </Col>
-        <Divider type="vertical" size="small" style={{ height: "auto" }} />
-        <Col span={8}>
-          <Row gutter={16}>
-            <Col span={10}>Nhóm hàng:</Col>
-            <Col span={14}>{record.category || "-"}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={10}>Loại thực đơn:</Col>
-            <Col span={14}>{record.menuType || "-"}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={10}>Kinh doanh:</Col>
-            <Col span={14}>
-              <span className={`font-bold ${isActive ? "text-green-500" : "text-red-500"}`}>{isActive ? "Đang hoạt động" : "Ngừng hoạt động"}</span>
-            </Col>
-          </Row>
-        </Col>
-        <Divider type="vertical" size="small" style={{ height: "auto" }} />
-        <Col span={8}>
-          <Row gutter={16}>
-            <Col span={10}>Giá vốn:</Col>
-            <Col span={14}>{d?.costPrice ?? "-"}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={10}>Giá bán:</Col>
-            <Col span={14}>{record.salePrice}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={10}>Tồn kho:</Col>
-            <Col span={14}>{d?.stock ?? 0}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={10}>Ngưỡng tối thiểu / tối đa:</Col>
-            <Col span={14}>{d ? `${d.minStock} / ${d.maxStock}` : "-"}</Col>
-          </Row>
+
+        <Col span={6} className="flex items-start justify-end">
+          {d?.images && d.images.length > 0 && (
+            <div>
+              <div className="mb-2 text-center font-semibold">Hình ảnh</div>
+              <Image.PreviewGroup>
+                <Image src={d.images[0]} alt="Product image" width={180} height={180} style={{ objectFit: "contain", borderRadius: 8 }} />
+                {d.images.length > 1 && (
+                  <div className="mt-2 flex flex-wrap justify-center gap-2">
+                    {d.images.slice(1).map((url, idx) => (
+                      <Image
+                        key={idx}
+                        src={url}
+                        alt={`Product image ${idx + 2}`}
+                        width={60}
+                        height={60}
+                        style={{ objectFit: "cover", borderRadius: 6 }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </Image.PreviewGroup>
+            </div>
+          )}
         </Col>
       </Row>
-
-      {d?.images && d.images.length > 0 && (
-        <div className="mb-4">
-          <div className="mb-2 font-semibold">Hình ảnh</div>
-          <Image.PreviewGroup>
-            {d.images.map((url, idx) => (
-              <Image key={idx} src={url} width={96} height={96} style={{ objectFit: "cover", marginRight: 8, borderRadius: 6 }} />
-            ))}
-          </Image.PreviewGroup>
-        </div>
-      )}
 
       <div className="flex justify-between">
         <div className="flex gap-2">
@@ -221,7 +268,11 @@ const ProductInformation = ({ record, onEdit, onDelete, onChangeStatus }: { reco
               Ngừng hoạt động
             </Button>
           ) : (
-            <Button className="!bg-green-500 !text-white !border-green-500 hover:!bg-green-500 hover:!text-white hover:!border-green-500 focus:!shadow-none active:!bg-green-500" icon={<CheckOutlined />} onClick={() => onChangeStatus(true)}>
+            <Button
+              className="!border-green-500 !bg-green-500 !text-white hover:!border-green-500 hover:!bg-green-500 hover:!text-white focus:!shadow-none active:!bg-green-500"
+              icon={<CheckOutlined />}
+              onClick={() => onChangeStatus(true)}
+            >
               Kinh doanh
             </Button>
           )}
@@ -231,4 +282,4 @@ const ProductInformation = ({ record, onEdit, onDelete, onChangeStatus }: { reco
   );
 };
 
-export default ProductCategoryPage; 
+export default ProductCategoryPage;

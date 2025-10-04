@@ -23,25 +23,29 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
     onChange: ({ fileList }) => setFiles(fileList),
   };
 
+  // Không tạo phiếu kiểm kho ở FE; backend sẽ tự tạo phiếu cân bằng khi phù hợp
+
   const onSubmit = async (values: CreateProductRequest) => {
     createMutation.mutate(values, {
       onSuccess: async () => {
         try {
-          if (files.length > 0) {
-            if (!values.code) {
-              message.warning("Đã tạo hàng. Vui lòng đặt mã code để tải ảnh ngay lần tới.");
-            } else {
+          // Get the new product ID
+          let productId: number | undefined;
+
+          if (values.code) {
+            const list = await productService.list({ code: values.code });
+            productId = list.data?.[0]?.id;
+
+            // Upload images if available
+            if (files.length > 0 && productId) {
               setUploading(true);
-              const list = await productService.list({ code: values.code });
-              const id = list.data?.[0]?.id;
-              if (id) {
-                await productService.updateImages(
-                  id,
-                  files.map((f) => f.originFileObj as File).filter(Boolean),
-                );
-                message.success("Tải ảnh thành công");
-              }
+              await productService.updateImages(productId, files.map((f) => f.originFileObj as File).filter(Boolean));
+              message.success("Tải ảnh thành công");
             }
+
+            // FE không gọi tạo phiếu kiểm kho ở đây nữa
+          } else if (files.length > 0) {
+            message.warning("Đã tạo hàng. Vui lòng đặt mã code để tải ảnh ngay lần tới.");
           }
         } finally {
           setUploading(false);
@@ -172,17 +176,47 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
         {manageInventory && (
           <Row gutter={16}>
             <Col span={8}>
-              <Form.Item name="stock" label={<span>Tồn kho <Tooltip title="Số lượng tồn kho của sản phẩm (hệ thống sẽ tự động tạo phiếu kiểm kho nếu không nhập thì coi là 0)"><InfoCircleOutlined className="text-gray-400 hover:text-gray-600 cursor-help" /></Tooltip></span>}>
+              <Form.Item
+                name="stock"
+                label={
+                  <span>
+                    Tồn kho{" "}
+                    <Tooltip title="Số lượng tồn kho của sản phẩm (hệ thống sẽ tự động tạo phiếu kiểm kho )">
+                      <InfoCircleOutlined className="cursor-help text-gray-400 hover:text-gray-600" />
+                    </Tooltip>
+                  </span>
+                }
+              >
                 <InputNumber min={0} style={{ width: "100%" }} />
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="minStock" label={<span>Ít nhất <Tooltip title="Tồn ít nhất là tồn tối thiểu của 1 sản phẩm (hệ thống sẽ dựa vào thông tin này để cảnh báo tồn kho tối thiểu)"><InfoCircleOutlined className="text-gray-400 hover:text-gray-600 cursor-help" /></Tooltip></span>}>
+              <Form.Item
+                name="minStock"
+                label={
+                  <span>
+                    Ít nhất{" "}
+                    <Tooltip title="Tồn ít nhất là tồn tối thiểu của 1 sản phẩm (hệ thống sẽ dựa vào thông tin này để cảnh báo tồn kho tối thiểu)">
+                      <InfoCircleOutlined className="cursor-help text-gray-400 hover:text-gray-600" />
+                    </Tooltip>
+                  </span>
+                }
+              >
                 <InputNumber min={0} style={{ width: "100%" }} />
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="maxStock" label={<span>Nhiều nhất <Tooltip title="Tồn nhiều nhất là tồn tối đa của 1 sản phẩm (hệ thống sẽ dựa vào thông tin này để cảnh báo khi hàng hóa vượt quá mức tồn cho phép)"><InfoCircleOutlined className="text-gray-400 hover:text-gray-600 cursor-help" /></Tooltip></span>}>
+              <Form.Item
+                name="maxStock"
+                label={
+                  <span>
+                    Nhiều nhất{" "}
+                    <Tooltip title="Tồn nhiều nhất là tồn tối đa của 1 sản phẩm (hệ thống sẽ dựa vào thông tin này để cảnh báo khi hàng hóa vượt quá mức tồn cho phép)">
+                      <InfoCircleOutlined className="cursor-help text-gray-400 hover:text-gray-600" />
+                    </Tooltip>
+                  </span>
+                }
+              >
                 <InputNumber min={0} style={{ width: "100%" }} />
               </Form.Item>
             </Col>

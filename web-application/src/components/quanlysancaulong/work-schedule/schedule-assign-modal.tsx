@@ -2,6 +2,7 @@ import { useAssignSchedule } from "@/hooks/useSchedule";
 import React, { useState } from "react";
 import { Modal, Button, Checkbox, Switch, DatePicker, Select, Tag } from "antd";
 import dayjs from "dayjs";
+import { ScheduleRequest } from "@/types-openapi/api";
 
 // shifts sẽ lấy từ prop shiftList
 
@@ -65,11 +66,11 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
     for (const shiftKey of selectedShifts) {
       const shiftObj = shiftList.find((s) => s.key === shiftKey);
       if (!shiftObj) continue;
-      const request = {
+      const request: ScheduleRequest = {
         staffId: staff.id,
         shiftId: isNaN(Number(shiftKey)) ? undefined : Number(shiftKey),
-        startDate: date,
-        endDate: endDateValue,
+        startDate: date ? new Date(date) : undefined,
+        endDate: endDateValue ? new Date(endDateValue) : undefined,
         isFixedShift,
         byDay,
       };

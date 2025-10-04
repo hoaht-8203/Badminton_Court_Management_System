@@ -63,6 +63,10 @@ const UpdateCustomerDrawer = ({ open, onClose, customerId }: UpdateCustomerDrawe
         onClose();
       },
       onError: (error: ApiError) => {
+        if (error.message) {
+          message.error(error.message);
+        }
+
         for (const key in error.errors) {
           message.error(error.errors[key]);
           form.setFields([{ name: key, errors: [error.errors[key]] }]);

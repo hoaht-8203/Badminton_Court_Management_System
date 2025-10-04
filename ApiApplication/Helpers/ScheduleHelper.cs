@@ -1,6 +1,7 @@
 using ApiApplication.Constants;
 using ApiApplication.Dtos;
 using AutoMapper;
+using Minio.DataModel.Result;
 
 namespace ApiApplication.Helpers
 {

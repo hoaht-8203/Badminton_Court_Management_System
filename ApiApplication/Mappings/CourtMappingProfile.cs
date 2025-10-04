@@ -40,5 +40,6 @@ public class CourtMappingProfile : Profile
         CreateMap<DeleteCourtPricingRuleTemplateRequest, CourtPricingRuleTemplate>();
 
         CreateMap<CourtArea, ListCourtGroupByCourtAreaResponse>();
+        CreateMap<CourtPricingRules, ListCourtPricingRuleByCourtIdResponse>();
     }
 }

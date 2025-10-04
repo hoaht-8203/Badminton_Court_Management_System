@@ -1,10 +1,16 @@
+using ApiApplication.Dtos.Customer;
+using ApiApplication.Dtos.Payment;
+
 namespace ApiApplication.Dtos.BookingCourt;
 
 public class ListBookingCourtResponse
 {
     public Guid Id { get; set; }
+    public string? PaymentId { get; set; }
     public int CustomerId { get; set; }
+    public string? CustomerName { get; set; }
     public Guid CourtId { get; set; }
+    public string? CourtName { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
     public TimeOnly StartTime { get; set; }
@@ -12,4 +18,6 @@ public class ListBookingCourtResponse
     public int[]? DaysOfWeek { get; set; }
     public string? Status { get; set; }
     public decimal TotalHours { get; set; }
+    public List<PaymentDto> Payments { get; set; } = [];
+    public CustomerDto Customer { get; set; } = null!;
 }

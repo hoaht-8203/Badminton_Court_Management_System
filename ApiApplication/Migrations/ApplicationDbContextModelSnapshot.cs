@@ -505,6 +505,9 @@ namespace ApiApplication.Migrations
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time without time zone");
 
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("PricePerHour")
                         .HasColumnType("numeric");
 
@@ -700,6 +703,9 @@ namespace ApiApplication.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
@@ -719,6 +725,8 @@ namespace ApiApplication.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BookingId");
+
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("Id")
                         .IsUnique();
@@ -1514,12 +1522,20 @@ namespace ApiApplication.Migrations
             modelBuilder.Entity("ApiApplication.Entities.Payment", b =>
                 {
                     b.HasOne("ApiApplication.Entities.BookingCourt", "Booking")
-                        .WithMany()
+                        .WithMany("Payments")
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ApiApplication.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Booking");
+
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PayrollItem", b =>
@@ -1663,6 +1679,11 @@ namespace ApiApplication.Migrations
             modelBuilder.Entity("ApiApplication.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("UserTokens");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.BookingCourt", b =>
+                {
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Court", b =>

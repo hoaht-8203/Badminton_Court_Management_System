@@ -10,5 +10,5 @@ public interface IShiftService
     Task UpdateShiftAsync(int id, ShiftRequest request);
     Task DeleteShiftAsync(int id);
     Task<ShiftResponse?> GetShiftByIdAsync(int id);
-    Task<List<ShiftResponse>> GetAllShiftsAsync();
+    Task<List<ShiftResponse>> GetAllShiftsAsync(bool includeInactive = false);
 }

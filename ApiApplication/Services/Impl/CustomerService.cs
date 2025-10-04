@@ -86,59 +86,19 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
     {
         var query = _context.Customers.AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(request.FullName))
+        if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
-            var name = request.FullName.ToLower();
-            query = query.Where(c => c.FullName.ToLower().Contains(name));
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.Phone))
-        {
-            var phone = request.Phone;
-            query = query.Where(c => c.PhoneNumber.Contains(phone));
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.Gender))
-        {
-            var gender = request.Gender.ToLower();
-            query = query.Where(c => c.Gender != null && c.Gender.ToLower() == gender);
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.City))
-        {
-            var city = request.City.ToLower();
-            query = query.Where(c => c.City != null && c.City!.ToLower().Contains(city));
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.Address))
-        {
-            var address = request.Address.ToLower();
-            query = query.Where(c => c.Address != null && c.Address!.ToLower().Contains(address));
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.District))
-        {
-            var district = request.District.ToLower();
+            var kw = request.Keyword.Trim();
             query = query.Where(c =>
-                c.District != null && c.District!.ToLower().Contains(district)
+                (c.FullName != null && EF.Functions.ILike(c.FullName, $"%{kw}%"))
+                || (c.PhoneNumber != null && EF.Functions.ILike(c.PhoneNumber, $"%{kw}%"))
+                || (c.Email != null && EF.Functions.ILike(c.Email, $"%{kw}%"))
             );
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.Ward))
-        {
-            var ward = request.Ward.ToLower();
-            query = query.Where(c => c.Ward != null && c.Ward!.ToLower().Contains(ward));
-        }
-
-        if (!string.IsNullOrWhiteSpace(request.Status))
-        {
-            var status = request.Status;
-            query = query.Where(c => c.Status == status);
         }
 
         query = query.OrderByDescending(c => c.CreatedAt);
 
-        return await query.ToPagedResponseAsync<Entities.Customer, ListCustomerResponse>(
+        return await query.ToPagedResponseAsync<Customer, ListCustomerResponse>(
             new() { Page = request.Page, PageSize = request.PageSize },
             _mapper,
             cancellationToken

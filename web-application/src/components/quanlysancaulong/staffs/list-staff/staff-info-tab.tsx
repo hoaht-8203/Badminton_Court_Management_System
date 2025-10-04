@@ -3,7 +3,11 @@ import { Avatar, Button } from "antd";
 import { StaffResponse } from "@/types-openapi/api";
 import dayjs from "dayjs";
 
-const StaffInfoTab = ({ staff, onEditStaff, onChangeStaffStatus }: {
+const StaffInfoTab = ({
+  staff,
+  onEditStaff,
+  onChangeStaffStatus,
+}: {
   staff: StaffResponse;
   onEditStaff?: (staff: StaffResponse) => void;
   onChangeStaffStatus?: (staffId: number, isActive: boolean) => void;
@@ -32,7 +36,7 @@ const StaffInfoTab = ({ staff, onEditStaff, onChangeStaffStatus }: {
         </div>
         <div style={{ flex: 1, display: "flex" }}>
           <div style={{ flex: 1 }}>
-            <div>Mã nhân viên: NV{staff.id}</div>
+            <div>Mã nhân viên: {`NV${String(staff.id).padStart(6, "0")}`}</div>
             <div>Tên nhân viên: {staff.fullName}</div>
             {/* <div>Mã chấm công: {staff.attendanceCode}</div> */}
             <div>Ngày sinh: {staff.dateOfBirth ? dayjs(staff.dateOfBirth).format("DD/MM/YYYY") : ""}</div>

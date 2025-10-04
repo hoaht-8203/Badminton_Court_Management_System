@@ -32,7 +32,7 @@ public class CourtAreaService(
         if (courtArea == null)
         {
             throw new ApiException(
-                $"Not found court area with ID: {request.Id}",
+                $"Không tìm thấy sân với ID: {request.Id}",
                 HttpStatusCode.BadRequest
             );
         }
@@ -47,7 +47,7 @@ public class CourtAreaService(
         if (existingCourtArea != null)
         {
             throw new ApiException(
-                $"Name {request.Name} has been used by other court area",
+                $"Tên {request.Name} đã được sử dụng bởi sân khác",
                 HttpStatusCode.BadRequest
             );
         }
@@ -64,7 +64,7 @@ public class CourtAreaService(
         if (entity == null)
         {
             throw new ApiException(
-                $"Not found court area with ID: {request.Id}",
+                $"Không tìm thấy sân với ID: {request.Id}",
                 HttpStatusCode.BadRequest
             );
         }
@@ -75,7 +75,7 @@ public class CourtAreaService(
         if (nameUsedByOther)
         {
             throw new ApiException(
-                $"Name {request.Name} has been used by other court area",
+                $"Tên {request.Name} đã được sử dụng bởi sân khác",
                 HttpStatusCode.BadRequest
             );
         }
@@ -91,7 +91,7 @@ public class CourtAreaService(
         if (entity == null)
         {
             throw new ApiException(
-                $"Not found court area with ID: {request.Id}",
+                $"Không tìm thấy sân với ID: {request.Id}",
                 HttpStatusCode.BadRequest
             );
         }
@@ -100,7 +100,7 @@ public class CourtAreaService(
         if (hasCourts)
         {
             throw new ApiException(
-                "Court area is currently used by one or more courts",
+                "Sân đang được sử dụng bởi một hoặc nhiều sân",
                 HttpStatusCode.BadRequest
             );
         }

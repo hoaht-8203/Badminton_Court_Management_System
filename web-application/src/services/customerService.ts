@@ -5,11 +5,12 @@ import {
   DeleteCustomerRequest,
   DetailCustomerRequest,
   DetailCustomerResponse,
+  ListCustomerPagedRequest,
   ListCustomerRequest,
   ListCustomerResponse,
   UpdateCustomerRequest,
 } from "@/types-openapi/api";
-import { ApiResponse } from "@/types/api";
+import { ApiPagedResponse, ApiResponse } from "@/types/api";
 
 export const customerService = {
   async listCustomer(payload: ListCustomerRequest): Promise<ApiResponse<ListCustomerResponse[]>> {
@@ -45,6 +46,13 @@ export const customerService = {
 
   async changeCustomerStatus(payload: ChangeCustomerStatusRequest): Promise<ApiResponse<null>> {
     const res = await axiosInstance.put<ApiResponse<null>>("/api/customers/change-status", payload);
+    return res.data;
+  },
+
+  async listCustomerPaged(payload: ListCustomerPagedRequest): Promise<ApiPagedResponse<ListCustomerResponse>> {
+    const res = await axiosInstance.get<ApiPagedResponse<ListCustomerResponse>>("/api/customers/list-paged", {
+      params: payload,
+    });
     return res.data;
   },
 };

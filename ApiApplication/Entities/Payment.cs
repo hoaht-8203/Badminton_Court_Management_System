@@ -14,6 +14,9 @@ public class Payment : BaseEntity
 
     public DateTime PaymentCreatedAt { get; set; } = DateTime.UtcNow;
 
+    public required int CustomerId { get; set; }
+    public Customer Customer { get; set; } = null!;
+
     public decimal Amount { get; set; }
     public string Status { get; set; } = PaymentStatus.PendingPayment;
     public string? Note { get; set; }

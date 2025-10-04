@@ -1,5 +1,7 @@
 using ApiApplication.Data;
 using ApiApplication.Entities.Shared;
+using ApiApplication.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
@@ -20,6 +22,7 @@ public class BookingHoldExpiryHostedService(
             {
                 using var scope = _services.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var hub = scope.ServiceProvider.GetRequiredService<IHubContext<BookingHub>>();
                 var now = DateTime.UtcNow;
 
                 var expiredQuery = db.BookingCourts.Where(b =>
@@ -40,18 +43,21 @@ public class BookingHoldExpiryHostedService(
                     );
 
                     // Cancel payments tied to these bookings that are still pending
-                    var rowsPayments = await db
-                        .Payments.Where(i =>
-                            expiredIds.Contains(i.BookingId)
-                            && i.Status == PaymentStatus.PendingPayment
-                        )
-                        .ExecuteUpdateAsync(
-                            setters =>
-                                setters
-                                    .SetProperty(i => i.Status, PaymentStatus.Cancelled)
-                                    .SetProperty(i => i.UpdatedAt, now),
-                            stoppingToken
-                        );
+                    var pendingPaymentQuery = db.Payments.Where(i =>
+                        expiredIds.Contains(i.BookingId) && i.Status == PaymentStatus.PendingPayment
+                    );
+
+                    var cancelledPaymentIds = await pendingPaymentQuery
+                        .Select(i => i.Id)
+                        .ToListAsync(stoppingToken);
+
+                    var rowsPayments = await pendingPaymentQuery.ExecuteUpdateAsync(
+                        setters =>
+                            setters
+                                .SetProperty(i => i.Status, PaymentStatus.Cancelled)
+                                .SetProperty(i => i.UpdatedAt, now),
+                        stoppingToken
+                    );
 
                     _logger.LogInformation(
                         "Expired {Count} pending bookings. RowsAffectedBookings={RowsB}, RowsAffectedPayments={RowsP}. Ids=[{Ids}]",
@@ -60,6 +66,17 @@ public class BookingHoldExpiryHostedService(
                         rowsPayments,
                         string.Join(",", expiredIds)
                     );
+
+                    // Broadcast real-time notifications
+                    await hub.Clients.All.SendAsync("bookingsExpired", expiredIds, stoppingToken);
+                    if (cancelledPaymentIds.Count > 0)
+                    {
+                        await hub.Clients.All.SendAsync(
+                            "paymentsCancelled",
+                            cancelledPaymentIds,
+                            stoppingToken
+                        );
+                    }
                 }
             }
             catch (Exception ex)

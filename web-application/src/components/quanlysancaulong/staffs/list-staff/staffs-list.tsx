@@ -1,14 +1,11 @@
-import React, { useState } from "react";
+import { Avatar, Pagination, Table, Tabs } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { Breadcrumb, Button, Card, Col, Form, Input, Row, Select, Radio, Space, message, Avatar, Table, Pagination, Tabs } from "antd";
-import { SearchOutlined, ReloadOutlined, PlusOutlined, FileExcelOutlined } from "@ant-design/icons";
-import StaffInfoTab from "./staff-info-tab";
-import WorkScheduleTab from "./work-schedule-tab";
+import React, { useState } from "react";
+import DebtAdvanceTab from "./debt-advance-tab";
 import SalaryConfigTab from "./salary-config-tab";
 import SalarySlipTab from "./salary-slip-tab";
-import DebtAdvanceTab from "./debt-advance-tab";
-
-import { EditOutlined } from "@ant-design/icons";
+import StaffInfoTab from "./staff-info-tab";
+import WorkScheduleTab from "./work-schedule-tab";
 
 const getColumns = (): ColumnsType<any> => [
   {
@@ -18,7 +15,7 @@ const getColumns = (): ColumnsType<any> => [
     render: (text: string, record: any) => (
       <div style={{ display: "flex", alignItems: "center" }}>
         <Avatar src={record.avatar ? record.avatar : null} />
-        <span style={{ marginLeft: 8 }}>NV{text}</span>
+        <span style={{ marginLeft: 8 }}>{`NV${String(text).padStart(6, "0")}`}</span>
       </div>
     ),
   },

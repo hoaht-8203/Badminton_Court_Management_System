@@ -164,6 +164,12 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
                 await CreateInitialInventoryCheckAsync(entity);
             }
             
+            // Trường hợp 1b: Tồn kho được cập nhật thủ công (thay đổi so với trước) -> tạo phiếu cân bằng
+            if (entity.ManageInventory && entity.Stock != previousStock)
+            {
+                await CreateBalancedInventoryCheckOnUpdateAsync(entity, previousStock);
+            }
+            
             // Trường hợp 2: Tồn kho được cập nhật và thấp hơn mức tồn kho tối thiểu
             if (entity.ManageInventory && entity.MinStock > 0 && entity.Stock < entity.MinStock)
             {
@@ -274,6 +280,32 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             return "KK000001";
         }
         return $"KK{(num + 1).ToString("D6")}";
+    }
+
+    // Tạo phiếu kiểm kho cân bằng khi cập nhật tồn kho thủ công ở Danh mục
+    private async Task CreateBalancedInventoryCheckOnUpdateAsync(Product product, int previousStock)
+    {
+        var code = await GenerateNextInventoryCodeAsync();
+        var note = $"Phiếu kiểm kho được tạo tự động khi cập nhật Hàng hóa:{product.Name}";
+        var check = new InventoryCheck
+        {
+            Code = code,
+            CheckTime = DateTime.UtcNow,
+            Status = InventoryCheckStatus.Balanced,
+            BalancedAt = DateTime.UtcNow,
+            Note = note,
+            Items = new List<InventoryCheckItem>
+            {
+                new()
+                {
+                    ProductId = product.Id,
+                    SystemQuantity = previousStock,
+                    ActualQuantity = product.Stock
+                }
+            }
+        };
+        _context.InventoryChecks.Add(check);
+        await _context.SaveChangesAsync();
     }
 
     // Tạo phiếu kiểm kê kho tự động khi thêm sản phẩm mới với tồn kho > 0

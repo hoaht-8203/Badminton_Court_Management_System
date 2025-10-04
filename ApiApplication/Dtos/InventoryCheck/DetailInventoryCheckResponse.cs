@@ -17,4 +17,5 @@ public class DetailInventoryCheckResponse
     public int TotalDeltaIncrease => Items.Sum(i => Math.Max(0, i.DeltaQuantity));
     public int TotalDeltaDecrease => Items.Sum(i => Math.Max(0, -i.DeltaQuantity));
     public int TotalDelta => Items.Sum(i => i.DeltaQuantity);
+    public decimal TotalDeltaValue => Items.Sum(i => i.DeltaValue);
 } 

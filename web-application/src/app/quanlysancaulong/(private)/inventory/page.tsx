@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Breadcrumb, Button, Table, Space, Tag, Card, Form, Input, Select, DatePicker, Modal, Row, Col, Checkbox, Radio, Spin } from "antd";
 import { PlusOutlined, ReloadOutlined, SearchOutlined, AlertOutlined, CalendarOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import type { ColumnsType, TableProps } from "antd/es/table";
 import type { InventoryCheck, InventoryCheckStatus, InventoryCheckItemResponse } from "@/types-openapi/api";
-import { useListInventoryChecks, useDeleteInventoryCheck, useCheckLowStockProducts, useDetailInventoryCheck } from "@/hooks/useInventory";
+import { useListInventoryChecks, useDeleteInventoryCheck, useCheckLowStockProducts, useDetailInventoryCheck, useCompleteInventoryCheck, useUpdateInventoryCheck } from "@/hooks/useInventory";
 import CreateEditInventoryDrawer from "@/components/quanlysancaulong/inventory/create-edit-inventory-drawer";
 
 const { Option } = Select;
@@ -52,6 +52,21 @@ const InventoryManagementPage = () => {
   const { data, isLoading, refetch } = useListInventoryChecks({});
   const deleteMutation = useDeleteInventoryCheck();
   const checkLowStockMutation = useCheckLowStockProducts();
+
+  // Auto refresh every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refetch();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [refetch]);
+
+  // Open drawer when editingId changes
+  useEffect(() => {
+    if (editingId !== null) {
+      setOpen(true);
+    }
+  }, [editingId]);
 
   // Helper functions
   const onCreate = () => {
@@ -222,7 +237,12 @@ const InventoryManagementPage = () => {
             </Col>
             <Col span={6}>
               <Form.Item label="Trạng thái" name="statuses">
-                <Checkbox.Group style={{ width: "100%" }}>
+                <Checkbox.Group 
+                  style={{ width: "100%" }}
+                  onChange={(values) => {
+                    setSearchValues(prev => ({ ...prev, statuses: values as number[] }));
+                  }}
+                >
                   <Row gutter={[0, 8]}>
                     <Col span={24}>
                       <Checkbox value={0}>Phiếu tạm</Checkbox>
@@ -256,14 +276,6 @@ const InventoryManagementPage = () => {
           <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
             Tải lại
           </Button>
-          <Button
-            type="default"
-            icon={<AlertOutlined />}
-            onClick={() => checkLowStockMutation.mutate(undefined)}
-            loading={checkLowStockMutation.isPending}
-          >
-            Kiểm tra hàng tồn thấp
-          </Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>
             Thêm phiếu kiểm kê
           </Button>
@@ -278,19 +290,20 @@ const InventoryManagementPage = () => {
           loading={isLoading}
           expandable={{
             expandRowByClick: true,
-            expandedRowRender: (record) => <InventoryRowDetail id={(record as any).id} />,
+            expandedRowRender: (record) => <InventoryRowDetail id={(record as any).id} onEdit={setEditingId} />,
           }}
-          
         />
       </div>
 
-      <CreateEditInventoryDrawer open={open} onClose={() => setOpen(false)} inventoryId={editingId ?? undefined} />
+      <CreateEditInventoryDrawer open={open} onClose={() => { setOpen(false); setEditingId(null); }} inventoryId={editingId ?? undefined} />
     </section>
   );
 };
 
-const InventoryRowDetail = ({ id }: { id: number }) => {
+const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) => void }) => {
   const { data, isFetching } = useDetailInventoryCheck(id, true);
+  const cancelMutation = useDeleteInventoryCheck();
+  const updateMutation = useUpdateInventoryCheck();
   const d = data?.data;
 
   const items: InventoryCheckItemResponse[] = (d?.items as any) ?? [];
@@ -336,6 +349,20 @@ const InventoryRowDetail = ({ id }: { id: number }) => {
           <div className="text-gray-500">Ghi chú:</div>
           <div className="font-semibold">{d?.note || "-"}</div>
         </div>
+      </div>
+
+      {/* Actions */}
+      <div className="mb-3 flex items-center justify-end gap-2">
+        {d?.status === 0 && (
+          <>
+            <Button onClick={() => d?.id && onEdit(d.id)} type="primary">
+              Cập nhật
+            </Button>
+            <Button danger onClick={() => d?.id && cancelMutation.mutate(d.id)} loading={cancelMutation.isPending}>
+              Hủy phiếu
+            </Button>
+          </>
+        )}
       </div>
 
       <Table<InventoryCheckItemResponse>

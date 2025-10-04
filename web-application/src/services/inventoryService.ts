@@ -27,6 +27,11 @@ export const inventoryService = {
       .put(`/api/InventoryChecks/${id}`, payload)
       .then((r) => r.data);
   },
+  complete(id: number) {
+    return axiosInstance
+      .put(`/api/InventoryChecks/${id}/complete`)
+      .then((r) => r.data);
+  },
   cancel(id: number) {
     return axiosInstance
       .put(`/api/InventoryChecks/${id}/cancel`)

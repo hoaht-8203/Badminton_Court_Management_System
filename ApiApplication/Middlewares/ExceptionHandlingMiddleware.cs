@@ -30,7 +30,7 @@ public class ExceptionHandlingMiddleware
         try
         {
             await _next(context);
-        }
+        2}
         catch (Exception error)
         {
             var response = context.Response;
@@ -51,9 +51,7 @@ public class ExceptionHandlingMiddleware
                     break;
                 default:
                     response.StatusCode = StatusCodes.Status500InternalServerError;
-                    // show detailed error in development
-                    var isDev = context.RequestServices.GetRequiredService<IHostEnvironment>().IsDevelopment();
-                    errorResponse.Message = isDev ? error.Message : "An internal server error occurred.";
+                    errorResponse.Message = "An internal server error occurred.";
                     break;
             }
 

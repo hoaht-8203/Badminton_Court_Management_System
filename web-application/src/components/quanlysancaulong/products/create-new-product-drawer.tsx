@@ -23,37 +23,7 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
     onChange: ({ fileList }) => setFiles(fileList),
   };
 
-  // Function to create inventory check for new products with stock
-  const createInventoryCheck = async (productId: number, productCode: string, productName: string, stock: number) => {
-    try {
-      const inventoryService = (await import("@/services/inventoryService")).inventoryService;
-
-      // Create inventory check
-      const now = new Date();
-      const checkData = {
-        code: `KK${now.getTime().toString().substring(5)}`,
-        checkTime: now,
-        note: `Phiếu kiểm kho được tạo tự động khi thêm mới Hàng hóa:${productName}`,
-        status: 1, // Đã cân bằng kho
-        items: [
-          {
-            productId: productId,
-            productCode: productCode,
-            productName: productName,
-            systemQuantity: 0, // Initial stock is 0
-            actualQuantity: stock || 0,
-            // deltaQuantity will be calculated on the server side
-          },
-        ],
-      };
-
-      await inventoryService.create(checkData);
-      message.success("Đã tạo phiếu kiểm kho tự động");
-    } catch (error) {
-      console.error("Failed to create inventory check:", error);
-      message.warning("Thêm hàng hóa thành công nhưng không thể tạo phiếu kiểm kho tự động");
-    }
-  };
+  // Không tạo phiếu kiểm kho ở FE; backend sẽ tự tạo phiếu cân bằng khi phù hợp
 
   const onSubmit = async (values: CreateProductRequest) => {
     createMutation.mutate(values, {
@@ -73,10 +43,7 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
               message.success("Tải ảnh thành công");
             }
 
-            // Create inventory check if managing inventory
-            if (values.manageInventory && productId && values.stock && values.stock > 0) {
-              await createInventoryCheck(productId, values.code, values.name!, values.stock);
-            }
+            // FE không gọi tạo phiếu kiểm kho ở đây nữa
           } else if (files.length > 0) {
             message.warning("Đã tạo hàng. Vui lòng đặt mã code để tải ảnh ngay lần tới.");
           }
@@ -214,7 +181,7 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
                 label={
                   <span>
                     Tồn kho{" "}
-                    <Tooltip title="Số lượng tồn kho của sản phẩm (hệ thống sẽ tự động tạo phiếu kiểm kho giống như phần mềm Kiot Việt)">
+                    <Tooltip title="Số lượng tồn kho của sản phẩm (hệ thống sẽ tự động tạo phiếu kiểm kho )">
                       <InfoCircleOutlined className="cursor-help text-gray-400 hover:text-gray-600" />
                     </Tooltip>
                   </span>

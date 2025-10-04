@@ -92,4 +92,16 @@ public class InventoryChecksController(IInventoryCheckService inventoryCheckServ
             )
         );
     }
+
+    [HttpPut("{id}/complete")]
+    public async Task<ActionResult<ApiResponse<object>>> Complete(int id)
+    {
+        await _inventoryCheckService.CompleteAsync(id);
+        return Ok(
+            ApiResponse<object>.SuccessResponse(
+                new {},
+                "Hoàn thành kiểm kê kho thành công"
+            )
+        );
+    }
 }

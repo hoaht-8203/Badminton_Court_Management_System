@@ -148,82 +148,110 @@ const ProductInformation = ({
   return (
     <div>
       <Row gutter={16} className="mb-4">
-        <Col span={8}>
-          <Row gutter={16}>
-            <Col span={10}>Mã hàng:</Col>
-            <Col span={14}>{record.id}</Col>
-            <Col span={24}>
-              <Divider size="small" />
+        <Col span={18}>
+          <Row gutter={[16, 0]}>
+            <Col span={8}>
+              <div>
+                <div className="flex">
+                  <div className="w-32 font-medium">Mã hàng:</div>
+                  <div>{record.id}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Mã code:</div>
+                  <div>{record.code || "-"}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Tên hàng:</div>
+                  <div>{record.name}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+              </div>
             </Col>
-            <Col span={10}>Mã code:</Col>
-            <Col span={14}>{record.code || "-"}</Col>
-            <Col span={24}>
-              <Divider size="small" />
+
+            <Col span={8}>
+              <div>
+                <div className="flex">
+                  <div className="w-32 font-medium">Nhóm hàng:</div>
+                  <div>{record.category || "-"}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Loại thực đơn:</div>
+                  <div>{record.menuType || "-"}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Kinh doanh:</div>
+                  <div>
+                    <span className={`font-bold ${isActive ? "text-green-500" : "text-red-500"}`}>
+                      {isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
+                    </span>
+                  </div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+              </div>
             </Col>
-            <Col span={10}>Tên hàng:</Col>
-            <Col span={14}>{record.name}</Col>
+
+            <Col span={8}>
+              <div>
+                <div className="flex">
+                  <div className="w-32 font-medium">Giá vốn:</div>
+                  <div>{d?.costPrice ?? "-"}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Giá bán:</div>
+                  <div>{record.salePrice}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Tồn kho:</div>
+                  <div>{d?.stock ?? 0}</div>
+                </div>
+                <Divider size="small" style={{ margin: "4px 0" }} />
+
+                <div className="flex">
+                  <div className="w-32 font-medium">Ngưỡng min/max:</div>
+                  <div>{d ? `${d.minStock} / ${d.maxStock}` : "-"}</div>
+                </div>
+              </div>
+            </Col>
           </Row>
         </Col>
-        <Divider type="vertical" size="small" style={{ height: "auto" }} />
-        <Col span={8}>
-          <Row gutter={16}>
-            <Col span={10}>Nhóm hàng:</Col>
-            <Col span={14}>{record.category || "-"}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={10}>Loại thực đơn:</Col>
-            <Col span={14}>{record.menuType || "-"}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={10}>Kinh doanh:</Col>
-            <Col span={14}>
-              <span className={`font-bold ${isActive ? "text-green-500" : "text-red-500"}`}>{isActive ? "Đang hoạt động" : "Ngừng hoạt động"}</span>
-            </Col>
-          </Row>
-        </Col>
-        <Divider type="vertical" size="small" style={{ height: "auto" }} />
-        <Col span={8}>
-          <Row gutter={16}>
-            <Col span={10}>Giá vốn:</Col>
-            <Col span={14}>{d?.costPrice ?? "-"}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={10}>Giá bán:</Col>
-            <Col span={14}>{record.salePrice}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={10}>Tồn kho:</Col>
-            <Col span={14}>{d?.stock ?? 0}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={10}>Ngưỡng tối thiểu / tối đa:</Col>
-            <Col span={14}>{d ? `${d.minStock} / ${d.maxStock}` : "-"}</Col>
-          </Row>
+
+        <Col span={6} className="flex items-start justify-end">
+          {d?.images && d.images.length > 0 && (
+            <div>
+              <div className="mb-2 text-center font-semibold">Hình ảnh</div>
+              <Image.PreviewGroup>
+                <Image src={d.images[0]} alt="Product image" width={180} height={180} style={{ objectFit: "contain", borderRadius: 8 }} />
+                {d.images.length > 1 && (
+                  <div className="mt-2 flex flex-wrap justify-center gap-2">
+                    {d.images.slice(1).map((url, idx) => (
+                      <Image
+                        key={idx}
+                        src={url}
+                        alt={`Product image ${idx + 2}`}
+                        width={60}
+                        height={60}
+                        style={{ objectFit: "cover", borderRadius: 6 }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </Image.PreviewGroup>
+            </div>
+          )}
         </Col>
       </Row>
-
-      {d?.images && d.images.length > 0 && (
-        <div className="mb-4">
-          <div className="mb-2 font-semibold">Hình ảnh</div>
-          <Image.PreviewGroup>
-            {d.images.map((url, idx) => (
-              <Image
-                key={idx}
-                src={url}
-                alt={`Product image ${idx + 1}`}
-                width={96}
-                height={96}
-                style={{ objectFit: "cover", marginRight: 8, borderRadius: 6 }}
-              />
-            ))}
-          </Image.PreviewGroup>
-        </div>
-      )}
 
       <div className="flex justify-between">
         <div className="flex gap-2">

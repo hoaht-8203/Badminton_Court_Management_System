@@ -29,7 +29,7 @@ export const useCreateInventoryCheck = () => {
     mutationFn: (data: CreateInventoryCheckRequest) => inventoryService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventoryChecks"] });
-      message.success("Tạo phiếu kiểm kê thành công!");
+      // Removed duplicate message - handled in component
     },
     onError: (error: any) => {
       message.error(error?.message || "Có lỗi xảy ra khi tạo phiếu kiểm kê");
@@ -46,7 +46,7 @@ export const useUpdateInventoryCheck = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventoryChecks"] });
       queryClient.invalidateQueries({ queryKey: ["inventoryCheck"] });
-      message.success("Cập nhật phiếu kiểm kê thành công!");
+      // Removed duplicate message - handled in component
     },
     onError: (error: any) => {
       message.error(error?.message || "Có lỗi xảy ra khi cập nhật phiếu kiểm kê");
@@ -65,6 +65,23 @@ export const useDeleteInventoryCheck = () => {
     },
     onError: (error: any) => {
       message.error(error?.message || "Có lỗi xảy ra khi hủy phiếu kiểm kê");
+    },
+  });
+};
+
+export const useCompleteInventoryCheck = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => inventoryService.complete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventoryChecks"] });
+      queryClient.invalidateQueries({ queryKey: ["inventoryCheck"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] }); // Invalidate products to refresh stock
+      // Removed duplicate message - handled in component
+    },
+    onError: (error: any) => {
+      message.error(error?.message || "Có lỗi xảy ra khi hoàn thành phiếu kiểm kê");
     },
   });
 };

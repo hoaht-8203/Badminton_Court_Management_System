@@ -1,7 +1,9 @@
 "use client";
 
 import { InventoryCheck, InventoryCheckStatus } from "@/types-openapi/api";
-import { TableProps, Tag } from "antd";
+import { TableProps, Tag, Button, Tooltip } from "antd";
+import { ExclamationCircleOutlined, StopOutlined } from "@ant-design/icons";
+import { useDeleteInventoryCheck } from "@/hooks/useInventory";
 import dayjs from "dayjs";
 
 // Inventory status mapping
@@ -54,6 +56,26 @@ export const inventoryColumns: TableProps<InventoryCheck>["columns"] = [
     dataIndex: "note",
     key: "note",
     ellipsis: true,
+    render: (t: string) => {
+      const isWarning = typeof t === "string" && t.toLowerCase().includes("cảnh báo");
+      return (
+        <div
+          className={`flex items-center gap-2 ${isWarning ? "rounded-md border px-2 py-1" : ""}`}
+          style={
+            isWarning
+              ? { background: "#fffbe6", borderColor: "#ffe58f", color: "#ad6800" }
+              : undefined
+          }
+        >
+          {isWarning && (
+            <Tooltip title="Cảnh báo">
+              <ExclamationCircleOutlined style={{ color: "#faad14" }} />
+            </Tooltip>
+          )}
+          <span className="whitespace-pre-wrap">{t}</span>
+        </div>
+      );
+    },
   },
   {
     title: "Người tạo",
@@ -68,4 +90,34 @@ export const inventoryColumns: TableProps<InventoryCheck>["columns"] = [
     width: 150,
     render: (date: Date) => dayjs(date).format("DD/MM/YYYY HH:mm"),
   },
+  {
+    title: "Thao tác",
+    key: "actions",
+    width: 120,
+    render: (_: any, record) => {
+      // Show different actions based on status
+      if (record.status === 2) {
+        return <span className="text-gray-400 text-sm">Đã hủy</span>;
+      }
+      if (record.status === 0) {
+        return <CancelActionButton id={record.id!} disabled={false} />;
+      }
+      return null;
+    },
+  },
 ];
+
+const CancelActionButton = ({ id, disabled }: { id: number; disabled: boolean }) => {
+  const mutation = useDeleteInventoryCheck();
+  return (
+    <Button
+      icon={<StopOutlined />}
+      size="small"
+      disabled={disabled || mutation.isPending}
+      onClick={() => mutation.mutate(id)}
+      className="!border-red-500 !bg-red-500 !text-white hover:!border-red-500 hover:!bg-red-500 hover:!text-white focus:!shadow-none active:!bg-red-500"
+    >
+      Hủy phiếu
+    </Button>
+  );
+};

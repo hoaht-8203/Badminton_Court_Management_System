@@ -44,7 +44,8 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
                     Note = x.Note,
                     TotalDeltaIncrease = x.Items.Sum(i => i.ActualQuantity > i.SystemQuantity ? i.ActualQuantity - i.SystemQuantity : 0),
                     TotalDeltaDecrease = x.Items.Sum(i => i.SystemQuantity > i.ActualQuantity ? i.SystemQuantity - i.ActualQuantity : 0),
-                    TotalDelta = x.Items.Sum(i => i.ActualQuantity - i.SystemQuantity)
+                    TotalDelta = x.Items.Sum(i => i.ActualQuantity - i.SystemQuantity),
+                    TotalDeltaValue = x.Items.Sum(i => (i.ActualQuantity - i.SystemQuantity) * i.Product.CostPrice)
                 })
                 .ToListAsync();
 
@@ -68,7 +69,14 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
             {
                 throw new ApiException($"Phiếu kiểm kho không tồn tại: {id}", System.Net.HttpStatusCode.NotFound);
             }
-            return _mapper.Map<DetailInventoryCheckResponse>(entity);
+            var detail = _mapper.Map<DetailInventoryCheckResponse>(entity);
+            // fill pricing for items
+            foreach (var item in detail.Items)
+            {
+                var source = entity.Items.First(i => i.ProductId == item.ProductId);
+                item.CostPrice = source.Product.CostPrice;
+            }
+            return detail;
         }
         catch (Exception ex)
         {
@@ -89,6 +97,8 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
         var entity = _mapper.Map<InventoryCheck>(request);
         entity.Code = await GenerateNextCodeAsync();
         entity.Items = request.Items.Select(i => _mapper.Map<InventoryCheckItem>(i)).ToList();
+        entity.Status = Entities.Shared.InventoryCheckStatus.Draft;
+        entity.BalancedAt = null;
 
         _context.InventoryChecks.Add(entity);
         await _context.SaveChangesAsync();
@@ -119,6 +129,10 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
         if (entity == null)
         {
             throw new ApiException($"Phiếu kiểm kho không tồn tại: {id}", System.Net.HttpStatusCode.NotFound);
+        }
+        if (entity.Status == Entities.Shared.InventoryCheckStatus.Cancelled)
+        {
+            throw new ApiException("Phiếu kiểm kho đã bị hủy, không thể cập nhật", System.Net.HttpStatusCode.BadRequest);
         }
 
         // Cập nhật thông tin cơ bản
@@ -153,6 +167,24 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
             ActualQuantity = i.ActualQuantity
         }).ToList();
 
+        // Sau khi cập nhật phiếu tạm → chuyển thành trạng thái "Đã cân bằng" và cập nhật tồn kho
+        entity.Status = Entities.Shared.InventoryCheckStatus.Balanced;
+        entity.BalancedAt = DateTime.UtcNow;
+
+        // Cập nhật tồn kho sản phẩm
+        var products = await _context.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync();
+
+        foreach (var item in request.Items)
+        {
+            var product = products.FirstOrDefault(p => p.Id == item.ProductId);
+            if (product != null)
+            {
+                product.Stock = item.ActualQuantity;
+            }
+        }
+
         await _context.SaveChangesAsync();
     }
 
@@ -165,7 +197,10 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
         {
             throw new ApiException($"Phiếu kiểm kho không tồn tại: {id}", System.Net.HttpStatusCode.NotFound);
         }
-
+        if (entity.Status == Entities.Shared.InventoryCheckStatus.Cancelled)
+        {
+            return;
+        }
         entity.Status = Entities.Shared.InventoryCheckStatus.Cancelled;
         await _context.SaveChangesAsync();
     }
@@ -185,5 +220,44 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
 
         await _context.SaveChangesAsync();
         return cancelledIds;
+    }
+
+    public async Task CompleteAsync(int id)
+    {
+        var entity = await _context.InventoryChecks
+            .Include(x => x.Items)
+            .ThenInclude(x => x.Product)
+            .FirstOrDefaultAsync(x => x.Id == id);
+            
+        if (entity == null)
+        {
+            throw new ApiException($"Phiếu kiểm kho không tồn tại: {id}", System.Net.HttpStatusCode.NotFound);
+        }
+        if (entity.Status == Entities.Shared.InventoryCheckStatus.Cancelled)
+        {
+            throw new ApiException("Phiếu kiểm kho đã bị hủy, không thể hoàn thành", System.Net.HttpStatusCode.BadRequest);
+        }
+        if (entity.Status == Entities.Shared.InventoryCheckStatus.Balanced)
+        {
+            return; // Already balanced
+        }
+
+        // Cập nhật tồn kho sản phẩm khi hoàn thành
+        var products = await _context.Products
+            .Where(p => entity.Items.Select(i => i.ProductId).Contains(p.Id))
+            .ToListAsync();
+
+        foreach (var item in entity.Items)
+        {
+            var product = products.FirstOrDefault(p => p.Id == item.ProductId);
+            if (product != null)
+            {
+                product.Stock = item.ActualQuantity;
+            }
+        }
+
+        entity.Status = Entities.Shared.InventoryCheckStatus.Balanced;
+        entity.BalancedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
     }
 } 

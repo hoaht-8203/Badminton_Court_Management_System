@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { Button, Col, Drawer, Form, Input, Row, Select, Divider, message, Space, DatePicker } from "antd";
+import React, { useEffect, useMemo, useState } from "react";
+import { Button, Col, Drawer, Form, Input, Row, Divider, message, Space, DatePicker, Table, AutoComplete, InputNumber, Modal } from "antd";
 import { SaveOutlined, CloseOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useCreateInventoryCheck, useUpdateInventoryCheck, useDetailInventoryCheck, useDeleteInventoryCheck } from "@/hooks/useInventory";
+import { useCreateInventoryCheck, useUpdateInventoryCheck, useDetailInventoryCheck, useDeleteInventoryCheck, useCompleteInventoryCheck } from "@/hooks/useInventory";
 import { InventoryCheckStatus, CreateInventoryCheckRequest } from "@/types-openapi/api";
+import { useListProducts } from "@/hooks/useProducts";
+import type { TableColumnsType } from "antd";
+import dayjs from "dayjs";
 
 interface CreateEditInventoryDrawerProps {
   open: boolean;
@@ -12,11 +15,7 @@ interface CreateEditInventoryDrawerProps {
   inventoryId?: number;
 }
 
-const statusLabels = {
-  [InventoryCheckStatus.NUMBER_0]: "Chờ kiểm kê",
-  [InventoryCheckStatus.NUMBER_1]: "Đang kiểm kê",
-  [InventoryCheckStatus.NUMBER_2]: "Đã hủy",
-};
+// status labels no longer used inside this drawer
 
 const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ open, onClose, inventoryId }) => {
   const [form] = Form.useForm();
@@ -27,38 +26,81 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
   const createMutation = useCreateInventoryCheck();
   const updateMutation = useUpdateInventoryCheck();
   const deleteMutation = useDeleteInventoryCheck();
+  const completeMutation = useCompleteInventoryCheck();
+
+  const currentStatus = inventoryData?.data?.status as number | undefined;
+  const isDraft = currentStatus === 0; // Phiếu tạm
+  const isCancelled = currentStatus === 2; // Đã hủy
 
   useEffect(() => {
     if (open) {
       if (isEdit && inventoryData?.data) {
         const data = inventoryData.data;
         form.setFieldsValue({
-          code: data.code,
           note: data.note,
-          status: data.status,
-          checkTime: data.checkTime ? new Date(data.checkTime) : null,
+          checkTime: data.checkTime ? dayjs(data.checkTime) : null,
         });
+        // Set items from inventory data
+        setItems(
+          (data.items ?? []).map((item: any) => ({
+            productId: item.productId!,
+            code: item.productCode ?? "",
+            name: item.productName ?? "",
+            systemQuantity: item.systemQuantity ?? 0,
+            actualQuantity: item.actualQuantity ?? 0,
+            costPrice: item.costPrice ?? 0,
+          }))
+        );
       } else {
         form.resetFields();
+        setItems([]);
+        // For create mode, fix checkTime to current date
+        form.setFieldsValue({ checkTime: dayjs() });
       }
     }
   }, [open, isEdit, inventoryData, form]);
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values: any, isComplete = false) => {
     try {
+      if (isEdit && !isDraft) {
+        messageApi.error("Chỉ phiếu tạm mới được phép cập nhật");
+        return;
+      }
+      const resolvedCheckTime = isEdit
+        ? (values.checkTime && values.checkTime.toDate ? values.checkTime.toDate() : values.checkTime)
+        : new Date();
       const inventoryCheckData: CreateInventoryCheckRequest = {
-        checkTime: values.checkTime,
+        // Enforce current date when creating; convert dayjs -> Date
+        checkTime: resolvedCheckTime,
         note: values.note,
-        items: values.items,
+        items: items.map((it) => ({
+          productId: it.productId,
+          systemQuantity: it.systemQuantity ?? 0,
+          actualQuantity: it.actualQuantity ?? 0,
+        })) as any,
       } as any;
 
       if (isEdit && inventoryId) {
+        if (isCancelled) {
+          messageApi.error("Phiếu đã hủy, không thể cập nhật");
+          return;
+        }
+        // Cập nhật phiếu tạm → trạng thái "Đã cân bằng" + cập nhật tồn kho
         await updateMutation.mutateAsync({ id: inventoryId, data: inventoryCheckData });
+        messageApi.success("Cập nhật phiếu kiểm kê thành công! Trạng thái: Đã cân bằng");
       } else {
-        await createMutation.mutateAsync(inventoryCheckData);
+        const result = await createMutation.mutateAsync(inventoryCheckData);
+        if (isComplete && result?.data) {
+          // Call complete API after creating
+          await completeMutation.mutateAsync(result.data);
+          messageApi.success("Hoàn thành phiếu kiểm kê thành công! Trạng thái: Đã cân bằng");
+        } else {
+          messageApi.success("Lưu nháp phiếu kiểm kê thành công! Trạng thái: Phiếu tạm");
+        }
       }
 
       form.resetFields();
+      setItems([]);
       onClose();
     } catch {
       messageApi.error(isEdit ? "Cập nhật phiếu kiểm kê thất bại!" : "Tạo phiếu kiểm kê thất bại!");
@@ -68,77 +110,236 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
   const handleDelete = () => {
     if (!inventoryId) return;
 
-    deleteMutation.mutate(inventoryId, {
-      onSuccess: () => {
-        onClose();
+    Modal.confirm({
+      title: "Xác nhận hủy phiếu",
+      content: "Bạn có chắc chắn muốn hủy phiếu kiểm kê này?",
+      okText: "Hủy phiếu",
+      cancelText: "Đóng",
+      onOk: () => {
+        deleteMutation.mutate(inventoryId, {
+          onSuccess: () => {
+            onClose();
+          },
+          onError: () => {
+            messageApi.error("Xóa phiếu kiểm kê thất bại!");
+          },
+        });
       },
-      onError: () => {
-        messageApi.error("Xóa phiếu kiểm kê thất bại!");
+    });
+  };
+
+  const handleSaveDraft = () => {
+    Modal.confirm({
+      title: "Xác nhận lưu nháp",
+      content: "Bạn có chắc chắn muốn lưu nháp phiếu kiểm kê? Trạng thái sẽ là: Phiếu tạm",
+      okText: "Lưu nháp",
+      cancelText: "Đóng",
+      onOk: () => {
+        onFinish(form.getFieldsValue(), false);
+      },
+    });
+  };
+
+  const handleComplete = () => {
+    Modal.confirm({
+      title: "Xác nhận hoàn thành",
+      content: "Bạn có chắc chắn muốn hoàn thành phiếu kiểm kê? Trạng thái sẽ là: Đã cân bằng",
+      okText: "Hoàn thành",
+      cancelText: "Đóng",
+      onOk: () => {
+        onFinish(form.getFieldsValue(), !isEdit);
       },
     });
   };
 
   const title = isEdit ? "Chỉnh sửa phiếu kiểm kê" : "Thêm phiếu kiểm kê mới";
 
+  // Manual items state
+  type ManualItem = { productId: number; code: string; name: string; systemQuantity: number; actualQuantity: number; costPrice?: number };
+  const [items, setItems] = useState<ManualItem[]>([]);
+  const [query, setQuery] = useState<string>("");
+  const [searchTimer, setSearchTimer] = useState<any>(null);
+  const { data: productList } = useListProducts({ name: query } as any);
+  const options = useMemo(
+    () =>
+      (productList?.data ?? []).map((p: any) => ({
+        value: `${p.code ?? ""} - ${p.name}`,
+        label: `${p.code ?? ""} - ${p.name}`,
+        data: { id: p.id, code: p.code ?? "", name: p.name },
+      })),
+    [productList?.data]
+  );
+
+  const onSelectProduct = async (val: string, option?: any) => {
+    const id = Number(option?.data?.id);
+    const code = option?.data?.code ?? "";
+    const name = option?.data?.name ?? "";
+    // try get stock via product detail
+    let systemQty = 0;
+    try {
+      const detail = await (await import("@/services/productService")).productService.detail({ id } as any);
+      const anyData: any = (detail as any)?.data;
+      systemQty = anyData?.stock ?? 0;
+      const cp = anyData?.costPrice ?? 0;
+      setItems((prev) => {
+        if (prev.some((x) => x.productId === id)) return prev;
+        return [...prev, { productId: id, code, name, systemQuantity: systemQty, actualQuantity: systemQty, costPrice: cp }];
+      });
+      return;
+    } catch {}
+    setItems((prev) => {
+      if (prev.some((x) => x.productId === id)) return prev;
+      return [...prev, { productId: id, code, name, systemQuantity: systemQty, actualQuantity: systemQty, costPrice: 0 }];
+    });
+  };
+
+  const onChangeActual = (productId: number, val: number) => {
+    setItems((prev) => prev.map((x) => (x.productId === productId ? { ...x, actualQuantity: Number(val) || 0 } : x)));
+  };
+
+  const removeItem = (productId: number) => setItems((prev) => prev.filter((x) => x.productId !== productId));
+
+  const columns: TableColumnsType<ManualItem> = [
+    { title: "Mã hàng", dataIndex: "code", key: "code", width: 140 },
+    { title: "Tên hàng", dataIndex: "name", key: "name", width: 220 },
+    { title: "Tồn kho", dataIndex: "systemQuantity", key: "systemQuantity", width: 100 },
+    { title: "Giá vốn", dataIndex: "costPrice", key: "costPrice", width: 100, render: (v) => (v ?? 0).toLocaleString() },
+    {
+      title: "Thực tế",
+      key: "actualQuantity",
+      width: 160,
+      render: (_, r) => (
+        <InputNumber
+          min={0}
+          value={r.actualQuantity}
+          onChange={(val) => onChangeActual(r.productId, Number(val))}
+          style={{ width: 140 }}
+        />
+      ),
+    },
+    {
+      title: "SL lệch",
+      key: "delta",
+      width: 100,
+      render: (_, r) => (r.actualQuantity ?? 0) - (r.systemQuantity ?? 0),
+    },
+    {
+      title: "Giá trị lệch",
+      key: "deltaValue",
+      width: 130,
+      render: (_, r) => (((r.actualQuantity ?? 0) - (r.systemQuantity ?? 0)) * (r.costPrice ?? 0)).toLocaleString(),
+    },
+    {
+      title: "",
+      key: "actions",
+      width: 80,
+      render: (_, r) => (
+        <Button danger size="small" onClick={() => removeItem(r.productId)}>
+          Xóa
+        </Button>
+      ),
+    },
+  ];
+
+  const handleSearch = (val: string) => {
+    if (searchTimer) clearTimeout(searchTimer);
+    const t = setTimeout(() => setQuery(val), 300);
+    setSearchTimer(t);
+  };
+
   return (
     <>
       {contextHolder}
       <Drawer
         title={title}
-        width={600}
+        width={720}
         onClose={onClose}
         open={open}
-        styles={{ body: { paddingBottom: 80 } }}
+        styles={{ body: { paddingBottom: 160 } }}
         footer={
           <div className="text-right">
             <Space>
               <Button onClick={onClose} icon={<CloseOutlined />}>
                 Đóng
               </Button>
-              {isEdit && (
+              {isEdit && isDraft && !isCancelled && (
                 <Button danger onClick={handleDelete} loading={deleteMutation.isPending} icon={<DeleteOutlined />}>
-                  Xóa
+                  Hủy phiếu
                 </Button>
               )}
-              <Button
-                type="primary"
-                onClick={() => form.submit()}
-                loading={createMutation.isPending || updateMutation.isPending}
-                icon={<SaveOutlined />}
-              >
-                {isEdit ? "Cập nhật" : "Thêm mới"}
-              </Button>
+              {!isEdit && (
+                <Button type="default" onClick={handleSaveDraft} icon={<SaveOutlined />}>
+                  Lưu nháp
+                </Button>
+              )}
+              {!isEdit && (
+                <Button
+                  type="primary"
+                  onClick={handleComplete}
+                  loading={createMutation.isPending || completeMutation.isPending}
+                  icon={<SaveOutlined />}
+                >
+                  Hoàn Thành
+                </Button>
+              )}
+              {isEdit && isDraft && !isCancelled && (
+                <Button
+                  type="primary"
+                  onClick={() => onFinish(form.getFieldsValue(), false)}
+                  loading={updateMutation.isPending}
+                  icon={<SaveOutlined />}
+                >
+                  Cập nhật
+                </Button>
+              )}
             </Space>
           </div>
         }
       >
-        <Form form={form} layout="vertical" onFinish={onFinish} autoComplete="off">
+        {isEdit && isCancelled && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <div className="text-red-600 font-medium">Phiếu kiểm kê đã bị hủy</div>
+            <div className="text-red-500 text-sm">Phiếu này không thể chỉnh sửa hoặc thực hiện thao tác nào khác.</div>
+          </div>
+        )}
+        
+        <Form form={form} layout="vertical" onFinish={onFinish} autoComplete="off" disabled={isEdit && (!isDraft || isCancelled)}>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="code" label="Mã kiểm kê" rules={[{ required: true, message: "Vui lòng nhập mã kiểm kê!" }]}>
-                <Input placeholder="Nhập mã kiểm kê" />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
               <Form.Item name="checkTime" label="Ngày kiểm kê" rules={[{ required: true, message: "Vui lòng chọn ngày kiểm kê!" }]}>
-                <DatePicker style={{ width: "100%" }} placeholder="Chọn ngày kiểm kê" format="DD/MM/YYYY" />
+                <DatePicker style={{ width: "100%" }} placeholder="Chọn ngày kiểm kê" format="DD/MM/YYYY" allowClear={false} disabled={!isEdit} />
               </Form.Item>
             </Col>
           </Row>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="status" label="Trạng thái" rules={[{ required: true, message: "Vui lòng chọn trạng thái!" }]}>
-                <Select placeholder="Chọn trạng thái">
-                  {Object.entries(statusLabels).map(([key, label]) => (
-                    <Select.Option key={key} value={parseInt(key)}>
-                      {label}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
+          {/* Manual product add/search */}
+          <Row gutter={12} align="middle">
+            <Col span={24}>
+              <div className="mb-2 font-semibold">Thêm sản phẩm</div>
+              <AutoComplete
+                style={{ width: "100%" }}
+                options={options}
+                placeholder="Tìm mã hàng / tên hàng để thêm"
+                value={query}
+                onSearch={handleSearch}
+                onSelect={onSelectProduct}
+              />
             </Col>
           </Row>
+
+          <Divider />
+
+          <Table<ManualItem>
+            size="small"
+            rowKey={(r) => r.productId}
+            columns={columns}
+            dataSource={items}
+            pagination={false}
+          />
+
+          <Divider />
+
+          {/* Status is handled by backend: Draft on create, Cancelled on cancel */}
 
           <Form.Item name="note" label="Ghi chú">
             <Input.TextArea rows={4} placeholder="Nhập ghi chú cho phiếu kiểm kê" />
@@ -150,9 +351,8 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
         <div className="text-sm text-gray-500">
           <p>Lưu ý:</p>
           <ul className="mt-2 list-inside list-disc space-y-1">
-            <li>Mã kiểm kê phải là duy nhất trong hệ thống</li>
-            <li>Ngày kiểm kê không được trước ngày hiện tại</li>
-            <li>Trạng thái sẽ được cập nhật tự động theo quy trình kiểm kê</li>
+            <li>Mã kiểm kê sẽ được hệ thống sinh tự động</li>
+            <li>Lưu Nháp: trạng thái là Phiếu tạm; Hoàn thành: trạng thái là Đã cân bằng</li>
           </ul>
         </div>
       </Drawer>

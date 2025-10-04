@@ -55,7 +55,7 @@ const rejectQueue = (error: unknown) => {
 
 // A lightweight client to call refresh endpoint without causing interceptor recursion issues
 const refreshClient = axios.create({
-  baseURL: apiBaseUrl,
+  baseURL: "https://caulong365-api.azurewebsites.net/",
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });

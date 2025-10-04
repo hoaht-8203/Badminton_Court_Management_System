@@ -10,12 +10,35 @@ namespace ApiApplication.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // First, add the column as nullable
             migrationBuilder.AddColumn<int>(
                 name: "CustomerId",
                 table: "Payments",
                 type: "integer",
+                nullable: true);
+
+            // Update existing records to have a valid CustomerId
+            // If no customers exist, we'll need to handle this case
+            migrationBuilder.Sql(@"
+                UPDATE ""Payments"" 
+                SET ""CustomerId"" = (
+                    SELECT COALESCE(
+                        (SELECT ""Id"" FROM ""Customers"" ORDER BY ""Id"" LIMIT 1),
+                        1
+                    )
+                )
+                WHERE ""CustomerId"" IS NULL;
+            ");
+
+            // Make the column non-nullable
+            migrationBuilder.AlterColumn<int>(
+                name: "CustomerId",
+                table: "Payments",
+                type: "integer",
                 nullable: false,
-                defaultValue: 0);
+                oldClrType: typeof(int),
+                oldType: "integer",
+                oldNullable: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_CustomerId",

@@ -2,7 +2,7 @@ import { bookingCourtsKeys, useListBookingCourts } from "@/hooks/useBookingCourt
 import { expandBookings, getDayOfWeekToVietnamese } from "@/lib/common";
 import { ListCourtGroupByCourtAreaResponse } from "@/types-openapi/api";
 import { BookingCourtStatus } from "@/types/commons";
-import { DayPilot, DayPilotScheduler } from "daypilot-pro-react";
+import { DayPilot, DayPilotScheduler } from "@daypilot/daypilot-lite-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
@@ -45,6 +45,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
 
   // Function để setup UI cho realtime connection dot
   const setupSchedulerUI = useCallback(() => {
+    // Tìm corner element trong DayPilot Lite (có thể khác với Pro)
     const corner = document.querySelector(".scheduler_default_corner") as HTMLElement | null;
     if (!corner) return;
 
@@ -214,16 +215,14 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     setSelectedDate(new DayPilot.Date(date));
   };
 
-  const resources: DayPilot.ResourceData[] = courts.map((courtArea) => ({
-    name: courtArea.name ?? "",
-    id: courtArea.id,
-    expanded: true,
-    children:
+  // Flatten tất cả courts từ các court areas vì DayPilot Lite không hỗ trợ tree structure
+  const resources: DayPilot.ResourceData[] = courts.flatMap(
+    (courtArea) =>
       courtArea.courts?.map((court) => ({
-        name: court.name ?? "",
+        name: `${court.name}`,
         id: court.id,
       })) ?? [],
-  }));
+  );
 
   // const handleCreateBooking = () => {
   //   console.log("handleCreateBooking", newBooking);
@@ -268,7 +267,6 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
           {viewOption === "schedule" ? (
             <DayPilotScheduler
               ref={schedulerRef}
-              cellWidthSpec={"Fixed"}
               cellWidth={120}
               timeHeaders={[
                 {
@@ -280,7 +278,6 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                   format: "HH:mm",
                 },
               ]}
-              separators={[{ color: "red", location: new DayPilot.Date().toString() }]}
               businessBeginsHour={0}
               businessEndsHour={24}
               businessWeekends={true}
@@ -289,17 +286,18 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
               days={1}
               startDate={selectedDate}
               resources={resources}
+              eventHeight={70}
+              rowHeaderWidth={120}
               onBeforeRowHeaderRender={(args) => {
                 args.row.cssClass = "resource-css";
               }}
-              onBeforeCellRender={(args) => {
-                if (args.cell.isParent) {
-                  args.cell.properties.disabled = true;
-                  args.cell.properties.backColor = "#f0f0f0";
-                }
-              }}
+              // onBeforeCellRender={(args) => {
+              //   if (args.cell.resource === args.cell.row.id) {
+              //     args.cell.properties.backColor = "#f0f0f0";
+              //   }
+              // }}
               onBeforeEventRender={(args) => {
-                const eventStatus = args.data.status;
+                const eventStatus = (args.data as any).status;
 
                 if (eventStatus === BookingCourtStatus.Active) {
                   args.data.barColor = "green";
@@ -393,13 +391,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
               onEventClick={async (args) => {
                 console.log("onEventClick", args);
               }}
-              treeEnabled={true}
               events={bookingCourtsEvent}
-              allowEventOverlap={false}
-              rowMinHeight={50}
-              headerHeight={50}
-              rowEmptyHeight={50}
-              eventHeight={70}
             />
           ) : (
             <CourtScheduleTable data={bookingCourts?.data ?? []} loading={loadingBookingCourts} />

@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
+/*
 .scheduler_default_corner > div:nth-child(2) {
-  display: none !important; /* ẩn cả box DEMO */
+  display: none !important;
 }
+*/
 
 .custom-header {
   font-weight: bold;

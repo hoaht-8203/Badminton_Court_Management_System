@@ -1,6 +1,6 @@
 import { ListBookingCourtResponse } from "@/types-openapi/api";
 import dayjs from "dayjs";
-import { DayPilot } from "daypilot-pro-react";
+import { DayPilot } from "@daypilot/daypilot-lite-react";
 
 interface BookingCourtEvent extends DayPilot.EventData, Omit<ListBookingCourtResponse, "id"> {}
 

@@ -16,4 +16,5 @@ public enum EmailTemplateType
     Welcome,
     ForgotPassword,
     NewPassword,
+    EmailVerify,
 }

@@ -1,19 +1,18 @@
 // ...existing code...
 
-import React from "react";
-import { Card, Form, Select, Switch, Button, Tabs, Input, Tooltip } from "antd";
-import { InfoCircleOutlined } from "@ant-design/icons";
 import { shiftService } from "@/services/shiftService";
+import { Button, Card, Form, Input, Select, Switch } from "antd";
+import React from "react";
 
 const salaryTypes = [
   { value: "fixed", label: "Lương cố định" },
   { value: "hourly", label: "Lương theo giờ" },
   { value: "shift", label: "Lương theo ca" },
 ];
-const salaryTemplates = [
-  { value: "template1", label: "Mẫu lương 1" },
-  { value: "template2", label: "Mẫu lương 2" },
-];
+// const salaryTemplates = [
+//   { value: "template1", label: "Mẫu lương 1" },
+//   { value: "template2", label: "Mẫu lương 2" },
+// ];
 
 import type { FormInstance } from "antd/es/form";
 

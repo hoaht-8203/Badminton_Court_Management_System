@@ -3,6 +3,7 @@ import { UploadOutlined } from "@ant-design/icons";
 import { Avatar, Button, Col, DatePicker, Drawer, Form, Input, Row, Space, Tabs, Upload } from "antd";
 import dayjs from "dayjs";
 import React, { useState } from "react";
+import SalarySetupForm from "@/components/quanlysancaulong/staffs/list-staff/salary-setup-form";
 
 interface StaffModalProps {
   open: boolean;
@@ -23,7 +24,10 @@ const allFields = [
 ];
 
 const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff }) => {
+  const [salaryData, setSalaryData] = React.useState<any>({});
+  const [salarySettingsLoaded, setSalarySettingsLoaded] = useState(false);
   const [form] = Form.useForm();
+  const [salaryForm] = Form.useForm(); // Ensure SalarySetupForm always receives a connected form instance
   const [expanded, setExpanded] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [fileList, setFileList] = useState<any[]>([]);
@@ -36,6 +40,18 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
         dateOfBirth: staff.dateOfBirth ? (typeof staff.dateOfBirth === "string" ? dayjs(staff.dateOfBirth) : staff.dateOfBirth) : undefined,
         dateOfJoining: staff.dateOfJoining ? (typeof staff.dateOfJoining === "string" ? dayjs(staff.dateOfJoining) : staff.dateOfJoining) : undefined,
       });
+      // Fill salary form nếu có dữ liệu
+      if (staff.salarySettings) {
+        try {
+          const salaryObj = JSON.parse(staff.salarySettings);
+          salaryForm.setFieldsValue(salaryObj);
+          setSalarySettingsLoaded(false);
+          setTimeout(() => setSalarySettingsLoaded(true), 0);
+        } catch {}
+      } else {
+        salaryForm.resetFields();
+        setSalarySettingsLoaded(false);
+      }
       if (staff.avatarUrl) {
         setAvatarPreview(staff.avatarUrl);
         setFileList([]);
@@ -46,18 +62,32 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
     }
     if (open && !staff) {
       form.resetFields();
+      salaryForm.resetFields();
       setAvatarPreview(undefined);
       setFileList([]);
+      setSalarySettingsLoaded(false);
     }
-  }, [open, staff, form]);
+  }, [open, staff, form, salaryForm]);
 
-  const handleFinish = (values: any) => {
+  const handleFinish = async (values: any) => {
+    console.log(values);
+
     // Chuyển đổi ngày về kiểu Date nếu có
     if (values.dateOfBirth && values.dateOfBirth.toDate) values.dateOfBirth = values.dateOfBirth.toDate();
     if (values.dateOfJoining && values.dateOfJoining.toDate) values.dateOfJoining = values.dateOfJoining.toDate();
     if (staff && staff.id) values.id = staff.id;
+    // Lấy dữ liệu lương từ form lương
+    const salaryValues = await salaryForm.getFieldsValue();
+    let salarySettings;
+    if (salaryData.showAdvanced) {
+      salarySettings = { ...salaryValues, ...salaryData };
+    } else {
+      salarySettings = { ...salaryValues, salaryAmount: salaryValues.salaryAmount };
+    }
+    values.salarySettings = JSON.stringify(salarySettings);
     onSubmit(values);
     form.resetFields();
+    salaryForm.resetFields();
     setAvatarPreview(undefined);
     setFileList([]);
     setExpanded(false);
@@ -165,7 +195,7 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
           {
             key: "salary",
             label: "Thiết lập lương",
-            children: <div>Chưa có nội dung</div>,
+            children: salaryForm ? <SalarySetupForm form={salaryForm} onSalaryDataChange={setSalaryData} staff={staff} /> : null,
           },
         ]}
       />

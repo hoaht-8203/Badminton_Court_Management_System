@@ -3,8 +3,10 @@ import { ShiftRequest, ShiftResponse } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 
 export const shiftService = {
-  async list(): Promise<ApiResponse<ShiftResponse[]>> {
-    const response = await axiosInstance.get("api/shift");
+  async list(includeInactive: boolean = false): Promise<ApiResponse<ShiftResponse[]>> {
+    const response = await axiosInstance.get("api/shift", {
+      params: { includeInactive },
+    });
     return response.data;
   },
   async getById(id: number): Promise<ApiResponse<ShiftResponse>> {

@@ -64,9 +64,12 @@ public class ShiftService(ApplicationDbContext context, IMapper mapper) : IShift
         return _mapper.Map<ShiftResponse>(shift);
     }
 
-    public async Task<List<ShiftResponse>> GetAllShiftsAsync()
+    public async Task<List<ShiftResponse>> GetAllShiftsAsync(bool includeInactive = false)
     {
-        var shifts = await _context.Shifts.OrderBy(s => s.StartTime).ToListAsync();
+        var shifts = await _context.Shifts
+            .Where(s => includeInactive || s.IsActive)
+            .OrderBy(s => s.StartTime)
+            .ToListAsync();
         return shifts.Select(s => _mapper.Map<ShiftResponse>(s)).ToList();
     }
 

@@ -7,7 +7,7 @@ import React from "react";
 import { ShiftRequest, ShiftResponse } from "@/types-openapi/api";
 
 export default function ShiftPage() {
-  const { data: shiftData, isFetching, refetch } = useListShifts();
+  const { data: shiftData, isFetching, refetch } = useListShifts(true);
   const { show, hide, ModalComponent } = useShiftModal();
   const [modalLoading, setModalLoading] = React.useState(false);
   const createMutation = useCreateShift();

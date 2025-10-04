@@ -3,7 +3,7 @@ import { expandBookings, getDayOfWeekToVietnamese } from "@/lib/common";
 import { ListCourtGroupByCourtAreaResponse } from "@/types-openapi/api";
 import { BookingCourtStatus } from "@/types/commons";
 import { DayPilot, DayPilotScheduler } from "daypilot-pro-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
 import ModalCreateNewBooking from "./modal-create-new-booking";
@@ -43,34 +43,35 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     return expandBookings(bookingCourts?.data?.filter((booking) => booking.status !== BookingCourtStatus.Cancelled) ?? []);
   }, [bookingCourts]);
 
+  // Function để setup UI cho realtime connection dot
+  const setupSchedulerUI = useCallback(() => {
+    const corner = document.querySelector(".scheduler_default_corner") as HTMLElement | null;
+    if (!corner) return;
+
+    const dotId = "realtime-connection-dot";
+    let dot = document.getElementById(dotId) as HTMLDivElement | null;
+    if (!dot) {
+      dot = document.createElement("div");
+      dot.id = dotId;
+      dot.style.width = "10px";
+      dot.style.height = "10px";
+      dot.style.borderRadius = "50%";
+      dot.style.margin = "4px";
+      dot.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.1) inset";
+      dot.style.display = "inline-block";
+      corner.appendChild(dot);
+    }
+
+    const color = isSignalRConnected === null ? "#9CA3AF" : isSignalRConnected ? "#10B981" : "#EF4444"; // gray, green, red
+    const title =
+      isSignalRConnected === null ? "Đang kiểm tra kết nối realtime" : isSignalRConnected ? "Đã kết nối realtime" : "Mất kết nối realtime";
+    dot.style.backgroundColor = color;
+    dot.title = title;
+  }, [isSignalRConnected]);
+
   useEffect(() => {
     // Chỉ chạy khi đang ở chế độ schedule
     if (viewOption !== "schedule") return;
-
-    const setupSchedulerUI = () => {
-      const corner = document.querySelector(".scheduler_default_corner") as HTMLElement | null;
-      if (!corner) return;
-
-      const dotId = "realtime-connection-dot";
-      let dot = document.getElementById(dotId) as HTMLDivElement | null;
-      if (!dot) {
-        dot = document.createElement("div");
-        dot.id = dotId;
-        dot.style.width = "10px";
-        dot.style.height = "10px";
-        dot.style.borderRadius = "50%";
-        dot.style.margin = "4px";
-        dot.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.1) inset";
-        dot.style.display = "inline-block";
-        corner.appendChild(dot);
-      }
-
-      const color = isSignalRConnected === null ? "#9CA3AF" : isSignalRConnected ? "#10B981" : "#EF4444"; // gray, green, red
-      const title =
-        isSignalRConnected === null ? "Đang kiểm tra kết nối realtime" : isSignalRConnected ? "Đã kết nối realtime" : "Mất kết nối realtime";
-      dot.style.backgroundColor = color;
-      dot.title = title;
-    };
 
     // Chạy ngay lập tức
     setupSchedulerUI();
@@ -83,7 +84,23 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [viewOption, isSignalRConnected]);
+  }, [viewOption, setupSchedulerUI]);
+
+  // Thêm useEffect để setup lại UI khi modal đóng
+  useEffect(() => {
+    if (viewOption !== "schedule") return;
+
+    // Khi modal đóng (open = false), setup lại UI sau một khoảng thời gian ngắn
+    if (!open) {
+      const timeoutId = setTimeout(() => {
+        setupSchedulerUI();
+      }, 100);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [open, viewOption, setupSchedulerUI]);
 
   useEffect(() => {
     if (viewOption === "schedule") {
@@ -127,6 +144,9 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     connectionRef.current = conn;
 
     conn.on("bookingCreated", () => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+    });
+    conn.on("bookingUpdated", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
     });
     conn.on("paymentCreated", () => {

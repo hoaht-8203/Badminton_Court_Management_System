@@ -1,6 +1,7 @@
 using System.Net;
 using ApiApplication.Data;
 using ApiApplication.Dtos.BookingCourt;
+using ApiApplication.Dtos.Payment;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
@@ -29,6 +30,9 @@ public class BookingCourtService(
         CreateBookingCourtRequest request
     )
     {
+        var startDate = DateOnly.FromDateTime(request.StartDate);
+        var endDate = DateOnly.FromDateTime(request.EndDate);
+
         // Validate & normalize DayOfWeek: Monday=2 ... Sunday=8
         if (request.StartTime >= request.EndTime)
         {
@@ -40,11 +44,11 @@ public class BookingCourtService(
 
         // Không cho đặt các ngày đã qua
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        if (request.EndDate < today)
+        if (endDate < today)
         {
             throw new ApiException("Không thể đặt cho ngày đã qua.", HttpStatusCode.BadRequest);
         }
-        if (request.StartDate < today)
+        if (startDate < today)
         {
             throw new ApiException(
                 "Ngày bắt đầu phải từ hôm nay trở đi.",
@@ -79,7 +83,7 @@ public class BookingCourtService(
                 );
             }
             request.DaysOfWeek = normalized;
-            if (request.StartDate > request.EndDate)
+            if (startDate > endDate)
             {
                 throw new ApiException(
                     "Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.",
@@ -106,7 +110,7 @@ public class BookingCourtService(
         var query = _context.BookingCourts.Where(b => b.CourtId == request.CourtId);
 
         // Thời gian giao nhau theo ngày: khoảng [StartDate..EndDate]
-        query = query.Where(b => b.StartDate <= request.EndDate && request.StartDate <= b.EndDate);
+        query = query.Where(b => b.StartDate <= endDate && startDate <= b.EndDate);
 
         // Check theo giờ (ca): overlap nếu [StartTime..EndTime] giao nhau
         query = query.Where(b => b.StartTime < request.EndTime && request.StartTime < b.EndTime);
@@ -117,7 +121,7 @@ public class BookingCourtService(
         if (reqDaysArr.Length == 0)
         {
             // Vãng lai: so sánh thứ của ngày đặt với DaysOfWeek của booking cố định
-            var reqDow = GetCustomDayOfWeek(request.StartDate);
+            var reqDow = GetCustomDayOfWeek(DateOnly.FromDateTime(request.StartDate));
             query = query.Where(b =>
                 (b.DaysOfWeek == null || b.DaysOfWeek.Length == 0)
                 || (b.DaysOfWeek != null && b.DaysOfWeek.Contains(reqDow))
@@ -139,12 +143,12 @@ public class BookingCourtService(
         var exists = await query.AnyAsync(b =>
             // Only Active and Completed bookings block new bookings
             (
-                b.Status == Entities.Shared.BookingCourtStatus.Active
-                || b.Status == Entities.Shared.BookingCourtStatus.Completed
+                b.Status == BookingCourtStatus.Active
+                || b.Status == BookingCourtStatus.Completed
             )
             || (
                 // PendingPayment bookings only block if they haven't expired
-                b.Status == Entities.Shared.BookingCourtStatus.PendingPayment
+                b.Status == BookingCourtStatus.PendingPayment
                 && (
                     // If explicit expiry exists, require it to be in the future to block
                     (b.HoldExpiresAtUtc != null && b.HoldExpiresAtUtc > nowUtc)
@@ -197,7 +201,7 @@ public class BookingCourtService(
 
         // Tạo payment pending ngay sau khi tạo booking
         await _paymentService.CreatePaymentAsync(
-            new Dtos.Payment.CreatePaymentRequest { BookingId = entity.Id }
+            new CreatePaymentRequest { BookingId = entity.Id, CustomerId = entity.CustomerId }
         );
 
         // Note: email sending with payment link handled in higher layer (e.g., BookingCourtsController)
@@ -217,7 +221,7 @@ public class BookingCourtService(
         var end = request.EndTime;
         var days =
             (request.DaysOfWeek == null || request.DaysOfWeek.Length == 0)
-                ? new int[] { GetCustomDayOfWeek(request.StartDate) }
+                ? [GetCustomDayOfWeek(DateOnly.FromDateTime(request.StartDate))]
                 : request.DaysOfWeek;
 
         foreach (var dow in days)
@@ -287,7 +291,7 @@ public class BookingCourtService(
         ListBookingCourtRequest request
     )
     {
-        var query = _context.BookingCourts.AsQueryable();
+        var query = _context.BookingCourts.Include(x => x.Court).Include(x => x.Customer).AsQueryable();
 
         if (request.CustomerId.HasValue)
         {
@@ -312,6 +316,7 @@ public class BookingCourtService(
             .OrderByDescending(x => x.StartDate)
             .ThenBy(x => x.StartTime)
             .Include(x => x.Customer)
+            .Include(x => x.Payments)
             .ToListAsync();
         return _mapper.Map<List<ListBookingCourtResponse>>(items);
     }

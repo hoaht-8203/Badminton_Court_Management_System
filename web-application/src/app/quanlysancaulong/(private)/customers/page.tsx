@@ -10,7 +10,7 @@ import { ListCustomerRequest, ListCustomerResponse } from "@/types-openapi/api";
 import { CustomerStatus } from "@/types/commons";
 import { CheckOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined, StopOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Col, Divider, message, Modal, Row, Table, TableProps, Tag } from "antd";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const tableProps: TableProps<ListCustomerResponse> = {
   rowKey: "id",
@@ -154,7 +154,7 @@ const CustomersPage = () => {
           expandable={{
             expandRowByClick: true,
             expandedRowRender: (record) => (
-              <div>
+              <div key={`customer-info-${record.id}`}>
                 <CustomerInformation
                   record={record}
                   handleClickUpdateCustomer={() => handleClickUpdateCustomer(record)}
@@ -187,7 +187,7 @@ const CustomerInformation = ({
   handleClickDeleteCustomer: () => void;
   handleClickChangeCustomerStatus: (payload: string) => void;
 }) => {
-  return (
+  const customerInfo = useMemo(() => (
     <div>
       <Row gutter={16} className="mb-4">
         <Col span={7}>
@@ -291,7 +291,9 @@ const CustomerInformation = ({
         </div>
       </div>
     </div>
-  );
+  ), [record, handleClickUpdateCustomer, handleClickDeleteCustomer, handleClickChangeCustomerStatus]);
+
+  return customerInfo;
 };
 
 export default CustomersPage;

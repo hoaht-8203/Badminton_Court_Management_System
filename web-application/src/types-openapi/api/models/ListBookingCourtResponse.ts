@@ -13,6 +13,21 @@
  */
 
 import { mapValues } from '../runtime';
+import type { CustomerDto } from './CustomerDto';
+import {
+    CustomerDtoFromJSON,
+    CustomerDtoFromJSONTyped,
+    CustomerDtoToJSON,
+    CustomerDtoToJSONTyped,
+} from './CustomerDto';
+import type { PaymentDto } from './PaymentDto';
+import {
+    PaymentDtoFromJSON,
+    PaymentDtoFromJSONTyped,
+    PaymentDtoToJSON,
+    PaymentDtoToJSONTyped,
+} from './PaymentDto';
+
 /**
  * 
  * @export
@@ -25,6 +40,12 @@ export interface ListBookingCourtResponse {
      * @memberof ListBookingCourtResponse
      */
     id?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListBookingCourtResponse
+     */
+    paymentId?: string | null;
     /**
      * 
      * @type {number}
@@ -43,6 +64,12 @@ export interface ListBookingCourtResponse {
      * @memberof ListBookingCourtResponse
      */
     courtId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListBookingCourtResponse
+     */
+    courtName?: string | null;
     /**
      * 
      * @type {Date}
@@ -85,6 +112,18 @@ export interface ListBookingCourtResponse {
      * @memberof ListBookingCourtResponse
      */
     totalHours?: number;
+    /**
+     * 
+     * @type {Array<PaymentDto>}
+     * @memberof ListBookingCourtResponse
+     */
+    payments?: Array<PaymentDto> | null;
+    /**
+     * 
+     * @type {CustomerDto}
+     * @memberof ListBookingCourtResponse
+     */
+    customer?: CustomerDto;
 }
 
 /**
@@ -105,9 +144,11 @@ export function ListBookingCourtResponseFromJSONTyped(json: any, ignoreDiscrimin
     return {
         
         'id': json['id'] == null ? undefined : json['id'],
+        'paymentId': json['paymentId'] == null ? undefined : json['paymentId'],
         'customerId': json['customerId'] == null ? undefined : json['customerId'],
         'customerName': json['customerName'] == null ? undefined : json['customerName'],
         'courtId': json['courtId'] == null ? undefined : json['courtId'],
+        'courtName': json['courtName'] == null ? undefined : json['courtName'],
         'startDate': json['startDate'] == null ? undefined : (new Date(json['startDate'])),
         'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
         'startTime': json['startTime'] == null ? undefined : json['startTime'],
@@ -115,6 +156,8 @@ export function ListBookingCourtResponseFromJSONTyped(json: any, ignoreDiscrimin
         'daysOfWeek': json['daysOfWeek'] == null ? undefined : json['daysOfWeek'],
         'status': json['status'] == null ? undefined : json['status'],
         'totalHours': json['totalHours'] == null ? undefined : json['totalHours'],
+        'payments': json['payments'] == null ? undefined : ((json['payments'] as Array<any>).map(PaymentDtoFromJSON)),
+        'customer': json['customer'] == null ? undefined : CustomerDtoFromJSON(json['customer']),
     };
 }
 
@@ -130,9 +173,11 @@ export function ListBookingCourtResponseToJSONTyped(value?: ListBookingCourtResp
     return {
         
         'id': value['id'],
+        'paymentId': value['paymentId'],
         'customerId': value['customerId'],
         'customerName': value['customerName'],
         'courtId': value['courtId'],
+        'courtName': value['courtName'],
         'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString().substring(0,10)),
         'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
         'startTime': value['startTime'],
@@ -140,6 +185,8 @@ export function ListBookingCourtResponseToJSONTyped(value?: ListBookingCourtResp
         'daysOfWeek': value['daysOfWeek'],
         'status': value['status'],
         'totalHours': value['totalHours'],
+        'payments': value['payments'] == null ? undefined : ((value['payments'] as Array<any>).map(PaymentDtoToJSON)),
+        'customer': CustomerDtoToJSON(value['customer']),
     };
 }
 

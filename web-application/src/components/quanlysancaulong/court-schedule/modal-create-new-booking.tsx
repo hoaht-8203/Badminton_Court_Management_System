@@ -1,13 +1,15 @@
 import { useListCourts, useListCourtPricingRuleByCourtId } from "@/hooks/useCourt";
 import { customerService } from "@/services/customerService";
 import { CreateBookingCourtRequest, DetailCustomerResponse } from "@/types-openapi/api";
-import { Card, Col, DatePicker, Descriptions, Form, message, Modal, Radio, Row, Select, TimePicker } from "antd";
+import { Card, Col, DatePicker, Descriptions, Form, FormProps, Input, message, Modal, Radio, Row, Select, TimePicker } from "antd";
 import { CheckboxGroupProps } from "antd/es/checkbox";
 import FormItem from "antd/es/form/FormItem";
 import dayjs from "dayjs";
 import { DayPilot } from "daypilot-pro-react";
 import { useEffect, useMemo, useState } from "react";
 import { DebounceSelect } from "./DebounceSelect";
+import { ApiError } from "@/lib/axios";
+import { useCreateBookingCourt } from "@/hooks/useBookingCourt";
 
 interface ModelCreateNewBookingProps {
   open: boolean;
@@ -42,7 +44,7 @@ const daysOfWeekOptions = [
   { label: "CN", value: 8 },
 ];
 
-const ModelCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBookingProps) => {
+const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBookingProps) => {
   const [form] = Form.useForm();
   const startDateWatch = Form.useWatch("startDate", form);
   const startTimeWatch = Form.useWatch("startTime", form);
@@ -59,6 +61,7 @@ const ModelCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
 
   const { data: courts } = useListCourts({});
   const { data: pricingRules } = useListCourtPricingRuleByCourtId({ courtId: courtWatch || "" });
+  const createMutation = useCreateBookingCourt();
 
   // Tính toán số tiền dựa trên pricing rules theo order
   const calculatedPrice = useMemo(() => {
@@ -106,7 +109,6 @@ const ModelCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
       if (!applicableRule) {
         // Không tìm thấy rule phù hợp, dừng tính toán
         console.warn(`No pricing rule found for time ${currentTime} on day ${dayOfWeek}`);
-        message.error("Không tìm thấy rule phù hợp cho thời gian đặt sân");
         break;
       }
 
@@ -136,8 +138,27 @@ const ModelCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
     return Math.round(totalPrice);
   }, [startTimeWatch, endTimeWatch, pricingRules, startDateWatch]);
 
-  const handleCreateBooking = () => {
-    form.submit();
+  const handleCreateBooking: FormProps<CreateBookingCourtRequest>["onFinish"] = (values) => {
+    const payload: CreateBookingCourtRequest = {
+      ...values,
+      customerId: customerWatch.value,
+      startDate: dayjs(values.startDate).toDate(),
+      endDate: createBookingCourtDaysOfWeek === "1" ? dayjs(values.startDate).toDate() : dayjs(values.endDate).toDate(),
+      startTime: dayjs(values.startTime).format("HH:mm:ss"),
+      endTime: dayjs(values.endTime).format("HH:mm:ss"),
+      daysOfWeek: createBookingCourtDaysOfWeek === "1" ? undefined : values.daysOfWeek,
+      note: values.note,
+    } as CreateBookingCourtRequest;
+    console.log(payload);
+    createMutation.mutate(payload, {
+      onSuccess: () => {
+        message.success("Đặt sân thành công!");
+        handleClose();
+      },
+      onError: (error: ApiError) => {
+        message.error(error.message);
+      },
+    });
   };
 
   const fetchCustomers = async (search: string): Promise<CustomerOption[]> => {
@@ -190,6 +211,29 @@ const ModelCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
     fetchCustomerInfo();
   }, [customerWatch]);
 
+  // Hiển thị message error khi không tìm thấy pricing rule
+  useEffect(() => {
+    if (calculatedPrice === 0 && startTimeWatch && endTimeWatch && pricingRules?.data && startDateWatch) {
+      // Kiểm tra xem có phải do không tìm thấy rule không
+      const jsDay = startDateWatch.day();
+      const dayOfWeek = jsDay === 0 ? 8 : jsDay + 1;
+      const startTimeStr = startTimeWatch.format("HH:mm");
+
+      const hasApplicableRule = pricingRules.data.some((rule) => {
+        if (rule.daysOfWeek && !rule.daysOfWeek.includes(dayOfWeek)) {
+          return false;
+        }
+        const ruleStartTime = rule.startTime.substring(0, 5);
+        const ruleEndTime = rule.endTime.substring(0, 5);
+        return startTimeStr >= ruleStartTime && startTimeStr < ruleEndTime;
+      });
+
+      if (!hasApplicableRule) {
+        message.warning("Không tìm thấy rule phù hợp cho thời gian đặt sân");
+      }
+    }
+  }, [calculatedPrice, startTimeWatch, endTimeWatch, pricingRules, startDateWatch]);
+
   return (
     <div>
       <Modal
@@ -197,7 +241,9 @@ const ModelCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
         maskClosable={false}
         centered
         open={open}
-        onOk={handleCreateBooking}
+        onOk={() => {
+          form.submit();
+        }}
         onCancel={handleClose}
         okText="Đặt sân"
         cancelText="Bỏ qua"
@@ -213,6 +259,7 @@ const ModelCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
             startTime: dayjs(newBooking?.start.toString()),
             endTime: dayjs(newBooking?.end.toString()),
           }}
+          onFinish={handleCreateBooking}
         >
           <Row gutter={[16, 16]}>
             <Col span={12}>
@@ -227,7 +274,13 @@ const ModelCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
 
             <Col span={12}>
               <FormItem<CreateBookingCourtRequest> name="courtId" label="Sân" rules={[{ required: true, message: "Sân là bắt buộc" }]}>
-                <Select placeholder="Chọn sân" options={courts?.data?.map((court) => ({ value: court.id, label: court.name }))} />
+                <Select disabled={true} placeholder="Chọn sân" options={courts?.data?.map((court) => ({ value: court.id, label: court.name }))} />
+              </FormItem>
+            </Col>
+
+            <Col span={24}>
+              <FormItem<CreateBookingCourtRequest> name="note" label="Ghi chú">
+                <Input.TextArea placeholder="Nhập ghi chú" />
               </FormItem>
             </Col>
 
@@ -516,4 +569,4 @@ const ModelCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
   );
 };
 
-export default ModelCreateNewBooking;
+export default ModalCreateNewBooking;

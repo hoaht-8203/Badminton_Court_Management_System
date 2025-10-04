@@ -110,8 +110,8 @@ export function CreateBookingCourtRequestToJSONTyped(value?: CreateBookingCourtR
         
         'customerId': value['customerId'],
         'courtId': value['courtId'],
-        'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString().substring(0,10)),
-        'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
+        'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString()),
+        'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString()),
         'startTime': value['startTime'],
         'endTime': value['endTime'],
         'daysOfWeek': value['daysOfWeek'],

@@ -34,4 +34,6 @@ public class BookingCourt : BaseEntity
 
     // Hold expiry for PendingPayment bookings
     public DateTime? HoldExpiresAtUtc { get; set; }
+
+    public ICollection<Payment> Payments { get; set; } = [];
 }

@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { Payment } from './Payment';
+import {
+    PaymentFromJSON,
+    PaymentFromJSONTyped,
+    PaymentToJSON,
+    PaymentToJSONTyped,
+} from './Payment';
 import type { Customer } from './Customer';
 import {
     CustomerFromJSON,
@@ -136,6 +143,12 @@ export interface BookingCourt {
      * @memberof BookingCourt
      */
     holdExpiresAtUtc?: Date | null;
+    /**
+     * 
+     * @type {Array<Payment>}
+     * @memberof BookingCourt
+     */
+    payments?: Array<Payment> | null;
 }
 
 /**
@@ -179,6 +192,7 @@ export function BookingCourtFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'note': json['note'] == null ? undefined : json['note'],
         'status': json['status'] == null ? undefined : json['status'],
         'holdExpiresAtUtc': json['holdExpiresAtUtc'] == null ? undefined : (new Date(json['holdExpiresAtUtc'])),
+        'payments': json['payments'] == null ? undefined : ((json['payments'] as Array<any>).map(PaymentFromJSON)),
     };
 }
 
@@ -210,6 +224,7 @@ export function BookingCourtToJSONTyped(value?: BookingCourt | null, ignoreDiscr
         'note': value['note'],
         'status': value['status'],
         'holdExpiresAtUtc': value['holdExpiresAtUtc'] === null ? null : ((value['holdExpiresAtUtc'] as any)?.toISOString()),
+        'payments': value['payments'] == null ? undefined : ((value['payments'] as Array<any>).map(PaymentToJSON)),
     };
 }
 

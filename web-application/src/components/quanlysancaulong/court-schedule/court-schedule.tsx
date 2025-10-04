@@ -6,11 +6,13 @@ import { DayPilot, DayPilotScheduler } from "daypilot-pro-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
-import ModelCreateNewBooking from "./model-create-new-booking";
+import ModalCreateNewBooking from "./modal-create-new-booking";
 import PickCalendar from "./pick-calendar";
+import CourtScheduleTable from "./court-schedule-table";
 import { HttpTransportType } from "@microsoft/signalr";
 import { apiBaseUrl } from "@/lib/axios";
-import { Alert, message } from "antd";
+import { Alert, message, Segmented } from "antd";
+import { CalendarOutlined, TableOutlined } from "@ant-design/icons";
 
 interface CourtSchedulerProps {
   courts: ListCourtGroupByCourtAreaResponse[];
@@ -18,6 +20,7 @@ interface CourtSchedulerProps {
 
 const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   const schedulerRef = useRef<DayPilotScheduler>(null);
+  const [viewOption, setViewOption] = useState<"schedule" | "list">("schedule");
   const [open, setOpen] = useState(false);
   const [isSignalRConnected, setIsSignalRConnected] = useState<boolean | null>(null);
   const [selectedDate, setSelectedDate] = useState<DayPilot.Date>(DayPilot.Date.today());
@@ -31,7 +34,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   const hasStartedRef = useRef(false);
   const unmountedRef = useRef(false);
 
-  const { data: bookingCourts } = useListBookingCourts({
+  const { data: bookingCourts, isFetching: loadingBookingCourts } = useListBookingCourts({
     fromDate: selectedDate.toDate(),
     toDate: selectedDate.toDate(),
   });
@@ -41,47 +44,75 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   }, [bookingCourts]);
 
   useEffect(() => {
-    const demoEl = document.querySelector(".scheduler_default_corner > div[style*='background-color']");
-    if (demoEl) {
-      demoEl.remove();
-    }
+    // Chỉ chạy khi đang ở chế độ schedule
+    if (viewOption !== "schedule") return;
 
-    const corner = document.querySelector(".scheduler_default_corner") as HTMLElement | null;
-    if (!corner) return;
+    const setupSchedulerUI = () => {
+      const corner = document.querySelector(".scheduler_default_corner") as HTMLElement | null;
+      if (!corner) return;
 
-    const dotId = "realtime-connection-dot";
-    let dot = document.getElementById(dotId) as HTMLDivElement | null;
-    if (!dot) {
-      dot = document.createElement("div");
-      dot.id = dotId;
-      dot.style.width = "10px";
-      dot.style.height = "10px";
-      dot.style.borderRadius = "50%";
-      dot.style.margin = "4px";
-      dot.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.1) inset";
-      dot.style.display = "inline-block";
-      corner.appendChild(dot);
-    }
+      const dotId = "realtime-connection-dot";
+      let dot = document.getElementById(dotId) as HTMLDivElement | null;
+      if (!dot) {
+        dot = document.createElement("div");
+        dot.id = dotId;
+        dot.style.width = "10px";
+        dot.style.height = "10px";
+        dot.style.borderRadius = "50%";
+        dot.style.margin = "4px";
+        dot.style.boxShadow = "0 0 0 1px rgba(0,0,0,0.1) inset";
+        dot.style.display = "inline-block";
+        corner.appendChild(dot);
+      }
 
-    const color = isSignalRConnected === null ? "#9CA3AF" : isSignalRConnected ? "#10B981" : "#EF4444"; // gray, green, red
-    const title =
-      isSignalRConnected === null ? "Đang kiểm tra kết nối realtime" : isSignalRConnected ? "Đã kết nối realtime" : "Mất kết nối realtime";
-    dot.style.backgroundColor = color;
-    dot.title = title;
-  });
+      const color = isSignalRConnected === null ? "#9CA3AF" : isSignalRConnected ? "#10B981" : "#EF4444"; // gray, green, red
+      const title =
+        isSignalRConnected === null ? "Đang kiểm tra kết nối realtime" : isSignalRConnected ? "Đã kết nối realtime" : "Mất kết nối realtime";
+      dot.style.backgroundColor = color;
+      dot.title = title;
+    };
+
+    // Chạy ngay lập tức
+    setupSchedulerUI();
+
+    // Nếu DOM chưa sẵn sàng, thử lại sau một khoảng thời gian
+    const timeoutId = setTimeout(() => {
+      setupSchedulerUI();
+    }, 200);
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [viewOption, isSignalRConnected]);
 
   useEffect(() => {
-    if (schedulerRef.current) {
-      const scheduler = schedulerRef.current.control;
+    if (viewOption === "schedule") {
+      const scrollToCurrentTime = () => {
+        if (schedulerRef.current) {
+          const scheduler = schedulerRef.current.control;
 
-      const today = new Date();
-      today.setHours(7, 0, 0, 0);
+          const today = new Date();
+          today.setHours(7, 0, 0, 0);
 
-      const dpDate = new DayPilot.Date(today, true);
+          const dpDate = new DayPilot.Date(today, true);
 
-      scheduler.scrollTo(dpDate);
+          scheduler.scrollTo(dpDate);
+        }
+      };
+
+      // Chạy ngay lập tức
+      scrollToCurrentTime();
+
+      // Nếu scheduler chưa sẵn sàng, thử lại sau một khoảng thời gian
+      const timeoutId = setTimeout(() => {
+        scrollToCurrentTime();
+      }, 100);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
-  }, []);
+  }, [viewOption]);
 
   useEffect(() => {
     const conn = new HubConnectionBuilder()
@@ -191,87 +222,101 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     <>
       <div className="mb-4">{isSignalRConnected === false && <Alert message="Không thể kết nối realtime." type="warning" showIcon closable />}</div>
 
+      <div className="mb-2 flex justify-end">
+        <Segmented
+          options={[
+            { label: "Xem theo lịch", value: "schedule", icon: <CalendarOutlined /> },
+            { label: "Xem theo danh sách", value: "list", icon: <TableOutlined /> },
+          ]}
+          onChange={(value) => {
+            setViewOption(value as "schedule" | "list");
+          }}
+          size="large"
+        />
+      </div>
+
       <div className="flex flex-row gap-4">
         <div>
           <PickCalendar onPickDate={handlePickDate} />
         </div>
 
         <div className="w-full">
-          <DayPilotScheduler
-            ref={schedulerRef}
-            cellWidthSpec={"Fixed"}
-            cellWidth={120}
-            timeHeaders={[
-              {
-                groupBy: "Day",
-                format: "dddd, dd/MM/yyyy",
-              },
-              {
-                groupBy: "Hour",
-                format: "HH:mm",
-              },
-            ]}
-            separators={[{ color: "red", location: new DayPilot.Date().toString() }]}
-            businessBeginsHour={0}
-            businessEndsHour={24}
-            businessWeekends={true}
-            scale={"Hour"}
-            timeRangeSelectedHandling="Enabled"
-            days={1}
-            startDate={selectedDate}
-            resources={resources}
-            onBeforeRowHeaderRender={(args) => {
-              args.row.cssClass = "resource-css";
-            }}
-            onBeforeCellRender={(args) => {
-              if (args.cell.isParent) {
-                args.cell.properties.disabled = true;
-                args.cell.properties.backColor = "#f0f0f0";
-              }
-            }}
-            onBeforeEventRender={(args) => {
-              const eventStatus = args.data.status;
+          {viewOption === "schedule" ? (
+            <DayPilotScheduler
+              ref={schedulerRef}
+              cellWidthSpec={"Fixed"}
+              cellWidth={120}
+              timeHeaders={[
+                {
+                  groupBy: "Day",
+                  format: "dddd, dd/MM/yyyy",
+                },
+                {
+                  groupBy: "Hour",
+                  format: "HH:mm",
+                },
+              ]}
+              separators={[{ color: "red", location: new DayPilot.Date().toString() }]}
+              businessBeginsHour={0}
+              businessEndsHour={24}
+              businessWeekends={true}
+              scale={"Hour"}
+              timeRangeSelectedHandling="Enabled"
+              days={1}
+              startDate={selectedDate}
+              resources={resources}
+              onBeforeRowHeaderRender={(args) => {
+                args.row.cssClass = "resource-css";
+              }}
+              onBeforeCellRender={(args) => {
+                if (args.cell.isParent) {
+                  args.cell.properties.disabled = true;
+                  args.cell.properties.backColor = "#f0f0f0";
+                }
+              }}
+              onBeforeEventRender={(args) => {
+                const eventStatus = args.data.status;
 
-              if (eventStatus === BookingCourtStatus.Active) {
-                args.data.barColor = "green";
-              }
+                if (eventStatus === BookingCourtStatus.Active) {
+                  args.data.barColor = "green";
+                }
 
-              if (eventStatus === BookingCourtStatus.Cancelled) {
-                args.data.barColor = "red";
-              }
+                if (eventStatus === BookingCourtStatus.Cancelled) {
+                  args.data.barColor = "red";
+                }
 
-              if (eventStatus === BookingCourtStatus.Completed) {
-                args.data.barColor = "blue";
-              }
+                if (eventStatus === BookingCourtStatus.Completed) {
+                  args.data.barColor = "blue";
+                }
 
-              if (eventStatus === BookingCourtStatus.PendingPayment) {
-                args.data.barColor = "yellow";
-              }
+                if (eventStatus === BookingCourtStatus.PendingPayment) {
+                  args.data.barColor = "yellow";
+                }
 
-              // Customize event text with a status badge + customer name + time range
-              const startText = new DayPilot.Date(args.data.start).toString("HH:mm");
-              const endText = new DayPilot.Date(args.data.end).toString("HH:mm");
-              const customerName = args.data.text ?? "";
+                // Customize event text with a status badge + customer name + time range
+                const startText = new DayPilot.Date(args.data.start).toString("HH:mm");
+                const endText = new DayPilot.Date(args.data.end).toString("HH:mm");
+                const customerName = args.data.text ?? "";
 
-              let badgeText = "";
-              let badgeClasses = "";
-              if (eventStatus === BookingCourtStatus.Active) {
-                badgeText = "Đã đặt & thanh toán";
-                badgeClasses = "text-green-800";
-              } else if (eventStatus === BookingCourtStatus.PendingPayment) {
-                badgeText = "Đã đặt - chưa thanh toán";
-                badgeClasses = "text-yellow-800";
-              } else if (eventStatus === BookingCourtStatus.Completed) {
-                badgeText = "Hoàn tất";
-                badgeClasses = "text-blue-800";
-              } else if (eventStatus === BookingCourtStatus.Cancelled) {
-                badgeText = "Đã hủy";
-                badgeClasses = "text-red-800";
-              }
+                let badgeText = "";
+                let badgeClasses = "";
+                if (eventStatus === BookingCourtStatus.Active) {
+                  badgeText = "Đã đặt & thanh toán";
+                  badgeClasses = "text-green-800";
+                } else if (eventStatus === BookingCourtStatus.PendingPayment) {
+                  badgeText = "Đã đặt - chưa thanh toán";
+                  badgeClasses = "text-yellow-800";
+                } else if (eventStatus === BookingCourtStatus.Completed) {
+                  badgeText = "Hoàn tất";
+                  badgeClasses = "text-blue-800";
+                } else if (eventStatus === BookingCourtStatus.Cancelled) {
+                  badgeText = "Đã hủy";
+                  badgeClasses = "text-red-800";
+                }
 
-              const badgeHtml = badgeText ? `<span class="${badgeClasses}">${badgeText}</span>` : "";
+                const badgeHtml = badgeText ? `<span class="${badgeClasses}">${badgeText}</span>` : "";
 
-              args.data.html = `
+                args.data.html = `
               <div class="flex flex-col gap-1">
                 ${badgeHtml}
                 <span class="font-semibold">${customerName}</span>
@@ -279,62 +324,65 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
               </div>
             `;
 
-              // if (eventStart.getTime() < now.getTime()) {
-              //   args.data.barColor = "orange";
-              // }
+                // if (eventStart.getTime() < now.getTime()) {
+                //   args.data.barColor = "orange";
+                // }
 
-              // Tùy chọn khác: Nếu sự kiện đang diễn ra
-              // else if (eventEnd.getTime() > now.getTime() && new DayPilot.Date(args.data.start).getTime() < now.getTime()) {
-              //     args.data.barColor = "orange"; // Màu cam cho sự kiện đang diễn ra
-              // }
-            }}
-            onBeforeTimeHeaderRender={(args) => {
-              if (args.header.level === 0) {
-                const date = args.header.start;
-                const dayOfWeekText = date.toString("dddd");
-                const dayOfWeekTextVietnamese = getDayOfWeekToVietnamese(dayOfWeekText);
-                const day = date.getDay();
-                const month = date.getMonth() + 1;
-                const year = date.getYear();
-                args.header.html = `${dayOfWeekTextVietnamese}, ngày ${day} tháng ${month} năm ${year}`;
-                args.header.cssClass = "custom-header";
-              }
+                // Tùy chọn khác: Nếu sự kiện đang diễn ra
+                // else if (eventEnd.getTime() > now.getTime() && new DayPilot.Date(args.data.start).getTime() < now.getTime()) {
+                //     args.data.barColor = "orange"; // Màu cam cho sự kiện đang diễn ra
+                // }
+              }}
+              onBeforeTimeHeaderRender={(args) => {
+                if (args.header.level === 0) {
+                  const date = args.header.start;
+                  const dayOfWeekText = date.toString("dddd");
+                  const dayOfWeekTextVietnamese = getDayOfWeekToVietnamese(dayOfWeekText);
+                  const day = date.getDay();
+                  const month = date.getMonth() + 1;
+                  const year = date.getYear();
+                  args.header.html = `${dayOfWeekTextVietnamese}, ngày ${day} tháng ${month} năm ${year}`;
+                  args.header.cssClass = "custom-header";
+                }
 
-              if (args.header.level === 1) {
-                args.header.cssClass = "custom-header";
-              }
-            }}
-            onTimeRangeSelected={async (args) => {
-              setOpen(true);
+                if (args.header.level === 1) {
+                  args.header.cssClass = "custom-header";
+                }
+              }}
+              onTimeRangeSelected={async (args) => {
+                setOpen(true);
 
-              setNewBooking({
-                start: args.start,
-                end: args.end,
-                resource: args.resource.toString(),
-              });
-            }}
-            eventMoveHandling="Update"
-            onEventMove={async (args) => {
-              console.log("onEventMove", args);
-            }}
-            eventResizeHandling="Update"
-            onEventResize={async (args) => {
-              console.log("onEventResize", args);
-            }}
-            onEventClick={async (args) => {
-              console.log("onEventClick", args);
-            }}
-            treeEnabled={true}
-            events={bookingCourtsEvent}
-            allowEventOverlap={false}
-            rowMinHeight={50}
-            headerHeight={50}
-            rowEmptyHeight={50}
-            eventHeight={70}
-          />
+                setNewBooking({
+                  start: args.start,
+                  end: args.end,
+                  resource: args.resource.toString(),
+                });
+              }}
+              eventMoveHandling="Update"
+              onEventMove={async (args) => {
+                console.log("onEventMove", args);
+              }}
+              eventResizeHandling="Update"
+              onEventResize={async (args) => {
+                console.log("onEventResize", args);
+              }}
+              onEventClick={async (args) => {
+                console.log("onEventClick", args);
+              }}
+              treeEnabled={true}
+              events={bookingCourtsEvent}
+              allowEventOverlap={false}
+              rowMinHeight={50}
+              headerHeight={50}
+              rowEmptyHeight={50}
+              eventHeight={70}
+            />
+          ) : (
+            <CourtScheduleTable data={bookingCourts?.data ?? []} loading={loadingBookingCourts} />
+          )}
         </div>
 
-        <ModelCreateNewBooking
+        <ModalCreateNewBooking
           open={open}
           onClose={() => {
             setOpen(false);

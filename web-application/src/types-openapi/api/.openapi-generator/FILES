@@ -58,6 +58,7 @@ models/CreateSupplierRequest.ts
 models/CurrentUserResponse.ts
 models/CurrentUserResponseApiResponse.ts
 models/Customer.ts
+models/CustomerDto.ts
 models/DayOfWeek.ts
 models/DeletCourtAreaRequest.ts
 models/DeleteCourtPricingRuleTemplateRequest.ts
@@ -156,6 +157,7 @@ models/MyProfileResponseApiResponse.ts
 models/ObjectApiResponse.ts
 models/PaginationRequest.ts
 models/Payment.ts
+models/PaymentDto.ts
 models/Payroll.ts
 models/PayrollItem.ts
 models/PriceTable.ts

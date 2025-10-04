@@ -19,9 +19,9 @@ namespace ApiApplication.Controllers
         [HttpGet("by-shift")]
         public async Task<
             ActionResult<ApiResponse<List<ScheduleByShiftResponse>>>
-        > GetScheduleOfWeekByShift([FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate)
+        > GetScheduleOfWeekByShift([FromQuery] ScheduleRequest request)
         {
-            var result = await _scheduleService.GetScheduleOfWeekByShiftAsync(startDate, endDate);
+            var result = await _scheduleService.GetScheduleOfWeekByShiftAsync(request);
             return Ok(
                 ApiResponse<List<ScheduleByShiftResponse>>.SuccessResponse(
                     result,
@@ -33,9 +33,9 @@ namespace ApiApplication.Controllers
         [HttpGet("by-staff")]
         public async Task<
             ActionResult<ApiResponse<List<ScheduleByStaffResponse>>>
-        > GetScheduleOfWeekByStaff([FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate)
+        > GetScheduleOfWeekByStaff([FromQuery] ScheduleRequest request)
         {
-            var result = await _scheduleService.GetScheduleOfWeekByStaffAsync(startDate, endDate);
+            var result = await _scheduleService.GetScheduleOfWeekByStaffAsync(request);
             return Ok(
                 ApiResponse<List<ScheduleByStaffResponse>>.SuccessResponse(
                     result,
@@ -46,9 +46,9 @@ namespace ApiApplication.Controllers
         [HttpGet("by-staff/{staffId}")]
         public async Task<
             ActionResult<ApiResponse<List<ScheduleResponse>>>
-        > GetScheduleOfWeekByStaffId([FromQuery] DateOnly startDate, [FromQuery] DateOnly endDate, int staffId)
+        > GetScheduleOfWeekByStaffId([FromQuery] ScheduleRequest request, int staffId)
         {
-            var result = await _scheduleService.GetScheduleOfWeekByStaffIdAsync(startDate, endDate, staffId);
+            var result = await _scheduleService.GetScheduleOfWeekByStaffIdAsync(request, staffId);
             return Ok(
                 ApiResponse<List<ScheduleResponse>>.SuccessResponse(
                     result,

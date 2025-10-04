@@ -3,19 +3,22 @@ using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
+using ApiApplication.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Controllers;
 
 [Route("api/payment-webhooks")]
 [ApiController]
-public class PaymentWebhooksController(ApplicationDbContext context, IConfiguration configuration)
+public class PaymentWebhooksController(ApplicationDbContext context, IConfiguration configuration, IHubContext<BookingHub> hubContext)
     : ControllerBase
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IConfiguration _configuration = configuration;
+    private readonly IHubContext<BookingHub> _hubContext = hubContext;
 
     public class SePayWebhookRequest
     {
@@ -113,6 +116,14 @@ public class PaymentWebhooksController(ApplicationDbContext context, IConfigurat
             }
 
             await _context.SaveChangesAsync();
+
+            // Send realtime notifications
+            await _hubContext.Clients.All.SendAsync("paymentUpdated", payment.Id);
+            if (payment.Booking != null)
+            {
+                await _hubContext.Clients.All.SendAsync("bookingUpdated", payment.Booking.Id);
+            }
+
             return Ok(ApiResponse<object?>.SuccessResponse(null, "Thanh toán đã được xác nhận"));
         }
 

@@ -267,4 +267,22 @@ public class EmailService : IEmailService
 
         return await SendTemplateEmailAsync(templateRequest);
     }
+
+    public async Task<EmailResponse> SendVerifyEmailAsync(SendVerifyEmailAsyncRequest request)
+    {
+        var templateRequest = new EmailTemplateRequest
+        {
+            To = request.To,
+            ToName = request.ToName,
+            TemplateType = EmailTemplateType.EmailVerify,
+            TemplateData = new Dictionary<string, string>
+            {
+                { "FullName", request.FullName },
+                { "Token", request.Token },
+                { "ExpiresAt", request.ExpiresAt },
+            },
+        };
+
+        return await SendTemplateEmailAsync(templateRequest);
+    }
 }

@@ -210,6 +210,22 @@ public class AuthService(
             );
         }
 
+        var tempPasswordToken = await _context.ApplicationUserTokens.FirstOrDefaultAsync(x =>
+            x.UserId == user.Id
+            && x.TokenType == TokenType.TempPassword
+            && x.ExpiresAtUtc > DateTime.UtcNow
+        );
+
+        if (tempPasswordToken != null)
+        {
+            _logger.LogWarning(
+                "User {UserId} ({Email}) đang đăng nhập bằng password tạm thời. Token hết hạn: {ExpiresAt}",
+                user.Id,
+                user.Email,
+                tempPasswordToken.ExpiresAtUtc
+            );
+        }
+
         IList<string> roles = await _userManager.GetRolesAsync(user);
 
         var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user, roles);
@@ -368,6 +384,16 @@ public class AuthService(
             );
         }
 
+        var tempPasswordTokens = await _context
+            .ApplicationUserTokens.Where(x =>
+                x.UserId == user.Id && x.TokenType == TokenType.TempPassword
+            )
+            .ToListAsync();
+        if (tempPasswordTokens.Count > 0)
+        {
+            _context.ApplicationUserTokens.RemoveRange(tempPasswordTokens);
+        }
+
         var roles = await _userManager.GetRolesAsync(user);
 
         var (jwtToken, expirationDateInUtc) = _authTokenProcessor.GenerateJwtToken(user, roles);
@@ -450,15 +476,14 @@ public class AuthService(
 
         _emailService.SendEmailFireAndForget(
             () =>
-                _emailService.SendEmailAsync(
-                    new EmailRequest
+                _emailService.SendVerifyEmailAsync(
+                    new SendVerifyEmailAsyncRequest
                     {
                         To = user.Email!,
                         ToName = user.FullName,
-                        Subject = "Xác nhận email đăng ký tài khoản",
-                        Body =
-                            $"Xin chào {user.FullName},\n\nCảm ơn bạn đã đăng ký. Mã xác nhận email của bạn là: {emailConfirmToken}. Mã sẽ hết hạn sau 24 giờ.",
-                        IsHtml = false,
+                        FullName = user.FullName,
+                        Token = emailConfirmToken,
+                        ExpiresAt = "24 giờ",
                     }
                 ),
             _logger,

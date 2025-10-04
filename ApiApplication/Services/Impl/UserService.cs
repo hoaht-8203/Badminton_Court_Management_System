@@ -99,6 +99,20 @@ public class UserService(
 
         await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.Admin));
 
+        //hết hạn sau 7 ngày
+        var tempPasswordToken = Guid.NewGuid().ToString("N");
+        _context.ApplicationUserTokens.Add(
+            new ApplicationUserToken
+            {
+                UserId = user.Id,
+                Token = tempPasswordToken,
+                TokenType = TokenType.TempPassword,
+                ExpiresAtUtc = DateTime.UtcNow.AddDays(7),
+            }
+        );
+
+        await _context.SaveChangesAsync();
+
         _emailService.SendEmailFireAndForget(
             () =>
                 _emailService.SendWelcomeEmailAsync(
@@ -212,6 +226,28 @@ public class UserService(
             {
                 _context.ApplicationUserTokens.RemoveRange(userRefreshTokens);
             }
+
+            var oldTempPasswordTokens = await _context
+                .ApplicationUserTokens.Where(t =>
+                    t.UserId == user.Id && t.TokenType == TokenType.TempPassword
+                )
+                .ToListAsync();
+            if (oldTempPasswordTokens.Count > 0)
+            {
+                _context.ApplicationUserTokens.RemoveRange(oldTempPasswordTokens);
+            }
+
+            // hết hạn sau 7 ngày
+            var tempPasswordToken = Guid.NewGuid().ToString("N");
+            _context.ApplicationUserTokens.Add(
+                new ApplicationUserToken
+                {
+                    UserId = user.Id,
+                    Token = tempPasswordToken,
+                    TokenType = TokenType.TempPassword,
+                    ExpiresAtUtc = DateTime.UtcNow.AddDays(7),
+                }
+            );
         }
 
         await _context.SaveChangesAsync();

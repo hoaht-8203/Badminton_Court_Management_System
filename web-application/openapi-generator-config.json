@@ -9,5 +9,8 @@
     "supportsES6": true,
     "enumPropertyNaming": "UPPERCASE",
     "modelPropertyNaming": "original"
+  },
+  "globalProperties": {
+    "lineEnding": "CRLF"
   }
 }

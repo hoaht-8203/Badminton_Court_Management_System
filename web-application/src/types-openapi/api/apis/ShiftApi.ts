@@ -31,6 +31,10 @@ import {
     ShiftResponseListApiResponseToJSON,
 } from '../models/index';
 
+export interface ApiShiftGetRequest {
+    includeInactive?: boolean;
+}
+
 export interface ApiShiftIdDeleteRequest {
     id: number;
 }
@@ -57,15 +61,16 @@ export interface ApiShiftPostRequest {
 export interface ShiftApiInterface {
     /**
      * 
+     * @param {boolean} [includeInactive] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ShiftApiInterface
      */
-    apiShiftGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShiftResponseListApiResponse>>;
+    apiShiftGetRaw(requestParameters: ApiShiftGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShiftResponseListApiResponse>>;
 
     /**
      */
-    apiShiftGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShiftResponseListApiResponse>;
+    apiShiftGet(requestParameters: ApiShiftGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShiftResponseListApiResponse>;
 
     /**
      * 
@@ -129,8 +134,12 @@ export class ShiftApi extends runtime.BaseAPI implements ShiftApiInterface {
 
     /**
      */
-    async apiShiftGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShiftResponseListApiResponse>> {
+    async apiShiftGetRaw(requestParameters: ApiShiftGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ShiftResponseListApiResponse>> {
         const queryParameters: any = {};
+
+        if (requestParameters['includeInactive'] != null) {
+            queryParameters['includeInactive'] = requestParameters['includeInactive'];
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -149,8 +158,8 @@ export class ShiftApi extends runtime.BaseAPI implements ShiftApiInterface {
 
     /**
      */
-    async apiShiftGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShiftResponseListApiResponse> {
-        const response = await this.apiShiftGetRaw(initOverrides);
+    async apiShiftGet(requestParameters: ApiShiftGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ShiftResponseListApiResponse> {
+        const response = await this.apiShiftGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

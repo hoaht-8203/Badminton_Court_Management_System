@@ -66,6 +66,18 @@ export interface DetailInventoryCheckResponse {
     note?: string | null;
     /**
      * 
+     * @type {Date}
+     * @memberof DetailInventoryCheckResponse
+     */
+    balancedAt?: Date | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailInventoryCheckResponse
+     */
+    createdBy?: string | null;
+    /**
+     * 
      * @type {Array<InventoryCheckItemResponse>}
      * @memberof DetailInventoryCheckResponse
      */
@@ -94,6 +106,12 @@ export interface DetailInventoryCheckResponse {
      * @memberof DetailInventoryCheckResponse
      */
     readonly totalDelta?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailInventoryCheckResponse
+     */
+    readonly totalDeltaValue?: number;
 }
 
 
@@ -120,11 +138,14 @@ export function DetailInventoryCheckResponseFromJSONTyped(json: any, ignoreDiscr
         'checkTime': json['checkTime'] == null ? undefined : (new Date(json['checkTime'])),
         'status': json['status'] == null ? undefined : InventoryCheckStatusFromJSON(json['status']),
         'note': json['note'] == null ? undefined : json['note'],
+        'balancedAt': json['balancedAt'] == null ? undefined : (new Date(json['balancedAt'])),
+        'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(InventoryCheckItemResponseFromJSON)),
         'totalActual': json['totalActual'] == null ? undefined : json['totalActual'],
         'totalDeltaIncrease': json['totalDeltaIncrease'] == null ? undefined : json['totalDeltaIncrease'],
         'totalDeltaDecrease': json['totalDeltaDecrease'] == null ? undefined : json['totalDeltaDecrease'],
         'totalDelta': json['totalDelta'] == null ? undefined : json['totalDelta'],
+        'totalDeltaValue': json['totalDeltaValue'] == null ? undefined : json['totalDeltaValue'],
     };
 }
 
@@ -132,7 +153,7 @@ export function DetailInventoryCheckResponseToJSON(json: any): DetailInventoryCh
     return DetailInventoryCheckResponseToJSONTyped(json, false);
 }
 
-export function DetailInventoryCheckResponseToJSONTyped(value?: Omit<DetailInventoryCheckResponse, 'totalActual'|'totalDeltaIncrease'|'totalDeltaDecrease'|'totalDelta'> | null, ignoreDiscriminator: boolean = false): any {
+export function DetailInventoryCheckResponseToJSONTyped(value?: Omit<DetailInventoryCheckResponse, 'totalActual'|'totalDeltaIncrease'|'totalDeltaDecrease'|'totalDelta'|'totalDeltaValue'> | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
@@ -144,6 +165,8 @@ export function DetailInventoryCheckResponseToJSONTyped(value?: Omit<DetailInven
         'checkTime': value['checkTime'] == null ? undefined : ((value['checkTime']).toISOString()),
         'status': InventoryCheckStatusToJSON(value['status']),
         'note': value['note'],
+        'balancedAt': value['balancedAt'] === null ? null : ((value['balancedAt'] as any)?.toISOString()),
+        'createdBy': value['createdBy'],
         'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(InventoryCheckItemResponseToJSON)),
     };
 }

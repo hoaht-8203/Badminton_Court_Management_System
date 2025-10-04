@@ -7,6 +7,7 @@ apis/CourtsApi.ts
 apis/CustomersApi.ts
 apis/EmailApi.ts
 apis/FilesApi.ts
+apis/InventoryChecksApi.ts
 apis/PaymentWebhooksApi.ts
 apis/PaymentsApi.ts
 apis/PricesApi.ts
@@ -50,6 +51,8 @@ models/CreateCourtPricingRuleTemplateRequest.ts
 models/CreateCourtPricingRulesRequest.ts
 models/CreateCourtRequest.ts
 models/CreateCustomerRequest.ts
+models/CreateInventoryCheckItem.ts
+models/CreateInventoryCheckRequest.ts
 models/CreatePaymentRequest.ts
 models/CreatePriceTableRequest.ts
 models/CreateProductRequest.ts
@@ -85,6 +88,8 @@ models/DetailCourtResponseApiResponse.ts
 models/DetailCustomerRequest.ts
 models/DetailCustomerResponse.ts
 models/DetailCustomerResponseApiResponse.ts
+models/DetailInventoryCheckResponse.ts
+models/DetailInventoryCheckResponseApiResponse.ts
 models/DetailPaymentByBookingIdRequest.ts
 models/DetailPaymentRequest.ts
 models/DetailPaymentResponse.ts
@@ -108,6 +113,12 @@ models/EmailResponseApiResponse.ts
 models/EmailTemplateRequest.ts
 models/EmailTemplateType.ts
 models/ForgotPasswordRequest.ts
+models/Int32ApiResponse.ts
+models/Int32ListApiResponse.ts
+models/InventoryCheck.ts
+models/InventoryCheckItem.ts
+models/InventoryCheckItemResponse.ts
+models/InventoryCheckStatus.ts
 models/ListActivityRequest.ts
 models/ListActivityResponse.ts
 models/ListActivityResponseListApiResponse.ts
@@ -133,6 +144,9 @@ models/ListCustomerResponse.ts
 models/ListCustomerResponseListApiResponse.ts
 models/ListCustomerResponsePagedResponse.ts
 models/ListCustomerResponsePagedResponseApiResponse.ts
+models/ListInventoryCheckRequest.ts
+models/ListInventoryCheckResponse.ts
+models/ListInventoryCheckResponseListApiResponse.ts
 models/ListPriceTableProductsResponse.ts
 models/ListPriceTableProductsResponseApiResponse.ts
 models/ListPriceTableRequest.ts
@@ -180,6 +194,7 @@ models/ScheduleByStaffResponse.ts
 models/ScheduleByStaffResponseListApiResponse.ts
 models/ScheduleRequest.ts
 models/ScheduleResponse.ts
+models/ScheduleResponseListApiResponse.ts
 models/SePayWebhookRequest.ts
 models/SetPriceTableProductItem.ts
 models/SetPriceTableProductsRequest.ts

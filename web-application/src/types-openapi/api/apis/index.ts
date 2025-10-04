@@ -8,6 +8,7 @@ export * from './CourtsApi';
 export * from './CustomersApi';
 export * from './EmailApi';
 export * from './FilesApi';
+export * from './InventoryChecksApi';
 export * from './PaymentWebhooksApi';
 export * from './PaymentsApi';
 export * from './PricesApi';

@@ -48,6 +48,10 @@ export interface ApiInventoryChecksIdCancelPutRequest {
     id: number;
 }
 
+export interface ApiInventoryChecksIdCompletePutRequest {
+    id: number;
+}
+
 export interface ApiInventoryChecksIdGetRequest {
     id: number;
 }
@@ -99,6 +103,19 @@ export interface InventoryChecksApiInterface {
     /**
      */
     apiInventoryChecksIdCancelPut(requestParameters: ApiInventoryChecksIdCancelPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
+     * @param {number} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InventoryChecksApiInterface
+     */
+    apiInventoryChecksIdCompletePutRaw(requestParameters: ApiInventoryChecksIdCompletePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiInventoryChecksIdCompletePut(requestParameters: ApiInventoryChecksIdCompletePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
     /**
      * 
@@ -224,6 +241,41 @@ export class InventoryChecksApi extends runtime.BaseAPI implements InventoryChec
      */
     async apiInventoryChecksIdCancelPut(requestParameters: ApiInventoryChecksIdCancelPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiInventoryChecksIdCancelPutRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiInventoryChecksIdCompletePutRaw(requestParameters: ApiInventoryChecksIdCompletePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling apiInventoryChecksIdCompletePut().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/InventoryChecks/{id}/complete`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiInventoryChecksIdCompletePut(requestParameters: ApiInventoryChecksIdCompletePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiInventoryChecksIdCompletePutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

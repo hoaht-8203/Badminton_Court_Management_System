@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { Customer } from './Customer';
+import {
+    CustomerFromJSON,
+    CustomerFromJSONTyped,
+    CustomerToJSON,
+    CustomerToJSONTyped,
+} from './Customer';
 import type { BookingCourt } from './BookingCourt';
 import {
     BookingCourtFromJSON,
@@ -80,6 +87,18 @@ export interface Payment {
      * @type {number}
      * @memberof Payment
      */
+    customerId: number;
+    /**
+     * 
+     * @type {Customer}
+     * @memberof Payment
+     */
+    customer?: Customer;
+    /**
+     * 
+     * @type {number}
+     * @memberof Payment
+     */
     amount?: number;
     /**
      * 
@@ -100,6 +119,7 @@ export interface Payment {
  */
 export function instanceOfPayment(value: object): value is Payment {
     if (!('id' in value) || value['id'] === undefined) return false;
+    if (!('customerId' in value) || value['customerId'] === undefined) return false;
     return true;
 }
 
@@ -121,6 +141,8 @@ export function PaymentFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'bookingId': json['bookingId'] == null ? undefined : json['bookingId'],
         'booking': json['booking'] == null ? undefined : BookingCourtFromJSON(json['booking']),
         'paymentCreatedAt': json['paymentCreatedAt'] == null ? undefined : (new Date(json['paymentCreatedAt'])),
+        'customerId': json['customerId'],
+        'customer': json['customer'] == null ? undefined : CustomerFromJSON(json['customer']),
         'amount': json['amount'] == null ? undefined : json['amount'],
         'status': json['status'] == null ? undefined : json['status'],
         'note': json['note'] == null ? undefined : json['note'],
@@ -146,6 +168,8 @@ export function PaymentToJSONTyped(value?: Payment | null, ignoreDiscriminator: 
         'bookingId': value['bookingId'],
         'booking': BookingCourtToJSON(value['booking']),
         'paymentCreatedAt': value['paymentCreatedAt'] == null ? undefined : ((value['paymentCreatedAt']).toISOString()),
+        'customerId': value['customerId'],
+        'customer': CustomerToJSON(value['customer']),
         'amount': value['amount'],
         'status': value['status'],
         'note': value['note'],

@@ -20,6 +20,7 @@ import type {
   ScheduleByShiftResponseListApiResponse,
   ScheduleByStaffResponseListApiResponse,
   ScheduleRequest,
+  ScheduleResponseListApiResponse,
 } from '../models/index';
 import {
     BooleanApiResponseFromJSON,
@@ -32,6 +33,8 @@ import {
     ScheduleByStaffResponseListApiResponseToJSON,
     ScheduleRequestFromJSON,
     ScheduleRequestToJSON,
+    ScheduleResponseListApiResponseFromJSON,
+    ScheduleResponseListApiResponseToJSON,
 } from '../models/index';
 
 export interface ApiScheduleAssignPostRequest {
@@ -39,13 +42,31 @@ export interface ApiScheduleAssignPostRequest {
 }
 
 export interface ApiScheduleByShiftGetRequest {
+    staffId?: number;
+    shiftId?: number;
     startDate?: Date;
     endDate?: Date;
+    byDay?: Array<string>;
+    isFixedShift?: boolean;
 }
 
 export interface ApiScheduleByStaffGetRequest {
+    staffId?: number;
+    shiftId?: number;
     startDate?: Date;
     endDate?: Date;
+    byDay?: Array<string>;
+    isFixedShift?: boolean;
+}
+
+export interface ApiScheduleByStaffStaffIdGetRequest {
+    staffId2: number;
+    staffId?: number;
+    shiftId?: number;
+    startDate?: Date;
+    endDate?: Date;
+    byDay?: Array<string>;
+    isFixedShift?: boolean;
 }
 
 export interface ApiScheduleRemoveDeleteRequest {
@@ -74,8 +95,12 @@ export interface ScheduleApiInterface {
 
     /**
      * 
+     * @param {number} [staffId] 
+     * @param {number} [shiftId] 
      * @param {Date} [startDate] 
      * @param {Date} [endDate] 
+     * @param {Array<string>} [byDay] 
+     * @param {boolean} [isFixedShift] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ScheduleApiInterface
@@ -88,8 +113,12 @@ export interface ScheduleApiInterface {
 
     /**
      * 
+     * @param {number} [staffId] 
+     * @param {number} [shiftId] 
      * @param {Date} [startDate] 
      * @param {Date} [endDate] 
+     * @param {Array<string>} [byDay] 
+     * @param {boolean} [isFixedShift] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ScheduleApiInterface
@@ -99,6 +128,25 @@ export interface ScheduleApiInterface {
     /**
      */
     apiScheduleByStaffGet(requestParameters: ApiScheduleByStaffGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ScheduleByStaffResponseListApiResponse>;
+
+    /**
+     * 
+     * @param {number} staffId2 
+     * @param {number} [staffId] 
+     * @param {number} [shiftId] 
+     * @param {Date} [startDate] 
+     * @param {Date} [endDate] 
+     * @param {Array<string>} [byDay] 
+     * @param {boolean} [isFixedShift] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ScheduleApiInterface
+     */
+    apiScheduleByStaffStaffIdGetRaw(requestParameters: ApiScheduleByStaffStaffIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ScheduleResponseListApiResponse>>;
+
+    /**
+     */
+    apiScheduleByStaffStaffIdGet(requestParameters: ApiScheduleByStaffStaffIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ScheduleResponseListApiResponse>;
 
     /**
      * 
@@ -155,12 +203,28 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
     async apiScheduleByShiftGetRaw(requestParameters: ApiScheduleByShiftGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ScheduleByShiftResponseListApiResponse>> {
         const queryParameters: any = {};
 
+        if (requestParameters['staffId'] != null) {
+            queryParameters['StaffId'] = requestParameters['staffId'];
+        }
+
+        if (requestParameters['shiftId'] != null) {
+            queryParameters['ShiftId'] = requestParameters['shiftId'];
+        }
+
         if (requestParameters['startDate'] != null) {
-            queryParameters['startDate'] = (requestParameters['startDate'] as any).toISOString().substring(0,10);
+            queryParameters['StartDate'] = (requestParameters['startDate'] as any).toISOString();
         }
 
         if (requestParameters['endDate'] != null) {
-            queryParameters['endDate'] = (requestParameters['endDate'] as any).toISOString().substring(0,10);
+            queryParameters['EndDate'] = (requestParameters['endDate'] as any).toISOString();
+        }
+
+        if (requestParameters['byDay'] != null) {
+            queryParameters['ByDay'] = requestParameters['byDay'];
+        }
+
+        if (requestParameters['isFixedShift'] != null) {
+            queryParameters['IsFixedShift'] = requestParameters['isFixedShift'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -190,12 +254,28 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
     async apiScheduleByStaffGetRaw(requestParameters: ApiScheduleByStaffGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ScheduleByStaffResponseListApiResponse>> {
         const queryParameters: any = {};
 
+        if (requestParameters['staffId'] != null) {
+            queryParameters['StaffId'] = requestParameters['staffId'];
+        }
+
+        if (requestParameters['shiftId'] != null) {
+            queryParameters['ShiftId'] = requestParameters['shiftId'];
+        }
+
         if (requestParameters['startDate'] != null) {
-            queryParameters['startDate'] = (requestParameters['startDate'] as any).toISOString().substring(0,10);
+            queryParameters['StartDate'] = (requestParameters['startDate'] as any).toISOString();
         }
 
         if (requestParameters['endDate'] != null) {
-            queryParameters['endDate'] = (requestParameters['endDate'] as any).toISOString().substring(0,10);
+            queryParameters['EndDate'] = (requestParameters['endDate'] as any).toISOString();
+        }
+
+        if (requestParameters['byDay'] != null) {
+            queryParameters['ByDay'] = requestParameters['byDay'];
+        }
+
+        if (requestParameters['isFixedShift'] != null) {
+            queryParameters['IsFixedShift'] = requestParameters['isFixedShift'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -217,6 +297,65 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
      */
     async apiScheduleByStaffGet(requestParameters: ApiScheduleByStaffGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ScheduleByStaffResponseListApiResponse> {
         const response = await this.apiScheduleByStaffGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiScheduleByStaffStaffIdGetRaw(requestParameters: ApiScheduleByStaffStaffIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ScheduleResponseListApiResponse>> {
+        if (requestParameters['staffId2'] == null) {
+            throw new runtime.RequiredError(
+                'staffId2',
+                'Required parameter "staffId2" was null or undefined when calling apiScheduleByStaffStaffIdGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['staffId'] != null) {
+            queryParameters['StaffId'] = requestParameters['staffId'];
+        }
+
+        if (requestParameters['shiftId'] != null) {
+            queryParameters['ShiftId'] = requestParameters['shiftId'];
+        }
+
+        if (requestParameters['startDate'] != null) {
+            queryParameters['StartDate'] = (requestParameters['startDate'] as any).toISOString();
+        }
+
+        if (requestParameters['endDate'] != null) {
+            queryParameters['EndDate'] = (requestParameters['endDate'] as any).toISOString();
+        }
+
+        if (requestParameters['byDay'] != null) {
+            queryParameters['ByDay'] = requestParameters['byDay'];
+        }
+
+        if (requestParameters['isFixedShift'] != null) {
+            queryParameters['IsFixedShift'] = requestParameters['isFixedShift'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Schedule/by-staff/{staffId}`;
+        urlPath = urlPath.replace(`{${"staffId"}}`, encodeURIComponent(String(requestParameters['staffId2'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ScheduleResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiScheduleByStaffStaffIdGet(requestParameters: ApiScheduleByStaffStaffIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ScheduleResponseListApiResponse> {
+        const response = await this.apiScheduleByStaffStaffIdGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

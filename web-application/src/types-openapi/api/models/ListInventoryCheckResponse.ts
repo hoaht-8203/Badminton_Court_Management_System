@@ -81,6 +81,12 @@ export interface ListInventoryCheckResponse {
      * @memberof ListInventoryCheckResponse
      */
     totalDelta?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof ListInventoryCheckResponse
+     */
+    totalDeltaValue?: number;
 }
 
 
@@ -111,6 +117,7 @@ export function ListInventoryCheckResponseFromJSONTyped(json: any, ignoreDiscrim
         'totalDeltaIncrease': json['totalDeltaIncrease'] == null ? undefined : json['totalDeltaIncrease'],
         'totalDeltaDecrease': json['totalDeltaDecrease'] == null ? undefined : json['totalDeltaDecrease'],
         'totalDelta': json['totalDelta'] == null ? undefined : json['totalDelta'],
+        'totalDeltaValue': json['totalDeltaValue'] == null ? undefined : json['totalDeltaValue'],
     };
 }
 
@@ -134,6 +141,7 @@ export function ListInventoryCheckResponseToJSONTyped(value?: ListInventoryCheck
         'totalDeltaIncrease': value['totalDeltaIncrease'],
         'totalDeltaDecrease': value['totalDeltaDecrease'],
         'totalDelta': value['totalDelta'],
+        'totalDeltaValue': value['totalDeltaValue'],
     };
 }
 

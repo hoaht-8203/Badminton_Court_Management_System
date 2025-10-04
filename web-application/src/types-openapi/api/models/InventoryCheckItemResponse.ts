@@ -55,6 +55,18 @@ export interface InventoryCheckItemResponse {
      * @memberof InventoryCheckItemResponse
      */
     readonly deltaQuantity?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InventoryCheckItemResponse
+     */
+    costPrice?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof InventoryCheckItemResponse
+     */
+    readonly deltaValue?: number;
 }
 
 /**
@@ -80,6 +92,8 @@ export function InventoryCheckItemResponseFromJSONTyped(json: any, ignoreDiscrim
         'systemQuantity': json['systemQuantity'] == null ? undefined : json['systemQuantity'],
         'actualQuantity': json['actualQuantity'] == null ? undefined : json['actualQuantity'],
         'deltaQuantity': json['deltaQuantity'] == null ? undefined : json['deltaQuantity'],
+        'costPrice': json['costPrice'] == null ? undefined : json['costPrice'],
+        'deltaValue': json['deltaValue'] == null ? undefined : json['deltaValue'],
     };
 }
 
@@ -87,7 +101,7 @@ export function InventoryCheckItemResponseToJSON(json: any): InventoryCheckItemR
     return InventoryCheckItemResponseToJSONTyped(json, false);
 }
 
-export function InventoryCheckItemResponseToJSONTyped(value?: Omit<InventoryCheckItemResponse, 'deltaQuantity'> | null, ignoreDiscriminator: boolean = false): any {
+export function InventoryCheckItemResponseToJSONTyped(value?: Omit<InventoryCheckItemResponse, 'deltaQuantity'|'deltaValue'> | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
@@ -99,6 +113,7 @@ export function InventoryCheckItemResponseToJSONTyped(value?: Omit<InventoryChec
         'productName': value['productName'],
         'systemQuantity': value['systemQuantity'],
         'actualQuantity': value['actualQuantity'],
+        'costPrice': value['costPrice'],
     };
 }
 

@@ -180,6 +180,7 @@ models/ScheduleByStaffResponse.ts
 models/ScheduleByStaffResponseListApiResponse.ts
 models/ScheduleRequest.ts
 models/ScheduleResponse.ts
+models/ScheduleResponseListApiResponse.ts
 models/SePayWebhookRequest.ts
 models/SetPriceTableProductItem.ts
 models/SetPriceTableProductsRequest.ts

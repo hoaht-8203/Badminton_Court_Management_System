@@ -160,6 +160,7 @@ export * from './ScheduleByStaffResponse';
 export * from './ScheduleByStaffResponseListApiResponse';
 export * from './ScheduleRequest';
 export * from './ScheduleResponse';
+export * from './ScheduleResponseListApiResponse';
 export * from './SePayWebhookRequest';
 export * from './SetPriceTableProductItem';
 export * from './SetPriceTableProductsRequest';

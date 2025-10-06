@@ -14,7 +14,7 @@ const getColumns = (): ColumnsType<any> => [
     key: "id",
     render: (text: string, record: any) => (
       <div style={{ display: "flex", alignItems: "center" }}>
-        <Avatar src={record.avatar ? record.avatar : null} />
+  <Avatar src={record.avatarUrl ? record.avatarUrl : undefined} />
         <span style={{ marginLeft: 8 }}>{`NV${String(text).padStart(6, "0")}`}</span>
       </div>
     ),

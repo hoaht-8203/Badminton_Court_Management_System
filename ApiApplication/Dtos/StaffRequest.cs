@@ -13,5 +13,6 @@ namespace ApiApplication.Dtos
         public string? AvatarUrl { get; set; }
         public bool IsActive { get; set; } = true;
         public string SalarySettings { get; set; } = "{}";
+        public string? AccountId { get; set; }
     }
 }

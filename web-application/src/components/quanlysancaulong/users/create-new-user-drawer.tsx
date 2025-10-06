@@ -2,10 +2,14 @@
 
 import { useListRoles } from "@/hooks";
 import { useCreateAdministrator } from "@/hooks/useUsers";
+import { useUpdateStaff, useGetStaffById } from "@/hooks/useStaffs";
+// import { useUpdateStaff } from "@/hooks/useStaffs"; // Nếu đã có hook cập nhật staff
 import { ApiError } from "@/lib/axios";
 import { CreateAdministratorRequest } from "@/types-openapi/api";
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Col, DatePicker, Drawer, Form, FormProps, Input, Row, Select, Space, message } from "antd";
+import { Button, Col, DatePicker, Drawer, Form, FormProps, Input, Row, Select, Space, message, Switch } from "antd";
+import { useListStaffs } from "@/hooks/useStaffs";
+import React from "react";
 import FormItem from "antd/es/form/FormItem";
 
 interface CreateNewUserDrawerProps {
@@ -15,17 +19,54 @@ interface CreateNewUserDrawerProps {
 
 const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
   const [form] = Form.useForm();
+  const [createForStaff, setCreateForStaff] = React.useState(false);
+  const [selectedStaffId, setSelectedStaffId] = React.useState<number | null>(null);
+  const { data: staffData, isFetching: loadingStaffData } = useListStaffs({});
+
+  // Khi chọn nhân viên, tự động điền họ tên và số điện thoại
+  React.useEffect(() => {
+    if (createForStaff && selectedStaffId && staffData?.data) {
+      const staff = staffData.data.find((s: any) => s.id === selectedStaffId);
+      if (staff) {
+        form.setFieldsValue({
+          fullName: staff.fullName,
+          phoneNumber: staff.phoneNumber,
+        });
+      }
+    }
+    // Nếu tắt công tắc hoặc bỏ chọn thì clear 2 trường này
+    if (!createForStaff || !selectedStaffId) {
+      form.setFieldsValue({
+        fullName: undefined,
+        phoneNumber: undefined,
+      });
+    }
+  }, [createForStaff, selectedStaffId, staffData, form]);
 
   const { data: rolesData, isFetching: loadingRolesData } = useListRoles({
     roleName: null,
   });
   const createMutation = useCreateAdministrator();
+  const updateStaffMutation = useUpdateStaff(selectedStaffId ?? 0);
+  const { data: selectedStaffDetail } = useGetStaffById(selectedStaffId ?? 0);
 
   const handleSubmit: FormProps<CreateAdministratorRequest>["onFinish"] = (values) => {
     createMutation.mutate(values, {
-      onSuccess: () => {
+      onSuccess: async (data: any) => {
         message.success("Tạo người dùng thành công!");
+        // Nếu có chọn nhân viên, gọi API cập nhật staff
+        if (createForStaff && selectedStaffId) {
+          const accountId = data?.data?.id || data?.data?.userName;
+          // Lấy staff chi tiết từ API
+          const staffCurrent = selectedStaffDetail?.data;
+          if (staffCurrent) {
+            const payload = { ...staffCurrent, accountId };
+            await updateStaffMutation.mutateAsync(payload);
+          }
+        }
         form.resetFields();
+        setCreateForStaff(false);
+        setSelectedStaffId(null);
         onClose();
       },
       onError: (error: ApiError) => {
@@ -62,6 +103,26 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
       }
     >
       <Form form={form} onFinish={handleSubmit} layout="vertical">
+        <FormItem label="Tạo tài khoản cho nhân viên" style={{ marginBottom: 0 }}>
+          <Switch checked={createForStaff} onChange={setCreateForStaff} />
+        </FormItem>
+        {createForStaff && (
+          <FormItem label="Chọn nhân viên" required>
+            <Select
+              showSearch
+              placeholder="Chọn nhân viên"
+              optionFilterProp="children"
+              loading={loadingStaffData}
+              value={selectedStaffId ?? undefined}
+              onChange={setSelectedStaffId}
+              options={staffData?.data?.map((staff: any) => ({
+                value: staff.id,
+                label: staff.fullName,
+              }))}
+              style={{ width: "100%" }}
+            />
+          </FormItem>
+        )}
         <Row gutter={16}>
           <Col span={12}>
             <FormItem<CreateAdministratorRequest>
@@ -88,7 +149,7 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
         <Row gutter={16}>
           <Col span={12}>
             <FormItem<CreateAdministratorRequest> name="fullName" label="Họ và tên" rules={[{ required: true, message: "Họ và tên là bắt buộc" }]}>
-              <Input placeholder="Nhập họ và tên" />
+              <Input placeholder="Nhập họ và tên" readOnly={createForStaff && !!selectedStaffId} />
             </FormItem>
           </Col>
           <Col span={12}>
@@ -97,7 +158,7 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
               label="Số điện thoại"
               rules={[{ required: true, message: "Số điện thoại là bắt buộc" }]}
             >
-              <Input placeholder="Nhập số điện thoại" />
+              <Input placeholder="Nhập số điện thoại" readOnly={createForStaff && !!selectedStaffId} />
             </FormItem>
           </Col>
         </Row>

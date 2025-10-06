@@ -25,6 +25,12 @@ export interface CreatePaymentRequest {
      * @memberof CreatePaymentRequest
      */
     bookingId: string;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreatePaymentRequest
+     */
+    customerId?: number;
 }
 
 /**
@@ -46,6 +52,7 @@ export function CreatePaymentRequestFromJSONTyped(json: any, ignoreDiscriminator
     return {
         
         'bookingId': json['bookingId'],
+        'customerId': json['customerId'] == null ? undefined : json['customerId'],
     };
 }
 
@@ -61,6 +68,7 @@ export function CreatePaymentRequestToJSONTyped(value?: CreatePaymentRequest | n
     return {
         
         'bookingId': value['bookingId'],
+        'customerId': value['customerId'],
     };
 }
 

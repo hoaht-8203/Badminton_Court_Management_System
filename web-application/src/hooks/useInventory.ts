@@ -86,6 +86,18 @@ export const useCompleteInventoryCheck = () => {
   });
 };
 
+export const useMergeInventoryChecks = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: number[]) => inventoryService.merge(ids),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventoryChecks"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      message.success("Gộp phiếu kiểm kê thành công! Đã cân bằng kho");
+    },
+  });
+};
+
 export const useBulkDeleteInventoryChecks = () => {
   const queryClient = useQueryClient();
 

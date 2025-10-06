@@ -20,8 +20,9 @@ public class Product : BaseEntity, IAuditableEntity
     [MaxLength(100)]
     public string? MenuType { get; set; } // Loại thực đơn (Đồ ăn/Đồ uống/Khác)
 
-    [MaxLength(150)]
-    public string? Category { get; set; } // Nhóm hàng (tạm thời dùng string; có thể tách bảng sau)
+    // Category relationship
+    public int? CategoryId { get; set; } // Foreign key to Category
+    public virtual Category? Category { get; set; } // Navigation property
 
     [MaxLength(150)]
     public string? Position { get; set; } // Vị trí hiển thị

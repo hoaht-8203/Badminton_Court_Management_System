@@ -260,4 +260,94 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
         entity.BalancedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
     }
+
+    public async Task<int> MergeAsync(List<int> ids)
+    {
+        if (ids.Count < 2)
+        {
+            throw new ApiException("Cần ít nhất 2 phiếu để gộp", System.Net.HttpStatusCode.BadRequest);
+        }
+
+        // Lấy các phiếu kiểm kho
+        var entities = await _context.InventoryChecks
+            .Include(x => x.Items)
+            .ThenInclude(i => i.Product)
+            .Where(x => ids.Contains(x.Id))
+            .ToListAsync();
+
+        if (entities.Count != ids.Count)
+        {
+            throw new ApiException("Một số phiếu kiểm kho không tồn tại", System.Net.HttpStatusCode.NotFound);
+        }
+
+        // Kiểm tra tất cả phiếu đều ở trạng thái Draft (Phiếu tạm)
+        var nonDraftChecks = entities.Where(x => x.Status != Entities.Shared.InventoryCheckStatus.Draft).ToList();
+        if (nonDraftChecks.Any())
+        {
+            var codes = string.Join(", ", nonDraftChecks.Select(x => x.Code));
+            throw new ApiException($"Chỉ có thể gộp các phiếu tạm. Các phiếu sau không phải phiếu tạm: {codes}", System.Net.HttpStatusCode.BadRequest);
+        }
+
+        // Tạo phiếu mới từ việc gộp
+        var mergedCode = await GenerateNextCodeAsync();
+        var mergedNote = $"Gộp các phiếu: {string.Join(", ", entities.Select(x => x.Code))}";
+        
+        var mergedCheck = new InventoryCheck
+        {
+            Code = mergedCode,
+            CheckTime = DateTime.UtcNow,
+            Status = Entities.Shared.InventoryCheckStatus.Balanced,
+            BalancedAt = DateTime.UtcNow,
+            Note = mergedNote,
+            Items = new List<InventoryCheckItem>()
+        };
+
+        // Gộp tất cả items từ các phiếu
+        var allItems = entities.SelectMany(x => x.Items).ToList();
+        var groupedItems = allItems.GroupBy(x => x.ProductId).ToList();
+
+        foreach (var group in groupedItems)
+        {
+            var productId = group.Key;
+            var product = group.First().Product;
+            
+            // Tính tổng số lượng thực tế (lấy giá trị cao nhất)
+            var maxActualQuantity = group.Max(x => x.ActualQuantity);
+            var systemQuantity = product.Stock;
+
+            mergedCheck.Items.Add(new InventoryCheckItem
+            {
+                ProductId = productId,
+                SystemQuantity = systemQuantity,
+                ActualQuantity = maxActualQuantity
+            });
+        }
+
+        _context.InventoryChecks.Add(mergedCheck);
+
+        // Cập nhật tồn kho sản phẩm
+        var productIds = groupedItems.Select(x => x.Key).ToList();
+        var products = await _context.Products
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync();
+
+        foreach (var group in groupedItems)
+        {
+            var product = products.FirstOrDefault(p => p.Id == group.Key);
+            if (product != null)
+            {
+                var maxActualQuantity = group.Max(x => x.ActualQuantity);
+                product.Stock = maxActualQuantity;
+            }
+        }
+
+        // Hủy các phiếu cũ
+        foreach (var entity in entities)
+        {
+            entity.Status = Entities.Shared.InventoryCheckStatus.Cancelled;
+        }
+
+        await _context.SaveChangesAsync();
+        return mergedCheck.Id;
+    }
 } 

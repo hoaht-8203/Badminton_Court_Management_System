@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Col, Drawer, Form, Input, Row, Divider, message, Space, DatePicker, Table, AutoComplete, InputNumber, Modal } from "antd";
-import { SaveOutlined, CloseOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Button, Col, Drawer, Form, Input, Row, Divider, message, Space, DatePicker, Table, InputNumber, Modal, Card, List, Checkbox, Image, Tabs, Select } from "antd";
+import { SaveOutlined, CloseOutlined, DeleteOutlined, SearchOutlined, EditOutlined, DeleteFilled } from "@ant-design/icons";
 import { useCreateInventoryCheck, useUpdateInventoryCheck, useDetailInventoryCheck, useDeleteInventoryCheck, useCompleteInventoryCheck } from "@/hooks/useInventory";
-import { InventoryCheckStatus, CreateInventoryCheckRequest } from "@/types-openapi/api";
+import { CreateInventoryCheckRequest } from "@/types-openapi/api";
 import { useListProducts } from "@/hooks/useProducts";
 import type { TableColumnsType } from "antd";
 import dayjs from "dayjs";
+import { useAuth } from "@/context/AuthContext";
+import { useListCategories } from "@/hooks/useCategories";
 
 interface CreateEditInventoryDrawerProps {
   open: boolean;
@@ -54,6 +56,7 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
       } else {
         form.resetFields();
         setItems([]);
+        setRecentItems([]); // Clear history when creating new
         // For create mode, fix checkTime to current date
         form.setFieldsValue({ checkTime: dayjs() });
       }
@@ -101,6 +104,7 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
 
       form.resetFields();
       setItems([]);
+      setRecentItems([]); // Clear history when closing
       onClose();
     } catch {
       messageApi.error(isEdit ? "Cập nhật phiếu kiểm kê thất bại!" : "Tạo phiếu kiểm kê thất bại!");
@@ -156,19 +160,49 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
 
   // Manual items state
   type ManualItem = { productId: number; code: string; name: string; systemQuantity: number; actualQuantity: number; costPrice?: number };
+  type RecentItem = ManualItem & { action?: 'search' | 'edit' | 'delete' };
   const [items, setItems] = useState<ManualItem[]>([]);
+  const [recentItems, setRecentItems] = useState<RecentItem[]>([]); // Separate state for history
   const [query, setQuery] = useState<string>("");
-  const [searchTimer, setSearchTimer] = useState<any>(null);
-  const { data: productList } = useListProducts({ name: query } as any);
-  const options = useMemo(
-    () =>
-      (productList?.data ?? []).map((p: any) => ({
-        value: `${p.code ?? ""} - ${p.name}`,
-        label: `${p.code ?? ""} - ${p.name}`,
-        data: { id: p.id, code: p.code ?? "", name: p.name },
-      })),
-    [productList?.data]
-  );
+  const [debouncedQuery, setDebouncedQuery] = useState<string>("");
+  const [onlyInStock, setOnlyInStock] = useState(false);
+  const [onlyActive, setOnlyActive] = useState(false);
+  const [selectAllCategories, setSelectAllCategories] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<string>("all");
+  const { user } = useAuth();
+  const { data: categoriesData } = useListCategories({});
+  
+  const { data: productList } = useListProducts({ name: debouncedQuery } as any);
+  const [productsWithImages, setProductsWithImages] = useState<any[]>([]);
+
+  // Fetch product details with images when search results change
+  useEffect(() => {
+    if (productList?.data && productList.data.length > 0) {
+      const fetchProductDetails = async () => {
+        const productDetails = await Promise.all(
+          (productList.data || []).slice(0, 5).map(async (product: any) => {
+            try {
+              const detail = await (await import("@/services/productService")).productService.detail({ id: product.id } as any);
+              return {
+                ...product,
+                images: (detail as any)?.data?.images || []
+              };
+            } catch {
+              return {
+                ...product,
+                images: []
+              };
+            }
+          })
+        );
+        setProductsWithImages(productDetails);
+      };
+      fetchProductDetails();
+    } else {
+      setProductsWithImages([]);
+    }
+  }, [productList]);
 
   const onSelectProduct = async (val: string, option?: any) => {
     const id = Number(option?.data?.id);
@@ -181,23 +215,64 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
       const anyData: any = (detail as any)?.data;
       systemQty = anyData?.stock ?? 0;
       const cp = anyData?.costPrice ?? 0;
+      const newItem = { productId: id, code, name, systemQuantity: systemQty, actualQuantity: systemQty, costPrice: cp };
       setItems((prev) => {
         if (prev.some((x) => x.productId === id)) return prev;
-        return [...prev, { productId: id, code, name, systemQuantity: systemQty, actualQuantity: systemQty, costPrice: cp }];
+        return [...prev, newItem];
+      });
+      // Add to recent history
+      setRecentItems((prev) => {
+        if (prev.some((x) => x.productId === id)) return prev;
+        return [...prev, newItem];
       });
       return;
     } catch {}
+    const newItem = { productId: id, code, name, systemQuantity: systemQty, actualQuantity: systemQty, costPrice: 0 };
     setItems((prev) => {
       if (prev.some((x) => x.productId === id)) return prev;
-      return [...prev, { productId: id, code, name, systemQuantity: systemQty, actualQuantity: systemQty, costPrice: 0 }];
+      return [...prev, newItem];
+    });
+    // Add to recent history
+    setRecentItems((prev) => {
+      if (prev.some((x) => x.productId === id)) return prev;
+      return [...prev, newItem];
     });
   };
 
   const onChangeActual = (productId: number, val: number) => {
-    setItems((prev) => prev.map((x) => (x.productId === productId ? { ...x, actualQuantity: Number(val) || 0 } : x)));
+    const newQuantity = Number(val) || 0;
+    setItems((prev) => prev.map((x) => (x.productId === productId ? { ...x, actualQuantity: newQuantity } : x)));
   };
 
-  const removeItem = (productId: number) => setItems((prev) => prev.filter((x) => x.productId !== productId));
+  // Save to history when user finishes editing (onBlur)
+  const onBlurActual = (productId: number) => {
+    const item = items.find(x => x.productId === productId);
+    if (item) {
+      const updatedItem = { ...item, action: 'edit' as const };
+      setRecentItems(prev => [...prev, updatedItem]);
+    }
+  };
+
+  const removeItem = (productId: number) => {
+    // Find the item before removing to save to history
+    const item = items.find(x => x.productId === productId);
+    if (item) {
+      const deletedItem = { ...item, action: 'delete' as const };
+      setRecentItems(prev => [...prev, deletedItem]);
+    }
+    setItems((prev) => prev.filter((x) => x.productId !== productId));
+  };
+  const removeAllItems = () => {
+    Modal.confirm({
+      title: "Xác nhận",
+      content: "Xóa tất cả sản phẩm khỏi danh sách kiểm?",
+      okText: "Xóa tất cả",
+      okButtonProps: { danger: true },
+      cancelText: "Hủy",
+      onOk: () => setItems([]),
+    });
+  };
+
 
   const columns: TableColumnsType<ManualItem> = [
     { title: "Mã hàng", dataIndex: "code", key: "code", width: 140 },
@@ -213,6 +288,7 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
           min={0}
           value={r.actualQuantity}
           onChange={(val) => onChangeActual(r.productId, Number(val))}
+          onBlur={() => onBlurActual(r.productId)}
           style={{ width: 140 }}
         />
       ),
@@ -241,18 +317,78 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
     },
   ];
 
+  // Derived tabbed datasets
+  const tableData = useMemo(() => {
+    if (activeTab === "matched") return items.filter((i) => (i.actualQuantity ?? 0) === (i.systemQuantity ?? 0));
+    if (activeTab === "delta") return items.filter((i) => (i.actualQuantity ?? 0) !== (i.systemQuantity ?? 0));
+    return items;
+  }, [items, activeTab]);
+
+  // Fast input feel: update query immediately, debounce API param separately
   const handleSearch = (val: string) => {
-    if (searchTimer) clearTimeout(searchTimer);
-    const t = setTimeout(() => setQuery(val), 300);
-    setSearchTimer(t);
+    setQuery(val);
   };
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query.trim()), 120);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  // Auto add by filters: when toggles change, fetch list based on current query
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const svc = await import("@/services/productService");
+        let categoryNames: string[] = selectedCategories;
+        if (selectAllCategories && (categoriesData?.data?.length || 0) > 0) {
+          categoryNames = (categoriesData?.data || []).map((c: any) => c.name as string);
+        }
+        const queries = categoryNames.length > 0 ? categoryNames : [undefined];
+        for (const catName of queries) {
+          const res = await svc.productService.list({ name: query, category: catName } as any);
+          const list: any[] = res.data || [];
+          const filtered = list.filter((p) => {
+            if (onlyActive && !p.isActive) return false;
+            return true;
+          });
+          for (const p of filtered) {
+            if (items.some((x) => x.productId === p.id)) continue;
+            try {
+              const d = await svc.productService.detail({ id: p.id } as any);
+              const stock = (d as any)?.data?.stock ?? 0;
+              const cp = (d as any)?.data?.costPrice ?? 0;
+              if (onlyInStock && stock <= 0) continue;
+              const newItem = { productId: p.id, code: p.code || String(p.id), name: p.name, systemQuantity: stock, actualQuantity: stock, costPrice: cp };
+              setItems((prev) => [...prev, newItem]);
+              // Add to recent history
+              setRecentItems((prev) => {
+                if (prev.some((x) => x.productId === p.id)) return prev;
+                return [...prev, newItem];
+              });
+            } catch {
+              if (onlyInStock) continue;
+              const newItem = { productId: p.id, code: p.code || String(p.id), name: p.name, systemQuantity: 0, actualQuantity: 0, costPrice: 0 };
+              setItems((prev) => [...prev, newItem]);
+              // Add to recent history
+              setRecentItems((prev) => {
+                if (prev.some((x) => x.productId === p.id)) return prev;
+                return [...prev, newItem];
+              });
+            }
+          }
+        }
+      } catch {}
+    };
+    // Trigger only when toggles are on
+    if (onlyActive || onlyInStock || selectAllCategories || selectedCategories.length > 0) run();
+  }, [onlyActive, onlyInStock, selectAllCategories, selectedCategories, query, categoriesData?.data, items]);
 
   return (
     <>
       {contextHolder}
       <Drawer
         title={title}
-        width={720}
+        width={1000}
         onClose={onClose}
         open={open}
         styles={{ body: { paddingBottom: 160 } }}
@@ -305,35 +441,156 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
         
         <Form form={form} layout="vertical" onFinish={onFinish} autoComplete="off" disabled={isEdit && (!isDraft || isCancelled)}>
           <Row gutter={16}>
-            <Col span={12}>
+            <Col span={8}>
               <Form.Item name="checkTime" label="Ngày kiểm kê" rules={[{ required: true, message: "Vui lòng chọn ngày kiểm kê!" }]}>
                 <DatePicker style={{ width: "100%" }} placeholder="Chọn ngày kiểm kê" format="DD/MM/YYYY" allowClear={false} disabled={!isEdit} />
               </Form.Item>
             </Col>
+            <Col span={8}>
+              <Form.Item label="Người kiểm phiếu">
+                <Input value={user?.fullName || user?.userName || "-"} disabled />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Card size="small" title="Kiểm gần đây">
+                {recentItems.length === 0 ? (
+                  <div className="text-gray-400 text-sm">Chưa có</div>
+                ) : (
+                  (recentItems || []).slice(-6).reverse().map((i, index) => (
+                    <div key={`${i.productId}-${index}`} className="flex items-center py-1 text-sm hover:bg-gray-50 rounded px-1">
+                      <div className="flex items-center gap-2">
+                        {i.action === 'search' && <SearchOutlined className="text-gray-500" />}
+                        {i.action === 'edit' && <EditOutlined className="text-gray-500" />}
+                        {i.action === 'delete' && <DeleteFilled className="text-gray-500" />}
+                        {!i.action && <SearchOutlined className="text-gray-500" />}
+                        <span className="truncate" style={{ maxWidth: 180 }}>{i.name}</span>
+                        <span className="text-gray-400">({i.actualQuantity})</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </Card>
+            </Col>
           </Row>
 
-          {/* Manual product add/search */}
+          {/* Search + Filters in same row */}
           <Row gutter={12} align="middle">
             <Col span={24}>
-              <div className="mb-2 font-semibold">Thêm sản phẩm</div>
-              <AutoComplete
-                style={{ width: "100%" }}
-                options={options}
-                placeholder="Tìm mã hàng / tên hàng để thêm"
-                value={query}
-                onSearch={handleSearch}
-                onSelect={onSelectProduct}
-              />
+              <div className="mb-2 font-semibold">Tìm kiếm sản phẩm</div>
+              <div className="flex gap-3 items-center mb-2">
+                <Input
+                  placeholder="Tìm kiếm sản phẩm..."
+                  prefix={<SearchOutlined />}
+                  value={query}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <div style={{ minWidth: 260 }}>
+                  <Select
+                    mode="multiple"
+                    allowClear
+                    style={{ width: "100%" }}
+                    placeholder="Chọn nhóm hàng"
+                    value={selectedCategories}
+                    onChange={(vals) => setSelectedCategories(vals as string[])}
+                    options={(categoriesData?.data || []).map((c: any) => ({ label: c.name, value: c.name }))}
+                  />
+                </div>
+                <Checkbox
+                  checked={selectAllCategories}
+                  onChange={(e) => setSelectAllCategories(e.target.checked)}
+                >
+                  Tất cả nhóm
+                </Checkbox>
+                <Checkbox
+                  checked={onlyInStock}
+                  onChange={(e) => setOnlyInStock(e.target.checked)}
+                >
+                  Còn tồn
+                </Checkbox>
+                <Checkbox
+                  checked={onlyActive}
+                  onChange={(e) => setOnlyActive(e.target.checked)}
+                >
+                  Đang KD
+                </Checkbox>
+              </div>
+              
+              {/* Search Results */}
+              {debouncedQuery && productsWithImages.length > 0 && (
+                <Card size="small" className="mb-2">
+                  <List
+                    size="small"
+                    dataSource={productsWithImages}
+                    renderItem={(product: any) => {
+                      return (
+                      <List.Item
+                        className="cursor-pointer hover:bg-gray-50 p-3 rounded border-b border-gray-100"
+                        onClick={() => onSelectProduct(`${product.code} - ${product.name}`, { data: { id: product.id, code: product.code, name: product.name } })}
+                      >
+                        <div className="flex items-center w-full">
+                          {/* Product Image */}
+                          <div className="mr-3">
+                            {product.images && product.images.length > 0 ? (
+                              <Image
+                                width={60}
+                                height={60}
+                                src={product.images[0]}
+                                alt={product.name}
+                                style={{ objectFit: "contain", borderRadius: 8 }}
+                              />
+                            ) : (
+                              <div 
+                                className="flex items-center justify-center bg-gray-100 text-gray-400 text-xs"
+                                style={{ width: 60, height: 60, borderRadius: 8 }}
+                              >
+                                No Image
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Product Info */}
+                          <div className="flex-1">
+                            <div className="font-semibold text-base mb-1">{product.name}</div>
+                            <div className="text-sm text-gray-600">
+                              <span className="font-medium">Mã:</span> {product.code || product.id}
+                            </div>
+                          </div>
+                        </div>
+                      </List.Item>
+                      );
+                    }}
+                  />
+                </Card>
+              )}
             </Col>
           </Row>
 
           <Divider />
 
+          {items.length > 0 && (
+            <div className="mb-2 text-right">
+              <Space>
+                <Button danger onClick={removeAllItems}>Xóa tất cả</Button>
+              </Space>
+            </div>
+          )}
+
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={[
+              { key: "all", label: `Tất cả (${items.length})` },
+              { key: "matched", label: `Khớp (${items.filter((i)=> (i.actualQuantity??0)===(i.systemQuantity??0)).length})` },
+              { key: "delta", label: `Lệch (${items.filter((i)=> (i.actualQuantity??0)!==(i.systemQuantity??0)).length})` },
+            ]}
+          />
+
           <Table<ManualItem>
             size="small"
             rowKey={(r) => r.productId}
             columns={columns}
-            dataSource={items}
+            dataSource={tableData}
             pagination={false}
           />
 
@@ -344,6 +601,18 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
           <Form.Item name="note" label="Ghi chú">
             <Input.TextArea rows={4} placeholder="Nhập ghi chú cho phiếu kiểm kê" />
           </Form.Item>
+
+          {/* Recent items panel */}
+          {items.length > 0 && (
+            <Card size="small" title="Kiểm gần đây" className="mb-2">
+              {(items || []).slice(-5).reverse().map((i) => (
+                <div key={i.productId} className="flex items-center gap-2 py-1 text-sm">
+                  <span>{i.name}</span>
+                  <span className="text-gray-400">({i.actualQuantity})</span>
+                </div>
+              ))}
+            </Card>
+          )}
         </Form>
 
         <Divider />
@@ -356,6 +625,7 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
           </ul>
         </div>
       </Drawer>
+
     </>
   );
 };

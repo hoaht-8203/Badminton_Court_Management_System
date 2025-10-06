@@ -1,15 +1,14 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { Breadcrumb, Button, Table, Space, Tag, Card, Form, Input, Select, DatePicker, Modal, Row, Col, Checkbox, Radio, Spin } from "antd";
-import { PlusOutlined, ReloadOutlined, SearchOutlined, AlertOutlined, CalendarOutlined } from "@ant-design/icons";
+import { Breadcrumb, Button, Table, Space, Tag, Card, Form, Input, DatePicker, Modal, Row, Col, Checkbox, Spin, message } from "antd";
+import { PlusOutlined, ReloadOutlined, SearchOutlined, CalendarOutlined, FileTextOutlined, CloseOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import type { ColumnsType, TableProps } from "antd/es/table";
 import type { InventoryCheck, InventoryCheckStatus, InventoryCheckItemResponse } from "@/types-openapi/api";
-import { useListInventoryChecks, useDeleteInventoryCheck, useCheckLowStockProducts, useDetailInventoryCheck, useCompleteInventoryCheck, useUpdateInventoryCheck } from "@/hooks/useInventory";
+import { useListInventoryChecks, useDeleteInventoryCheck, useDetailInventoryCheck, useMergeInventoryChecks } from "@/hooks/useInventory";
 import CreateEditInventoryDrawer from "@/components/quanlysancaulong/inventory/create-edit-inventory-drawer";
 
-const { Option } = Select;
 
 // Inventory status mapping
 const statusColors = {
@@ -47,11 +46,13 @@ const InventoryManagementPage = () => {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [, contextHolder] = Modal.useModal();
+  const [mergeModalOpen, setMergeModalOpen] = useState(false);
+  const [mergeData, setMergeData] = useState<any[]>([]);
 
   // Use hooks for data fetching
   const { data, isLoading, refetch } = useListInventoryChecks({});
-  const deleteMutation = useDeleteInventoryCheck();
-  const checkLowStockMutation = useCheckLowStockProducts();
+  const mergeMutation = useMergeInventoryChecks();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   // Auto refresh every 5 seconds
   useEffect(() => {
@@ -73,9 +74,36 @@ const InventoryManagementPage = () => {
     setEditingId(null);
     setOpen(true);
   };
-  const onEdit = (id: number) => {
-    setEditingId(id);
-    setOpen(true);
+
+  // Fetch merge data for selected checks
+  const fetchMergeData = async (ids: number[]) => {
+    try {
+      const details = await Promise.all(
+        ids.map(async (id) => {
+          const response = await (await import("@/services/inventoryService")).inventoryService.detail(id);
+          return response.data;
+        })
+      );
+      
+      // Combine all items from selected checks
+      const allItems: any[] = [];
+      details.forEach((check, index) => {
+        if (check?.items) {
+          check.items.forEach((item: any) => {
+            allItems.push({
+              ...item,
+              checkCode: check.code,
+              checkIndex: index + 1
+            });
+          });
+        }
+      });
+      
+      setMergeData(allItems);
+      setMergeModalOpen(true);
+    } catch {
+      message.error("Không thể tải dữ liệu để gộp phiếu");
+    }
   };
 
   // derive active date range from search values
@@ -191,17 +219,6 @@ const InventoryManagementPage = () => {
     });
   };
 
-  const handleDelete = (record: InventoryCheck) => {
-    Modal.confirm({
-      title: "Xác nhận hủy",
-      content: `Bạn có chắc chắn muốn hủy phiếu kiểm kê "${record.code}"?`,
-      onOk: () => {
-        if (record.id) {
-          deleteMutation.mutate(record.id);
-        }
-      },
-    });
-  };
 
   return (
     <section>
@@ -273,6 +290,17 @@ const InventoryManagementPage = () => {
           <span className="font-bold text-green-500">Tổng số: {filteredData.length}</span>
         </div>
         <div className="flex gap-2">
+          <Button
+            disabled={selectedRowKeys.length < 2}
+            onClick={() => {
+              const ids = filteredData.filter(x => selectedRowKeys.includes(x.id as any) && (x.status as any) === 0).map(x => x.id!);
+              if (ids.length < 2) { message.warning("Chỉ gộp được các phiếu tạm"); return; }
+              // Fetch details for selected checks
+              fetchMergeData(ids);
+            }}
+          >
+            Gộp phiếu
+          </Button>
           <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
             Tải lại
           </Button>
@@ -288,6 +316,7 @@ const InventoryManagementPage = () => {
           columns={columns as any}
           dataSource={filteredData as any}
           loading={isLoading}
+          rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys as any }}
           expandable={{
             expandRowByClick: true,
             expandedRowRender: (record) => <InventoryRowDetail id={(record as any).id} onEdit={setEditingId} />,
@@ -296,6 +325,114 @@ const InventoryManagementPage = () => {
       </div>
 
       <CreateEditInventoryDrawer open={open} onClose={() => { setOpen(false); setEditingId(null); }} inventoryId={editingId ?? undefined} />
+      
+      {/* Merge Confirmation Modal */}
+      <Modal
+        title="Gộp phiếu kiểm kho"
+        open={mergeModalOpen}
+        onCancel={() => setMergeModalOpen(false)}
+        width={800}
+        footer={null}
+      >
+        <div className="space-y-4">
+          {/* Summary Table */}
+          <Table
+            size="small"
+            dataSource={mergeData}
+            pagination={false}
+            scroll={{ y: 300 }}
+            rowKey="productId"
+            columns={[
+              {
+                title: "Mã hàng hóa",
+                dataIndex: "productCode",
+                key: "productCode",
+                width: 120,
+              },
+              {
+                title: "Tên hàng",
+                dataIndex: "productName", 
+                key: "productName",
+                width: 200,
+              },
+              {
+                title: "Tồn kho",
+                dataIndex: "systemQuantity",
+                key: "systemQuantity",
+                width: 100,
+                align: "right",
+              },
+              {
+                title: "Thực tế",
+                dataIndex: "actualQuantity",
+                key: "actualQuantity", 
+                width: 100,
+                align: "right",
+              },
+              {
+                title: "SL lệch",
+                key: "discrepancy",
+                width: 100,
+                align: "right",
+                render: (_, record) => (record.actualQuantity - record.systemQuantity),
+              },
+            ]}
+          />
+          
+          {/* Summary Statistics */}
+          <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+            <div className="flex justify-between">
+              <span className="font-medium">Số lượng lệch tăng:</span>
+              <span className="text-green-600 font-semibold">
+                {mergeData.reduce((sum, item) => {
+                  const diff = item.actualQuantity - item.systemQuantity;
+                  return sum + (diff > 0 ? diff : 0);
+                }, 0)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium">Số lượng lệch giảm:</span>
+              <span className="text-red-600 font-semibold">
+                {Math.abs(mergeData.reduce((sum, item) => {
+                  const diff = item.actualQuantity - item.systemQuantity;
+                  return sum + (diff < 0 ? diff : 0);
+                }, 0))}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium">Tổng thực tế:</span>
+              <span className="font-semibold">
+                {mergeData.reduce((sum, item) => sum + item.actualQuantity, 0)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-medium">Tổng chênh lệch:</span>
+              <span className="font-semibold">
+                {mergeData.reduce((sum, item) => sum + (item.actualQuantity - item.systemQuantity), 0)}
+              </span>
+            </div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3 pt-4">
+            <Button onClick={() => setMergeModalOpen(false)}>
+              Bỏ qua
+            </Button>
+            <Button 
+              type="primary" 
+              icon={<FileTextOutlined />}
+              onClick={() => {
+                const ids = filteredData.filter(x => selectedRowKeys.includes(x.id as any) && (x.status as any) === 0).map(x => x.id!);
+                mergeMutation.mutate(ids);
+                setMergeModalOpen(false);
+              }}
+              loading={mergeMutation.isPending}
+            >
+              Gộp phiếu
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </section>
   );
 };
@@ -303,7 +440,6 @@ const InventoryManagementPage = () => {
 const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) => void }) => {
   const { data, isFetching } = useDetailInventoryCheck(id, true);
   const cancelMutation = useDeleteInventoryCheck();
-  const updateMutation = useUpdateInventoryCheck();
   const d = data?.data;
 
   const items: InventoryCheckItemResponse[] = (d?.items as any) ?? [];
@@ -311,6 +447,7 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
   const totalInc = items.reduce((s, i) => s + Math.max(0, i.deltaQuantity ?? 0), 0);
   const totalDec = items.reduce((s, i) => s + Math.max(0, -(i.deltaQuantity ?? 0)), 0);
   const totalDelta = items.reduce((s, i) => s + (i.deltaQuantity ?? 0), 0);
+  const totalDeltaValue = items.reduce((s, i) => s + (((i.actualQuantity ?? 0) - (i.systemQuantity ?? 0)) * ((i as any).costPrice ?? 0)), 0);
 
   if (isFetching) {
     return (
@@ -374,6 +511,19 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
           { title: "Tồn kho", dataIndex: "systemQuantity", key: "systemQuantity", width: 120 },
           { title: "Thực tế", dataIndex: "actualQuantity", key: "actualQuantity", width: 120 },
           { title: "SL lệch", dataIndex: "deltaQuantity", key: "deltaQuantity", width: 120 },
+          { 
+            title: "Giá trị chênh lệch", 
+            key: "deltaValue", 
+            width: 150,
+            render: (_, record) => {
+              const deltaValue = ((record.actualQuantity ?? 0) - (record.systemQuantity ?? 0)) * ((record as any).costPrice ?? 0);
+              return (
+                <span className={deltaValue >= 0 ? "text-green-600" : "text-red-600"}>
+                  {deltaValue.toLocaleString()}
+                </span>
+              );
+            }
+          },
         ]}
         dataSource={items}
         pagination={false}
@@ -391,6 +541,9 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
         </div>
         <div>
           <span className="text-gray-600">Tổng chênh lệch</span> <span className="font-semibold">({totalDelta})</span>
+        </div>
+        <div>
+          <span className="text-gray-600">Giá trị chênh lệch</span> <span className="font-semibold">({totalDeltaValue.toLocaleString()})</span>
         </div>
       </div>
     </div>

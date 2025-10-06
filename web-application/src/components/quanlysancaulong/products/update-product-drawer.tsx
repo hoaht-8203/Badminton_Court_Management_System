@@ -1,9 +1,11 @@
 "use client";
 
 import { useDetailProduct, useUpdateProduct } from "@/hooks/useProducts";
+import { useListCategories, useCreateCategory } from "@/hooks/useCategories";
 import { ApiError } from "@/lib/axios";
 import { UpdateProductRequest } from "@/types-openapi/api";
-import { Button, Checkbox, Drawer, Form, Input, InputNumber, Space, Spin, message, Select, Row, Col } from "antd";
+import { Button, Checkbox, Drawer, Form, Input, InputNumber, Space, Spin, message, Select, Row, Col, Divider } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import { Tooltip } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
@@ -12,6 +14,9 @@ import UpdateProductImages from "./update-product-images";
 const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onClose: () => void; productId: number }) => {
   const [form] = Form.useForm<UpdateProductRequest>();
   const { data, isFetching } = useDetailProduct({ id: productId }, open && productId > 0);
+  const { data: categoriesData } = useListCategories({});
+  const createCategoryMutation = useCreateCategory();
+  const [newCategoryName, setNewCategoryName] = useState("");
   const updateMutation = useUpdateProduct();
   const [manageInventory, setManageInventory] = useState(false);
 
@@ -26,9 +31,6 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
   // FE no longer creates inventory checks here; backend handles auto-balanced creation when stock changes.
 
   const onSubmit = (values: UpdateProductRequest) => {
-    const previousStock = data?.data?.stock || 0;
-    const newStock = values.stock || 0;
-
     updateMutation.mutate(values, {
       onSuccess: async () => {
         message.success("Cập nhật hàng hóa thành công");
@@ -105,8 +107,53 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="category" label="Nhóm hàng">
-                <Input />
+              <Form.Item name="categoryId" label="Nhóm hàng">
+                <Select
+                  placeholder="Chọn nhóm hàng"
+                  allowClear
+                  options={categoriesData?.data?.map((category) => ({ value: category.id, label: category.name }))}
+                  popupRender={(menu) => (
+                    <div>
+                      {menu}
+                      <Divider style={{ margin: "8px 0" }} />
+                      <div style={{ display: "flex", gap: 8, padding: 8 }}>
+                        <Input
+                          size="small"
+                          placeholder="Tên nhóm hàng mới"
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          onPressEnter={async () => {
+                            if (!newCategoryName.trim()) return;
+                            try {
+                              await createCategoryMutation.mutateAsync({ name: newCategoryName.trim() });
+                              message.success("Đã thêm nhóm hàng");
+                              setNewCategoryName("");
+                            } catch {
+                              message.error("Thêm nhóm hàng thất bại");
+                            }
+                          }}
+                        />
+                        <Button
+                          size="small"
+                          type="primary"
+                          icon={<PlusOutlined />}
+                          loading={createCategoryMutation.isPending}
+                          disabled={!newCategoryName.trim()}
+                          onClick={async () => {
+                            if (!newCategoryName.trim()) return;
+                            try {
+                              await createCategoryMutation.mutateAsync({ name: newCategoryName.trim() });
+                              message.success("Đã thêm nhóm hàng");
+                              setNewCategoryName("");
+                            } catch {
+                              message.error("Thêm nhóm hàng thất bại");
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -131,7 +178,19 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="salePrice" label="Giá bán">
+              <Form.Item
+                name="salePrice"
+                label="Giá bán"
+                rules={[
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      const cp = Number(getFieldValue("costPrice") || 0);
+                      if (value == null || Number(value) >= cp) return Promise.resolve();
+                      return Promise.reject(new Error("Giá bán phải lớn hơn hoặc bằng giá vốn"));
+                    },
+                  }),
+                ]}
+              >
                 <InputNumber min={0} style={{ width: "100%" }} />
               </Form.Item>
             </Col>

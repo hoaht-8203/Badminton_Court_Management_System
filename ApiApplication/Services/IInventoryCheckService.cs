@@ -11,4 +11,5 @@ public interface IInventoryCheckService
     Task CancelAsync(int id);
     Task<List<int>> BulkCancelAsync(List<int> ids);
     Task CompleteAsync(int id);
+    Task<int> MergeAsync(List<int> ids);
 } 

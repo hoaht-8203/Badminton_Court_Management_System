@@ -18,7 +18,7 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
 
     public async Task<List<ListProductResponse>> ListAsync(ListProductRequest request)
     {
-        var query = _context.Products.AsQueryable();
+        var query = _context.Products.Include(p => p.Category).AsQueryable();
 
         if (request.Id.HasValue)
         {
@@ -42,7 +42,7 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         if (!string.IsNullOrWhiteSpace(request.Category))
         {
             var cat = request.Category.ToLower();
-            query = query.Where(p => p.Category != null && p.Category.ToLower().Contains(cat));
+            query = query.Where(p => p.Category != null && p.Category.Name.ToLower().Contains(cat));
         }
         if (request.IsDirectSale.HasValue)
         {
@@ -55,7 +55,7 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
 
     public async Task<DetailProductResponse> DetailAsync(int id)
     {
-        var item = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+        var item = await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
         if (item == null)
         {
             throw new ApiException($"Sản phẩm không tồn tại: {id}", System.Net.HttpStatusCode.NotFound);

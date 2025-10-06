@@ -21,6 +21,7 @@ import type {
   Int32ListApiResponse,
   InventoryCheckStatus,
   ListInventoryCheckResponseListApiResponse,
+  MergeInventoryChecksRequest,
   ObjectApiResponse,
 } from '../models/index';
 import {
@@ -36,6 +37,8 @@ import {
     InventoryCheckStatusToJSON,
     ListInventoryCheckResponseListApiResponseFromJSON,
     ListInventoryCheckResponseListApiResponseToJSON,
+    MergeInventoryChecksRequestFromJSON,
+    MergeInventoryChecksRequestToJSON,
     ObjectApiResponseFromJSON,
     ObjectApiResponseToJSON,
 } from '../models/index';
@@ -65,6 +68,10 @@ export interface ApiInventoryChecksListGetRequest {
     id?: number;
     code?: string;
     status?: InventoryCheckStatus;
+}
+
+export interface ApiInventoryChecksMergePostRequest {
+    mergeInventoryChecksRequest?: MergeInventoryChecksRequest;
 }
 
 export interface ApiInventoryChecksPostRequest {
@@ -158,6 +165,19 @@ export interface InventoryChecksApiInterface {
     /**
      */
     apiInventoryChecksListGet(requestParameters: ApiInventoryChecksListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListInventoryCheckResponseListApiResponse>;
+
+    /**
+     * 
+     * @param {MergeInventoryChecksRequest} [mergeInventoryChecksRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InventoryChecksApiInterface
+     */
+    apiInventoryChecksMergePostRaw(requestParameters: ApiInventoryChecksMergePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Int32ApiResponse>>;
+
+    /**
+     */
+    apiInventoryChecksMergePost(requestParameters: ApiInventoryChecksMergePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Int32ApiResponse>;
 
     /**
      * 
@@ -388,6 +408,36 @@ export class InventoryChecksApi extends runtime.BaseAPI implements InventoryChec
      */
     async apiInventoryChecksListGet(requestParameters: ApiInventoryChecksListGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListInventoryCheckResponseListApiResponse> {
         const response = await this.apiInventoryChecksListGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiInventoryChecksMergePostRaw(requestParameters: ApiInventoryChecksMergePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Int32ApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/InventoryChecks/merge`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: MergeInventoryChecksRequestToJSON(requestParameters['mergeInventoryChecksRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => Int32ApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiInventoryChecksMergePost(requestParameters: ApiInventoryChecksMergePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Int32ApiResponse> {
+        const response = await this.apiInventoryChecksMergePostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

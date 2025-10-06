@@ -8,7 +8,6 @@ export const productColumns: TableProps<ListProductResponse>["columns"] = [
   { title: "Mã code", dataIndex: "code", key: "code", width: 150 },
   { title: "Tên hàng", dataIndex: "name", key: "name", width: 220 },
   { title: "Nhóm hàng", dataIndex: "category", key: "category", width: 150 },
-  { title: "Loại thực đơn", dataIndex: "menuType", key: "menuType", width: 150 },
   { title: "Giá bán", dataIndex: "salePrice", key: "salePrice", width: 120, sorter: (a, b) => (a.salePrice ?? 0) - (b.salePrice ?? 0) },
   {
     title: "Kinh doanh",

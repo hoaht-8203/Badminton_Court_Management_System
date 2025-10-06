@@ -2,6 +2,7 @@
 apis/ActivityApi.ts
 apis/AuthApi.ts
 apis/BookingCourtsApi.ts
+apis/CategoriesApi.ts
 apis/CourtAreasApi.ts
 apis/CourtsApi.ts
 apis/CustomersApi.ts
@@ -30,6 +31,7 @@ models/BooleanApiResponse.ts
 models/Branch.ts
 models/CancellationToken.ts
 models/CancelledShift.ts
+models/Category.ts
 models/ChangeCourtStatusRequest.ts
 models/ChangeCustomerStatusRequest.ts
 models/ChangeStaffStatusRequest.ts
@@ -46,6 +48,7 @@ models/CourtPricingRules.ts
 models/CreateActivityRequest.ts
 models/CreateAdministratorRequest.ts
 models/CreateBookingCourtRequest.ts
+models/CreateCategoryRequest.ts
 models/CreateCourtAreaRequest.ts
 models/CreateCourtPricingRuleTemplateRequest.ts
 models/CreateCourtPricingRulesRequest.ts
@@ -64,6 +67,7 @@ models/Customer.ts
 models/CustomerDto.ts
 models/DayOfWeek.ts
 models/DeletCourtAreaRequest.ts
+models/DeleteCategoryRequest.ts
 models/DeleteCourtPricingRuleTemplateRequest.ts
 models/DeleteCourtRequest.ts
 models/DeleteCustomerRequest.ts
@@ -79,6 +83,9 @@ models/DetailAdministratorResponseApiResponse.ts
 models/DetailBookingCourtRequest.ts
 models/DetailBookingCourtResponse.ts
 models/DetailBookingCourtResponseApiResponse.ts
+models/DetailCategoryRequest.ts
+models/DetailCategoryResponse.ts
+models/DetailCategoryResponseApiResponse.ts
 models/DetailCourtAreaRequest.ts
 models/DetailCourtAreaResponse.ts
 models/DetailCourtAreaResponseApiResponse.ts
@@ -128,6 +135,9 @@ models/ListAdministratorResponseListApiResponse.ts
 models/ListBookingCourtRequest.ts
 models/ListBookingCourtResponse.ts
 models/ListBookingCourtResponseListApiResponse.ts
+models/ListCategoryRequest.ts
+models/ListCategoryResponse.ts
+models/ListCategoryResponseArrayApiResponse.ts
 models/ListCourtAreaResponse.ts
 models/ListCourtAreaResponseListApiResponse.ts
 models/ListCourtGroupByCourtAreaResponse.ts
@@ -166,6 +176,7 @@ models/ListUserRoleItemResponse.ts
 models/ListUserRoleItemResponseListApiResponse.ts
 models/ListUserRolesRequest.ts
 models/LoginRequest.ts
+models/MergeInventoryChecksRequest.ts
 models/MyProfileResponse.ts
 models/MyProfileResponseApiResponse.ts
 models/ObjectApiResponse.ts
@@ -212,6 +223,7 @@ models/StaffResponseListApiResponse.ts
 models/StaffShiftDto.ts
 models/Supplier.ts
 models/SystemConfig.ts
+models/UpdateCategoryRequest.ts
 models/UpdateCourtAreaRequest.ts
 models/UpdateCourtPricingRuleTemplateRequest.ts
 models/UpdateCourtRequest.ts

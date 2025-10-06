@@ -150,7 +150,13 @@ const PriceManagementPage = () => {
             </Col>
             <Col span={8}>
               <Form.Item name="range" label="Hiệu lực từ ngày - đến">
-                <DatePicker.RangePicker style={{ width: "100%" }} />
+                <DatePicker.RangePicker
+                  style={{ width: "100%" }}
+                  disabledDate={() => {
+                    // disallow selecting past dates for end < start within UI filtering (loose)
+                    return false;
+                  }}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -480,7 +486,19 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
                     </Form.Item>
                   </Col>
                   <Col span={12}>
-                    <Form.Item name="effective" label="Hiệu lực từ ngày - đến">
+                    <Form.Item
+                      name="effective"
+                      label="Hiệu lực từ ngày - đến"
+                      rules={[
+                        {
+                          validator: (_: any, v: [Dayjs, Dayjs]) => {
+                            if (!v || v.length !== 2 || !v[0] || !v[1]) return Promise.resolve();
+                            if (v[1].isBefore(v[0])) return Promise.reject(new Error("Ngày kết thúc không được trước ngày bắt đầu"));
+                            return Promise.resolve();
+                          },
+                        },
+                      ]}
+                    >
                       <DatePicker.RangePicker style={{ width: "100%" }} />
                     </Form.Item>
                   </Col>

@@ -3,6 +3,7 @@
 export * from './ActivityApi';
 export * from './AuthApi';
 export * from './BookingCourtsApi';
+export * from './CategoriesApi';
 export * from './CourtAreasApi';
 export * from './CourtsApi';
 export * from './CustomersApi';

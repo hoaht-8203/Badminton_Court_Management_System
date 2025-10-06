@@ -41,6 +41,7 @@ public class ApplicationDbContext(
     // public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
     public DbSet<CancelledShift> CancelledShifts { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
+    public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<PriceTable> PriceTables { get; set; }
     public DbSet<PriceTimeRange> PriceTimeRanges { get; set; }
@@ -68,6 +69,12 @@ public class ApplicationDbContext(
         // Store Schedule.ByDay as array of string
         builder.Entity<Schedule>().Property(s => s.ByDay).HasColumnType("text[]");
 
+        // Category mappings
+        builder.Entity<Category>(entity =>
+        {
+            entity.HasIndex(c => c.Name);
+        });
+
         // Product mappings
         builder.Entity<Product>(entity =>
         {
@@ -76,6 +83,12 @@ public class ApplicationDbContext(
             entity.Property(p => p.SalePrice).HasColumnType("decimal(18,2)");
             entity.HasIndex(p => p.Code).IsUnique(false);
             entity.HasIndex(p => p.Name);
+            
+            // Category relationship
+            entity.HasOne(p => p.Category)
+                .WithMany(c => c.Products)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Price table mappings
@@ -151,6 +164,7 @@ public class ApplicationDbContext(
         SeedAdministratorUser(builder);
         SeedCustomerData(builder);
         SeedSupplierData(builder);
+        SeedCategoryData(builder);
     }
 
     private static void SeedAdministratorUser(ModelBuilder builder)
@@ -310,6 +324,50 @@ public class ApplicationDbContext(
                     CreatedBy = null,
                     UpdatedAt = null,
                     UpdatedBy = null,
+                }
+            );
+    }
+
+    private static void SeedCategoryData(ModelBuilder builder)
+    {
+        builder
+            .Entity<Category>()
+            .HasData(
+                new Category
+                {
+                    Id = 1,
+                    Name = "Nước Giải Khát",
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                    CreatedBy = "System",
+                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                    UpdatedBy = "System"
+                },
+                new Category
+                {
+                    Id = 2,
+                    Name = "Đồ Ăn",
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                    CreatedBy = "System",
+                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                    UpdatedBy = "System"
+                },
+                new Category
+                {
+                    Id = 3,
+                    Name = "Thiết Bị Thể Thao",
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                    CreatedBy = "System",
+                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                    UpdatedBy = "System"
+                },
+                new Category
+                {
+                    Id = 4,
+                    Name = "Phụ Kiện",
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                    CreatedBy = "System",
+                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                    UpdatedBy = "System"
                 }
             );
     }

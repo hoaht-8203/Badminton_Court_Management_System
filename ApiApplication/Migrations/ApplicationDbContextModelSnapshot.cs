@@ -376,6 +376,76 @@ namespace ApiApplication.Migrations
                     b.ToTable("CancelledShifts");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name");
+
+                    b.ToTable("Categories");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            CreatedBy = "System",
+                            Name = "Nước Giải Khát",
+                            UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            CreatedBy = "System",
+                            Name = "Đồ Ăn",
+                            UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            CreatedBy = "System",
+                            Name = "Thiết Bị Thể Thao",
+                            UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            CreatedBy = "System",
+                            Name = "Phụ Kiện",
+                            UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            UpdatedBy = "System"
+                        });
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Court", b =>
                 {
                     b.Property<Guid>("Id")
@@ -993,9 +1063,8 @@ namespace ApiApplication.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Category")
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Code")
                         .HasMaxLength(50)
@@ -1065,6 +1134,8 @@ namespace ApiApplication.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
 
                     b.HasIndex("Code");
 
@@ -1690,6 +1761,16 @@ namespace ApiApplication.Migrations
                     b.Navigation("PriceTable");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.Product", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Category");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Schedule", b =>
                 {
                     b.HasOne("ApiApplication.Entities.Shift", "Shift")
@@ -1787,6 +1868,11 @@ namespace ApiApplication.Migrations
             modelBuilder.Entity("ApiApplication.Entities.BookingCourt", b =>
                 {
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.Category", b =>
+                {
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Court", b =>

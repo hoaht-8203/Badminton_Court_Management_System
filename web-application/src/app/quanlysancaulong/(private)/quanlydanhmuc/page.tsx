@@ -24,6 +24,7 @@ const tableProps: TableProps<ListProductResponse> = {
 const ProductCategoryPage = () => {
   const [searchParams, setSearchParams] = useState<ProductFilters>({});
   const [openCreate, setOpenCreate] = useState(false);
+  const [openCreateService, setOpenCreateService] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
   const [currentId, setCurrentId] = useState<number | null>(null);
   const [modal, contextHolder] = Modal.useModal();
@@ -67,6 +68,9 @@ const ProductCategoryPage = () => {
           <div className="flex gap-2">
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenCreate(true)}>
               Thêm hàng hóa
+            </Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenCreateService(true)}>
+              Thêm dịch vụ
             </Button>
             <Button type="primary" icon={<ReloadOutlined />} onClick={() => refetch()}>
               Tải lại
@@ -123,6 +127,13 @@ const ProductCategoryPage = () => {
       </div>
 
       <CreateNewProductDrawer open={openCreate} onClose={() => setOpenCreate(false)} />
+      <CreateNewProductDrawer
+        open={openCreateService}
+        onClose={() => setOpenCreateService(false)}
+        title="Thêm dịch vụ"
+        presetMenuType="Khác"
+        isService
+      />
       <UpdateProductDrawer open={openUpdate} onClose={() => setOpenUpdate(false)} productId={currentId ?? 0} />
 
       {contextHolder}
@@ -212,16 +223,20 @@ const ProductInformation = ({
                 </div>
                 <Divider size="small" style={{ margin: "4px 0" }} />
 
-                <div className="flex">
-                  <div className="w-32 font-medium">Tồn kho:</div>
-                  <div>{d?.stock ?? 0}</div>
-                </div>
-                <Divider size="small" style={{ margin: "4px 0" }} />
+                {record.menuType !== "Khác" && (
+                  <>
+                    <div className="flex">
+                      <div className="w-32 font-medium">Tồn kho:</div>
+                      <div>{d?.stock ?? 0}</div>
+                    </div>
+                    <Divider size="small" style={{ margin: "4px 0" }} />
 
-                <div className="flex">
-                  <div className="w-32 font-medium">Ngưỡng min/max:</div>
-                  <div>{d ? `${d.minStock} / ${d.maxStock}` : "-"}</div>
-                </div>
+                    <div className="flex">
+                      <div className="w-32 font-medium">Ngưỡng min/max:</div>
+                      <div>{d ? `${d.minStock} / ${d.maxStock}` : "-"}</div>
+                    </div>
+                  </>
+                )}
               </div>
             </Col>
           </Row>

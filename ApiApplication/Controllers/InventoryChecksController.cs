@@ -104,4 +104,18 @@ public class InventoryChecksController(IInventoryCheckService inventoryCheckServ
             )
         );
     }
+
+    [HttpPost("merge")]
+    public async Task<ActionResult<ApiResponse<int>>> Merge(
+        [FromBody] MergeInventoryChecksRequest request
+    )
+    {
+        var result = await _inventoryCheckService.MergeAsync(request.InventoryCheckIds);
+        return Ok(
+            ApiResponse<int>.SuccessResponse(
+                result,
+                "Gộp phiếu kiểm kê kho thành công"
+            )
+        );
+    }
 }

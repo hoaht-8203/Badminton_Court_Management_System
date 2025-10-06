@@ -1,17 +1,29 @@
 "use client";
 
 import { useCreateProduct } from "@/hooks/useProducts";
+import { useListCategories, useCreateCategory } from "@/hooks/useCategories";
 import { ApiError } from "@/lib/axios";
 import { productService } from "@/services/productService";
 import { CreateProductRequest } from "@/types-openapi/api";
-import { Button, Checkbox, Col, Drawer, Form, Input, InputNumber, Row, Space, Upload, UploadFile, UploadProps, message, Select } from "antd";
+import { Button, Checkbox, Col, Drawer, Form, Input, InputNumber, Row, Space, Upload, UploadFile, UploadProps, message, Select, Divider } from "antd";
 import { Tooltip } from "antd";
-import { InfoCircleOutlined } from "@ant-design/icons";
+import { InfoCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { useState } from "react";
 
-const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
+type CreateNewProductDrawerProps = {
+  open: boolean;
+  onClose: () => void;
+  title?: string;
+  presetMenuType?: string; // e.g. "Khác"
+  isService?: boolean; // when true, hide inventory management controls
+};
+
+const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isService }: CreateNewProductDrawerProps) => {
   const [form] = Form.useForm<CreateProductRequest>();
   const createMutation = useCreateProduct();
+  const createCategoryMutation = useCreateCategory();
+  const { data: categoriesData } = useListCategories({});
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [manageInventory, setManageInventory] = useState(false);
@@ -59,8 +71,13 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
   };
 
   return (
-    <Drawer title="Thêm hàng hóa" width={720} onClose={onClose} open={open} destroyOnClose>
-      <Form form={form} layout="vertical" onFinish={onSubmit} initialValues={{ isDirectSale: true, manageInventory: false }}>
+    <Drawer title={title ?? "Thêm hàng hóa"} width={720} onClose={onClose} open={open} destroyOnClose>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onSubmit}
+        initialValues={{ isDirectSale: true, manageInventory: false, menuType: presetMenuType }}
+      >
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item
@@ -113,13 +130,59 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
                   { label: "Khác", value: "Khác" },
                 ]}
                 placeholder="Chọn loại thực đơn"
-                allowClear
+                allowClear={!isService}
+                disabled={!!isService}
               />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="category" label="Nhóm hàng">
-              <Input />
+            <Form.Item name="categoryId" label="Nhóm hàng">
+              <Select
+                placeholder="Chọn nhóm hàng"
+                allowClear
+                options={categoriesData?.data?.map((category) => ({ value: category.id, label: category.name }))}
+                popupRender={(menu) => (
+                  <div>
+                    {menu}
+                    <Divider style={{ margin: "8px 0" }} />
+                    <div style={{ display: "flex", gap: 8, padding: 8 }}>
+                      <Input
+                        size="small"
+                        placeholder="Tên nhóm hàng mới"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        onPressEnter={async () => {
+                          if (!newCategoryName.trim()) return;
+                          try {
+                            await createCategoryMutation.mutateAsync({ name: newCategoryName.trim() });
+                            message.success("Đã thêm nhóm hàng");
+                            setNewCategoryName("");
+                          } catch {
+                            message.error("Thêm nhóm hàng thất bại");
+                          }
+                        }}
+                      />
+                      <Button
+                        size="small"
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        loading={createCategoryMutation.isPending}
+                        disabled={!newCategoryName.trim()}
+                        onClick={async () => {
+                          if (!newCategoryName.trim()) return;
+                          try {
+                            await createCategoryMutation.mutateAsync({ name: newCategoryName.trim() });
+                            message.success("Đã thêm nhóm hàng");
+                            setNewCategoryName("");
+                          } catch {
+                            message.error("Thêm nhóm hàng thất bại");
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -144,7 +207,19 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="salePrice" label="Giá bán">
+            <Form.Item
+              name="salePrice"
+              label="Giá bán"
+              rules={[
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    const cp = Number(getFieldValue("costPrice") || 0);
+                    if (value == null || Number(value) >= cp) return Promise.resolve();
+                    return Promise.reject(new Error("Giá bán phải lớn hơn hoặc bằng giá vốn"));
+                  },
+                }),
+              ]}
+            >
               <InputNumber min={0} style={{ width: "100%" }} />
             </Form.Item>
           </Col>
@@ -160,6 +235,7 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
           </Col>
         </Row>
 
+        {!isService && (
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item name="isDirectSale" valuePropName="checked" label="Bán trực tiếp">
@@ -172,8 +248,9 @@ const CreateNewProductDrawer = ({ open, onClose }: { open: boolean; onClose: () 
             </Form.Item>
           </Col>
         </Row>
+        )}
 
-        {manageInventory && (
+        {!isService && manageInventory && (
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item

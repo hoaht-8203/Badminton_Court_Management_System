@@ -42,9 +42,10 @@ export const inventoryService = {
       .post(`/api/InventoryChecks/bulk-cancel`, ids)
       .then((r) => r.data);
   },
-  checkLowStock(branch?: string) {
+  merge(ids: number[]) {
     return axiosInstance
-      .post<number>(`/api/Products/check-low-stock`, undefined, { params: { branch } })
+      .post("/api/InventoryChecks/merge", { inventoryCheckIds: ids })
       .then((r) => r.data);
   },
+  
 }; 

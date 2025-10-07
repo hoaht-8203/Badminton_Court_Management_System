@@ -34,6 +34,10 @@ import {
     UpdateProductRequestToJSON,
 } from '../models/index';
 
+export interface ApiProductsCheckLowStockPostRequest {
+    branch?: string;
+}
+
 export interface ApiProductsCreatePostRequest {
     createProductRequest?: CreateProductRequest;
 }
@@ -76,6 +80,19 @@ export interface ApiProductsUpdateStatusPutRequest {
  * @interface ProductsApiInterface
  */
 export interface ProductsApiInterface {
+    /**
+     * 
+     * @param {string} [branch] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProductsApiInterface
+     */
+    apiProductsCheckLowStockPostRaw(requestParameters: ApiProductsCheckLowStockPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiProductsCheckLowStockPost(requestParameters: ApiProductsCheckLowStockPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
     /**
      * 
      * @param {CreateProductRequest} [createProductRequest] 
@@ -180,6 +197,37 @@ export interface ProductsApiInterface {
  * 
  */
 export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface {
+
+    /**
+     */
+    async apiProductsCheckLowStockPostRaw(requestParameters: ApiProductsCheckLowStockPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['branch'] != null) {
+            queryParameters['branch'] = requestParameters['branch'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Products/check-low-stock`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProductsCheckLowStockPost(requestParameters: ApiProductsCheckLowStockPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiProductsCheckLowStockPostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      */

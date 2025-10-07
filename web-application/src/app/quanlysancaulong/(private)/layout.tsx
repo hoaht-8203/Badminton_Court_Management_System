@@ -32,8 +32,8 @@ const sideBarItems: MenuProps["items"] = [
         label: "Thiết lập giá",
       },
       {
-        key: "quanlykho",
-        label: "Quản lý kho",
+        key: "/quanlysancaulong/inventory",
+        label: "Kiểm kho",
       },
     ],
   },

@@ -376,6 +376,76 @@ namespace ApiApplication.Migrations
                     b.ToTable("CancelledShifts");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name");
+
+                    b.ToTable("Categories");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            CreatedBy = "System",
+                            Name = "Nước Giải Khát",
+                            UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            CreatedBy = "System",
+                            Name = "Đồ Ăn",
+                            UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            CreatedBy = "System",
+                            Name = "Thiết Bị Thể Thao",
+                            UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            CreatedBy = "System",
+                            Name = "Phụ Kiện",
+                            UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                            UpdatedBy = "System"
+                        });
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Court", b =>
                 {
                     b.Property<Guid>("Id")
@@ -686,6 +756,90 @@ namespace ApiApplication.Migrations
                     b.ToTable("Departments");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.InventoryCheck", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("BalancedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CheckTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("InventoryChecks");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.InventoryCheckItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ActualQuantity")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("InventoryCheckId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SystemQuantity")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryCheckId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("InventoryCheckItems");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Payment", b =>
                 {
                     b.Property<string>("Id")
@@ -909,9 +1063,8 @@ namespace ApiApplication.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Category")
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                    b.Property<int?>("CategoryId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Code")
                         .HasMaxLength(50)
@@ -981,6 +1134,8 @@ namespace ApiApplication.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
 
                     b.HasIndex("Code");
 
@@ -1519,6 +1674,25 @@ namespace ApiApplication.Migrations
                     b.Navigation("Court");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.InventoryCheckItem", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.InventoryCheck", "InventoryCheck")
+                        .WithMany("Items")
+                        .HasForeignKey("InventoryCheckId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiApplication.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("InventoryCheck");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Payment", b =>
                 {
                     b.HasOne("ApiApplication.Entities.BookingCourt", "Booking")
@@ -1585,6 +1759,16 @@ namespace ApiApplication.Migrations
                         .IsRequired();
 
                     b.Navigation("PriceTable");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.Product", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Schedule", b =>
@@ -1686,6 +1870,11 @@ namespace ApiApplication.Migrations
                     b.Navigation("Payments");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.Category", b =>
+                {
+                    b.Navigation("Products");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Court", b =>
                 {
                     b.Navigation("CourtPricingRules");
@@ -1694,6 +1883,11 @@ namespace ApiApplication.Migrations
             modelBuilder.Entity("ApiApplication.Entities.CourtArea", b =>
                 {
                     b.Navigation("Courts");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.InventoryCheck", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Payroll", b =>

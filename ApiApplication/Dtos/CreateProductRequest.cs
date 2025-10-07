@@ -13,7 +13,7 @@ public class CreateProductRequest
     public string Name { get; set; } = string.Empty;
 
     public string? MenuType { get; set; }
-    public string? Category { get; set; }
+    public int? CategoryId { get; set; }
     public string? Position { get; set; }
 
     public decimal CostPrice { get; set; }

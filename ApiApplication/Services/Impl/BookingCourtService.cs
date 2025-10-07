@@ -43,7 +43,8 @@ public class BookingCourtService(
         }
 
         // Không cho đặt các ngày đã qua
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var nowUtc = DateTime.UtcNow;
+        var today = DateOnly.FromDateTime(nowUtc);
         if (endDate < today)
         {
             throw new ApiException("Không thể đặt cho ngày đã qua.", HttpStatusCode.BadRequest);
@@ -67,6 +68,19 @@ public class BookingCourtService(
             }
             // set as empty for consistency with entity schema
             request.DaysOfWeek = Array.Empty<int>();
+
+            // Chặn đặt giờ đã qua trong ngày hôm nay (vãng lai)
+            if (startDate == today)
+            {
+                var nowTime = TimeOnly.FromDateTime(nowUtc);
+                if (request.StartTime <= nowTime)
+                {
+                    throw new ApiException(
+                        "Giờ bắt đầu phải lớn hơn thời điểm hiện tại.",
+                        HttpStatusCode.BadRequest
+                    );
+                }
+            }
         }
         else
         {
@@ -89,6 +103,31 @@ public class BookingCourtService(
                     "Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.",
                     HttpStatusCode.BadRequest
                 );
+            }
+
+            // Chặn đặt giờ đã qua cho lần xuất hiện đầu tiên (cố định)
+            // Tìm ngày áp dụng đầu tiên trong khoảng
+            var firstApplicable = startDate;
+            while (firstApplicable <= endDate)
+            {
+                var dow = GetCustomDayOfWeek(firstApplicable);
+                if (request.DaysOfWeek.Contains(dow))
+                {
+                    break;
+                }
+                firstApplicable = firstApplicable.AddDays(1);
+            }
+
+            if (firstApplicable == today)
+            {
+                var nowTime = TimeOnly.FromDateTime(nowUtc);
+                if (request.StartTime <= nowTime)
+                {
+                    throw new ApiException(
+                        "Khung giờ hôm nay đã qua, vui lòng chọn giờ hợp lệ hoặc dời ngày bắt đầu.",
+                        HttpStatusCode.BadRequest
+                    );
+                }
             }
         }
 
@@ -138,14 +177,11 @@ public class BookingCourtService(
 
         // Exclude expired holds: treat as free if PendingPayment older than HoldMinutes
         var holdMinutes = _configuration.GetValue<int?>("Booking:HoldMinutes");
-        var nowUtc = DateTime.UtcNow;
+        // re-use nowUtc defined above
 
         var exists = await query.AnyAsync(b =>
             // Only Active and Completed bookings block new bookings
-            (
-                b.Status == BookingCourtStatus.Active
-                || b.Status == BookingCourtStatus.Completed
-            )
+            (b.Status == BookingCourtStatus.Active || b.Status == BookingCourtStatus.Completed)
             || (
                 // PendingPayment bookings only block if they haven't expired
                 b.Status == BookingCourtStatus.PendingPayment
@@ -291,7 +327,10 @@ public class BookingCourtService(
         ListBookingCourtRequest request
     )
     {
-        var query = _context.BookingCourts.Include(x => x.Court).Include(x => x.Customer).AsQueryable();
+        var query = _context
+            .BookingCourts.Include(x => x.Court)
+            .Include(x => x.Customer)
+            .AsQueryable();
 
         if (request.CustomerId.HasValue)
         {

@@ -1,9 +1,10 @@
 import { StaffRequest } from "@/types-openapi/api/models/StaffRequest";
-import { UploadOutlined } from "@ant-design/icons";
-import { Avatar, Button, Col, DatePicker, Drawer, Form, Input, Row, Space, Tabs, Upload } from "antd";
+import { UploadOutlined, DeleteOutlined, LoadingOutlined } from "@ant-design/icons";
+import { Avatar, Button, Col, DatePicker, Drawer, Form, Input, Row, Space, Tabs, Upload, Image, Spin, message } from "antd";
 import dayjs from "dayjs";
 import React, { useState } from "react";
 import SalarySetupForm from "@/components/quanlysancaulong/staffs/list-staff/salary-setup-form";
+import { fileService } from "@/services/fileService";
 
 interface StaffModalProps {
   open: boolean;
@@ -31,6 +32,9 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
   const [expanded, setExpanded] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
   const [fileList, setFileList] = useState<any[]>([]);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarFileName, setAvatarFileName] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   // Fill form when staff changes (edit mode)
   React.useEffect(() => {
@@ -54,9 +58,13 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
       }
       if (staff.avatarUrl) {
         setAvatarPreview(staff.avatarUrl);
+        setAvatarUrl(staff.avatarUrl);
+        setAvatarFileName(null);
         setFileList([]);
       } else {
         setAvatarPreview(undefined);
+        setAvatarUrl(null);
+        setAvatarFileName(null);
         setFileList([]);
       }
     }
@@ -64,14 +72,14 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
       form.resetFields();
       salaryForm.resetFields();
       setAvatarPreview(undefined);
+      setAvatarUrl(null);
+      setAvatarFileName(null);
       setFileList([]);
       setSalarySettingsLoaded(false);
     }
   }, [open, staff, form, salaryForm]);
 
   const handleFinish = async (values: any) => {
-    console.log(values);
-
     // Chuyển đổi ngày về kiểu Date nếu có
     if (values.dateOfBirth && values.dateOfBirth.toDate) values.dateOfBirth = values.dateOfBirth.toDate();
     if (values.dateOfJoining && values.dateOfJoining.toDate) values.dateOfJoining = values.dateOfJoining.toDate();
@@ -85,27 +93,54 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
       salarySettings = { ...salaryValues, salaryAmount: salaryValues.salaryAmount };
     }
     values.salarySettings = JSON.stringify(salarySettings);
+    // Thêm avatarUrl vào dữ liệu gửi đi
+    values.avatarUrl = avatarUrl;
     onSubmit(values);
     form.resetFields();
     salaryForm.resetFields();
     setAvatarPreview(undefined);
+    setAvatarUrl(null);
+    setAvatarFileName(null);
     setFileList([]);
     setExpanded(false);
   };
 
-  const handleAvatarChange = (info: any) => {
-    setFileList(info.fileList);
-    const file = info.fileList[0]?.originFileObj;
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setAvatarPreview(e.target?.result as string);
-        form.setFieldsValue({ avatarUrl: e.target?.result });
-      };
-      reader.readAsDataURL(file);
-    } else {
+  // Upload avatar logic
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const url = await fileService.uploadFile(file);
+      setAvatarUrl(url.data?.publicUrl ?? null);
+      setAvatarFileName(url.data?.fileName ?? null);
+      setAvatarPreview(url.data?.publicUrl ?? undefined);
+      message.success("Upload ảnh thành công!");
+      return false; // Prevent default upload behavior
+    } catch (error) {
+      message.error("Upload ảnh thất bại: " + (error as Error).message);
+      return false;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    try {
+      await fileService.deleteFile({ fileName: avatarFileName ?? "" });
+      setAvatarUrl(null);
+      setAvatarFileName(null);
       setAvatarPreview(undefined);
-      form.setFieldsValue({ avatarUrl: undefined });
+      message.success("Xóa ảnh thành công!");
+    } catch (error) {
+      message.error("Xóa ảnh thất bại: " + (error as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleAvatarChange = (info: any) => {
+    const file = info.file;
+    if (file) {
+      handleUpload(file);
     }
   };
 
@@ -113,13 +148,26 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
     <Row gutter={24}>
       <Col span={8} style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
         <Space direction="vertical" align="center" style={{ width: "100%" }}>
-          <Avatar src={avatarPreview} size={120} style={{ background: "#f0f0f0", marginBottom: 8 }} icon={!avatarPreview && <UploadOutlined />} />
+          {avatarUrl ? (
+            <Space direction="vertical" align="center">
+              <Avatar src={avatarUrl} size={120} style={{ background: "#f0f0f0", marginBottom: 8 }} icon={!avatarUrl && <UploadOutlined />} />
+              <Button type="text" danger icon={<DeleteOutlined />} onClick={handleRemoveAvatar} loading={uploading}>
+                Xóa ảnh
+              </Button>
+            </Space>
+          ) : uploading ? (
+            <div className="flex h-[120px] w-[120px] items-center justify-center border border-gray-300">
+              <Spin indicator={<LoadingOutlined spin />} />
+            </div>
+          ) : (
+            <Upload beforeUpload={handleUpload} showUploadList={false} accept="image/*" disabled={uploading}>
+              <Button icon={<UploadOutlined />} loading={uploading}>
+                {uploading ? "Đang upload..." : "Chọn ảnh đại diện"}
+              </Button>
+            </Upload>
+          )}
+          <div style={{ fontSize: "12px", color: "#666" }}>Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WebP). Kích thước tối đa 100MB.</div>
         </Space>
-        <Form.Item name="avatarUrl" style={{ marginBottom: 0 }}>
-          <Upload showUploadList={false} beforeUpload={() => false} accept="image/*" onChange={handleAvatarChange} fileList={fileList}>
-            <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
-          </Upload>
-        </Form.Item>
       </Col>
       <Col span={16}>
         <Form.Item label="Tên nhân viên" name="fullName" rules={[{ required: true, message: "Vui lòng nhập tên nhân viên" }]}>

@@ -50,6 +50,9 @@ public class ApplicationDbContext(
     public DbSet<InventoryCheck> InventoryChecks { get; set; }
     public DbSet<InventoryCheckItem> InventoryCheckItems { get; set; }
 
+    public DbSet<Service> Services { get; set; }
+    public DbSet<ServicePricingRule> ServicePricingRules { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

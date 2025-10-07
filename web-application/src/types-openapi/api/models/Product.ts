@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { Category } from './Category';
+import {
+    CategoryFromJSON,
+    CategoryFromJSONTyped,
+    CategoryToJSON,
+    CategoryToJSONTyped,
+} from './Category';
+
 /**
  * 
  * @export
@@ -69,10 +77,16 @@ export interface Product {
     menuType?: string | null;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof Product
      */
-    category?: string | null;
+    categoryId?: number | null;
+    /**
+     * 
+     * @type {Category}
+     * @memberof Product
+     */
+    category?: Category;
     /**
      * 
      * @type {string}
@@ -179,7 +193,8 @@ export function ProductFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'code': json['code'] == null ? undefined : json['code'],
         'name': json['name'],
         'menuType': json['menuType'] == null ? undefined : json['menuType'],
-        'category': json['category'] == null ? undefined : json['category'],
+        'categoryId': json['categoryId'] == null ? undefined : json['categoryId'],
+        'category': json['category'] == null ? undefined : CategoryFromJSON(json['category']),
         'position': json['position'] == null ? undefined : json['position'],
         'costPrice': json['costPrice'] == null ? undefined : json['costPrice'],
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
@@ -215,7 +230,8 @@ export function ProductToJSONTyped(value?: Product | null, ignoreDiscriminator: 
         'code': value['code'],
         'name': value['name'],
         'menuType': value['menuType'],
-        'category': value['category'],
+        'categoryId': value['categoryId'],
+        'category': CategoryToJSON(value['category']),
         'position': value['position'],
         'costPrice': value['costPrice'],
         'salePrice': value['salePrice'],

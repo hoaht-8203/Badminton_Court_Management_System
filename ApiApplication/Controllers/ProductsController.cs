@@ -92,5 +92,21 @@ namespace ApiApplication.Controllers
                 ApiResponse<object?>.SuccessResponse(null, "Cập nhật hình ảnh sản phẩm thành công")
             );
         }
+        
+        [HttpPost("check-low-stock")]
+        public async Task<ActionResult<ApiResponse<object>>> CheckLowStock(
+            [FromQuery] string? branch = null
+        )
+        {
+            var count = await _productService.CheckLowStockAndCreateInventoryChecksAsync(branch);
+            return Ok(
+                ApiResponse<object>.SuccessResponse(
+                    new { count },
+                    count > 0
+                        ? $"Đã tạo {count} phiếu kiểm kho cho sản phẩm có tồn kho thấp"
+                        : "Không có sản phẩm nào cần tạo phiếu kiểm kho"
+                )
+            );
+        }
     }
 }

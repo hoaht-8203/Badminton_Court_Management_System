@@ -15,7 +15,7 @@ public class UpdateProductRequest
     public string? Name { get; set; }
 
     public string? MenuType { get; set; }
-    public string? Category { get; set; }
+    public int? CategoryId { get; set; }
     public string? Position { get; set; }
 
     public decimal? CostPrice { get; set; }

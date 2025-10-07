@@ -69,9 +69,11 @@ builder.Services.AddScoped<IStorageService, MinioStorageService>();
 builder.Services.AddScoped<ICourtService, CourtService>();
 builder.Services.AddScoped<ICourtAreaService, CourtAreaService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IPriceTableService, PriceTableService>();
 builder.Services.AddScoped<IBookingCourtService, BookingCourtService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IInventoryCheckService, InventoryCheckService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -86,6 +88,7 @@ builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>()
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<SupplierMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<ProductMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<CategoryMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<PriceTableMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<BookingCourtMappingProfile>());
 
@@ -95,6 +98,7 @@ builder.Services.Configure<MinioOptions>(
 );
 builder.Services.AddAutoMapper(config => config.AddProfile<CourtMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<CourtAreaMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<InventoryCheckMappingProfile>());
 
 // MinIO client
 builder.Services.AddSingleton<IMinioClient>(sp =>

@@ -17,7 +17,9 @@ namespace ApiApplication.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<List<ShiftResponse>>>> GetAll([FromQuery] bool includeInactive = false)
+        public async Task<ActionResult<ApiResponse<List<ShiftResponse>>>> GetAll(
+            [FromQuery] bool includeInactive = false
+        )
         {
             var result = await _shiftService.GetAllShiftsAsync(includeInactive);
             return Ok(
@@ -29,11 +31,11 @@ namespace ApiApplication.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ApiResponse<ShiftResponse>>> GetById(int id)
+        public async Task<ActionResult<ApiResponse<ShiftResponse?>>> GetById(int id)
         {
             var result = await _shiftService.GetShiftByIdAsync(id);
             return Ok(
-                ApiResponse<ShiftResponse>.SuccessResponse(
+                ApiResponse<ShiftResponse?>.SuccessResponse(
                     result,
                     "Lấy ca làm việc theo id thành công"
                 )

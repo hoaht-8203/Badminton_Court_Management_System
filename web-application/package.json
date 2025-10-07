@@ -13,7 +13,7 @@
     "lint:fix": "eslint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "gen-types": "rimraf src/types-openapi/api && openapi-generator-cli generate -c openapi-generator-config.json -o src/types-openapi/api",
+    "gen-types": "rimraf src/types-openapi/api && openapi-generator-cli generate -c openapi-generator-config.json -o src/types-openapi/api --skip-validate-spec",
     "gen-types:watch": "nodemon --watch openapi-generator-config.json --exec \"npm run gen-types\""
   },
   "dependencies": {

@@ -209,8 +209,6 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   }, [queryClient]);
 
   const handlePickDate = (date: string) => {
-    console.log("GO TO HERE");
-
     setSelectedDate(new DayPilot.Date(date));
   };
 
@@ -374,6 +372,14 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                 }
               }}
               onTimeRangeSelected={async (args) => {
+                const scheduler = args.control;
+                const currentTime = new DayPilot.Date();
+                if (args.start.getTime() < currentTime.getTime()) {
+                  message.error("Không thể đặt sân trong quá khứ");
+                  scheduler.clearSelection();
+                  return;
+                }
+
                 setOpen(true);
 
                 setNewBooking({

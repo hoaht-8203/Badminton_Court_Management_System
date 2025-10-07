@@ -47,6 +47,7 @@ const daysOfWeekOptions = [
 const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBookingProps) => {
   const [form] = Form.useForm();
   const startDateWatch = Form.useWatch("startDate", form);
+  const dateRangeWatch = Form.useWatch(["_internal", "dateRange"], form);
   const startTimeWatch = Form.useWatch("startTime", form);
   const endTimeWatch = Form.useWatch("endTime", form);
   const customerWatch = Form.useWatch("customerId", form);
@@ -63,93 +64,120 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
   const { data: pricingRules } = useListCourtPricingRuleByCourtId({ courtId: courtWatch || "" });
   const createMutation = useCreateBookingCourt();
 
+  // Tổng số buổi trong khoảng ngày theo các thứ đã chọn (chỉ cho chế độ cố định)
+  const totalSessions = useMemo(() => {
+    if (createBookingCourtDaysOfWeek === "1") {
+      return startDateWatch ? 1 : 0;
+    }
+    const selectedDays = daysOfWeek?.length ? daysOfWeek : [];
+    const [rangeStart, rangeEnd] = (dateRangeWatch || []) as [any, any];
+    if (!rangeStart || !rangeEnd || selectedDays.length === 0) return 0;
+
+    let count = 0;
+    let cursor = rangeStart.startOf("day");
+    const end = rangeEnd.endOf("day");
+    while (cursor.isBefore(end) || cursor.isSame(end, "day")) {
+      const jsDay = cursor.day();
+      const dow = jsDay === 0 ? 8 : jsDay + 1;
+      if (selectedDays.includes(dow)) {
+        count += 1;
+      }
+      cursor = cursor.add(1, "day");
+    }
+    return count;
+  }, [createBookingCourtDaysOfWeek, startDateWatch, daysOfWeek, dateRangeWatch]);
+
   // Tính toán số tiền dựa trên pricing rules theo order
   const calculatedPrice = useMemo(() => {
-    if (!startTimeWatch || !endTimeWatch || !pricingRules?.data || !startDateWatch) {
+    if (!startTimeWatch || !endTimeWatch || !pricingRules?.data) {
       return 0;
     }
 
-    // Map dayjs() day() -> backend daysOfWeek (T2..CN => 2..8, CN=8)
-    const jsDay = startDateWatch.day(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    const dayOfWeek = jsDay === 0 ? 8 : jsDay + 1; // 1..6 => 2..7, 0 => 8
     const startTimeStr = startTimeWatch.format("HH:mm");
     const endTimeStr = endTimeWatch.format("HH:mm");
 
-    // Debug log
-    console.log("Price calculation debug:", {
-      date: startDateWatch.format("YYYY-MM-DD dddd"),
-      jsDay,
-      dayOfWeek,
-      startTimeStr,
-      endTimeStr,
-      pricingRules: pricingRules.data,
-    });
-
-    // Sắp xếp rules theo order (order nhỏ hơn = ưu tiên cao hơn)
     const sortedRules = [...pricingRules.data].sort((a, b) => (a.order || 0) - (b.order || 0));
 
-    let totalPrice = 0;
-    let currentTime = startTimeStr;
+    const computePriceForDay = (dayOfWeek: number) => {
+      let totalPriceForDay = 0;
+      let currentTime = startTimeStr;
 
-    // Chia thời gian theo từng rule theo thứ tự order
-    while (currentTime < endTimeStr) {
-      // Tìm rule phù hợp cho thời điểm hiện tại
-      const applicableRule = sortedRules.find((rule) => {
-        // Kiểm tra ngày trong tuần
-        if (rule.daysOfWeek && !rule.daysOfWeek.includes(dayOfWeek)) {
-          return false;
+      while (currentTime < endTimeStr) {
+        const applicableRule = sortedRules.find((rule) => {
+          if (rule.daysOfWeek && !rule.daysOfWeek.includes(dayOfWeek)) {
+            return false;
+          }
+          const ruleStartTime = rule.startTime.substring(0, 5);
+          const ruleEndTime = rule.endTime.substring(0, 5);
+          return currentTime >= ruleStartTime && currentTime < ruleEndTime;
+        });
+
+        if (!applicableRule) {
+          break;
         }
-        // Chuyển đổi format thời gian để so sánh (HH:mm:ss -> HH:mm)
-        const ruleStartTime = rule.startTime.substring(0, 5); // "07:00:00" -> "07:00"
-        const ruleEndTime = rule.endTime.substring(0, 5); // "14:00:00" -> "14:00"
-        // Kiểm tra thời gian hiện tại có nằm trong khung giờ rule không
-        return currentTime >= ruleStartTime && currentTime < ruleEndTime;
-      });
 
-      if (!applicableRule) {
-        // Không tìm thấy rule phù hợp, dừng tính toán
-        console.warn(`No pricing rule found for time ${currentTime} on day ${dayOfWeek}`);
-        break;
+        const ruleEndTime = applicableRule.endTime.substring(0, 5);
+        const actualEndTime = ruleEndTime < endTimeStr ? ruleEndTime : endTimeStr;
+
+        const startMinutes = parseInt(currentTime.split(":")[0]) * 60 + parseInt(currentTime.split(":")[1]);
+        const endMinutes = parseInt(actualEndTime.split(":")[0]) * 60 + parseInt(actualEndTime.split(":")[1]);
+        const hoursInThisRule = (endMinutes - startMinutes) / 60;
+
+        const priceForThisPeriod = hoursInThisRule * applicableRule.pricePerHour;
+        totalPriceForDay += priceForThisPeriod;
+
+        currentTime = actualEndTime;
       }
 
-      // Tính thời gian áp dụng rule này (chuyển đổi format)
-      const ruleEndTime = applicableRule.endTime.substring(0, 5); // "14:00:00" -> "14:00"
-      const actualEndTime = ruleEndTime < endTimeStr ? ruleEndTime : endTimeStr;
+      return totalPriceForDay;
+    };
 
-      // Tính số giờ trong rule này
-      const startMinutes = parseInt(currentTime.split(":")[0]) * 60 + parseInt(currentTime.split(":")[1]);
-      const endMinutes = parseInt(actualEndTime.split(":")[0]) * 60 + parseInt(actualEndTime.split(":")[1]);
-      const hoursInThisRule = (endMinutes - startMinutes) / 60;
-
-      // Tính giá cho khoảng thời gian này
-      const priceForThisPeriod = hoursInThisRule * applicableRule.pricePerHour;
-      totalPrice += priceForThisPeriod;
-
-      console.log(
-        `Applied rule order ${applicableRule.order}: ${currentTime} - ${actualEndTime} (${hoursInThisRule.toFixed(2)}h) = ${priceForThisPeriod.toLocaleString("vi-VN")}đ`,
-      );
-
-      // Chuyển sang thời gian tiếp theo
-      currentTime = actualEndTime;
+    // Vãng lai: dựa trên ngày startDate hiện tại
+    if (createBookingCourtDaysOfWeek === "1") {
+      if (!startDateWatch) return 0;
+      const jsDay = startDateWatch.day();
+      const dayOfWeek = jsDay === 0 ? 8 : jsDay + 1;
+      return Math.round(computePriceForDay(dayOfWeek));
     }
 
-    console.log("Total calculated price:", totalPrice.toLocaleString("vi-VN") + "đ");
+    // Cố định: cộng tổng trên toàn bộ khoảng ngày và các thứ đã chọn
+    const selectedDays = daysOfWeek?.length ? daysOfWeek : [];
+    const [rangeStart, rangeEnd] = (dateRangeWatch || []) as [any, any];
+    if (!rangeStart || !rangeEnd || selectedDays.length === 0) return 0;
 
-    return Math.round(totalPrice);
-  }, [startTimeWatch, endTimeWatch, pricingRules, startDateWatch]);
+    let total = 0;
+    let cursor = rangeStart.startOf("day");
+    const end = rangeEnd.endOf("day");
+
+    while (cursor.isBefore(end) || cursor.isSame(end, "day")) {
+      const jsDay = cursor.day();
+      const dow = jsDay === 0 ? 8 : jsDay + 1;
+      if (selectedDays.includes(dow)) {
+        total += computePriceForDay(dow);
+      }
+      cursor = cursor.add(1, "day");
+    }
+
+    return Math.round(total);
+  }, [startTimeWatch, endTimeWatch, pricingRules, startDateWatch, createBookingCourtDaysOfWeek, daysOfWeek, dateRangeWatch]);
 
   const handleCreateBooking: FormProps<CreateBookingCourtRequest>["onFinish"] = (values) => {
+    const dateRange = form.getFieldValue(["_internal", "dateRange"]) as [any, any] | undefined;
+    const isFixedSchedule = createBookingCourtDaysOfWeek === "2";
+
     const payload: CreateBookingCourtRequest = {
       ...values,
       customerId: customerWatch.value,
-      startDate: dayjs(values.startDate).toDate(),
-      endDate: createBookingCourtDaysOfWeek === "1" ? dayjs(values.startDate).toDate() : dayjs(values.endDate).toDate(),
+      startDate: isFixedSchedule && dateRange?.[0] ? dayjs(dateRange[0]).toDate() : dayjs(values.startDate).toDate(),
+      endDate: isFixedSchedule && dateRange?.[1] ? dayjs(dateRange[1]).toDate() : dayjs(values.startDate).toDate(),
       startTime: dayjs(values.startTime).format("HH:mm:ss"),
       endTime: dayjs(values.endTime).format("HH:mm:ss"),
-      daysOfWeek: createBookingCourtDaysOfWeek === "1" ? undefined : values.daysOfWeek,
+      daysOfWeek: isFixedSchedule ? values.daysOfWeek : undefined,
       note: values.note,
     } as CreateBookingCourtRequest;
-    console.log(payload);
+
+    console.log("payload", payload);
+
     createMutation.mutate(payload, {
       onSuccess: () => {
         message.success("Đặt sân thành công!");
@@ -179,6 +207,8 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
 
   const handleClose = () => {
     form.resetFields();
+    setCreateBookingCourtDaysOfWeek("1");
+    setDaysOfWeek([]);
     onClose();
   };
 
@@ -189,6 +219,10 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
     const start = dayjs(newBooking.start.toString());
     const end = dayjs(newBooking.end.toString());
     const defaultRangeEnd = start.add(1, "month");
+
+    // reset mode and selections when opening a new booking
+    setCreateBookingCourtDaysOfWeek("1");
+    setDaysOfWeek([]);
 
     form.setFieldsValue({
       courtId: newBooking.resource,
@@ -247,7 +281,8 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
         onCancel={handleClose}
         okText="Đặt sân"
         cancelText="Bỏ qua"
-        width={1000}
+        width={1500}
+        height={700}
       >
         <Form
           form={form}
@@ -263,304 +298,359 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
         >
           <Row gutter={[16, 16]}>
             <Col span={12}>
-              <FormItem<CreateBookingCourtRequest>
-                name="customerId"
-                label="Khách hàng"
-                rules={[{ required: true, message: "Khách hàng là bắt buộc" }]}
-              >
-                <DebounceSelect showSearch placeholder="Chọn khách hàng" fetchOptions={fetchCustomers} style={{ width: "100%" }} />
-              </FormItem>
+              <Row gutter={[16, 16]}>
+                <Col span={12}>
+                  <FormItem<CreateBookingCourtRequest>
+                    name="customerId"
+                    label="Khách hàng"
+                    rules={[{ required: true, message: "Khách hàng là bắt buộc" }]}
+                  >
+                    <DebounceSelect showSearch placeholder="Chọn khách hàng" fetchOptions={fetchCustomers} style={{ width: "100%" }} />
+                  </FormItem>
+                </Col>
+
+                <Col span={12}>
+                  <FormItem<CreateBookingCourtRequest> name="courtId" label="Sân" rules={[{ required: true, message: "Sân là bắt buộc" }]}>
+                    <Select disabled={true} placeholder="Chọn sân" options={courts?.data?.map((court) => ({ value: court.id, label: court.name }))} />
+                  </FormItem>
+                </Col>
+
+                <Col span={24}>
+                  <FormItem<CreateBookingCourtRequest> name="note" label="Ghi chú">
+                    <Input.TextArea placeholder="Nhập ghi chú" />
+                  </FormItem>
+                </Col>
+
+                <Col span={24}>
+                  <Radio.Group
+                    block
+                    options={createBookingCourtDaysOfWeekOptions}
+                    value={createBookingCourtDaysOfWeek}
+                    optionType="button"
+                    buttonStyle="solid"
+                    onChange={(e) => {
+                      setCreateBookingCourtDaysOfWeek(e.target.value);
+                    }}
+                  />
+                </Col>
+
+                <Col span={24}>
+                  {createBookingCourtDaysOfWeek === "1" && (
+                    <Card>
+                      <Row gutter={16}>
+                        <Col span={8}>
+                          <FormItem<CreateBookingCourtRequest>
+                            name="startDate"
+                            label="Ngày đặt sân"
+                            rules={[{ required: true, message: "Ngày đặt sân là bắt buộc" }]}
+                          >
+                            <DatePicker
+                              placeholder="Chọn ngày bắt đầu"
+                              format="DD/MM/YYYY"
+                              style={{ width: "100%" }}
+                              disabledDate={(current) => current && current < dayjs().startOf("day")}
+                            />
+                          </FormItem>
+                        </Col>
+                        <Col span={8}>
+                          <FormItem<CreateBookingCourtRequest>
+                            name="startTime"
+                            label="Giờ bắt đầu"
+                            dependencies={["endTime"]}
+                            rules={[
+                              { required: true, message: "Giờ bắt đầu là bắt buộc" },
+                              {
+                                validator: (_, value) => {
+                                  // must check is after or equal
+                                  if ((value && endTimeWatch && value.isAfter(endTimeWatch)) || value?.isSame?.(endTimeWatch)) {
+                                    return Promise.reject(new Error("Giờ bắt đầu phải trước giờ kết thúc"));
+                                  }
+                                  // prevent past time when selected date is today
+                                  if (value && startDateWatch && startDateWatch.isSame(dayjs(), "day") && value.isBefore(dayjs())) {
+                                    return Promise.reject(new Error("Giờ bắt đầu không được trong quá khứ hôm nay"));
+                                  }
+                                  return Promise.resolve();
+                                },
+                              },
+                            ]}
+                          >
+                            <TimePicker
+                              placeholder="Chọn giờ bắt đầu"
+                              format="HH:mm"
+                              style={{ width: "100%" }}
+                              onChange={() => {
+                                // revalidate counterpart to clear stale error
+                                form.validateFields(["endTime"]).catch(() => undefined);
+                              }}
+                            />
+                          </FormItem>
+                        </Col>
+                        <Col span={8}>
+                          <FormItem<CreateBookingCourtRequest>
+                            name="endTime"
+                            label="Giờ kết thúc"
+                            dependencies={["startTime"]}
+                            rules={[
+                              { required: true, message: "Giờ kết thúc là bắt buộc" },
+                              {
+                                validator: (_, value) => {
+                                  if (value && startTimeWatch && value.isBefore(startTimeWatch)) {
+                                    return Promise.reject(new Error("Giờ kết thúc phải sau giờ bắt đầu"));
+                                  }
+                                  // prevent past time when selected date is today
+                                  if (value && startDateWatch && startDateWatch.isSame(dayjs(), "day") && value.isBefore(dayjs())) {
+                                    return Promise.reject(new Error("Giờ kết thúc không được trong quá khứ hôm nay"));
+                                  }
+                                  return Promise.resolve();
+                                },
+                              },
+                            ]}
+                          >
+                            <TimePicker
+                              placeholder="Chọn giờ kết thúc"
+                              format="HH:mm"
+                              style={{ width: "100%" }}
+                              onChange={() => {
+                                form.validateFields(["startTime"]).catch(() => undefined);
+                              }}
+                            />
+                          </FormItem>
+                        </Col>
+                      </Row>
+                    </Card>
+                  )}
+                  {createBookingCourtDaysOfWeek === "2" && (
+                    <Card>
+                      <Row gutter={16}>
+                        <Col span={12}>
+                          <FormItem
+                            name={["_internal", "dateRange"]}
+                            label="Khoảng ngày"
+                            rules={[{ required: true, message: "Khoảng ngày là bắt buộc" }]}
+                          >
+                            <RangePicker
+                              placeholder={["Chọn ngày bắt đầu", "Chọn ngày kết thúc"]}
+                              format="DD/MM/YYYY"
+                              style={{ width: "100%" }}
+                              disabledDate={(current) => current && current < dayjs().startOf("day")}
+                            />
+                          </FormItem>
+                        </Col>
+                        <Col span={6}>
+                          <FormItem<CreateBookingCourtRequest>
+                            name="startTime"
+                            label="Giờ bắt đầu"
+                            rules={[
+                              { required: true, message: "Giờ bắt đầu là bắt buộc" },
+                              {
+                                validator: (_, value) => {
+                                  const [rangeStart] = (dateRangeWatch || []) as [any, any];
+                                  if (value && rangeStart && rangeStart.isSame(dayjs(), "day") && value.isBefore(dayjs())) {
+                                    return Promise.reject(new Error("Giờ bắt đầu không được trong quá khứ hôm nay"));
+                                  }
+                                  return Promise.resolve();
+                                },
+                              },
+                            ]}
+                          >
+                            <TimePicker placeholder="Chọn giờ bắt đầu" style={{ width: "100%" }} />
+                          </FormItem>
+                        </Col>
+                        <Col span={6}>
+                          <FormItem<CreateBookingCourtRequest>
+                            name="endTime"
+                            label="Giờ kết thúc"
+                            rules={[
+                              { required: true, message: "Giờ kết thúc là bắt buộc" },
+                              {
+                                validator: (_, value) => {
+                                  const [rangeStart] = (dateRangeWatch || []) as [any, any];
+                                  if (value && rangeStart && rangeStart.isSame(dayjs(), "day") && value.isBefore(dayjs())) {
+                                    return Promise.reject(new Error("Giờ kết thúc không được trong quá khứ hôm nay"));
+                                  }
+                                  return Promise.resolve();
+                                },
+                              },
+                            ]}
+                          >
+                            <TimePicker placeholder="Chọn giờ kết thúc" style={{ width: "100%" }} />
+                          </FormItem>
+                        </Col>
+                        <Col span={24}>
+                          <FormItem<CreateBookingCourtRequest>
+                            name="daysOfWeek"
+                            label="Ngày trong tuần"
+                            rules={[{ required: true, message: "Ngày trong tuần là bắt buộc" }]}
+                          >
+                            <Select
+                              mode="multiple"
+                              placeholder="Chọn ngày trong tuần"
+                              value={daysOfWeek}
+                              options={daysOfWeekOptions}
+                              onChange={(vals) => setDaysOfWeek(vals)}
+                            />
+                          </FormItem>
+                        </Col>
+                      </Row>
+                    </Card>
+                  )}
+                </Col>
+              </Row>
             </Col>
 
             <Col span={12}>
-              <FormItem<CreateBookingCourtRequest> name="courtId" label="Sân" rules={[{ required: true, message: "Sân là bắt buộc" }]}>
-                <Select disabled={true} placeholder="Chọn sân" options={courts?.data?.map((court) => ({ value: court.id, label: court.name }))} />
-              </FormItem>
-            </Col>
-
-            <Col span={24}>
-              <FormItem<CreateBookingCourtRequest> name="note" label="Ghi chú">
-                <Input.TextArea placeholder="Nhập ghi chú" />
-              </FormItem>
-            </Col>
-
-            <Col span={24}>
-              <Radio.Group
-                block
-                options={createBookingCourtDaysOfWeekOptions}
-                defaultValue={createBookingCourtDaysOfWeek}
-                optionType="button"
-                buttonStyle="solid"
-                onChange={(e) => {
-                  setCreateBookingCourtDaysOfWeek(e.target.value);
-                }}
-              />
-            </Col>
-
-            <Col span={24}>
-              {createBookingCourtDaysOfWeek === "1" && (
-                <Card>
-                  <Row gutter={16}>
-                    <Col span={8}>
-                      <FormItem<CreateBookingCourtRequest>
-                        name="startDate"
-                        label="Ngày đặt sân"
-                        rules={[{ required: true, message: "Ngày đặt sân là bắt buộc" }]}
-                      >
-                        <DatePicker placeholder="Chọn ngày bắt đầu" format="DD/MM/YYYY" style={{ width: "100%" }} />
-                      </FormItem>
-                    </Col>
-                    <Col span={8}>
-                      <FormItem<CreateBookingCourtRequest>
-                        name="startTime"
-                        label="Giờ bắt đầu"
-                        dependencies={["endTime"]}
-                        rules={[
-                          { required: true, message: "Giờ bắt đầu là bắt buộc" },
-                          {
-                            validator: (_, value) => {
-                              // must check is after or equal
-                              if ((value && endTimeWatch && value.isAfter(endTimeWatch)) || value?.isSame?.(endTimeWatch)) {
-                                return Promise.reject(new Error("Giờ bắt đầu phải trước giờ kết thúc"));
-                              }
-                              return Promise.resolve();
-                            },
-                          },
-                        ]}
-                      >
-                        <TimePicker
-                          placeholder="Chọn giờ bắt đầu"
-                          format="HH:mm"
-                          style={{ width: "100%" }}
-                          onChange={() => {
-                            // revalidate counterpart to clear stale error
-                            form.validateFields(["endTime"]).catch(() => undefined);
-                          }}
-                        />
-                      </FormItem>
-                    </Col>
-                    <Col span={8}>
-                      <FormItem<CreateBookingCourtRequest>
-                        name="endTime"
-                        label="Giờ kết thúc"
-                        dependencies={["startTime"]}
-                        rules={[
-                          { required: true, message: "Giờ kết thúc là bắt buộc" },
-                          {
-                            validator: (_, value) => {
-                              if (value && startTimeWatch && value.isBefore(startTimeWatch)) {
-                                return Promise.reject(new Error("Giờ kết thúc phải sau giờ bắt đầu"));
-                              }
-                              return Promise.resolve();
-                            },
-                          },
-                        ]}
-                      >
-                        <TimePicker
-                          placeholder="Chọn giờ kết thúc"
-                          format="HH:mm"
-                          style={{ width: "100%" }}
-                          onChange={() => {
-                            form.validateFields(["startTime"]).catch(() => undefined);
-                          }}
-                        />
-                      </FormItem>
-                    </Col>
-                  </Row>
-                </Card>
-              )}
-              {createBookingCourtDaysOfWeek === "2" && (
-                <Card>
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <FormItem
-                        name={["_internal", "dateRange"]}
-                        label="Khoảng ngày"
-                        rules={[{ required: true, message: "Khoảng ngày là bắt buộc" }]}
-                      >
-                        <RangePicker placeholder={["Chọn ngày bắt đầu", "Chọn ngày kết thúc"]} format="DD/MM/YYYY" style={{ width: "100%" }} />
-                      </FormItem>
-                    </Col>
-                    <Col span={6}>
-                      <FormItem<CreateBookingCourtRequest>
-                        name="startTime"
-                        label="Giờ bắt đầu"
-                        rules={[{ required: true, message: "Giờ bắt đầu là bắt buộc" }]}
-                      >
-                        <TimePicker placeholder="Chọn giờ bắt đầu" style={{ width: "100%" }} />
-                      </FormItem>
-                    </Col>
-                    <Col span={6}>
-                      <FormItem<CreateBookingCourtRequest>
-                        name="endTime"
-                        label="Giờ kết thúc"
-                        rules={[{ required: true, message: "Giờ kết thúc là bắt buộc" }]}
-                      >
-                        <TimePicker placeholder="Chọn giờ kết thúc" style={{ width: "100%" }} />
-                      </FormItem>
-                    </Col>
-                    <Col span={24}>
-                      <FormItem<CreateBookingCourtRequest>
-                        name="daysOfWeek"
-                        label="Ngày trong tuần"
-                        rules={[{ required: true, message: "Ngày trong tuần là bắt buộc" }]}
-                      >
-                        <Select
-                          mode="multiple"
-                          placeholder="Chọn ngày trong tuần"
-                          value={daysOfWeek}
-                          options={daysOfWeekOptions}
-                          onChange={(vals) => setDaysOfWeek(vals)}
-                        />
-                      </FormItem>
-                    </Col>
-                  </Row>
-                </Card>
-              )}
-            </Col>
-
-            <Col span={24}>
-              {createBookingCourtDaysOfWeek === "1" && (
-                <Descriptions
-                  title="Thông tin đặt sân"
-                  bordered
-                  size="small"
-                  column={2}
-                  items={[
-                    {
-                      key: "0",
-                      label: "Kiểu đặt sân",
-                      children: "Đặt lịch vãng lai",
-                      span: 2,
-                    },
-                    {
-                      key: "1",
-                      label: "Khách hàng",
-                      children: customerInfo ? `${customerInfo?.fullName}` : "-",
-                      span: 1,
-                    },
-                    {
-                      key: "2",
-                      label: "Số điện thoại",
-                      children: customerInfo ? `${customerInfo?.phoneNumber}` : "-",
-                      span: 1,
-                    },
-                    {
-                      key: "3",
-                      label: "Sân",
-                      children: courts?.data?.find((court) => court.id === courtWatch)?.name ?? "-",
-                      span: 2,
-                    },
-                    {
-                      key: "4",
-                      label: "Ngày đặt sân",
-                      children: `${startDateWatch?.format?.("dddd")}, ngày ${startDateWatch?.format?.("DD")} tháng ${startDateWatch?.format?.("MM")} năm ${startDateWatch?.format?.("YYYY")}`,
-                      span: 2,
-                    },
-                    {
-                      key: "5",
-                      label: "Giờ bắt đầu",
-                      children: startTimeWatch?.format?.("HH:mm") ?? "-",
-                      span: 1,
-                      style: { color: startTimeWatch?.isSame(endTimeWatch) || startTimeWatch?.isAfter(endTimeWatch) ? "red" : "inherit" },
-                    },
-                    {
-                      key: "6",
-                      label: "Giờ kết thúc",
-                      children: endTimeWatch?.format?.("HH:mm") ?? "-",
-                      span: 1,
-                      style: { color: endTimeWatch?.isSame(startTimeWatch) || endTimeWatch?.isBefore(startTimeWatch) ? "red" : "inherit" },
-                    },
-                    {
-                      key: "7",
-                      label: "Tổng số giờ đặt sân",
-                      children: `${totalHoursPlay} giờ`,
-                      span: 1,
-                      style: { color: totalHoursPlay < 1 ? "red" : "inherit" },
-                    },
-                    {
-                      key: "8",
-                      label: "Tổng số tiền cần trả (tạm tính)",
-                      children: calculatedPrice > 0 ? `${calculatedPrice.toLocaleString("vi-VN")} đ` : "Chưa xác định",
-                      span: 1,
-                      style: {
-                        color: calculatedPrice > 0 ? "inherit" : "orange",
-                        fontWeight: calculatedPrice > 0 ? "bold" : "normal",
+              <Col span={24}>
+                {createBookingCourtDaysOfWeek === "1" && (
+                  <Descriptions
+                    title="Thông tin đặt sân"
+                    bordered
+                    size="small"
+                    column={2}
+                    items={[
+                      {
+                        key: "0",
+                        label: "Kiểu đặt sân",
+                        children: "Đặt lịch vãng lai",
+                        span: 2,
                       },
-                    },
-                  ]}
-                />
-              )}
-
-              {createBookingCourtDaysOfWeek === "2" && (
-                <Descriptions
-                  title="Thông tin đặt sân"
-                  bordered
-                  size="small"
-                  column={2}
-                  items={[
-                    {
-                      key: "0",
-                      label: "Kiểu đặt sân",
-                      children: "Đặt lịch vãng lai",
-                      span: 2,
-                    },
-                    {
-                      key: "1",
-                      label: "Khách hàng",
-                      children: customerInfo ? `${customerInfo?.fullName}` : "-",
-                      span: 1,
-                    },
-                    {
-                      key: "2",
-                      label: "Số điện thoại",
-                      children: customerInfo ? `${customerInfo?.phoneNumber}` : "-",
-                      span: 1,
-                    },
-                    {
-                      key: "3",
-                      label: "Sân",
-                      children: courts?.data?.find((court) => court.id === courtWatch)?.name ?? "-",
-                      span: 2,
-                    },
-                    {
-                      key: "4",
-                      label: "Ngày đặt sân",
-                      children: `${startDateWatch?.format?.("dddd")}, ngày ${startDateWatch?.format?.("DD")} tháng ${startDateWatch?.format?.("MM")} năm ${startDateWatch?.format?.("YYYY")}`,
-                      span: 2,
-                    },
-                    {
-                      key: "5",
-                      label: "Giờ bắt đầu",
-                      children: startTimeWatch?.format?.("HH:mm") ?? "-",
-                      span: 1,
-                    },
-                    {
-                      key: "6",
-                      label: "Giờ kết thúc",
-                      children: endTimeWatch?.format?.("HH:mm") ?? "-",
-                      span: 1,
-                    },
-                    {
-                      key: "7",
-                      label: "Tổng số giờ đặt sân",
-                      children: `${totalHoursPlay} giờ`,
-                      span: 1,
-                      style: { color: totalHoursPlay < 1 ? "red" : "inherit" },
-                    },
-                    {
-                      key: "8",
-                      label: "Tổng số tiền cần trả (tạm tính)",
-                      children: calculatedPrice > 0 ? `${calculatedPrice.toLocaleString("vi-VN")} đ` : "Chưa xác định",
-                      span: 1,
-                      style: {
-                        color: calculatedPrice > 0 ? "inherit" : "orange",
-                        fontWeight: calculatedPrice > 0 ? "bold" : "normal",
+                      {
+                        key: "1",
+                        label: "Khách hàng",
+                        children: customerInfo ? `${customerInfo?.fullName}` : "-",
+                        span: 1,
                       },
-                    },
-                  ]}
-                />
-              )}
+                      {
+                        key: "2",
+                        label: "Số điện thoại",
+                        children: customerInfo ? `${customerInfo?.phoneNumber}` : "-",
+                        span: 1,
+                      },
+                      {
+                        key: "3",
+                        label: "Sân",
+                        children: courts?.data?.find((court) => court.id === courtWatch)?.name ?? "-",
+                        span: 2,
+                      },
+                      {
+                        key: "4",
+                        label: "Ngày đặt sân",
+                        children: `${startDateWatch?.format?.("dddd")}, ngày ${startDateWatch?.format?.("DD")} tháng ${startDateWatch?.format?.("MM")} năm ${startDateWatch?.format?.("YYYY")}`,
+                        span: 2,
+                      },
+                      {
+                        key: "5",
+                        label: "Giờ bắt đầu",
+                        children: startTimeWatch?.format?.("HH:mm") ?? "-",
+                        span: 1,
+                        style: { color: startTimeWatch?.isSame(endTimeWatch) || startTimeWatch?.isAfter(endTimeWatch) ? "red" : "inherit" },
+                      },
+                      {
+                        key: "6",
+                        label: "Giờ kết thúc",
+                        children: endTimeWatch?.format?.("HH:mm") ?? "-",
+                        span: 1,
+                        style: { color: endTimeWatch?.isSame(startTimeWatch) || endTimeWatch?.isBefore(startTimeWatch) ? "red" : "inherit" },
+                      },
+                      {
+                        key: "7",
+                        label: "Tổng số giờ đặt sân",
+                        children: `${totalHoursPlay} giờ`,
+                        span: 1,
+                        style: { color: totalHoursPlay < 1 ? "red" : "inherit" },
+                      },
+                      {
+                        key: "8",
+                        label: "Tổng số tiền cần trả (tạm tính)",
+                        children: calculatedPrice > 0 ? `${calculatedPrice.toLocaleString("vi-VN")} đ` : "Chưa xác định",
+                        span: 1,
+                        style: {
+                          color: calculatedPrice > 0 ? "inherit" : "orange",
+                          fontWeight: calculatedPrice > 0 ? "bold" : "normal",
+                        },
+                      },
+                    ]}
+                  />
+                )}
+
+                {createBookingCourtDaysOfWeek === "2" && (
+                  <Descriptions
+                    title="Thông tin đặt sân"
+                    bordered
+                    size="small"
+                    column={2}
+                    items={[
+                      {
+                        key: "0",
+                        label: "Kiểu đặt sân",
+                        children: "Đặt lịch cố định",
+                        span: 2,
+                      },
+                      {
+                        key: "1",
+                        label: "Khách hàng",
+                        children: customerInfo ? `${customerInfo?.fullName}` : "-",
+                        span: 1,
+                      },
+                      {
+                        key: "2",
+                        label: "Số điện thoại",
+                        children: customerInfo ? `${customerInfo?.phoneNumber}` : "-",
+                        span: 1,
+                      },
+                      {
+                        key: "3",
+                        label: "Sân",
+                        children: courts?.data?.find((court) => court.id === courtWatch)?.name ?? "-",
+                        span: 2,
+                      },
+                      {
+                        key: "4",
+                        label: "Khoảng ngày",
+                        children:
+                          dateRangeWatch && dateRangeWatch[0] && dateRangeWatch[1]
+                            ? `${dateRangeWatch[0].format("DD/MM/YYYY")} - ${dateRangeWatch[1].format("DD/MM/YYYY")}`
+                            : "-",
+                        span: 2,
+                      },
+                      {
+                        key: "5",
+                        label: "Giờ bắt đầu",
+                        children: startTimeWatch?.format?.("HH:mm") ?? "-",
+                        span: 1,
+                      },
+                      {
+                        key: "6",
+                        label: "Giờ kết thúc",
+                        children: endTimeWatch?.format?.("HH:mm") ?? "-",
+                        span: 1,
+                      },
+                      {
+                        key: "7",
+                        label: "Tổng số buổi",
+                        children: `${totalSessions} buổi`,
+                        span: 1,
+                      },
+                      {
+                        key: "8",
+                        label: "Tổng số giờ mỗi buổi",
+                        children: `${totalHoursPlay} giờ`,
+                        span: 1,
+                        style: { color: totalHoursPlay < 1 ? "red" : "inherit" },
+                      },
+                      {
+                        key: "9",
+                        label: "Tổng số tiền cần trả (tạm tính)",
+                        children: calculatedPrice > 0 ? `${calculatedPrice.toLocaleString("vi-VN")} đ` : "Chưa xác định",
+                        span: 1,
+                        style: {
+                          color: calculatedPrice > 0 ? "inherit" : "orange",
+                          fontWeight: calculatedPrice > 0 ? "bold" : "normal",
+                        },
+                      },
+                    ]}
+                  />
+                )}
+              </Col>
             </Col>
           </Row>
         </Form>

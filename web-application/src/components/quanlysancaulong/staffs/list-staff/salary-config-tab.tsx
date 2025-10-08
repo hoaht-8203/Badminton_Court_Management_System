@@ -34,9 +34,7 @@ const SalaryConfigTab = ({ staff }: { staff: any }) => {
             <Descriptions.Item label="Thiết lập nâng cao">
               {salaryObj.advancedRows.map((row: any, idx: number) => (
                 <div key={idx} style={{ marginBottom: 8 }}>
-                  <Tag color="blue">
-                    {row.shiftId === 0 ? "Mặc định" : row.shiftName || row.shiftId}
-                  </Tag> - <b>{row.amount}</b> / ca
+                  <Tag color="blue">{row.shiftId === 0 ? "Mặc định" : row.shiftName || row.shiftId}</Tag> - <b>{row.amount}</b> / ca
                   <span style={{ marginLeft: 8 }}>
                     Thứ 7: {row.saturday}, Chủ nhật: {row.sunday}, Ngày nghỉ: {row.holiday}, Ngày lễ: {row.specialDay}
                   </span>

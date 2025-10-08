@@ -85,6 +85,12 @@ export interface StaffRequest {
      * @memberof StaffRequest
      */
     salarySettings?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof StaffRequest
+     */
+    accountId?: string | null;
 }
 
 /**
@@ -115,6 +121,7 @@ export function StaffRequestFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'salarySettings': json['salarySettings'] == null ? undefined : json['salarySettings'],
+        'accountId': json['accountId'] == null ? undefined : json['accountId'],
     };
 }
 
@@ -140,6 +147,7 @@ export function StaffRequestToJSONTyped(value?: StaffRequest | null, ignoreDiscr
         'avatarUrl': value['avatarUrl'],
         'isActive': value['isActive'],
         'salarySettings': value['salarySettings'],
+        'accountId': value['accountId'],
     };
 }
 

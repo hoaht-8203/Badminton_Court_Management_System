@@ -285,4 +285,51 @@ public class EmailService : IEmailService
 
         return await SendTemplateEmailAsync(templateRequest);
     }
+
+    public async Task<EmailResponse> SendPaymentRequestEmailAsync(
+        SendPaymentRequestEmailAsyncRequest request
+    )
+    {
+        var templateRequest = new EmailTemplateRequest
+        {
+            To = request.To,
+            ToName = request.ToName,
+            TemplateType = EmailTemplateType.PaymentRequest,
+            TemplateData = new Dictionary<string, string>
+            {
+                { "CustomerName", request.ToName ?? request.To },
+                { "PaymentId", request.PaymentId },
+                { "Amount", request.Amount },
+                { "CourtName", request.CourtName },
+                { "StartDate", request.StartDate },
+                { "StartTime", request.StartTime },
+                { "EndTime", request.EndTime },
+                { "QrUrl", request.QrUrl },
+                { "HoldMinutes", request.HoldMinutes.ToString() },
+            },
+        };
+        return await SendTemplateEmailAsync(templateRequest);
+    }
+
+    public async Task<EmailResponse> SendBookingConfirmationEmailAsync(
+        SendBookingConfirmationEmailAsyncRequest request
+    )
+    {
+        var templateRequest = new EmailTemplateRequest
+        {
+            To = request.To,
+            ToName = request.ToName,
+            TemplateType = EmailTemplateType.BookingConfirmation,
+            TemplateData = new Dictionary<string, string>
+            {
+                { "CustomerName", request.CustomerName },
+                { "CourtName", request.CourtName },
+                { "StartDate", request.StartDate },
+                { "StartTime", request.StartTime },
+                { "EndTime", request.EndTime },
+                { "PaidAmount", request.PaidAmount },
+            },
+        };
+        return await SendTemplateEmailAsync(templateRequest);
+    }
 }

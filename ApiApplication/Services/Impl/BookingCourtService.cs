@@ -257,7 +257,8 @@ public class BookingCourtService(
 
         // Note: email sending with payment link handled in higher layer (e.g., BookingCourtsController)
 
-        return _mapper.Map<DetailBookingCourtResponse>(entity);
+        // Return enriched detail (includes payment summary and QR info if applicable)
+        return await DetailBookingCourtAsync(new DetailBookingCourtRequest { Id = entity.Id });
     }
 
     private static int GetCustomDayOfWeek(DateOnly date)
@@ -411,6 +412,23 @@ public class BookingCourtService(
             var first = entity.Payments.OrderBy(p => p.PaymentCreatedAt).First();
             var ratio = totalAmount == 0 ? 0 : first.Amount / totalAmount;
             dto.PaymentType = ratio >= 0.99m ? "Full" : "Deposit";
+            // Inline QR info for transfer (pending) case
+            if (
+                !string.Equals(first.Status, PaymentStatus.Paid, StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                dto.PaymentId = first.Id;
+                dto.PaymentAmount = first.Amount;
+                var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
+                var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
+                var amount = ((long)Math.Round(first.Amount, 0)).ToString();
+                var des = Uri.EscapeDataString(first.Id);
+                dto.QrUrl =
+                    $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
+                var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
+                dto.HoldMinutes = holdMins;
+                dto.ExpiresAtUtc = first.PaymentCreatedAt.AddMinutes(holdMins);
+            }
         }
 
         return dto;

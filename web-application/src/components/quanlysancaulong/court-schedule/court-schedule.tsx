@@ -441,7 +441,11 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
               onEventClick={async (args) => {
                 const id = String(args.e.data.id ?? "");
                 if (!id) return;
-                setDetailId(id);
+                if (id.includes("@")) {
+                  setDetailId(id.split("@")[0]);
+                } else {
+                  setDetailId(id);
+                }
                 setOpenDetail(true);
               }}
               treeEnabled={true}

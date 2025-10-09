@@ -1,6 +1,6 @@
 import { useListCourts, useListCourtPricingRuleByCourtId } from "@/hooks/useCourt";
 import { customerService } from "@/services/customerService";
-import { CreateBookingCourtRequest, DetailCustomerResponse } from "@/types-openapi/api";
+import { CreateBookingCourtRequest, DetailBookingCourtResponse, DetailCustomerResponse } from "@/types-openapi/api";
 import { Card, Checkbox, Col, DatePicker, Descriptions, Form, FormProps, Input, message, Modal, Radio, Row, Select, TimePicker } from "antd";
 import { CheckboxGroupProps } from "antd/es/checkbox";
 import FormItem from "antd/es/form/FormItem";
@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { DebounceSelect } from "./DebounceSelect";
 import { ApiError } from "@/lib/axios";
 import { useCreateBookingCourt } from "@/hooks/useBookingCourt";
+import QrPaymentDrawer from "./qr-payment-drawer";
 
 interface ModelCreateNewBookingProps {
   open: boolean;
@@ -65,6 +66,8 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
   const { data: courts } = useListCourts({});
   const { data: pricingRules } = useListCourtPricingRuleByCourtId({ courtId: courtWatch || "" });
   const createMutation = useCreateBookingCourt();
+  const [openQr, setOpenQr] = useState(false);
+  const [createdDetail, setCreatedDetail] = useState<DetailBookingCourtResponse | null>(null);
 
   // Tổng số buổi trong khoảng ngày theo các thứ đã chọn (chỉ cho chế độ cố định)
   const totalSessions = useMemo(() => {
@@ -198,9 +201,16 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
     console.log("payload", payload);
 
     createMutation.mutate(payload, {
-      onSuccess: () => {
+      onSuccess: (res) => {
         message.success("Đặt sân thành công!");
+        const detail = res.data as DetailBookingCourtResponse | undefined;
+        // Close the create modal first
         handleClose();
+        // If API returns QR info (transfer flow), open Drawer with returned detail
+        if (detail && (detail.qrUrl || detail.paymentId)) {
+          setCreatedDetail(detail);
+          setOpenQr(true);
+        }
       },
       onError: (error: ApiError) => {
         message.error(error.message);
@@ -729,6 +739,18 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
           </Row>
         </Form>
       </Modal>
+
+      <QrPaymentDrawer
+        bookingDetail={createdDetail}
+        open={openQr}
+        onClose={() => {
+          setOpenQr(false);
+          setCreatedDetail(null);
+          handleClose();
+        }}
+        title="Thanh toán chuyển khoản"
+        width={560}
+      />
     </div>
   );
 };

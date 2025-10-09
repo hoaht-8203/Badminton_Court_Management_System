@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { courtScheduleService } from "@/services/courtScheduleService";
+import { paymentService, QrPaymentResponse } from "@/services/paymentService";
 import { CreateBookingCourtRequest, DetailBookingCourtResponse, ListBookingCourtRequest, ListBookingCourtResponse } from "@/types-openapi/api";
 import { ApiError } from "@/lib/axios";
 import { ApiResponse } from "@/types/api";
@@ -29,6 +30,14 @@ export const useCreateBookingCourt = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
     },
+  });
+};
+
+export const useQrByBookingId = (bookingId?: string) => {
+  return useQuery<ApiResponse<QrPaymentResponse | null>, ApiError>({
+    queryKey: ["qrByBooking", bookingId],
+    queryFn: () => paymentService.getQrByBookingId(bookingId as string),
+    enabled: !!bookingId,
   });
 };
 

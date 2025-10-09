@@ -147,54 +147,68 @@ public class PaymentService(
 
     private async Task<decimal> CalculateBookingAmountAsync(BookingCourt booking)
     {
-        var dow = GetCustomDayOfWeek(booking.StartDate);
-
-        // Lấy tất cả rules phù hợp với ngày trong tuần và sắp xếp theo order
-        var rules = await _context
-            .CourtPricingRules.Where(r =>
-                r.CourtId == booking.CourtId && r.DaysOfWeek.Contains(dow)
-            )
-            .OrderBy(r => r.Order) // Sắp xếp theo order (order nhỏ hơn = ưu tiên cao hơn)
-            .ToListAsync();
-
-        if (rules.Count == 0)
+        // Helper: compute price for a single day-of-week using court rules and the booking's time range
+        async Task<decimal> ComputePerDayAsync(int dayOfWeek)
         {
-            return 0m;
-        }
+            var rules = await _context
+                .CourtPricingRules.Where(r =>
+                    r.CourtId == booking.CourtId && r.DaysOfWeek.Contains(dayOfWeek)
+                )
+                .OrderBy(r => r.Order)
+                .ToListAsync();
 
-        var total = 0m;
-        var currentTime = booking.StartTime;
-        var endTime = booking.EndTime;
-
-        // Chia thời gian theo từng rule theo thứ tự order
-        while (currentTime < endTime)
-        {
-            // Tìm rule phù hợp cho thời điểm hiện tại
-            var applicableRule = rules.FirstOrDefault(r =>
-                currentTime >= r.StartTime && currentTime < r.EndTime
-            );
-
-            if (applicableRule == null)
+            if (rules.Count == 0)
             {
-                // Không tìm thấy rule phù hợp, dừng tính toán
-                break;
+                return 0m;
             }
 
-            // Tính thời gian áp dụng rule này
-            var ruleEndTime = applicableRule.EndTime < endTime ? applicableRule.EndTime : endTime;
+            var totalForDay = 0m;
+            var currentTime = booking.StartTime;
+            var endTime = booking.EndTime;
 
-            // Tính số giờ trong rule này
-            var hours = (decimal)(ruleEndTime.ToTimeSpan() - currentTime.ToTimeSpan()).TotalHours;
+            while (currentTime < endTime)
+            {
+                var applicableRule = rules.FirstOrDefault(r =>
+                    currentTime >= r.StartTime && currentTime < r.EndTime
+                );
+                if (applicableRule == null)
+                {
+                    break;
+                }
+                var ruleEndTime =
+                    applicableRule.EndTime < endTime ? applicableRule.EndTime : endTime;
+                var hours = (decimal)
+                    (ruleEndTime.ToTimeSpan() - currentTime.ToTimeSpan()).TotalHours;
+                totalForDay += applicableRule.PricePerHour * hours;
+                currentTime = ruleEndTime;
+            }
 
-            // Tính giá cho khoảng thời gian này
-            var priceForThisPeriod = applicableRule.PricePerHour * hours;
-            total += priceForThisPeriod;
-
-            // Chuyển sang thời gian tiếp theo
-            currentTime = ruleEndTime;
+            return totalForDay;
         }
 
-        return Math.Round(total, 2);
+        // If fixed schedule: sum for each applicable date between StartDate..EndDate inclusive
+        var daysArray = booking.DaysOfWeek ?? Array.Empty<int>();
+        if (daysArray.Length > 0)
+        {
+            var total = 0m;
+            var cursor = booking.StartDate;
+            var end = booking.EndDate;
+            while (cursor <= end)
+            {
+                var dow = GetCustomDayOfWeek(cursor);
+                if (daysArray.Contains(dow))
+                {
+                    total += await ComputePerDayAsync(dow);
+                }
+                cursor = cursor.AddDays(1);
+            }
+            return Math.Round(total, 2);
+        }
+
+        // Walk-in: single day (StartDate)
+        var walkInDow = GetCustomDayOfWeek(booking.StartDate);
+        var walkInTotal = await ComputePerDayAsync(walkInDow);
+        return Math.Round(walkInTotal, 2);
     }
 
     private static TimeOnly Max(TimeOnly a, TimeOnly b) => a > b ? a : b;

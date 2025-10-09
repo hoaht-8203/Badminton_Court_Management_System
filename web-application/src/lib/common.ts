@@ -26,7 +26,7 @@ export function expandBookings(bookings: ListBookingCourtResponse[]) {
         if (b.daysOfWeek?.includes(dbDow)) {
           const { id, ...bookingData } = b;
           events.push({
-            id: `${b.id}-${index}`,
+            id: `${b.id}@${index}`,
             text: b.customerName ?? "",
             start: current.format("YYYY-MM-DD") + "T" + b.startTime,
             end: current.format("YYYY-MM-DD") + "T" + b.endTime,

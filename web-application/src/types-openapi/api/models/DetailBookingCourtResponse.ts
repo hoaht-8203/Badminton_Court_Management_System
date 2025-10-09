@@ -136,6 +136,36 @@ export interface DetailBookingCourtResponse {
      * @memberof DetailBookingCourtResponse
      */
     paymentType?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailBookingCourtResponse
+     */
+    paymentId?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    paymentAmount?: number | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailBookingCourtResponse
+     */
+    qrUrl?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    holdMinutes?: number | null;
+    /**
+     * 
+     * @type {Date}
+     * @memberof DetailBookingCourtResponse
+     */
+    expiresAtUtc?: Date | null;
 }
 
 /**
@@ -172,6 +202,11 @@ export function DetailBookingCourtResponseFromJSONTyped(json: any, ignoreDiscrim
         'paidAmount': json['paidAmount'] == null ? undefined : json['paidAmount'],
         'remainingAmount': json['remainingAmount'] == null ? undefined : json['remainingAmount'],
         'paymentType': json['paymentType'] == null ? undefined : json['paymentType'],
+        'paymentId': json['paymentId'] == null ? undefined : json['paymentId'],
+        'paymentAmount': json['paymentAmount'] == null ? undefined : json['paymentAmount'],
+        'qrUrl': json['qrUrl'] == null ? undefined : json['qrUrl'],
+        'holdMinutes': json['holdMinutes'] == null ? undefined : json['holdMinutes'],
+        'expiresAtUtc': json['expiresAtUtc'] == null ? undefined : (new Date(json['expiresAtUtc'])),
     };
 }
 
@@ -203,6 +238,11 @@ export function DetailBookingCourtResponseToJSONTyped(value?: DetailBookingCourt
         'paidAmount': value['paidAmount'],
         'remainingAmount': value['remainingAmount'],
         'paymentType': value['paymentType'],
+        'paymentId': value['paymentId'],
+        'paymentAmount': value['paymentAmount'],
+        'qrUrl': value['qrUrl'],
+        'holdMinutes': value['holdMinutes'],
+        'expiresAtUtc': value['expiresAtUtc'] === null ? null : ((value['expiresAtUtc'] as any)?.toISOString()),
     };
 }
 

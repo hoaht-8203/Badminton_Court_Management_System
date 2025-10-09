@@ -17,4 +17,6 @@ public enum EmailTemplateType
     ForgotPassword,
     NewPassword,
     EmailVerify,
+    PaymentRequest, // Gửi yêu cầu thanh toán (chuyển khoản)
+    BookingConfirmation, // Xác nhận đặt sân (đã thanh toán tiền mặt)
 }

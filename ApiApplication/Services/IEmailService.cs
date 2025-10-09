@@ -17,5 +17,11 @@ public interface IEmailService
 
     Task<EmailResponse> SendVerifyEmailAsync(SendVerifyEmailAsyncRequest request);
 
+    Task<EmailResponse> SendPaymentRequestEmailAsync(SendPaymentRequestEmailAsyncRequest request);
+
+    Task<EmailResponse> SendBookingConfirmationEmailAsync(
+        SendBookingConfirmationEmailAsyncRequest request
+    );
+
     Task<EmailResponse> TestEmailConfigurationAsync();
 }

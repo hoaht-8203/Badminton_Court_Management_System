@@ -2,7 +2,9 @@
 
 import { useDetailBookingCourt } from "@/hooks/useBookingCourt";
 import { DetailBookingCourtResponse, PaymentDto } from "@/types-openapi/api";
-import { Descriptions, Divider, Drawer, Tabs, Tag } from "antd";
+import { Button, Descriptions, Divider, Drawer, Tabs, Tag } from "antd";
+import { useState } from "react";
+import QrPaymentDrawer from "./qr-payment-drawer";
 
 interface BookingDetailDrawerProps {
   bookingId: string | null;
@@ -51,6 +53,7 @@ const vnPaymentStatus: Record<string, { color: string; text: string }> = {
 export default function BookingDetailDrawer({ bookingId, open, onClose }: BookingDetailDrawerProps) {
   const { data, isFetching } = useDetailBookingCourt(bookingId ?? undefined);
   const bookingDetailData: DetailBookingCourtResponse = data?.data as DetailBookingCourtResponse;
+  const [openQrPayment, setOpenQrPayment] = useState(false);
 
   return (
     <Drawer title="Chi tiết đặt sân" placement="right" width={1000} open={open} onClose={onClose} destroyOnClose>
@@ -66,7 +69,7 @@ export default function BookingDetailDrawer({ bookingId, open, onClose }: Bookin
               key: "info",
               label: "Thông tin đặt sân",
               children: (
-                <div className="flex flex-col gap-16">
+                <div className="flex flex-col gap-5">
                   <Descriptions
                     bordered
                     size="small"
@@ -114,6 +117,20 @@ export default function BookingDetailDrawer({ bookingId, open, onClose }: Bookin
                         label: "Còn lại",
                         children: `${(bookingDetailData.remainingAmount ?? 0).toLocaleString("vi-VN")} đ`,
                         span: 1,
+                      },
+                      {
+                        key: "viewPayment",
+                        label: "Thanh toán",
+                        children: (
+                          <Button
+                            type="primary"
+                            onClick={() => setOpenQrPayment(true)}
+                            disabled={!bookingDetailData.qrUrl && !bookingDetailData.paymentId}
+                          >
+                            Xem thanh toán
+                          </Button>
+                        ),
+                        span: 2,
                       },
                     ]}
                   />
@@ -236,6 +253,15 @@ export default function BookingDetailDrawer({ bookingId, open, onClose }: Bookin
           ]}
         />
       )}
+
+      {/* QR Payment Drawer */}
+      <QrPaymentDrawer
+        bookingDetail={bookingDetailData}
+        open={openQrPayment}
+        onClose={() => setOpenQrPayment(false)}
+        title="Thông tin thanh toán"
+        width={600}
+      />
     </Drawer>
   );
 }

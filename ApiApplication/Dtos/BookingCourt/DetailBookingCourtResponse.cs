@@ -23,4 +23,11 @@ public class DetailBookingCourtResponse
     public decimal PaidAmount { get; set; }
     public decimal RemainingAmount { get; set; }
     public string? PaymentType { get; set; } // Deposit | Full | None
+
+    // Inline QR/payment info for quick checkout (when transfer method)
+    public string? PaymentId { get; set; }
+    public decimal? PaymentAmount { get; set; }
+    public string? QrUrl { get; set; }
+    public int? HoldMinutes { get; set; }
+    public DateTime? ExpiresAtUtc { get; set; }
 }

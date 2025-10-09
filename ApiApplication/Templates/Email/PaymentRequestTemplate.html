@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Thanh toán đặt sân</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        color: #111827;
+      }
+      .container {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+      }
+      .title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      .muted {
+        color: #6b7280;
+      }
+      .row {
+        margin: 8px 0;
+      }
+      .highlight {
+        font-weight: 700;
+      }
+    </style>
+    <script>
+      // countdown purely informational; email clients may strip scripts, so we also include plain text
+    </script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="title">Yêu cầu thanh toán đặt sân</div>
+      <div class="row">
+        Xin chào <span class="highlight">{{CustomerName}}</span>,
+      </div>
+      <div class="row">
+        Mã thanh toán: <span class="highlight">{{PaymentId}}</span>
+      </div>
+      <div class="row">
+        Số tiền cần thanh toán: <span class="highlight">{{Amount}}</span> VND
+      </div>
+      <div class="row">Sân: <span class="highlight">{{CourtName}}</span></div>
+      <div class="row">
+        Thời gian:
+        <span class="highlight">{{StartDate}} {{StartTime}} - {{EndTime}}</span>
+      </div>
+      <div class="row">Vui lòng quét mã QR sau để thanh toán:</div>
+      <div class="row"><img src="{{QrUrl}}" alt="QR thanh toán" /></div>
+      <div class="row muted">
+        Lưu ý:
+        <ol>
+          <li>
+            Liên kết/QR này sẽ hết hạn sau
+            <span class="highlight"> {{HoldMinutes}} </span> phút kể từ khi đặt.
+            Sau thời gian này, đặt sân và thanh toán sẽ bị hủy.
+          </li>
+          <li>
+            Không thay đổi nội dung thanh toán để hệ thống tự động xác nhận
+            thanh toán.
+          </li>
+        </ol>
+      </div>
+
+      <div class="row">Cảm ơn bạn đã sử dụng dịch vụ.</div>
+    </div>
+  </body>
+</html>

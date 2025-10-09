@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export * from './ActivityApi';
+export * from './AttendanceApi';
 export * from './AuthApi';
 export * from './BookingCourtsApi';
 export * from './CategoriesApi';

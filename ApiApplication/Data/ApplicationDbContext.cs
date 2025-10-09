@@ -37,8 +37,7 @@ public class ApplicationDbContext(
     public DbSet<CourtPricingRuleTemplate> CourtPricingRuleTemplates { get; set; }
     public DbSet<BookingCourt> BookingCourts { get; set; }
     public DbSet<Payment> Payments { get; set; }
-
-    // public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
+    public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
     public DbSet<CancelledShift> CancelledShifts { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<Category> Categories { get; set; }

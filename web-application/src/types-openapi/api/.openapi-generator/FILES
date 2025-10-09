@@ -1,5 +1,6 @@
 .openapi-generator-ignore
 apis/ActivityApi.ts
+apis/AttendanceApi.ts
 apis/AuthApi.ts
 apis/BookingCourtsApi.ts
 apis/CategoriesApi.ts
@@ -25,6 +26,9 @@ index.ts
 models/Activity.ts
 models/ApplicationUser.ts
 models/ApplicationUserToken.ts
+models/AttendanceRecord.ts
+models/AttendanceRequest.ts
+models/AttendanceResponse.ts
 models/BaseEntity.ts
 models/BookingCourt.ts
 models/BooleanApiResponse.ts
@@ -216,6 +220,7 @@ models/ShiftResponse.ts
 models/ShiftResponseApiResponse.ts
 models/ShiftResponseListApiResponse.ts
 models/Staff.ts
+models/StaffAttendanceResponse.ts
 models/StaffRequest.ts
 models/StaffResponse.ts
 models/StaffResponseApiResponse.ts

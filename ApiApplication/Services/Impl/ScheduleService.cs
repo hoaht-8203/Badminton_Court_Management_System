@@ -1,5 +1,6 @@
 using ApiApplication.Data;
 using ApiApplication.Dtos;
+using ApiApplication.Entities.Shared;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -47,6 +48,10 @@ namespace ApiApplication.Services.Impl
                 _mapper
             );
 
+            var attendanceRecords = await _context.AttendanceRecords
+                .Where(ar => ar.Date >= startDate && ar.Date <= endDate)
+                .ToListAsync();
+
             // Group by Shift
             var grouped = standardizedSchedules
                 .GroupBy(s => s.Shift.Id)
@@ -58,7 +63,21 @@ namespace ApiApplication.Services.Impl
                         {
                             Date = dayGroup.Key,
                             DayOfWeek = dayGroup.First().DayOfWeek,
-                            Staffs = dayGroup.Select(x => x.Staff).ToList(),
+                            Staffs = dayGroup.Select(x =>
+                            {
+                                var attendance = attendanceRecords.FirstOrDefault(ar =>
+                                    ar.StaffId == x.Staff.Id &&
+                                    ar.Date == DateOnly.FromDateTime(x.Date)
+                                );
+                                return new StaffAttendanceResponse
+                                {
+                                    Id = x.Staff.Id,
+                                    FullName = x.Staff.FullName,
+                                    AvatarUrl = x.Staff.AvatarUrl,
+                                    AttendanceRecordId = attendance?.Id ?? null,
+                                    AttendanceStatus = attendance?.Status ?? AttendanceStatus.NotYet,
+                                };
+                            }).ToList(),
                         })
                         .ToList(),
                 })

@@ -8,7 +8,6 @@ public class AttendanceStatus
     public const string Attended = "Attended";
     public const string Late = "Late";
     public const string Absent = "Absent";
-    public const string InComplete = "InComplete";
 
     public static readonly string[] ValidAttendanceStatus =
     [
@@ -16,6 +15,5 @@ public class AttendanceStatus
         Attended,
         Late,
         Absent,
-        InComplete,
     ];
 }

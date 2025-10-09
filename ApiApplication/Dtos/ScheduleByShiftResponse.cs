@@ -13,5 +13,5 @@ public class ShiftAssignmentDto
 {
     public DateTime Date { get; set; }
     public DayOfWeek DayOfWeek { get; set; }
-    public List<StaffResponse> Staffs { get; set; } = new();
+    public List<StaffAttendanceResponse> Staffs { get; set; } = new();
 }

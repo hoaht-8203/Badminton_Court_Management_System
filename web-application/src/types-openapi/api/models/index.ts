@@ -3,6 +3,9 @@
 export * from './Activity';
 export * from './ApplicationUser';
 export * from './ApplicationUserToken';
+export * from './AttendanceRecord';
+export * from './AttendanceRequest';
+export * from './AttendanceResponse';
 export * from './BaseEntity';
 export * from './BookingCourt';
 export * from './BooleanApiResponse';
@@ -194,6 +197,7 @@ export * from './ShiftResponse';
 export * from './ShiftResponseApiResponse';
 export * from './ShiftResponseListApiResponse';
 export * from './Staff';
+export * from './StaffAttendanceResponse';
 export * from './StaffRequest';
 export * from './StaffResponse';
 export * from './StaffResponseApiResponse';

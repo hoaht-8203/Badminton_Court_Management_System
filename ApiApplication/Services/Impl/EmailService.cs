@@ -17,11 +17,17 @@ public class EmailService : IEmailService
 {
     private readonly EmailOptions _emailOptions;
     private readonly ILogger<EmailService> _logger;
+    private readonly IConfiguration _configuration;
 
-    public EmailService(IOptions<EmailOptions> emailOptions, ILogger<EmailService> logger)
+    public EmailService(
+        IOptions<EmailOptions> emailOptions,
+        ILogger<EmailService> logger,
+        IConfiguration configuration
+    )
     {
         _emailOptions = emailOptions.Value;
         _logger = logger;
+        _configuration = configuration;
     }
 
     public async Task<EmailResponse> SendEmailAsync(EmailRequest emailRequest)
@@ -290,6 +296,10 @@ public class EmailService : IEmailService
         SendPaymentRequestEmailAsyncRequest request
     )
     {
+        // Get frontend URL from configuration, default to localhost:3000
+        var frontendUrl = _configuration["FrontendUrl"] ?? "http://localhost:3000";
+        var paymentUrl = $"{frontendUrl}/payment/{request.PaymentId}";
+
         var templateRequest = new EmailTemplateRequest
         {
             To = request.To,
@@ -304,7 +314,7 @@ public class EmailService : IEmailService
                 { "StartDate", request.StartDate },
                 { "StartTime", request.StartTime },
                 { "EndTime", request.EndTime },
-                { "QrUrl", request.QrUrl },
+                { "PaymentUrl", paymentUrl },
                 { "HoldMinutes", request.HoldMinutes.ToString() },
             },
         };

@@ -51,13 +51,20 @@
         Thời gian:
         <span class="highlight">{{StartDate}} {{StartTime}} - {{EndTime}}</span>
       </div>
-      <div class="row">Vui lòng quét mã QR sau để thanh toán:</div>
-      <div class="row"><img src="{{QrUrl}}" alt="QR thanh toán" /></div>
+      <div class="row">Vui lòng click vào link sau để thanh toán:</div>
+      <div class="row">
+        <a
+          href="{{PaymentUrl}}"
+          style="color: #1890ff; text-decoration: underline; font-weight: bold"
+        >
+          {{PaymentUrl}}
+        </a>
+      </div>
       <div class="row muted">
         Lưu ý:
         <ol>
           <li>
-            Liên kết/QR này sẽ hết hạn sau
+            Link thanh toán này sẽ hết hạn sau
             <span class="highlight"> {{HoldMinutes}} </span> phút kể từ khi đặt.
             Sau thời gian này, đặt sân và thanh toán sẽ bị hủy.
           </li>

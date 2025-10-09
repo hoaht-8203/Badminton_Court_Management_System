@@ -4,7 +4,7 @@ import { ListCourtGroupByCourtAreaResponse } from "@/types-openapi/api";
 import { BookingCourtStatus } from "@/types/commons";
 import { DayPilot, DayPilotScheduler } from "daypilot-pro-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { HubConnection, HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
+import { HubConnection, HubConnectionBuilder, LogLevel, ILogger } from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
 import ModalCreateNewBooking from "./modal-create-new-booking";
 import PickCalendar from "./pick-calendar";
@@ -13,6 +13,7 @@ import { HttpTransportType } from "@microsoft/signalr";
 import { apiBaseUrl } from "@/lib/axios";
 import { Alert, message, Segmented } from "antd";
 import { CalendarOutlined, TableOutlined } from "@ant-design/icons";
+import BookingDetailDrawer from "./booking-detail-drawer";
 
 interface CourtSchedulerProps {
   courts: ListCourtGroupByCourtAreaResponse[];
@@ -29,6 +30,8 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     end: DayPilot.Date;
     resource: string;
   } | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [openDetail, setOpenDetail] = useState(false);
   const queryClient = useQueryClient();
   const connectionRef = useRef<HubConnection | null>(null);
   const hasStartedRef = useRef(false);
@@ -42,6 +45,8 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   const bookingCourtsEvent = useMemo(() => {
     return expandBookings(bookingCourts?.data?.filter((booking) => booking.status !== BookingCourtStatus.Cancelled) ?? []);
   }, [bookingCourts]);
+
+  // Detail is fetched inside BookingDetailDrawer component
 
   // Function để setup UI cho realtime connection dot
   const setupSchedulerUI = useCallback(() => {
@@ -104,34 +109,58 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
 
   useEffect(() => {
     if (viewOption === "schedule") {
-      const scrollToCurrentTime = () => {
+      const scrollToSevenAMOfSelected = () => {
         if (schedulerRef.current) {
           const scheduler = schedulerRef.current.control;
 
-          const today = new Date();
-          today.setHours(7, 0, 0, 0);
+          const target = selectedDate.toDate();
+          target.setHours(7, 0, 0, 0);
 
-          const dpDate = new DayPilot.Date(today, true);
+          const dpDate = new DayPilot.Date(target, true);
 
           scheduler.scrollTo(dpDate);
         }
       };
 
       // Chạy ngay lập tức
-      scrollToCurrentTime();
+      scrollToSevenAMOfSelected();
 
       // Nếu scheduler chưa sẵn sàng, thử lại sau một khoảng thời gian
       const timeoutId = setTimeout(() => {
-        scrollToCurrentTime();
+        scrollToSevenAMOfSelected();
       }, 100);
 
       return () => {
         clearTimeout(timeoutId);
       };
     }
-  }, [viewOption]);
+  }, [viewOption, selectedDate]);
 
   useEffect(() => {
+    // Custom logger to filter benign startup races that cause noisy Next.js error overlays
+    const filteredLogger: ILogger = {
+      log: (level, message) => {
+        const text = String(message ?? "");
+        // Suppress known harmless races during StrictMode mounts/unmounts
+        if (text.includes("stopped during negotiation") || text.includes("before stop() was called")) {
+          return;
+        }
+
+        if (level >= LogLevel.Error) {
+          console.error(`[SignalR] ${text}`);
+        } else if (level >= LogLevel.Warning) {
+          console.warn(`[SignalR] ${text}`);
+        } else if (level >= LogLevel.Information) {
+          console.info(`[SignalR] ${text}`);
+        } else {
+          // Trace level
+          if (process.env.NODE_ENV === "development") {
+            console.debug(`[SignalR] ${text}`);
+          }
+        }
+      },
+    };
+
     const conn = new HubConnectionBuilder()
       .withUrl(`${apiBaseUrl}/hubs/booking`, {
         withCredentials: true,
@@ -139,27 +168,46 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
         transport: HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling,
       })
       .withAutomaticReconnect()
-      .configureLogging(LogLevel.Information) // Enable logging to see detailed errors
+      .configureLogging(filteredLogger)
       .build();
     connectionRef.current = conn;
 
-    conn.on("bookingCreated", () => {
+    const invalidateDetailIfOpen = (bookingId?: string) => {
+      if (!openDetail || !detailId) return;
+      if (!bookingId || bookingId === detailId) {
+        queryClient.invalidateQueries({ queryKey: [...bookingCourtsKeys.details(), detailId] });
+      }
+    };
+
+    conn.on("bookingCreated", (payload: any) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      invalidateDetailIfOpen(payload?.id);
     });
-    conn.on("bookingUpdated", () => {
+    conn.on("bookingUpdated", (bookingId: string) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      invalidateDetailIfOpen(bookingId);
     });
-    conn.on("paymentCreated", () => {
+    conn.on("paymentCreated", (payload: any) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      // payload from service includes bookingId
+      invalidateDetailIfOpen(payload?.bookingId);
     });
     conn.on("paymentUpdated", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      // webhook also emits bookingUpdated separately; still refresh detail just in case
+      invalidateDetailIfOpen();
     });
-    conn.on("bookingsExpired", () => {
+    conn.on("bookingsExpired", (bookingIds: string[]) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      if (Array.isArray(bookingIds)) {
+        if (bookingIds.includes(detailId as string)) {
+          invalidateDetailIfOpen(detailId as string);
+        }
+      }
     });
     conn.on("paymentsCancelled", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      invalidateDetailIfOpen();
     });
 
     let isAlive = true;
@@ -206,7 +254,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
           // swallow stop race errors
         });
     };
-  }, [queryClient]);
+  }, [queryClient, openDetail, detailId]);
 
   const handlePickDate = (date: string) => {
     setSelectedDate(new DayPilot.Date(date));
@@ -388,16 +436,13 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                   resource: args.resource.toString(),
                 });
               }}
-              eventMoveHandling="Update"
-              onEventMove={async (args) => {
-                console.log("onEventMove", args);
-              }}
-              eventResizeHandling="Update"
-              onEventResize={async (args) => {
-                console.log("onEventResize", args);
-              }}
+              eventMoveHandling="Disabled"
+              eventResizeHandling="Disabled"
               onEventClick={async (args) => {
-                console.log("onEventClick", args);
+                const id = String(args.e.data.id ?? "");
+                if (!id) return;
+                setDetailId(id);
+                setOpenDetail(true);
               }}
               treeEnabled={true}
               events={bookingCourtsEvent}
@@ -419,6 +464,15 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
             setNewBooking(null);
           }}
           newBooking={newBooking}
+        />
+
+        <BookingDetailDrawer
+          bookingId={detailId}
+          open={openDetail}
+          onClose={() => {
+            setOpenDetail(false);
+            setDetailId(null);
+          }}
         />
       </div>
     </>

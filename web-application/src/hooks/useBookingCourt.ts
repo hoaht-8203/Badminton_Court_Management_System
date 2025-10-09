@@ -31,3 +31,11 @@ export const useCreateBookingCourt = () => {
     },
   });
 };
+
+export const useDetailBookingCourt = (id?: string) => {
+  return useQuery<ApiResponse<DetailBookingCourtResponse>, ApiError>({
+    queryKey: [...bookingCourtsKeys.details(), id],
+    queryFn: () => courtScheduleService.detailBooking({ id: id as string }),
+    enabled: !!id,
+  });
+};

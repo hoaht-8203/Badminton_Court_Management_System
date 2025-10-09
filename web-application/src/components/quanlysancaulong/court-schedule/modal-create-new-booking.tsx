@@ -1,7 +1,7 @@
 import { useListCourts, useListCourtPricingRuleByCourtId } from "@/hooks/useCourt";
 import { customerService } from "@/services/customerService";
 import { CreateBookingCourtRequest, DetailCustomerResponse } from "@/types-openapi/api";
-import { Card, Col, DatePicker, Descriptions, Form, FormProps, Input, message, Modal, Radio, Row, Select, TimePicker } from "antd";
+import { Card, Checkbox, Col, DatePicker, Descriptions, Form, FormProps, Input, message, Modal, Radio, Row, Select, TimePicker } from "antd";
 import { CheckboxGroupProps } from "antd/es/checkbox";
 import FormItem from "antd/es/form/FormItem";
 import dayjs from "dayjs";
@@ -52,6 +52,8 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
   const endTimeWatch = Form.useWatch("endTime", form);
   const customerWatch = Form.useWatch("customerId", form);
   const courtWatch = Form.useWatch("courtId", form);
+  const [payInFull, setPayInFull] = useState<boolean>(false);
+  const [paymentMethod, setPaymentMethod] = useState<"Bank" | "Cash">("Bank");
   const totalHoursPlay = useMemo(() => {
     return (endTimeWatch?.diff(startTimeWatch, "hour") ?? 0).toFixed(1);
   }, [startTimeWatch, endTimeWatch]);
@@ -161,11 +163,25 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
     return Math.round(total);
   }, [startTimeWatch, endTimeWatch, pricingRules, startDateWatch, createBookingCourtDaysOfWeek, daysOfWeek, dateRangeWatch]);
 
+  // Tổng tiền toàn bộ = calculatedPrice (đã bao gồm logic vãng lai/cố định)
+  const fullAmount = useMemo(() => {
+    return calculatedPrice;
+  }, [calculatedPrice]);
+
+  const depositPercent = 0.3; // 30% default
+  const depositAmount = useMemo(() => {
+    return Math.round((fullAmount * depositPercent + Number.EPSILON) * 100) / 100;
+  }, [fullAmount]);
+
   const handleCreateBooking: FormProps<CreateBookingCourtRequest>["onFinish"] = (values) => {
     const dateRange = form.getFieldValue(["_internal", "dateRange"]) as [any, any] | undefined;
     const isFixedSchedule = createBookingCourtDaysOfWeek === "2";
 
-    const payload: CreateBookingCourtRequest = {
+    const payload: CreateBookingCourtRequest & {
+      payInFull?: boolean;
+      depositPercent?: number;
+      paymentMethod?: string;
+    } = {
       ...values,
       customerId: customerWatch.value,
       startDate: isFixedSchedule && dateRange?.[0] ? dayjs(dateRange[0]).toDate() : dayjs(values.startDate).toDate(),
@@ -174,7 +190,10 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
       endTime: dayjs(values.endTime).format("HH:mm:ss"),
       daysOfWeek: isFixedSchedule ? values.daysOfWeek : undefined,
       note: values.note,
-    } as CreateBookingCourtRequest;
+      payInFull: payInFull,
+      depositPercent: depositPercent,
+      paymentMethod: paymentMethod,
+    };
 
     console.log("payload", payload);
 
@@ -209,6 +228,8 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
     form.resetFields();
     setCreateBookingCourtDaysOfWeek("1");
     setDaysOfWeek([]);
+    setPayInFull(false);
+    setPaymentMethod("Bank");
     onClose();
   };
 
@@ -281,8 +302,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
         onCancel={handleClose}
         okText="Đặt sân"
         cancelText="Bỏ qua"
-        width={1500}
-        height={700}
+        width={1700}
       >
         <Form
           form={form}
@@ -377,6 +397,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
                             <TimePicker
                               placeholder="Chọn giờ bắt đầu"
                               format="HH:mm"
+                              showNow={false}
                               style={{ width: "100%" }}
                               onChange={() => {
                                 // revalidate counterpart to clear stale error
@@ -499,158 +520,211 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
             </Col>
 
             <Col span={12}>
-              <Col span={24}>
-                {createBookingCourtDaysOfWeek === "1" && (
-                  <Descriptions
-                    title="Thông tin đặt sân"
-                    bordered
-                    size="small"
-                    column={2}
-                    items={[
-                      {
-                        key: "0",
-                        label: "Kiểu đặt sân",
-                        children: "Đặt lịch vãng lai",
-                        span: 2,
-                      },
-                      {
-                        key: "1",
-                        label: "Khách hàng",
-                        children: customerInfo ? `${customerInfo?.fullName}` : "-",
-                        span: 1,
-                      },
-                      {
-                        key: "2",
-                        label: "Số điện thoại",
-                        children: customerInfo ? `${customerInfo?.phoneNumber}` : "-",
-                        span: 1,
-                      },
-                      {
-                        key: "3",
-                        label: "Sân",
-                        children: courts?.data?.find((court) => court.id === courtWatch)?.name ?? "-",
-                        span: 2,
-                      },
-                      {
-                        key: "4",
-                        label: "Ngày đặt sân",
-                        children: `${startDateWatch?.format?.("dddd")}, ngày ${startDateWatch?.format?.("DD")} tháng ${startDateWatch?.format?.("MM")} năm ${startDateWatch?.format?.("YYYY")}`,
-                        span: 2,
-                      },
-                      {
-                        key: "5",
-                        label: "Giờ bắt đầu",
-                        children: startTimeWatch?.format?.("HH:mm") ?? "-",
-                        span: 1,
-                        style: { color: startTimeWatch?.isSame(endTimeWatch) || startTimeWatch?.isAfter(endTimeWatch) ? "red" : "inherit" },
-                      },
-                      {
-                        key: "6",
-                        label: "Giờ kết thúc",
-                        children: endTimeWatch?.format?.("HH:mm") ?? "-",
-                        span: 1,
-                        style: { color: endTimeWatch?.isSame(startTimeWatch) || endTimeWatch?.isBefore(startTimeWatch) ? "red" : "inherit" },
-                      },
-                      {
-                        key: "7",
-                        label: "Tổng số giờ đặt sân",
-                        children: `${totalHoursPlay} giờ`,
-                        span: 1,
-                        style: { color: totalHoursPlay < 1 ? "red" : "inherit" },
-                      },
-                      {
-                        key: "8",
-                        label: "Tổng số tiền cần trả (tạm tính)",
-                        children: calculatedPrice > 0 ? `${calculatedPrice.toLocaleString("vi-VN")} đ` : "Chưa xác định",
-                        span: 1,
-                        style: {
-                          color: calculatedPrice > 0 ? "inherit" : "orange",
-                          fontWeight: calculatedPrice > 0 ? "bold" : "normal",
+              <Row gutter={[16, 16]}>
+                <Col span={24}>
+                  {createBookingCourtDaysOfWeek === "1" && (
+                    <Descriptions
+                      title="Thông tin đặt sân"
+                      bordered
+                      size="small"
+                      column={2}
+                      items={[
+                        {
+                          key: "0",
+                          label: "Kiểu đặt sân",
+                          children: "Đặt lịch vãng lai",
+                          span: 2,
                         },
-                      },
-                    ]}
-                  />
-                )}
+                        {
+                          key: "1",
+                          label: "Khách hàng",
+                          children: customerInfo ? `${customerInfo?.fullName}` : "-",
+                          span: 1,
+                        },
+                        {
+                          key: "2",
+                          label: "Số điện thoại",
+                          children: customerInfo ? `${customerInfo?.phoneNumber}` : "-",
+                          span: 1,
+                        },
+                        {
+                          key: "3",
+                          label: "Sân",
+                          children: courts?.data?.find((court) => court.id === courtWatch)?.name ?? "-",
+                          span: 2,
+                        },
+                        {
+                          key: "4",
+                          label: "Ngày đặt sân",
+                          children: `${startDateWatch?.format?.("dddd")}, ngày ${startDateWatch?.format?.("DD")} tháng ${startDateWatch?.format?.("MM")} năm ${startDateWatch?.format?.("YYYY")}`,
+                          span: 2,
+                        },
+                        {
+                          key: "5",
+                          label: "Giờ bắt đầu",
+                          children: startTimeWatch?.format?.("HH:mm") ?? "-",
+                          span: 1,
+                          style: { color: startTimeWatch?.isSame(endTimeWatch) || startTimeWatch?.isAfter(endTimeWatch) ? "red" : "inherit" },
+                        },
+                        {
+                          key: "6",
+                          label: "Giờ kết thúc",
+                          children: endTimeWatch?.format?.("HH:mm") ?? "-",
+                          span: 1,
+                          style: { color: endTimeWatch?.isSame(startTimeWatch) || endTimeWatch?.isBefore(startTimeWatch) ? "red" : "inherit" },
+                        },
+                        {
+                          key: "7",
+                          label: "Tổng số giờ đặt sân",
+                          children: `${totalHoursPlay} giờ`,
+                          span: 1,
+                          style: { color: totalHoursPlay < 1 ? "red" : "inherit" },
+                        },
+                        {
+                          key: "8",
+                          label: "Tổng số tiền cần trả (tạm tính)",
+                          children: calculatedPrice > 0 ? `${calculatedPrice.toLocaleString("vi-VN")} đ` : "Chưa xác định",
+                          span: 1,
+                          style: {
+                            color: calculatedPrice > 0 ? "inherit" : "orange",
+                            fontWeight: calculatedPrice > 0 ? "bold" : "normal",
+                          },
+                        },
+                      ]}
+                    />
+                  )}
 
-                {createBookingCourtDaysOfWeek === "2" && (
-                  <Descriptions
-                    title="Thông tin đặt sân"
-                    bordered
-                    size="small"
-                    column={2}
-                    items={[
-                      {
-                        key: "0",
-                        label: "Kiểu đặt sân",
-                        children: "Đặt lịch cố định",
-                        span: 2,
-                      },
-                      {
-                        key: "1",
-                        label: "Khách hàng",
-                        children: customerInfo ? `${customerInfo?.fullName}` : "-",
-                        span: 1,
-                      },
-                      {
-                        key: "2",
-                        label: "Số điện thoại",
-                        children: customerInfo ? `${customerInfo?.phoneNumber}` : "-",
-                        span: 1,
-                      },
-                      {
-                        key: "3",
-                        label: "Sân",
-                        children: courts?.data?.find((court) => court.id === courtWatch)?.name ?? "-",
-                        span: 2,
-                      },
-                      {
-                        key: "4",
-                        label: "Khoảng ngày",
-                        children:
-                          dateRangeWatch && dateRangeWatch[0] && dateRangeWatch[1]
-                            ? `${dateRangeWatch[0].format("DD/MM/YYYY")} - ${dateRangeWatch[1].format("DD/MM/YYYY")}`
-                            : "-",
-                        span: 2,
-                      },
-                      {
-                        key: "5",
-                        label: "Giờ bắt đầu",
-                        children: startTimeWatch?.format?.("HH:mm") ?? "-",
-                        span: 1,
-                      },
-                      {
-                        key: "6",
-                        label: "Giờ kết thúc",
-                        children: endTimeWatch?.format?.("HH:mm") ?? "-",
-                        span: 1,
-                      },
-                      {
-                        key: "7",
-                        label: "Tổng số buổi",
-                        children: `${totalSessions} buổi`,
-                        span: 1,
-                      },
-                      {
-                        key: "8",
-                        label: "Tổng số giờ mỗi buổi",
-                        children: `${totalHoursPlay} giờ`,
-                        span: 1,
-                        style: { color: totalHoursPlay < 1 ? "red" : "inherit" },
-                      },
-                      {
-                        key: "9",
-                        label: "Tổng số tiền cần trả (tạm tính)",
-                        children: calculatedPrice > 0 ? `${calculatedPrice.toLocaleString("vi-VN")} đ` : "Chưa xác định",
-                        span: 1,
-                        style: {
-                          color: calculatedPrice > 0 ? "inherit" : "orange",
-                          fontWeight: calculatedPrice > 0 ? "bold" : "normal",
+                  {createBookingCourtDaysOfWeek === "2" && (
+                    <Descriptions
+                      title="Thông tin đặt sân"
+                      bordered
+                      size="small"
+                      column={2}
+                      items={[
+                        {
+                          key: "0",
+                          label: "Kiểu đặt sân",
+                          children: "Đặt lịch cố định",
+                          span: 2,
                         },
-                      },
-                    ]}
-                  />
-                )}
-              </Col>
+                        {
+                          key: "1",
+                          label: "Khách hàng",
+                          children: customerInfo ? `${customerInfo?.fullName}` : "-",
+                          span: 1,
+                        },
+                        {
+                          key: "2",
+                          label: "Số điện thoại",
+                          children: customerInfo ? `${customerInfo?.phoneNumber}` : "-",
+                          span: 1,
+                        },
+                        {
+                          key: "3",
+                          label: "Sân",
+                          children: courts?.data?.find((court) => court.id === courtWatch)?.name ?? "-",
+                          span: 2,
+                        },
+                        {
+                          key: "4",
+                          label: "Khoảng ngày",
+                          children:
+                            dateRangeWatch && dateRangeWatch[0] && dateRangeWatch[1]
+                              ? `${dateRangeWatch[0].format("DD/MM/YYYY")} - ${dateRangeWatch[1].format("DD/MM/YYYY")}`
+                              : "-",
+                          span: 2,
+                        },
+                        {
+                          key: "5",
+                          label: "Giờ bắt đầu",
+                          children: startTimeWatch?.format?.("HH:mm") ?? "-",
+                          span: 1,
+                        },
+                        {
+                          key: "6",
+                          label: "Giờ kết thúc",
+                          children: endTimeWatch?.format?.("HH:mm") ?? "-",
+                          span: 1,
+                        },
+                        {
+                          key: "7",
+                          label: "Tổng số buổi",
+                          children: `${totalSessions} buổi`,
+                          span: 1,
+                        },
+                        {
+                          key: "8",
+                          label: "Tổng số giờ mỗi buổi",
+                          children: `${totalHoursPlay} giờ`,
+                          span: 1,
+                          style: { color: totalHoursPlay < 1 ? "red" : "inherit" },
+                        },
+                        {
+                          key: "9",
+                          label: "Tổng số tiền cần trả (tạm tính)",
+                          children: calculatedPrice > 0 ? `${calculatedPrice.toLocaleString("vi-VN")} đ` : "Chưa xác định",
+                          span: 1,
+                          style: {
+                            color: calculatedPrice > 0 ? "inherit" : "orange",
+                            fontWeight: calculatedPrice > 0 ? "bold" : "normal",
+                          },
+                        },
+                      ]}
+                    />
+                  )}
+                </Col>
+
+                <Col span={24}>
+                  <Card title="Thông tin thanh toán">
+                    <Row gutter={[8, 8]}>
+                      <Col span={24}>
+                        <Checkbox checked={payInFull} onChange={(e) => setPayInFull(e.target.checked)}>
+                          Thanh toán toàn bộ
+                        </Checkbox>
+                      </Col>
+                      <Col span={24}>
+                        <FormItem label="Phương thức" required>
+                          <Select
+                            value={paymentMethod}
+                            onChange={(val: "Bank" | "Cash") => setPaymentMethod(val)}
+                            options={[
+                              { value: "Bank", label: "Ngân hàng (chuyển khoản)" },
+                              { value: "Cash", label: "Tiền mặt" },
+                            ]}
+                          />
+                        </FormItem>
+                      </Col>
+                      <Col span={24}>
+                        <Descriptions
+                          bordered
+                          size="small"
+                          column={1}
+                          items={[
+                            {
+                              key: "amount-full",
+                              label: "Tổng tiền",
+                              children: fullAmount > 0 ? `${fullAmount.toLocaleString("vi-VN")} đ` : "-",
+                            },
+                            {
+                              key: "amount-deposit",
+                              label: "Số tiền cọc (30%)",
+                              children: depositAmount > 0 ? `${depositAmount.toLocaleString("vi-VN")} đ` : "-",
+                            },
+                            {
+                              key: "amount-pay-now",
+                              label: "Cần thanh toán",
+                              children:
+                                (payInFull ? fullAmount : depositAmount) > 0
+                                  ? `${(payInFull ? fullAmount : depositAmount).toLocaleString("vi-VN")} đ`
+                                  : "-",
+                            },
+                          ]}
+                        />
+                      </Col>
+                    </Row>
+                  </Card>
+                </Col>
+              </Row>
             </Col>
           </Row>
         </Form>

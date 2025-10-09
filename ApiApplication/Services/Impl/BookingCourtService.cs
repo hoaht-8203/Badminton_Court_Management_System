@@ -218,6 +218,26 @@ public class BookingCourtService(
         await _context.BookingCourts.AddAsync(entity);
         await _context.SaveChangesAsync();
 
+        // Create payment with preferences (deposit or full, method)
+        var payInFull = request.PayInFull == true;
+        var depositPercent = request.DepositPercent.HasValue
+            ? Math.Clamp(request.DepositPercent.Value, 0m, 1m)
+            : 0.3m; // default 30%
+        var paymentMethod = string.IsNullOrWhiteSpace(request.PaymentMethod)
+            ? "Bank"
+            : request.PaymentMethod;
+
+        await _paymentService.CreatePaymentAsync(
+            new CreatePaymentRequest
+            {
+                BookingId = entity.Id,
+                CustomerId = entity.CustomerId,
+                PayInFull = payInFull,
+                DepositPercent = depositPercent,
+                PaymentMethod = paymentMethod,
+            }
+        );
+
         // Broadcast booking created (pending payment) event
         await _hub.Clients.All.SendAsync(
             "bookingCreated",
@@ -233,11 +253,6 @@ public class BookingCourtService(
                 endTime = entity.EndTime,
                 daysOfWeek = entity.DaysOfWeek,
             }
-        );
-
-        // Tạo payment pending ngay sau khi tạo booking
-        await _paymentService.CreatePaymentAsync(
-            new CreatePaymentRequest { BookingId = entity.Id, CustomerId = entity.CustomerId }
         );
 
         // Note: email sending with payment link handled in higher layer (e.g., BookingCourtsController)
@@ -358,5 +373,84 @@ public class BookingCourtService(
             .Include(x => x.Payments)
             .ToListAsync();
         return _mapper.Map<List<ListBookingCourtResponse>>(items);
+    }
+
+    public async Task<DetailBookingCourtResponse> DetailBookingCourtAsync(
+        DetailBookingCourtRequest request
+    )
+    {
+        var entity = await _context
+            .BookingCourts.Include(x => x.Court)
+            .Include(x => x.Customer)
+            .Include(x => x.Payments)
+            .FirstOrDefaultAsync(x => x.Id == request.Id);
+
+        if (entity == null)
+        {
+            throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
+        }
+
+        var dto = _mapper.Map<DetailBookingCourtResponse>(entity);
+
+        // Compute totals
+        var totalAmount = await CalculateBookingAmountForEntityAsync(entity);
+        var paidAmount = entity
+            .Payments.Where(p => p.Status == PaymentStatus.Paid)
+            .Sum(p => p.Amount);
+        dto.TotalAmount = Math.Round(totalAmount, 2);
+        dto.PaidAmount = Math.Round(paidAmount, 2);
+        dto.RemainingAmount = Math.Max(0, Math.Round(totalAmount - paidAmount, 2));
+
+        // Infer payment type from first payment amount vs total
+        if (entity.Payments.Count == 0)
+        {
+            dto.PaymentType = "None";
+        }
+        else
+        {
+            var first = entity.Payments.OrderBy(p => p.PaymentCreatedAt).First();
+            var ratio = totalAmount == 0 ? 0 : first.Amount / totalAmount;
+            dto.PaymentType = ratio >= 0.99m ? "Full" : "Deposit";
+        }
+
+        return dto;
+    }
+
+    private async Task<decimal> CalculateBookingAmountForEntityAsync(BookingCourt booking)
+    {
+        var dow = GetCustomDayOfWeek(booking.StartDate);
+        var rules = await _context
+            .CourtPricingRules.Where(r =>
+                r.CourtId == booking.CourtId && r.DaysOfWeek.Contains(dow)
+            )
+            .OrderBy(r => r.Order)
+            .ToListAsync();
+
+        if (rules.Count == 0)
+        {
+            return 0m;
+        }
+
+        var total = 0m;
+        var currentTime = booking.StartTime;
+        var endTime = booking.EndTime;
+
+        while (currentTime < endTime)
+        {
+            var applicableRule = rules.FirstOrDefault(r =>
+                currentTime >= r.StartTime && currentTime < r.EndTime
+            );
+            if (applicableRule == null)
+            {
+                break;
+            }
+            var ruleEndTime = applicableRule.EndTime < endTime ? applicableRule.EndTime : endTime;
+            var hours = (decimal)(ruleEndTime.ToTimeSpan() - currentTime.ToTimeSpan()).TotalHours;
+            var priceForThisPeriod = applicableRule.PricePerHour * hours;
+            total += priceForThisPeriod;
+            currentTime = ruleEndTime;
+        }
+
+        return Math.Round(total, 2);
     }
 }

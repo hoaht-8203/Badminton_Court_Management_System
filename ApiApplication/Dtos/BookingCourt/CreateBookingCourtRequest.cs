@@ -11,4 +11,9 @@ public class CreateBookingCourtRequest
     public TimeOnly EndTime { get; set; }
     public int[]? DaysOfWeek { get; set; }
     public string? Note { get; set; }
+
+    // Payment preferences
+    public bool? PayInFull { get; set; } // default false -> pay deposit
+    public decimal? DepositPercent { get; set; } // default 0.3m if not provided
+    public string? PaymentMethod { get; set; } // "Bank" | "Cash"
 }

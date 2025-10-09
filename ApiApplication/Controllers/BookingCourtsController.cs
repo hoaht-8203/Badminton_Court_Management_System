@@ -79,4 +79,18 @@ public class BookingCourtsController(
             )
         );
     }
+
+    [HttpGet("detail")]
+    public async Task<ActionResult<ApiResponse<DetailBookingCourtResponse>>> Detail(
+        [FromQuery] DetailBookingCourtRequest request
+    )
+    {
+        var result = await _service.DetailBookingCourtAsync(request);
+        return Ok(
+            ApiResponse<DetailBookingCourtResponse>.SuccessResponse(
+                result,
+                "Lấy chi tiết booking thành công"
+            )
+        );
+    }
 }

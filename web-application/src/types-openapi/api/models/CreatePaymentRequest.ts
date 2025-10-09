@@ -31,6 +31,30 @@ export interface CreatePaymentRequest {
      * @memberof CreatePaymentRequest
      */
     customerId?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreatePaymentRequest
+     */
+    amount?: number | null;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CreatePaymentRequest
+     */
+    payInFull?: boolean | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreatePaymentRequest
+     */
+    depositPercent?: number | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreatePaymentRequest
+     */
+    paymentMethod?: string | null;
 }
 
 /**
@@ -53,6 +77,10 @@ export function CreatePaymentRequestFromJSONTyped(json: any, ignoreDiscriminator
         
         'bookingId': json['bookingId'],
         'customerId': json['customerId'] == null ? undefined : json['customerId'],
+        'amount': json['amount'] == null ? undefined : json['amount'],
+        'payInFull': json['payInFull'] == null ? undefined : json['payInFull'],
+        'depositPercent': json['depositPercent'] == null ? undefined : json['depositPercent'],
+        'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
     };
 }
 
@@ -69,6 +97,10 @@ export function CreatePaymentRequestToJSONTyped(value?: CreatePaymentRequest | n
         
         'bookingId': value['bookingId'],
         'customerId': value['customerId'],
+        'amount': value['amount'],
+        'payInFull': value['payInFull'],
+        'depositPercent': value['depositPercent'],
+        'paymentMethod': value['paymentMethod'],
     };
 }
 

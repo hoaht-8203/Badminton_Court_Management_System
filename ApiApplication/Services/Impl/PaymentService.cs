@@ -41,11 +41,38 @@ public class PaymentService(
 
         var payment = _mapper.Map<Payment>(booking);
         payment.Status = PaymentStatus.PendingPayment;
-        payment.Amount = await CalculateBookingAmountAsync(booking);
+
+        // Calculate base amount for the booking (full amount)
+        var fullAmount = await CalculateBookingAmountAsync(booking);
+
+        // Determine amount to charge now (deposit or full)
+        var payInFull = request.PayInFull == true;
+        var depositPercent = request.DepositPercent.HasValue
+            ? Math.Clamp(request.DepositPercent.Value, 0m, 1m)
+            : 0.3m; // default 30%
+        var method = string.IsNullOrWhiteSpace(request.PaymentMethod)
+            ? "Bank"
+            : request.PaymentMethod;
+
+        payment.Amount = payInFull ? fullAmount : Math.Round(fullAmount * depositPercent, 2);
         payment.Id = await GenerateNextPaymentIdAsync();
 
         await _context.Payments.AddAsync(payment);
         await _context.SaveChangesAsync();
+
+        // If payment method is Cash, mark as paid immediately and activate booking
+        if (string.Equals(method, "Cash", StringComparison.OrdinalIgnoreCase))
+        {
+            payment.Status = PaymentStatus.Paid;
+            if (payment.Booking != null)
+            {
+                if (payment.Booking.Status == BookingCourtStatus.PendingPayment)
+                {
+                    payment.Booking.Status = BookingCourtStatus.Active;
+                }
+            }
+            await _context.SaveChangesAsync();
+        }
         await _hub.Clients.All.SendAsync(
             "paymentCreated",
             new

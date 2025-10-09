@@ -49,8 +49,8 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
     const day = monday.add(idx, "day");
     return { ...d, date: day.date(), fullDate: day.format("YYYY-MM-DD") };
   });
-  const startDate = weekStart.toDate();
-  const endDate = weekStart.add(6, "day").toDate();
+  const startDate = weekStart.add(1, "day").toDate();
+  const endDate = weekStart.add(7, "day").toDate();
   const request: ScheduleRequest = { startDate, endDate };
   // Lấy dữ liệu lịch làm việc của tất cả nhân viên trong tuần hiện tại
   const { data: scheduleByStaffRaw } = useGetScheduleByStaff(request);

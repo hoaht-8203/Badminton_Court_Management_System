@@ -16,7 +16,6 @@ interface AttendanceModalProps {
   staff?: {
     id: number;
     fullName: string;
-    code?: string;
   };
   shift?: {
     id: number;
@@ -88,7 +87,6 @@ const AttendanceModal: React.FC<AttendanceModalProps> = ({
           {staff?.fullName && (
             <span style={{ fontWeight: 500 }}>
               <Tag color="blue">{staff.fullName}</Tag>
-              {staff.code && <Tag color="default">{staff.code}</Tag>}
             </span>
           )}
           {/* Hiển thị label trạng thái với màu tương ứng */}

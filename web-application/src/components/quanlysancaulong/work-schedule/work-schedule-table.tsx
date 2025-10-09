@@ -56,8 +56,8 @@ const WorkScheduleTable: React.FC = () => {
   const shiftList = shifts?.map((s) => ({ id: s.id, name: s.name, time: s.startTime?.substring(0, 5) + " - " + s.endTime?.substring(0, 5) })) || [];
 
   // Tính ngày bắt đầu và kết thúc tuần hiện tại
-  const startDate = weekStart.toDate();
-  const endDate = weekStart.add(6, "day").toDate();
+  const startDate = weekStart.add(1, "day").toDate();
+  const endDate = weekStart.add(7, "day").toDate();
   // Lấy lịch làm việc theo ca cho tuần hiện tại
   const { data: scheduleByShiftRaw, isFetching: loadingSchedule } = useGetScheduleByShift({ startDate, endDate });
 

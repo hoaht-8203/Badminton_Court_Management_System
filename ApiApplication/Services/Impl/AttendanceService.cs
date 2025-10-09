@@ -16,11 +16,21 @@ public class AttendanceService : IAttendanceService
     }
     public async Task<bool> AddOrUpdateAttendanceRecordAsync(AttendanceRequest request)
     {
+        var shift = await _context.Shifts.FindAsync(request.ShiftId);
+        if (shift == null) return false;
+
+        var statusByShift = Helpers.AttendanceHelper.DetermineStatusByShift(
+            request.CheckInTime,
+            request.CheckOutTime,
+            shift
+        );
+
         if (request.Id == null)
         {
             var schedule = await _context.Schedules.FindAsync(request.StaffId, request.ShiftId, DateOnly.FromDateTime(request.Date));
             if (schedule == null) return false;
             var newAttendanceRecord = _mapper.Map<Entities.AttendanceRecord>(request);
+            newAttendanceRecord.Status = statusByShift;
             await _context.AttendanceRecords.AddAsync(newAttendanceRecord);
         }
         else
@@ -29,8 +39,9 @@ public class AttendanceService : IAttendanceService
             if (attendanceRecord == null) return false;
 
             if (request.CheckInTime == null && request.CheckOutTime == null && request.Notes == null)
-            return false;
-
+                return false;
+            
+            attendanceRecord.Status = statusByShift;
             attendanceRecord.CheckInTime = request.CheckInTime ?? attendanceRecord.CheckInTime;
             attendanceRecord.CheckOutTime = request.CheckOutTime ?? attendanceRecord.CheckOutTime;
             attendanceRecord.Notes = request.Notes ?? attendanceRecord.Notes;

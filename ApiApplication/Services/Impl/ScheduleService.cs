@@ -69,13 +69,14 @@ namespace ApiApplication.Services.Impl
                                     ar.StaffId == x.Staff.Id &&
                                     ar.Date == DateOnly.FromDateTime(x.Date)
                                 );
+                                var statusByDate = dayGroup.Key < DateTime.Now ? (attendance != null ? attendance.Status : AttendanceStatus.Absent) : AttendanceStatus.NotYet;
                                 return new StaffAttendanceResponse
                                 {
                                     Id = x.Staff.Id,
                                     FullName = x.Staff.FullName,
                                     AvatarUrl = x.Staff.AvatarUrl,
                                     AttendanceRecordId = attendance?.Id ?? null,
-                                    AttendanceStatus = attendance?.Status ?? AttendanceStatus.NotYet,
+                                    AttendanceStatus = statusByDate,
                                 };
                             }).ToList(),
                         })

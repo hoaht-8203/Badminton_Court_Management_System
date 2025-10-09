@@ -12,4 +12,9 @@ export const courtScheduleService = {
     const response = await axiosInstance.get("api/BookingCourts/list", { params: payload });
     return response.data;
   },
+
+  async detailBooking(payload: { id: string }): Promise<ApiResponse<DetailBookingCourtResponse>> {
+    const response = await axiosInstance.get("api/BookingCourts/detail", { params: payload });
+    return response.data;
+  },
 };

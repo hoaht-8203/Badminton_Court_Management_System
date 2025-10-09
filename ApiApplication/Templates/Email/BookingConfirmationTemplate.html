@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Xác nhận đặt sân</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        color: #111827;
+      }
+      .container {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+      }
+      .title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 12px;
+      }
+      .row {
+        margin: 8px 0;
+      }
+      .highlight {
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="title">Xác nhận đặt sân thành công</div>
+      <div class="row">
+        Xin chào <span class="highlight">{{CustomerName}}</span>,
+      </div>
+      <div class="row">Đặt sân của bạn đã được xác nhận.</div>
+      <div class="row">Sân: <span class="highlight">{{CourtName}}</span></div>
+      <div class="row">
+        Thời gian:
+        <span class="highlight">{{StartDate}} {{StartTime}} - {{EndTime}}</span>
+      </div>
+      <div class="row">
+        Số tiền đã thanh toán: <span class="highlight">{{PaidAmount}}</span> VND
+      </div>
+      <div class="row">Cảm ơn bạn đã sử dụng dịch vụ.</div>
+    </div>
+  </body>
+</html>

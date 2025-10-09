@@ -16,10 +16,13 @@
 import * as runtime from '../runtime';
 import type {
   DetailPaymentResponseApiResponse,
+  QrPaymentResponseApiResponse,
 } from '../models/index';
 import {
     DetailPaymentResponseApiResponseFromJSON,
     DetailPaymentResponseApiResponseToJSON,
+    QrPaymentResponseApiResponseFromJSON,
+    QrPaymentResponseApiResponseToJSON,
 } from '../models/index';
 
 export interface ApiPaymentsDetailPaymentByBookingIdGetRequest {
@@ -28,6 +31,10 @@ export interface ApiPaymentsDetailPaymentByBookingIdGetRequest {
 
 export interface ApiPaymentsDetailPaymentByIdGetRequest {
     id: string;
+}
+
+export interface ApiPaymentsQrByBookingIdGetRequest {
+    bookingId: string;
 }
 
 /**
@@ -62,6 +69,19 @@ export interface PaymentsApiInterface {
     /**
      */
     apiPaymentsDetailPaymentByIdGet(requestParameters: ApiPaymentsDetailPaymentByIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailPaymentResponseApiResponse>;
+
+    /**
+     * 
+     * @param {string} bookingId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PaymentsApiInterface
+     */
+    apiPaymentsQrByBookingIdGetRaw(requestParameters: ApiPaymentsQrByBookingIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<QrPaymentResponseApiResponse>>;
+
+    /**
+     */
+    apiPaymentsQrByBookingIdGet(requestParameters: ApiPaymentsQrByBookingIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<QrPaymentResponseApiResponse>;
 
 }
 
@@ -143,6 +163,44 @@ export class PaymentsApi extends runtime.BaseAPI implements PaymentsApiInterface
      */
     async apiPaymentsDetailPaymentByIdGet(requestParameters: ApiPaymentsDetailPaymentByIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailPaymentResponseApiResponse> {
         const response = await this.apiPaymentsDetailPaymentByIdGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiPaymentsQrByBookingIdGetRaw(requestParameters: ApiPaymentsQrByBookingIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<QrPaymentResponseApiResponse>> {
+        if (requestParameters['bookingId'] == null) {
+            throw new runtime.RequiredError(
+                'bookingId',
+                'Required parameter "bookingId" was null or undefined when calling apiPaymentsQrByBookingIdGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['bookingId'] != null) {
+            queryParameters['BookingId'] = requestParameters['bookingId'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Payments/qr-by-booking-id`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => QrPaymentResponseApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiPaymentsQrByBookingIdGet(requestParameters: ApiPaymentsQrByBookingIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<QrPaymentResponseApiResponse> {
+        const response = await this.apiPaymentsQrByBookingIdGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

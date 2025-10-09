@@ -86,6 +86,16 @@ public class EmailTemplateHTML
                 Subject = "Xác minh email",
                 TemplatePath = "VerifyTemplate.html",
             },
+            EmailTemplateType.PaymentRequest => new EmailTemplate
+            {
+                Subject = "Thanh toán đặt sân",
+                TemplatePath = "PaymentRequestTemplate.html",
+            },
+            EmailTemplateType.BookingConfirmation => new EmailTemplate
+            {
+                Subject = "Xác nhận đặt sân",
+                TemplatePath = "BookingConfirmationTemplate.html",
+            },
             _ => throw new NotImplementedException(
                 $"Template type {templateType} is not implemented"
             ),

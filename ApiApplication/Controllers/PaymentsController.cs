@@ -3,6 +3,8 @@ using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
+using ApiApplication.Extensions;
+using ApiApplication.Services;
 using ApiApplication.SignalR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +15,19 @@ namespace ApiApplication.Controllers;
 
 [Route("api/payment-webhooks")]
 [ApiController]
-public class PaymentWebhooksController(ApplicationDbContext context, IConfiguration configuration, IHubContext<BookingHub> hubContext)
-    : ControllerBase
+public class PaymentWebhooksController(
+    ApplicationDbContext context,
+    IConfiguration configuration,
+    IHubContext<BookingHub> hubContext,
+    IEmailService emailService,
+    ILogger<PaymentWebhooksController> logger
+) : ControllerBase
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IConfiguration _configuration = configuration;
     private readonly IHubContext<BookingHub> _hubContext = hubContext;
+    private readonly IEmailService _emailService = emailService;
+    private readonly ILogger<PaymentWebhooksController> _logger = logger;
 
     public class SePayWebhookRequest
     {
@@ -122,6 +131,37 @@ public class PaymentWebhooksController(ApplicationDbContext context, IConfigurat
             if (payment.Booking != null)
             {
                 await _hubContext.Clients.All.SendAsync("bookingUpdated", payment.Booking.Id);
+            }
+
+            // After successful payment, send booking confirmation email via template
+            var toEmail = payment.Customer?.Email ?? payment.Booking?.Customer?.Email;
+            var toName =
+                payment.Customer?.FullName ?? payment.Booking?.Customer?.FullName ?? toEmail;
+            var courtName = payment.Booking?.Court?.Name ?? string.Empty;
+            var startDate = payment.Booking?.StartDate.ToString() ?? string.Empty;
+            var startTime = payment.Booking?.StartTime.ToString() ?? string.Empty;
+            var endTime = payment.Booking?.EndTime.ToString() ?? string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(toEmail))
+            {
+                _emailService.SendEmailFireAndForget(
+                    () =>
+                        _emailService.SendBookingConfirmationEmailAsync(
+                            new Dtos.Email.SendBookingConfirmationEmailAsyncRequest
+                            {
+                                To = toEmail!,
+                                ToName = toName,
+                                CustomerName = toName ?? toEmail!,
+                                CourtName = courtName,
+                                StartDate = startDate,
+                                StartTime = startTime,
+                                EndTime = endTime,
+                                PaidAmount = payment.Amount.ToString("N0"),
+                            }
+                        ),
+                    _logger,
+                    toEmail!
+                );
             }
 
             return Ok(ApiResponse<object?>.SuccessResponse(null, "Thanh toán đã được xác nhận"));

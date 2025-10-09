@@ -67,6 +67,24 @@ export interface CreateBookingCourtRequest {
      * @memberof CreateBookingCourtRequest
      */
     note?: string | null;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CreateBookingCourtRequest
+     */
+    payInFull?: boolean | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateBookingCourtRequest
+     */
+    depositPercent?: number | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateBookingCourtRequest
+     */
+    paymentMethod?: string | null;
 }
 
 /**
@@ -94,6 +112,9 @@ export function CreateBookingCourtRequestFromJSONTyped(json: any, ignoreDiscrimi
         'endTime': json['endTime'] == null ? undefined : json['endTime'],
         'daysOfWeek': json['daysOfWeek'] == null ? undefined : json['daysOfWeek'],
         'note': json['note'] == null ? undefined : json['note'],
+        'payInFull': json['payInFull'] == null ? undefined : json['payInFull'],
+        'depositPercent': json['depositPercent'] == null ? undefined : json['depositPercent'],
+        'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
     };
 }
 
@@ -116,6 +137,9 @@ export function CreateBookingCourtRequestToJSONTyped(value?: CreateBookingCourtR
         'endTime': value['endTime'],
         'daysOfWeek': value['daysOfWeek'],
         'note': value['note'],
+        'payInFull': value['payInFull'],
+        'depositPercent': value['depositPercent'],
+        'paymentMethod': value['paymentMethod'],
     };
 }
 

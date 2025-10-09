@@ -13,6 +13,21 @@
  */
 
 import { mapValues } from '../runtime';
+import type { CustomerDto } from './CustomerDto';
+import {
+    CustomerDtoFromJSON,
+    CustomerDtoFromJSONTyped,
+    CustomerDtoToJSON,
+    CustomerDtoToJSONTyped,
+} from './CustomerDto';
+import type { PaymentDto } from './PaymentDto';
+import {
+    PaymentDtoFromJSON,
+    PaymentDtoFromJSONTyped,
+    PaymentDtoToJSON,
+    PaymentDtoToJSONTyped,
+} from './PaymentDto';
+
 /**
  * 
  * @export
@@ -37,6 +52,12 @@ export interface DetailBookingCourtResponse {
      * @memberof DetailBookingCourtResponse
      */
     courtId?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailBookingCourtResponse
+     */
+    courtName?: string | null;
     /**
      * 
      * @type {Date}
@@ -79,6 +100,72 @@ export interface DetailBookingCourtResponse {
      * @memberof DetailBookingCourtResponse
      */
     totalHours?: number;
+    /**
+     * 
+     * @type {CustomerDto}
+     * @memberof DetailBookingCourtResponse
+     */
+    customer?: CustomerDto;
+    /**
+     * 
+     * @type {Array<PaymentDto>}
+     * @memberof DetailBookingCourtResponse
+     */
+    payments?: Array<PaymentDto> | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    totalAmount?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    paidAmount?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    remainingAmount?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailBookingCourtResponse
+     */
+    paymentType?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailBookingCourtResponse
+     */
+    paymentId?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    paymentAmount?: number | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailBookingCourtResponse
+     */
+    qrUrl?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    holdMinutes?: number | null;
+    /**
+     * 
+     * @type {Date}
+     * @memberof DetailBookingCourtResponse
+     */
+    expiresAtUtc?: Date | null;
 }
 
 /**
@@ -101,6 +188,7 @@ export function DetailBookingCourtResponseFromJSONTyped(json: any, ignoreDiscrim
         'id': json['id'] == null ? undefined : json['id'],
         'customerId': json['customerId'] == null ? undefined : json['customerId'],
         'courtId': json['courtId'] == null ? undefined : json['courtId'],
+        'courtName': json['courtName'] == null ? undefined : json['courtName'],
         'startDate': json['startDate'] == null ? undefined : (new Date(json['startDate'])),
         'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
         'startTime': json['startTime'] == null ? undefined : json['startTime'],
@@ -108,6 +196,17 @@ export function DetailBookingCourtResponseFromJSONTyped(json: any, ignoreDiscrim
         'daysOfWeek': json['daysOfWeek'] == null ? undefined : json['daysOfWeek'],
         'status': json['status'] == null ? undefined : json['status'],
         'totalHours': json['totalHours'] == null ? undefined : json['totalHours'],
+        'customer': json['customer'] == null ? undefined : CustomerDtoFromJSON(json['customer']),
+        'payments': json['payments'] == null ? undefined : ((json['payments'] as Array<any>).map(PaymentDtoFromJSON)),
+        'totalAmount': json['totalAmount'] == null ? undefined : json['totalAmount'],
+        'paidAmount': json['paidAmount'] == null ? undefined : json['paidAmount'],
+        'remainingAmount': json['remainingAmount'] == null ? undefined : json['remainingAmount'],
+        'paymentType': json['paymentType'] == null ? undefined : json['paymentType'],
+        'paymentId': json['paymentId'] == null ? undefined : json['paymentId'],
+        'paymentAmount': json['paymentAmount'] == null ? undefined : json['paymentAmount'],
+        'qrUrl': json['qrUrl'] == null ? undefined : json['qrUrl'],
+        'holdMinutes': json['holdMinutes'] == null ? undefined : json['holdMinutes'],
+        'expiresAtUtc': json['expiresAtUtc'] == null ? undefined : (new Date(json['expiresAtUtc'])),
     };
 }
 
@@ -125,6 +224,7 @@ export function DetailBookingCourtResponseToJSONTyped(value?: DetailBookingCourt
         'id': value['id'],
         'customerId': value['customerId'],
         'courtId': value['courtId'],
+        'courtName': value['courtName'],
         'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString().substring(0,10)),
         'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
         'startTime': value['startTime'],
@@ -132,6 +232,17 @@ export function DetailBookingCourtResponseToJSONTyped(value?: DetailBookingCourt
         'daysOfWeek': value['daysOfWeek'],
         'status': value['status'],
         'totalHours': value['totalHours'],
+        'customer': CustomerDtoToJSON(value['customer']),
+        'payments': value['payments'] == null ? undefined : ((value['payments'] as Array<any>).map(PaymentDtoToJSON)),
+        'totalAmount': value['totalAmount'],
+        'paidAmount': value['paidAmount'],
+        'remainingAmount': value['remainingAmount'],
+        'paymentType': value['paymentType'],
+        'paymentId': value['paymentId'],
+        'paymentAmount': value['paymentAmount'],
+        'qrUrl': value['qrUrl'],
+        'holdMinutes': value['holdMinutes'],
+        'expiresAtUtc': value['expiresAtUtc'] === null ? null : ((value['expiresAtUtc'] as any)?.toISOString()),
     };
 }
 

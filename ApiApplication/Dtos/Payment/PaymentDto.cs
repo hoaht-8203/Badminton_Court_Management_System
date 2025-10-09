@@ -17,4 +17,5 @@ public class PaymentDto
 
     public Guid CourtId { get; set; }
     public string CourtName { get; set; } = string.Empty;
+    public string? Note { get; set; }
 }

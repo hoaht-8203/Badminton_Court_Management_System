@@ -32,6 +32,10 @@ export interface ApiBookingCourtsCreatePostRequest {
     createBookingCourtRequest?: CreateBookingCourtRequest;
 }
 
+export interface ApiBookingCourtsDetailGetRequest {
+    id: string;
+}
+
 export interface ApiBookingCourtsListGetRequest {
     customerId?: number;
     courtId?: string;
@@ -58,6 +62,19 @@ export interface BookingCourtsApiInterface {
     /**
      */
     apiBookingCourtsCreatePost(requestParameters: ApiBookingCourtsCreatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailBookingCourtResponseApiResponse>;
+
+    /**
+     * 
+     * @param {string} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BookingCourtsApiInterface
+     */
+    apiBookingCourtsDetailGetRaw(requestParameters: ApiBookingCourtsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DetailBookingCourtResponseApiResponse>>;
+
+    /**
+     */
+    apiBookingCourtsDetailGet(requestParameters: ApiBookingCourtsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailBookingCourtResponseApiResponse>;
 
     /**
      * 
@@ -109,6 +126,44 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
      */
     async apiBookingCourtsCreatePost(requestParameters: ApiBookingCourtsCreatePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailBookingCourtResponseApiResponse> {
         const response = await this.apiBookingCourtsCreatePostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiBookingCourtsDetailGetRaw(requestParameters: ApiBookingCourtsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DetailBookingCourtResponseApiResponse>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling apiBookingCourtsDetailGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['id'] != null) {
+            queryParameters['Id'] = requestParameters['id'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/BookingCourts/detail`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => DetailBookingCourtResponseApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiBookingCourtsDetailGet(requestParameters: ApiBookingCourtsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailBookingCourtResponseApiResponse> {
+        const response = await this.apiBookingCourtsDetailGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

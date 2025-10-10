@@ -33,6 +33,7 @@ models/BaseEntity.ts
 models/BookingCourt.ts
 models/BooleanApiResponse.ts
 models/Branch.ts
+models/CancelBookingCourtRequest.ts
 models/CancellationToken.ts
 models/CancelledShift.ts
 models/Category.ts
@@ -195,6 +196,8 @@ models/PriceTableProductItem.ts
 models/PriceTimeRange.ts
 models/PriceTimeRangeDto.ts
 models/Product.ts
+models/QrPaymentResponse.ts
+models/QrPaymentResponseApiResponse.ts
 models/RegisterRequest.ts
 models/SafeWaitHandle.ts
 models/SalaryForm.ts
@@ -211,6 +214,8 @@ models/ScheduleRequest.ts
 models/ScheduleResponse.ts
 models/ScheduleResponseListApiResponse.ts
 models/SePayWebhookRequest.ts
+models/SendBookingConfirmationEmailAsyncRequest.ts
+models/SendPaymentRequestEmailAsyncRequest.ts
 models/SetPriceTableProductItem.ts
 models/SetPriceTableProductsRequest.ts
 models/Shift.ts

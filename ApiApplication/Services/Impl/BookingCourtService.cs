@@ -43,7 +43,8 @@ public class BookingCourtService(
         }
 
         // Không cho đặt các ngày đã qua
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var nowUtc = DateTime.UtcNow;
+        var today = DateOnly.FromDateTime(nowUtc);
         if (endDate < today)
         {
             throw new ApiException("Không thể đặt cho ngày đã qua.", HttpStatusCode.BadRequest);
@@ -67,6 +68,19 @@ public class BookingCourtService(
             }
             // set as empty for consistency with entity schema
             request.DaysOfWeek = Array.Empty<int>();
+
+            // Chặn đặt giờ đã qua trong ngày hôm nay (vãng lai)
+            if (startDate == today)
+            {
+                var nowTime = TimeOnly.FromDateTime(nowUtc);
+                if (request.StartTime <= nowTime)
+                {
+                    throw new ApiException(
+                        "Giờ bắt đầu phải lớn hơn thời điểm hiện tại.",
+                        HttpStatusCode.BadRequest
+                    );
+                }
+            }
         }
         else
         {
@@ -89,6 +103,31 @@ public class BookingCourtService(
                     "Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.",
                     HttpStatusCode.BadRequest
                 );
+            }
+
+            // Chặn đặt giờ đã qua cho lần xuất hiện đầu tiên (cố định)
+            // Tìm ngày áp dụng đầu tiên trong khoảng
+            var firstApplicable = startDate;
+            while (firstApplicable <= endDate)
+            {
+                var dow = GetCustomDayOfWeek(firstApplicable);
+                if (request.DaysOfWeek.Contains(dow))
+                {
+                    break;
+                }
+                firstApplicable = firstApplicable.AddDays(1);
+            }
+
+            if (firstApplicable == today)
+            {
+                var nowTime = TimeOnly.FromDateTime(nowUtc);
+                if (request.StartTime <= nowTime)
+                {
+                    throw new ApiException(
+                        "Khung giờ hôm nay đã qua, vui lòng chọn giờ hợp lệ hoặc dời ngày bắt đầu.",
+                        HttpStatusCode.BadRequest
+                    );
+                }
             }
         }
 
@@ -138,14 +177,11 @@ public class BookingCourtService(
 
         // Exclude expired holds: treat as free if PendingPayment older than HoldMinutes
         var holdMinutes = _configuration.GetValue<int?>("Booking:HoldMinutes");
-        var nowUtc = DateTime.UtcNow;
+        // re-use nowUtc defined above
 
         var exists = await query.AnyAsync(b =>
             // Only Active and Completed bookings block new bookings
-            (
-                b.Status == BookingCourtStatus.Active
-                || b.Status == BookingCourtStatus.Completed
-            )
+            (b.Status == BookingCourtStatus.Active || b.Status == BookingCourtStatus.Completed)
             || (
                 // PendingPayment bookings only block if they haven't expired
                 b.Status == BookingCourtStatus.PendingPayment
@@ -182,6 +218,26 @@ public class BookingCourtService(
         await _context.BookingCourts.AddAsync(entity);
         await _context.SaveChangesAsync();
 
+        // Create payment with preferences (deposit or full, method)
+        var payInFull = request.PayInFull == true;
+        var depositPercent = request.DepositPercent.HasValue
+            ? Math.Clamp(request.DepositPercent.Value, 0m, 1m)
+            : 0.3m; // default 30%
+        var paymentMethod = string.IsNullOrWhiteSpace(request.PaymentMethod)
+            ? "Bank"
+            : request.PaymentMethod;
+
+        await _paymentService.CreatePaymentAsync(
+            new CreatePaymentRequest
+            {
+                BookingId = entity.Id,
+                CustomerId = entity.CustomerId,
+                PayInFull = payInFull,
+                DepositPercent = depositPercent,
+                PaymentMethod = paymentMethod,
+            }
+        );
+
         // Broadcast booking created (pending payment) event
         await _hub.Clients.All.SendAsync(
             "bookingCreated",
@@ -199,14 +255,10 @@ public class BookingCourtService(
             }
         );
 
-        // Tạo payment pending ngay sau khi tạo booking
-        await _paymentService.CreatePaymentAsync(
-            new CreatePaymentRequest { BookingId = entity.Id, CustomerId = entity.CustomerId }
-        );
-
         // Note: email sending with payment link handled in higher layer (e.g., BookingCourtsController)
 
-        return _mapper.Map<DetailBookingCourtResponse>(entity);
+        // Return enriched detail (includes payment summary and QR info if applicable)
+        return await DetailBookingCourtAsync(new DetailBookingCourtRequest { Id = entity.Id });
     }
 
     private static int GetCustomDayOfWeek(DateOnly date)
@@ -291,7 +343,10 @@ public class BookingCourtService(
         ListBookingCourtRequest request
     )
     {
-        var query = _context.BookingCourts.Include(x => x.Court).Include(x => x.Customer).AsQueryable();
+        var query = _context
+            .BookingCourts.Include(x => x.Court)
+            .Include(x => x.Customer)
+            .AsQueryable();
 
         if (request.CustomerId.HasValue)
         {
@@ -319,5 +374,136 @@ public class BookingCourtService(
             .Include(x => x.Payments)
             .ToListAsync();
         return _mapper.Map<List<ListBookingCourtResponse>>(items);
+    }
+
+    public async Task<DetailBookingCourtResponse> DetailBookingCourtAsync(
+        DetailBookingCourtRequest request
+    )
+    {
+        var entity = await _context
+            .BookingCourts.Include(x => x.Court)
+            .Include(x => x.Customer)
+            .Include(x => x.Payments)
+            .FirstOrDefaultAsync(x => x.Id == request.Id);
+
+        if (entity == null)
+        {
+            throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
+        }
+
+        var dto = _mapper.Map<DetailBookingCourtResponse>(entity);
+
+        // Compute totals
+        var totalAmount = await CalculateBookingAmountForEntityAsync(entity);
+        var paidAmount = entity
+            .Payments.Where(p => p.Status == PaymentStatus.Paid)
+            .Sum(p => p.Amount);
+        dto.TotalAmount = Math.Round(totalAmount, 2);
+        dto.PaidAmount = Math.Round(paidAmount, 2);
+        dto.RemainingAmount = Math.Max(0, Math.Round(totalAmount - paidAmount, 2));
+
+        // Infer payment type from first payment amount vs total
+        if (entity.Payments.Count == 0)
+        {
+            dto.PaymentType = "None";
+        }
+        else
+        {
+            var first = entity.Payments.OrderBy(p => p.PaymentCreatedAt).First();
+            var ratio = totalAmount == 0 ? 0 : first.Amount / totalAmount;
+            dto.PaymentType = ratio >= 0.99m ? "Full" : "Deposit";
+            // Inline QR info for transfer (pending) case
+            if (
+                !string.Equals(first.Status, PaymentStatus.Paid, StringComparison.OrdinalIgnoreCase)
+            )
+            {
+                dto.PaymentId = first.Id;
+                dto.PaymentAmount = first.Amount;
+                var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
+                var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
+                var amount = ((long)Math.Round(first.Amount, 0)).ToString();
+                var des = Uri.EscapeDataString(first.Id);
+                dto.QrUrl =
+                    $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
+                var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
+                dto.HoldMinutes = holdMins;
+                dto.ExpiresAtUtc = first.PaymentCreatedAt.AddMinutes(holdMins);
+            }
+        }
+
+        return dto;
+    }
+
+    public async Task<bool> CancelBookingCourtAsync(CancelBookingCourtRequest request)
+    {
+        var entity = await _context
+            .BookingCourts.Include(x => x.Payments)
+            .FirstOrDefaultAsync(x => x.Id == request.Id);
+
+        if (entity == null)
+        {
+            throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
+        }
+
+        if (entity.Status == BookingCourtStatus.Cancelled)
+        {
+            return true;
+        }
+
+        entity.Status = BookingCourtStatus.Cancelled;
+
+        foreach (var p in entity.Payments)
+        {
+            if (p.Status == PaymentStatus.PendingPayment || p.Status == PaymentStatus.Unpaid)
+            {
+                p.Status = PaymentStatus.Cancelled;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        await _hub.Clients.All.SendAsync("bookingUpdated", entity.Id);
+        await _hub.Clients.All.SendAsync("bookingCancelled", entity.Id);
+        await _hub.Clients.All.SendAsync("paymentsCancelled", new { bookingId = entity.Id });
+
+        return true;
+    }
+
+    private async Task<decimal> CalculateBookingAmountForEntityAsync(BookingCourt booking)
+    {
+        var dow = GetCustomDayOfWeek(booking.StartDate);
+        var rules = await _context
+            .CourtPricingRules.Where(r =>
+                r.CourtId == booking.CourtId && r.DaysOfWeek.Contains(dow)
+            )
+            .OrderBy(r => r.Order)
+            .ToListAsync();
+
+        if (rules.Count == 0)
+        {
+            return 0m;
+        }
+
+        var total = 0m;
+        var currentTime = booking.StartTime;
+        var endTime = booking.EndTime;
+
+        while (currentTime < endTime)
+        {
+            var applicableRule = rules.FirstOrDefault(r =>
+                currentTime >= r.StartTime && currentTime < r.EndTime
+            );
+            if (applicableRule == null)
+            {
+                break;
+            }
+            var ruleEndTime = applicableRule.EndTime < endTime ? applicableRule.EndTime : endTime;
+            var hours = (decimal)(ruleEndTime.ToTimeSpan() - currentTime.ToTimeSpan()).TotalHours;
+            var priceForThisPeriod = applicableRule.PricePerHour * hours;
+            total += priceForThisPeriod;
+            currentTime = ruleEndTime;
+        }
+
+        return Math.Round(total, 2);
     }
 }

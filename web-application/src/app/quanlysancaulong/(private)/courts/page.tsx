@@ -36,7 +36,6 @@ const CourtPage = () => {
 
   const { data: courtsData, isFetching: loadingCourts, refetch } = useListCourts(searchParams);
 
-  const deleteCourtMutation = useDeleteCourt();
   const changeCourtStatusMutation = useChangeCourtStatus();
 
   const handleClickUpdate = (record: ListCourtResponse) => {

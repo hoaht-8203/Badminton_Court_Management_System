@@ -85,6 +85,12 @@ export interface PaymentDto {
      * @memberof PaymentDto
      */
     courtName?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof PaymentDto
+     */
+    note?: string | null;
 }
 
 /**
@@ -115,6 +121,7 @@ export function PaymentDtoFromJSONTyped(json: any, ignoreDiscriminator: boolean)
         'customerEmail': json['customerEmail'] == null ? undefined : json['customerEmail'],
         'courtId': json['courtId'] == null ? undefined : json['courtId'],
         'courtName': json['courtName'] == null ? undefined : json['courtName'],
+        'note': json['note'] == null ? undefined : json['note'],
     };
 }
 
@@ -140,6 +147,7 @@ export function PaymentDtoToJSONTyped(value?: PaymentDto | null, ignoreDiscrimin
         'customerEmail': value['customerEmail'],
         'courtId': value['courtId'],
         'courtName': value['courtName'],
+        'note': value['note'],
     };
 }
 

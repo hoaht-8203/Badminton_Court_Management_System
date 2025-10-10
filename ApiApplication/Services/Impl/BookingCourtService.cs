@@ -434,6 +434,41 @@ public class BookingCourtService(
         return dto;
     }
 
+    public async Task<bool> CancelBookingCourtAsync(CancelBookingCourtRequest request)
+    {
+        var entity = await _context
+            .BookingCourts.Include(x => x.Payments)
+            .FirstOrDefaultAsync(x => x.Id == request.Id);
+
+        if (entity == null)
+        {
+            throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
+        }
+
+        if (entity.Status == BookingCourtStatus.Cancelled)
+        {
+            return true;
+        }
+
+        entity.Status = BookingCourtStatus.Cancelled;
+
+        foreach (var p in entity.Payments)
+        {
+            if (p.Status == PaymentStatus.PendingPayment || p.Status == PaymentStatus.Unpaid)
+            {
+                p.Status = PaymentStatus.Cancelled;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        await _hub.Clients.All.SendAsync("bookingUpdated", entity.Id);
+        await _hub.Clients.All.SendAsync("bookingCancelled", entity.Id);
+        await _hub.Clients.All.SendAsync("paymentsCancelled", new { bookingId = entity.Id });
+
+        return true;
+    }
+
     private async Task<decimal> CalculateBookingAmountForEntityAsync(BookingCourt booking)
     {
         var dow = GetCustomDayOfWeek(booking.StartDate);

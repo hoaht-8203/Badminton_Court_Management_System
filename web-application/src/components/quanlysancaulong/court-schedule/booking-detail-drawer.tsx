@@ -1,10 +1,11 @@
 "use client";
 
-import { useDetailBookingCourt } from "@/hooks/useBookingCourt";
+import { useCancelBookingCourt, useDetailBookingCourt } from "@/hooks/useBookingCourt";
 import { DetailBookingCourtResponse, PaymentDto } from "@/types-openapi/api";
-import { Button, Descriptions, Divider, Drawer, Tabs, Tag } from "antd";
+import { Button, Descriptions, Divider, Drawer, Modal, Tabs, Tag } from "antd";
 import { useState } from "react";
 import QrPaymentDrawer from "./qr-payment-drawer";
+import { BookingCourtStatus } from "@/types/commons";
 
 interface BookingDetailDrawerProps {
   bookingId: string | null;
@@ -51,9 +52,11 @@ const vnPaymentStatus: Record<string, { color: string; text: string }> = {
 };
 
 export default function BookingDetailDrawer({ bookingId, open, onClose }: BookingDetailDrawerProps) {
+  const [modal, contextHolder] = Modal.useModal();
   const { data, isFetching } = useDetailBookingCourt(bookingId ?? undefined);
   const bookingDetailData: DetailBookingCourtResponse = data?.data as DetailBookingCourtResponse;
   const [openQrPayment, setOpenQrPayment] = useState(false);
+  const cancelMutation = useCancelBookingCourt();
 
   return (
     <Drawer title="Chi tiết đặt sân" placement="right" width={1000} open={open} onClose={onClose} destroyOnClose>
@@ -70,6 +73,32 @@ export default function BookingDetailDrawer({ bookingId, open, onClose }: Bookin
               label: "Thông tin đặt sân",
               children: (
                 <div className="flex flex-col gap-5">
+                  <div className="flex justify-end gap-2">
+                    {bookingDetailData.status !== BookingCourtStatus.Cancelled && (
+                      <Button
+                        danger
+                        onClick={async () => {
+                          if (!bookingId) return;
+                          modal.confirm({
+                            title: "Xác nhận",
+                            content: "Bạn có chắc chắn muốn huỷ lịch đặt sân này? Tiền cọc (nếu có) sẽ không được hoàn lại.",
+                            okButtonProps: {
+                              loading: cancelMutation.isPending,
+                            },
+                            onOk: async () => {
+                              await cancelMutation.mutateAsync({ id: bookingId });
+                              onClose();
+                            },
+                            okText: "Huỷ lịch đặt sân",
+                            cancelText: "Bỏ qua",
+                          });
+                        }}
+                        loading={cancelMutation.isPending}
+                      >
+                        Huỷ lịch đặt sân
+                      </Button>
+                    )}
+                  </div>
                   <Descriptions
                     bordered
                     size="small"
@@ -262,6 +291,7 @@ export default function BookingDetailDrawer({ bookingId, open, onClose }: Bookin
         title="Thông tin thanh toán"
         width={600}
       />
+      {contextHolder}
     </Drawer>
   );
 }

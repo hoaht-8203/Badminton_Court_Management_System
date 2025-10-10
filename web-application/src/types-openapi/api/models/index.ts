@@ -7,6 +7,7 @@ export * from './BaseEntity';
 export * from './BookingCourt';
 export * from './BooleanApiResponse';
 export * from './Branch';
+export * from './CancelBookingCourtRequest';
 export * from './CancellationToken';
 export * from './CancelledShift';
 export * from './Category';

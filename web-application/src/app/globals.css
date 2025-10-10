@@ -18,3 +18,11 @@
 .scheduler_default_corner {
   background-color: white !important;
 }
+
+.scheduler_default_event_group > div:nth-child(1) {
+  width: 100% !important;
+}
+
+.scheduler_default_event_float_inner {
+  width: 100% !important;
+}

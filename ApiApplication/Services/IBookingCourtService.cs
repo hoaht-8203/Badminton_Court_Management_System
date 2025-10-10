@@ -7,4 +7,5 @@ public interface IBookingCourtService
     Task<DetailBookingCourtResponse> CreateBookingCourtAsync(CreateBookingCourtRequest request);
     Task<List<ListBookingCourtResponse>> ListBookingCourtsAsync(ListBookingCourtRequest request);
     Task<DetailBookingCourtResponse> DetailBookingCourtAsync(DetailBookingCourtRequest request);
+    Task<bool> CancelBookingCourtAsync(CancelBookingCourtRequest request);
 }

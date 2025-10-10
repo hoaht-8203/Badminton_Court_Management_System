@@ -134,4 +134,15 @@ public class BookingCourtsController(
             )
         );
     }
+
+    [HttpPost("cancel")]
+    public async Task<ActionResult<ApiResponse<bool>>> Cancel(
+        [FromBody] CancelBookingCourtRequest request
+    )
+    {
+        var ok = await _service.CancelBookingCourtAsync(request);
+        return Ok(
+            ApiResponse<bool>.SuccessResponse(ok, ok ? "Huỷ lịch thành công" : "Huỷ lịch thất bại")
+        );
+    }
 }

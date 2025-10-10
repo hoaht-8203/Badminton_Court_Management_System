@@ -5,6 +5,7 @@ import { useDetailBookingCourt } from "@/hooks/useBookingCourt";
 import { Descriptions, Image, Spin, Alert, Row, Col } from "antd";
 import { useEffect, useState } from "react";
 import { DetailBookingCourtResponse } from "@/types-openapi/api";
+import { BookingCourtStatus, PaymentStatus } from "@/types/commons";
 
 // Helper component for countdown
 function CountdownBanner({ expiresAtUtc }: { expiresAtUtc: string }) {
@@ -66,6 +67,11 @@ function CountdownBanner({ expiresAtUtc }: { expiresAtUtc: string }) {
 // Helper component for QR section with expiration logic
 function QRSection({ bookingDetail }: { bookingDetail: DetailBookingCourtResponse }) {
   const [isExpired, setIsExpired] = useState<boolean>(false);
+  const isBookingCancelled = bookingDetail.status === BookingCourtStatus.Cancelled;
+  const isPaymentCancelled = Array.isArray(bookingDetail.payments)
+    ? bookingDetail.payments!.some((p) => p.status === PaymentStatus.Cancelled)
+    : false;
+  const isCancelled = isBookingCancelled || isPaymentCancelled;
 
   useEffect(() => {
     if (!bookingDetail.expiresAtUtc) return;
@@ -81,7 +87,7 @@ function QRSection({ bookingDetail }: { bookingDetail: DetailBookingCourtRespons
     return () => clearInterval(id);
   }, [bookingDetail.expiresAtUtc]);
 
-  if (isExpired) {
+  if (isCancelled || isExpired) {
     return (
       <div
         style={{
@@ -92,7 +98,7 @@ function QRSection({ bookingDetail }: { bookingDetail: DetailBookingCourtRespons
           textAlign: "center",
         }}
       >
-        <div style={{ fontSize: "24px", color: "#dc2626", marginBottom: "16px" }}>QR Code đã hết hạn</div>
+        <div style={{ fontSize: "24px", color: "#dc2626", marginBottom: "16px" }}>{isCancelled ? "Đặt sân đã bị huỷ" : "QR Code đã hết hạn"}</div>
         <div style={{ fontSize: "18px", color: "#dc2626", fontWeight: "bold", marginBottom: "12px" }}>Không thể thanh toán</div>
         <div style={{ fontSize: "16px", color: "#666" }}>
           <div>• Trạng thái đặt sân đã bị hủy</div>
@@ -213,6 +219,11 @@ export default function PaymentPage() {
   const { data, isLoading, error } = useDetailBookingCourt(bookingId);
   const bookingDetail = data?.data as DetailBookingCourtResponse;
 
+  const isBookingCancelled = !!bookingDetail && String(bookingDetail.status) === "Cancelled";
+  const isPaymentCancelled =
+    !!bookingDetail && Array.isArray(bookingDetail.payments) ? bookingDetail.payments!.some((p) => String(p.status) === "Cancelled") : false;
+  const isCancelled = isBookingCancelled || isPaymentCancelled;
+
   if (isLoading) {
     return (
       <div
@@ -267,8 +278,8 @@ export default function PaymentPage() {
           boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
         }}
       >
-        {/* Countdown banner */}
-        {bookingDetail.expiresAtUtc && <CountdownBanner expiresAtUtc={bookingDetail.expiresAtUtc as any} />}
+        {/* Countdown banner: only show when not cancelled */}
+        {!isCancelled && bookingDetail.expiresAtUtc && <CountdownBanner expiresAtUtc={bookingDetail.expiresAtUtc as any} />}
 
         <Row gutter={[16, 16]}>
           <Col span={24} sm={24} md={12}>
@@ -362,8 +373,8 @@ export default function PaymentPage() {
           </Col>
         </Row>
 
-        {/* Instructions - only show if not expired */}
-        <InstructionsSection bookingDetail={bookingDetail} />
+        {/* Instructions - only show if not expired and not cancelled */}
+        {!isCancelled && <InstructionsSection bookingDetail={bookingDetail} />}
       </div>
     </div>
   );

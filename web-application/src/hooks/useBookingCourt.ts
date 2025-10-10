@@ -1,9 +1,15 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ApiError } from "@/lib/axios";
 import { courtScheduleService } from "@/services/courtScheduleService";
 import { paymentService, QrPaymentResponse } from "@/services/paymentService";
-import { CreateBookingCourtRequest, DetailBookingCourtResponse, ListBookingCourtRequest, ListBookingCourtResponse } from "@/types-openapi/api";
-import { ApiError } from "@/lib/axios";
+import {
+  CancelBookingCourtRequest,
+  CreateBookingCourtRequest,
+  DetailBookingCourtResponse,
+  ListBookingCourtRequest,
+  ListBookingCourtResponse,
+} from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // Query Keys
 export const bookingCourtsKeys = {
@@ -48,3 +54,14 @@ export const useDetailBookingCourt = (id?: string) => {
     enabled: !!id,
   });
 };
+
+// Cancel Booking Court
+export function useCancelBookingCourt() {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<boolean>, ApiError, CancelBookingCourtRequest>({
+    mutationFn: (data: CancelBookingCourtRequest) => courtScheduleService.cancelBooking(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+    },
+  });
+}

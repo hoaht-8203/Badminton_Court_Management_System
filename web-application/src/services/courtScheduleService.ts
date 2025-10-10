@@ -1,4 +1,10 @@
-import { CreateBookingCourtRequest, DetailBookingCourtResponse, ListBookingCourtRequest, ListBookingCourtResponse } from "@/types-openapi/api";
+import {
+  CancelBookingCourtRequest,
+  CreateBookingCourtRequest,
+  DetailBookingCourtResponse,
+  ListBookingCourtRequest,
+  ListBookingCourtResponse,
+} from "@/types-openapi/api";
 import { axiosInstance } from "@/lib/axios";
 import { ApiResponse } from "@/types/api";
 
@@ -15,6 +21,11 @@ export const courtScheduleService = {
 
   async detailBooking(payload: { id: string }): Promise<ApiResponse<DetailBookingCourtResponse>> {
     const response = await axiosInstance.get("api/BookingCourts/detail", { params: payload });
+    return response.data;
+  },
+
+  async cancelBooking(payload: CancelBookingCourtRequest): Promise<ApiResponse<boolean>> {
+    const response = await axiosInstance.post("api/BookingCourts/cancel", payload);
     return response.data;
   },
 };

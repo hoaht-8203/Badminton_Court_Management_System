@@ -29,6 +29,7 @@ models/BaseEntity.ts
 models/BookingCourt.ts
 models/BooleanApiResponse.ts
 models/Branch.ts
+models/CancelBookingCourtRequest.ts
 models/CancellationToken.ts
 models/CancelledShift.ts
 models/Category.ts

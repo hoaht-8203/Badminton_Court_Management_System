@@ -11,7 +11,7 @@ import PickCalendar from "./pick-calendar";
 import CourtScheduleTable from "./court-schedule-table";
 import { HttpTransportType } from "@microsoft/signalr";
 import { apiBaseUrl } from "@/lib/axios";
-import { Alert, message, Segmented } from "antd";
+import { Alert, message, Segmented, Checkbox } from "antd";
 import { CalendarOutlined, TableOutlined } from "@ant-design/icons";
 import BookingDetailDrawer from "./booking-detail-drawer";
 
@@ -32,6 +32,11 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   } | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [openDetail, setOpenDetail] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string[]>([
+    BookingCourtStatus.Active,
+    BookingCourtStatus.PendingPayment,
+    BookingCourtStatus.Completed,
+  ]);
   const queryClient = useQueryClient();
   const connectionRef = useRef<HubConnection | null>(null);
   const hasStartedRef = useRef(false);
@@ -42,11 +47,49 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     toDate: selectedDate.toDate(),
   });
 
-  const bookingCourtsEvent = useMemo(() => {
-    return expandBookings(bookingCourts?.data?.filter((booking) => booking.status !== BookingCourtStatus.Cancelled) ?? []);
-  }, [bookingCourts]);
+  const filteredBookings = useMemo(() => {
+    const all = bookingCourts?.data ?? [];
+    return all.filter((b) => statusFilter.includes(b.status as string));
+  }, [bookingCourts, statusFilter]);
 
-  // Detail is fetched inside BookingDetailDrawer component
+  const bookingCourtsEvent = useMemo(() => {
+    return expandBookings(filteredBookings);
+  }, [filteredBookings]);
+
+  // Compute totals only for bookings that actually occur on the selected date
+  const selectedCustomDow = useMemo(() => {
+    const jsDow = selectedDate.toDate().getDay(); // 0..6, Sunday=0
+    return jsDow === 0 ? 8 : jsDow + 1; // match backend convention 2..8 (Mon..Sun)
+  }, [selectedDate]);
+
+  const bookingsForSelectedDay = useMemo(() => {
+    const all = bookingCourts?.data ?? [];
+    const sel = selectedDate.toDate();
+    const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    return all.filter((b: any) => {
+      const days: number[] | null | undefined = b.daysOfWeek;
+      if (!days || days.length === 0) {
+        // walk-in: only count if the booking date equals selected date
+        const start = new Date(b.startDate as any);
+        return sameDay(start, sel);
+      }
+      // fixed: include only if the selected DOW is one of daysOfWeek
+      return (days as number[]).includes(selectedCustomDow);
+    });
+  }, [bookingCourts, selectedDate, selectedCustomDow]);
+
+  const totalCancelled = useMemo(() => {
+    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Cancelled).length;
+  }, [bookingsForSelectedDay]);
+  const totalActive = useMemo(() => {
+    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Active).length;
+  }, [bookingsForSelectedDay]);
+  const totalPendingPayment = useMemo(() => {
+    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.PendingPayment).length;
+  }, [bookingsForSelectedDay]);
+  const totalCompleted = useMemo(() => {
+    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Completed).length;
+  }, [bookingsForSelectedDay]);
 
   // Function để setup UI cho realtime connection dot
   const setupSchedulerUI = useCallback(() => {
@@ -136,6 +179,15 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     }
   }, [viewOption, selectedDate]);
 
+  // Re-attach realtime indicator dot when selectedDate changes (scheduler DOM re-renders)
+  useEffect(() => {
+    if (viewOption !== "schedule") return;
+    const id = setTimeout(() => {
+      setupSchedulerUI();
+    }, 0);
+    return () => clearTimeout(id);
+  }, [selectedDate, viewOption, setupSchedulerUI]);
+
   useEffect(() => {
     // Custom logger to filter benign startup races that cause noisy Next.js error overlays
     const filteredLogger: ILogger = {
@@ -196,6 +248,10 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
       // webhook also emits bookingUpdated separately; still refresh detail just in case
       invalidateDetailIfOpen();
+    });
+    conn.on("bookingCancelled", (bookingId: string) => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      invalidateDetailIfOpen(bookingId);
     });
     conn.on("bookingsExpired", (bookingIds: string[]) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
@@ -292,7 +348,20 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     <>
       <div className="mb-4">{isSignalRConnected === false && <Alert message="Không thể kết nối realtime." type="warning" showIcon closable />}</div>
 
-      <div className="mb-2 flex justify-end">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-700">Lọc trạng thái:</span>
+          <Checkbox.Group
+            options={[
+              { label: "Đã đặt & thanh toán", value: BookingCourtStatus.Active },
+              { label: "Đã đặt - chưa thanh toán", value: BookingCourtStatus.PendingPayment },
+              { label: "Hoàn tất", value: BookingCourtStatus.Completed },
+              { label: "Đã hủy", value: BookingCourtStatus.Cancelled },
+            ]}
+            value={statusFilter}
+            onChange={(vals) => setStatusFilter(vals as string[])}
+          />
+        </div>
         <Segmented
           options={[
             { label: "Xem theo lịch", value: "schedule", icon: <CalendarOutlined /> },
@@ -312,81 +381,180 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
 
         <div className="w-full">
           {viewOption === "schedule" ? (
-            <DayPilotScheduler
-              ref={schedulerRef}
-              cellWidthSpec={"Fixed"}
-              cellWidth={120}
-              timeHeaders={[
-                {
-                  groupBy: "Day",
-                  format: "dddd, dd/MM/yyyy",
-                },
-                {
-                  groupBy: "Hour",
-                  format: "HH:mm",
-                },
-              ]}
-              separators={[{ color: "red", location: new DayPilot.Date().toString() }]}
-              businessBeginsHour={0}
-              businessEndsHour={24}
-              businessWeekends={true}
-              scale={"Hour"}
-              timeRangeSelectedHandling="Enabled"
-              days={1}
-              startDate={selectedDate}
-              resources={resources}
-              onBeforeRowHeaderRender={(args) => {
-                args.row.cssClass = "resource-css";
-              }}
-              onBeforeCellRender={(args) => {
-                if (args.cell.isParent) {
-                  args.cell.properties.disabled = true;
-                  args.cell.properties.backColor = "#f0f0f0";
+            <>
+              <DayPilotScheduler
+                ref={schedulerRef}
+                cellWidthSpec={"Fixed"}
+                cellWidth={120}
+                groupConcurrentEvents={true}
+                groupConcurrentEventsLimit={2}
+                groupBubble={
+                  new DayPilot.Bubble({
+                    onLoad: (args: any) => {
+                      const count = args?.source?.events?.length ?? 0;
+                      args.html = `Ấn để mở danh sách sự kiện (${count} sự kiện)`;
+                    },
+                  })
                 }
-              }}
-              onBeforeEventRender={(args) => {
-                const eventStatus = args.data.status;
+                onBeforeGroupRender={(args) => {
+                  const totalCancelled = args.group.events.filter(
+                    (event: DayPilot.Event) => event.data.status === BookingCourtStatus.Cancelled,
+                  ).length;
 
-                if (eventStatus === BookingCourtStatus.Active) {
-                  args.data.barColor = "green";
-                }
+                  args.group.html = `
+                                  <div class="flex items-center justify-between">                                    
+                                    <div class="text-medium font-bold text-gray-700">${totalCancelled} sự kiện đã bị huỷ</div>
 
-                if (eventStatus === BookingCourtStatus.Cancelled) {
-                  args.data.barColor = "red";
-                }
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 16 16">
+                                      <g fill="#2e3436">
+                                        <path d="m 1 2 h 14 v 2 h -14 z m 0 0"/>
+                                        <path d="m 1 7 h 14 v 2 h -14 z m 0 0"/>
+                                        <path d="m 1 12 h 14 v 2 h -14 z m 0 0"/>
+                                      </g>
+                                    </svg>
+                                  </div>
+                                  `;
+                }}
+                timeHeaders={[
+                  {
+                    groupBy: "Day",
+                    format: "dddd, dd/MM/yyyy",
+                  },
+                  {
+                    groupBy: "Hour",
+                    format: "HH:mm",
+                  },
+                ]}
+                separators={[{ color: "red", location: new DayPilot.Date().toString() }]}
+                businessBeginsHour={0}
+                businessEndsHour={24}
+                businessWeekends={true}
+                scale={"Hour"}
+                timeRangeSelectedHandling="Enabled"
+                days={1}
+                startDate={selectedDate}
+                resources={resources}
+                onBeforeRowHeaderRender={(args) => {
+                  args.row.cssClass = "resource-css";
+                  const hasExpanded = args.row.groups && args.row.groups.expanded && args.row.groups.expanded().length > 0;
+                  const hasCollapsed = args.row.groups && args.row.groups.collapsed && args.row.groups.collapsed().length > 0;
 
-                if (eventStatus === BookingCourtStatus.Completed) {
-                  args.data.barColor = "blue";
-                }
+                  if (hasExpanded && hasCollapsed) {
+                    args.row.areas = [
+                      {
+                        visibility: "Visible",
+                        right: 14,
+                        top: 0,
+                        height: 12,
+                        width: 12,
+                        style: "cursor:pointer",
+                        cssClass: "!w-[14px] !h-[14px]",
+                        image: "https://cdn1.iconfinder.com/data/icons/color-bold-style/21/04-512.png",
+                        onClick: function () {
+                          const row = args.row;
+                          row.groups.expandAll();
+                        },
+                      },
+                      {
+                        visibility: "Visible",
+                        right: 0,
+                        top: 0,
+                        height: 12,
+                        width: 12,
+                        style: "cursor:pointer",
+                        cssClass: "!w-[14px] !h-[14px]",
+                        image: "https://cdn1.iconfinder.com/data/icons/color-bold-style/21/05-512.png",
+                        onClick: function () {
+                          const row = args.row;
+                          row.groups.collapseAll();
+                        },
+                      },
+                    ];
+                  } else if (hasCollapsed) {
+                    args.row.areas = [
+                      {
+                        visibility: "Visible",
+                        right: 0,
+                        top: 0,
+                        height: 12,
+                        width: 12,
+                        style: "cursor:pointer",
+                        cssClass: "!w-[14px] !h-[14px]",
+                        image: "https://cdn1.iconfinder.com/data/icons/color-bold-style/21/04-512.png",
+                        onClick: function () {
+                          const row = args.row;
+                          row.groups.expandAll();
+                        },
+                      },
+                    ];
+                  } else if (hasExpanded) {
+                    args.row.areas = [
+                      {
+                        visibility: "Visible",
+                        right: 0,
+                        top: 0,
+                        height: 12,
+                        width: 12,
+                        style: "cursor:pointer",
+                        cssClass: "!w-[14px] !h-[14px]",
+                        image: "https://cdn1.iconfinder.com/data/icons/color-bold-style/21/05-512.png",
+                        onClick: function () {
+                          const row = args.row;
+                          row.groups.collapseAll();
+                        },
+                      },
+                    ];
+                  }
+                }}
+                onBeforeCellRender={(args) => {
+                  if (args.cell.isParent) {
+                    args.cell.properties.disabled = true;
+                    args.cell.properties.backColor = "#f0f0f0";
+                  }
+                }}
+                onBeforeEventRender={(args) => {
+                  const eventStatus = args.data.status;
 
-                if (eventStatus === BookingCourtStatus.PendingPayment) {
-                  args.data.barColor = "yellow";
-                }
+                  if (eventStatus === BookingCourtStatus.Active) {
+                    args.data.barColor = "green";
+                  }
 
-                // Customize event text with a status badge + customer name + time range
-                const startText = new DayPilot.Date(args.data.start).toString("HH:mm");
-                const endText = new DayPilot.Date(args.data.end).toString("HH:mm");
-                const customerName = args.data.text ?? "";
+                  if (eventStatus === BookingCourtStatus.Cancelled) {
+                    args.data.barColor = "red";
+                  }
 
-                let badgeText = "";
-                let badgeClasses = "";
-                if (eventStatus === BookingCourtStatus.Active) {
-                  badgeText = "Đã đặt & thanh toán";
-                  badgeClasses = "text-green-800";
-                } else if (eventStatus === BookingCourtStatus.PendingPayment) {
-                  badgeText = "Đã đặt - chưa thanh toán";
-                  badgeClasses = "text-yellow-800";
-                } else if (eventStatus === BookingCourtStatus.Completed) {
-                  badgeText = "Hoàn tất";
-                  badgeClasses = "text-blue-800";
-                } else if (eventStatus === BookingCourtStatus.Cancelled) {
-                  badgeText = "Đã hủy";
-                  badgeClasses = "text-red-800";
-                }
+                  if (eventStatus === BookingCourtStatus.Completed) {
+                    args.data.barColor = "blue";
+                  }
 
-                const badgeHtml = badgeText ? `<span class="${badgeClasses}">${badgeText}</span>` : "";
+                  if (eventStatus === BookingCourtStatus.PendingPayment) {
+                    args.data.barColor = "yellow";
+                  }
 
-                args.data.html = `
+                  // Customize event text with a status badge + customer name + time range
+                  const startText = new DayPilot.Date(args.data.start).toString("HH:mm");
+                  const endText = new DayPilot.Date(args.data.end).toString("HH:mm");
+                  const customerName = args.data.text ?? "";
+
+                  let badgeText = "";
+                  let badgeClasses = "";
+                  if (eventStatus === BookingCourtStatus.Active) {
+                    badgeText = "Đã đặt & thanh toán";
+                    badgeClasses = "text-green-800";
+                  } else if (eventStatus === BookingCourtStatus.PendingPayment) {
+                    badgeText = "Đã đặt - chưa thanh toán";
+                    badgeClasses = "text-yellow-800";
+                  } else if (eventStatus === BookingCourtStatus.Completed) {
+                    badgeText = "Hoàn tất";
+                    badgeClasses = "text-blue-800";
+                  } else if (eventStatus === BookingCourtStatus.Cancelled) {
+                    badgeText = "Đã hủy";
+                    badgeClasses = "text-red-800";
+                  }
+
+                  const badgeHtml = badgeText ? `<span class="${badgeClasses}">${badgeText}</span>` : "";
+
+                  args.data.html = `
               <div class="flex flex-col gap-1">
                 ${badgeHtml}
                 <span class="font-semibold">${customerName}</span>
@@ -394,70 +562,84 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
               </div>
             `;
 
-                // if (eventStart.getTime() < now.getTime()) {
-                //   args.data.barColor = "orange";
-                // }
+                  // if (eventStart.getTime() < now.getTime()) {
+                  //   args.data.barColor = "orange";
+                  // }
 
-                // Tùy chọn khác: Nếu sự kiện đang diễn ra
-                // else if (eventEnd.getTime() > now.getTime() && new DayPilot.Date(args.data.start).getTime() < now.getTime()) {
-                //     args.data.barColor = "orange"; // Màu cam cho sự kiện đang diễn ra
-                // }
-              }}
-              onBeforeTimeHeaderRender={(args) => {
-                if (args.header.level === 0) {
-                  const date = args.header.start;
-                  const dayOfWeekText = date.toString("dddd");
-                  const dayOfWeekTextVietnamese = getDayOfWeekToVietnamese(dayOfWeekText);
-                  const day = date.getDay();
-                  const month = date.getMonth() + 1;
-                  const year = date.getYear();
-                  args.header.html = `${dayOfWeekTextVietnamese}, ngày ${day} tháng ${month} năm ${year}`;
-                  args.header.cssClass = "custom-header";
-                }
+                  // Tùy chọn khác: Nếu sự kiện đang diễn ra
+                  // else if (eventEnd.getTime() > now.getTime() && new DayPilot.Date(args.data.start).getTime() < now.getTime()) {
+                  //     args.data.barColor = "orange"; // Màu cam cho sự kiện đang diễn ra
+                  // }
+                }}
+                onBeforeTimeHeaderRender={(args) => {
+                  if (args.header.level === 0) {
+                    const date = args.header.start;
+                    const dayOfWeekText = date.toString("dddd");
+                    const dayOfWeekTextVietnamese = getDayOfWeekToVietnamese(dayOfWeekText);
+                    const day = date.getDay();
+                    const month = date.getMonth() + 1;
+                    const year = date.getYear();
+                    args.header.html = `${dayOfWeekTextVietnamese}, ngày ${day} tháng ${month} năm ${year}`;
+                    args.header.cssClass = "custom-header";
+                  }
 
-                if (args.header.level === 1) {
-                  args.header.cssClass = "custom-header";
-                }
-              }}
-              onTimeRangeSelected={async (args) => {
-                const scheduler = args.control;
-                const currentTime = new DayPilot.Date();
-                if (args.start.getTime() < currentTime.getTime()) {
-                  message.error("Không thể đặt sân trong quá khứ");
-                  scheduler.clearSelection();
-                  return;
-                }
+                  if (args.header.level === 1) {
+                    args.header.cssClass = "custom-header";
+                  }
+                }}
+                onAfterRender={() => {
+                  // Ensure the realtime indicator dot exists after scheduler finishes rendering
+                  setTimeout(() => {
+                    setupSchedulerUI();
+                  }, 0);
+                }}
+                onTimeRangeSelected={async (args) => {
+                  const scheduler = args.control;
+                  const currentTime = new DayPilot.Date();
+                  if (args.start.getTime() < currentTime.getTime()) {
+                    message.error("Không thể đặt sân trong quá khứ");
+                    scheduler.clearSelection();
+                    return;
+                  }
 
-                setOpen(true);
+                  setOpen(true);
 
-                setNewBooking({
-                  start: args.start,
-                  end: args.end,
-                  resource: args.resource.toString(),
-                });
-              }}
-              eventMoveHandling="Disabled"
-              eventResizeHandling="Disabled"
-              onEventClick={async (args) => {
-                const id = String(args.e.data.id ?? "");
-                if (!id) return;
-                if (id.includes("@")) {
-                  setDetailId(id.split("@")[0]);
-                } else {
-                  setDetailId(id);
-                }
-                setOpenDetail(true);
-              }}
-              treeEnabled={true}
-              events={bookingCourtsEvent}
-              allowEventOverlap={false}
-              rowMinHeight={50}
-              headerHeight={50}
-              rowEmptyHeight={50}
-              eventHeight={70}
-            />
+                  setNewBooking({
+                    start: args.start,
+                    end: args.end,
+                    resource: args.resource.toString(),
+                  });
+                }}
+                eventMoveHandling="Disabled"
+                eventResizeHandling="Disabled"
+                onEventClick={async (args) => {
+                  const id = String(args.e.data.id ?? "");
+                  if (!id) return;
+                  if (id.includes("@")) {
+                    setDetailId(id.split("@")[0]);
+                  } else {
+                    setDetailId(id);
+                  }
+                  setOpenDetail(true);
+                }}
+                treeEnabled={true}
+                events={bookingCourtsEvent}
+                allowEventOverlap={false}
+                rowMinHeight={50}
+                headerHeight={50}
+                rowEmptyHeight={50}
+                eventHeight={70}
+              />
+              <div>
+                <div className="flex gap-2 text-sm font-bold">
+                  <span className="text-green-500">Đã đặt & thanh toán: {totalActive}</span> •
+                  <span className="text-yellow-500">Đã đặt - chưa thanh toán: {totalPendingPayment}</span> •
+                  <span className="text-blue-500">Hoàn tất: {totalCompleted}</span> •<span className="text-red-500">Đã hủy: {totalCancelled}</span>
+                </div>
+              </div>
+            </>
           ) : (
-            <CourtScheduleTable data={bookingCourts?.data ?? []} loading={loadingBookingCourts} />
+            <CourtScheduleTable data={filteredBookings} loading={loadingBookingCourts} />
           )}
         </div>
 

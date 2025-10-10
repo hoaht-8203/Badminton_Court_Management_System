@@ -29,3 +29,10 @@ export const BookingCourtStatus = {
   Completed: "Completed",
   PendingPayment: "PendingPayment",
 };
+
+export const PaymentStatus = {
+  PendingPayment: "PendingPayment",
+  Unpaid: "Unpaid",
+  Paid: "Paid",
+  Cancelled: "Cancelled",
+};

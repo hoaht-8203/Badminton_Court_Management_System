@@ -98,8 +98,13 @@ const AttendanceModal: React.FC<AttendanceModalProps> = ({
 
   const handleSave = async () => {
     setErrorMsg("");
-    // Chuyển sang dạng HH:mm:ss nếu có dữ liệu
-    const formatTime = (t: string) => (t ? `${t}:00` : undefined);
+    const formatTime = (t: string) => {
+      if (!t) return undefined;
+      const parts = t.split(":");
+      if (parts.length === 3) return t;
+      if (parts.length === 2) return `${t}:00`;
+      return t;
+    };
     if (checkInEnabled && checkOutEnabled && checkInTime && checkOutTime) {
       // So sánh giờ phút
       const inParts = checkInTime.split(":");

@@ -22,7 +22,11 @@ import {
     AttendanceRequestToJSON,
 } from '../models/index';
 
-export interface ApiAttendancePutRequest {
+export interface ApiAttendanceAttendanceRecordIdGetRequest {
+    attendanceRecordId: number;
+}
+
+export interface ApiAttendancePostRequest {
     attendanceRequest?: AttendanceRequest;
 }
 
@@ -35,16 +39,29 @@ export interface ApiAttendancePutRequest {
 export interface AttendanceApiInterface {
     /**
      * 
+     * @param {number} attendanceRecordId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AttendanceApiInterface
+     */
+    apiAttendanceAttendanceRecordIdGetRaw(requestParameters: ApiAttendanceAttendanceRecordIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
+
+    /**
+     */
+    apiAttendanceAttendanceRecordIdGet(requestParameters: ApiAttendanceAttendanceRecordIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
+
+    /**
+     * 
      * @param {AttendanceRequest} [attendanceRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AttendanceApiInterface
      */
-    apiAttendancePutRaw(requestParameters: ApiAttendancePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
+    apiAttendancePostRaw(requestParameters: ApiAttendancePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
 
     /**
      */
-    apiAttendancePut(requestParameters: ApiAttendancePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
+    apiAttendancePost(requestParameters: ApiAttendancePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
 
 }
 
@@ -55,7 +72,41 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
 
     /**
      */
-    async apiAttendancePutRaw(requestParameters: ApiAttendancePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async apiAttendanceAttendanceRecordIdGetRaw(requestParameters: ApiAttendanceAttendanceRecordIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['attendanceRecordId'] == null) {
+            throw new runtime.RequiredError(
+                'attendanceRecordId',
+                'Required parameter "attendanceRecordId" was null or undefined when calling apiAttendanceAttendanceRecordIdGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Attendance/{attendanceRecordId}`;
+        urlPath = urlPath.replace(`{${"attendanceRecordId"}}`, encodeURIComponent(String(requestParameters['attendanceRecordId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiAttendanceAttendanceRecordIdGet(requestParameters: ApiAttendanceAttendanceRecordIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.apiAttendanceAttendanceRecordIdGetRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async apiAttendancePostRaw(requestParameters: ApiAttendancePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -67,7 +118,7 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
 
         const response = await this.request({
             path: urlPath,
-            method: 'PUT',
+            method: 'POST',
             headers: headerParameters,
             query: queryParameters,
             body: AttendanceRequestToJSON(requestParameters['attendanceRequest']),
@@ -78,8 +129,8 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
 
     /**
      */
-    async apiAttendancePut(requestParameters: ApiAttendancePutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.apiAttendancePutRaw(requestParameters, initOverrides);
+    async apiAttendancePost(requestParameters: ApiAttendancePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.apiAttendancePostRaw(requestParameters, initOverrides);
     }
 
 }

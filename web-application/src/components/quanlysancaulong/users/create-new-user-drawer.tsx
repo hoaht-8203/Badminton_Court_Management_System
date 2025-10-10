@@ -2,8 +2,6 @@
 
 import { useListRoles } from "@/hooks";
 import { useCreateAdministrator } from "@/hooks/useUsers";
-import { useUpdateStaff, useGetStaffById } from "@/hooks/useStaffs";
-// import { useUpdateStaff } from "@/hooks/useStaffs"; // Nếu đã có hook cập nhật staff
 import { ApiError } from "@/lib/axios";
 import { CreateAdministratorRequest } from "@/types-openapi/api";
 import { CloseOutlined, PlusOutlined } from "@ant-design/icons";
@@ -47,23 +45,12 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
     roleName: null,
   });
   const createMutation = useCreateAdministrator();
-  const updateStaffMutation = useUpdateStaff(selectedStaffId ?? 0);
-  const { data: selectedStaffDetail } = useGetStaffById(selectedStaffId ?? 0);
 
   const handleSubmit: FormProps<CreateAdministratorRequest>["onFinish"] = (values) => {
-    createMutation.mutate(values, {
-      onSuccess: async (data: any) => {
+    const payload = createForStaff && selectedStaffId ? { ...values, staffId: selectedStaffId } : values;
+    createMutation.mutate(payload, {
+      onSuccess: () => {
         message.success("Tạo người dùng thành công!");
-        // Nếu có chọn nhân viên, gọi API cập nhật staff
-        if (createForStaff && selectedStaffId) {
-          const accountId = data?.data?.id || data?.data?.userName;
-          // Lấy staff chi tiết từ API
-          const staffCurrent = selectedStaffDetail?.data;
-          if (staffCurrent) {
-            const payload = { ...staffCurrent, accountId };
-            await updateStaffMutation.mutateAsync(payload);
-          }
-        }
         form.resetFields();
         setCreateForStaff(false);
         setSelectedStaffId(null);

@@ -1,4 +1,5 @@
 "use client";
+import { Spin } from "antd/lib";
 import { useGetScheduleByShift } from "@/hooks/useSchedule";
 import { useListShifts } from "@/hooks/useShift";
 import { useListStaffs } from "@/hooks/useStaffs";
@@ -102,7 +103,11 @@ const WorkScheduleTable: React.FC = () => {
     setAttendanceModalOpen(true);
   };
 
-  return (
+  return loadingSchedule ? (
+    <div style={{ textAlign: "center", padding: 40 }}>
+      <Spin size="large" tip="Đang tải lịch làm việc..." />
+    </div>
+  ) : (
     <div style={{ background: "#fff", borderRadius: 8, padding: 16 }}>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
         <span style={{ fontWeight: 700, fontSize: 20, marginRight: 16 }}>Bảng chấm công</span>

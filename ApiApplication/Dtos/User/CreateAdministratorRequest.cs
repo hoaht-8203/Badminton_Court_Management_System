@@ -16,4 +16,5 @@ public class CreateAdministratorRequest
     public string? Ward { get; set; }
     public DateTime? DateOfBirth { get; set; }
     public string? Note { get; set; }
+    public int? StaffId { get; set; }
 }

@@ -91,6 +91,12 @@ export interface CreateAdministratorRequest {
      * @memberof CreateAdministratorRequest
      */
     note?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateAdministratorRequest
+     */
+    staffId?: number | null;
 }
 
 /**
@@ -128,6 +134,7 @@ export function CreateAdministratorRequestFromJSONTyped(json: any, ignoreDiscrim
         'ward': json['ward'] == null ? undefined : json['ward'],
         'dateOfBirth': json['dateOfBirth'] == null ? undefined : (new Date(json['dateOfBirth'])),
         'note': json['note'] == null ? undefined : json['note'],
+        'staffId': json['staffId'] == null ? undefined : json['staffId'],
     };
 }
 
@@ -154,6 +161,7 @@ export function CreateAdministratorRequestToJSONTyped(value?: CreateAdministrato
         'ward': value['ward'],
         'dateOfBirth': value['dateOfBirth'] === null ? null : ((value['dateOfBirth'] as any)?.toISOString()),
         'note': value['note'],
+        'staffId': value['staffId'],
     };
 }
 

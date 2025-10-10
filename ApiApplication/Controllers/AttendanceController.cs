@@ -17,11 +17,17 @@ namespace ApiApplication.Controllers
             _attendanceService = attendanceService;
         }
 
-        [HttpPut]
+        [HttpPost]
         public async Task<IActionResult> UpdateAttendanceRecord([FromBody] AttendanceRequest request)
         {
             var result = await _attendanceService.AddOrUpdateAttendanceRecordAsync(request);
             return Ok(ApiResponse<bool>.SuccessResponse(result, "Cập nhật chấm công thành công"));
+        }
+        [HttpGet("{attendanceRecordId}")]
+        public async Task<IActionResult> GetAttendanceRecordById(int attendanceRecordId)
+        {
+            var result = await _attendanceService.GetAttendanceRecordByIdAsync(attendanceRecordId);
+            return Ok(ApiResponse<AttendanceResponse?>.SuccessResponse(result, "Get attendance record successfully"));
         }
     }
 }

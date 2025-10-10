@@ -43,7 +43,7 @@ const WorkScheduleTable: React.FC = () => {
   });
   const [searchParams, setSearchParams] = useState(ListStaffRequestFromJSON({}));
   const { data: staffs, isFetching: loadingStaffs, refetch: refetchStaffs } = useListStaffs(searchParams);
-  const { data: shifts, isFetching, refetch } = useListShifts();
+  const { data: shifts, isFetching } = useListShifts();
 
   // State cho modal chấm công
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
@@ -56,10 +56,10 @@ const WorkScheduleTable: React.FC = () => {
   const shiftList = shifts?.map((s) => ({ id: s.id, name: s.name, time: s.startTime?.substring(0, 5) + " - " + s.endTime?.substring(0, 5) })) || [];
 
   // Tính ngày bắt đầu và kết thúc tuần hiện tại
-  const startDate = weekStart.add(1, "day").toDate();
-  const endDate = weekStart.add(7, "day").toDate();
+  const startDate = weekStart.toDate();
+  const endDate = weekStart.add(6, "day").toDate();
   // Lấy lịch làm việc theo ca cho tuần hiện tại
-  const { data: scheduleByShiftRaw, isFetching: loadingSchedule } = useGetScheduleByShift({ startDate, endDate });
+  const { data: scheduleByShiftRaw, isFetching: loadingSchedule, refetch } = useGetScheduleByShift({ startDate, endDate });
 
   // Format lại dữ liệu trả về từ API thành dạng { [shiftId]: { [dayOfWeek]: ScheduleCell[] } }
   const scheduleByShift: Record<string, Record<number, ScheduleCell[]>> = React.useMemo(() => {
@@ -96,10 +96,8 @@ const WorkScheduleTable: React.FC = () => {
         time: shift?.time,
       },
       date,
-      status: staff?.status ?? "NotYet", // lấy trực tiếp từ item.status của thẻ
-      note: staff?.note ?? "",
-      checkIn: staff?.checkIn ?? "",
-      checkOut: staff?.checkOut ?? "",
+      status: staff?.status ?? "NotYet",
+      attendanceRecordId: staff?.attendanceRecordId ?? null,
     });
     setAttendanceModalOpen(true);
   };
@@ -130,9 +128,7 @@ const WorkScheduleTable: React.FC = () => {
           Xếp lịch
         </Button>
       </div>
-      {/* Tuần bắt đầu từ thứ 2 */}
       <div style={{ overflowX: "auto" }}>
-        {/* IIFE tuần bắt đầu từ thứ 2 */}
         {(() => {
           const monday = weekStart;
           const weekDays = daysOfWeek.map((d, idx) => {
@@ -238,9 +234,9 @@ const WorkScheduleTable: React.FC = () => {
         open={attendanceModalOpen}
         onClose={() => setAttendanceModalOpen(false)}
         {...attendanceModalData}
-        onSave={(data) => {
-          // TODO: Gọi API lưu chấm công ở đây nếu cần
+        onSave={() => {
           setAttendanceModalOpen(false);
+          refetch(); // refresh lại lịch làm việc
         }}
       />
     </div>

@@ -2,6 +2,7 @@ using System;
 using ApiApplication.Data;
 using ApiApplication.Dtos.Attendance;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
 
@@ -27,11 +28,20 @@ public class AttendanceService : IAttendanceService
 
         if (request.Id == null)
         {
-            var schedule = await _context.Schedules.FindAsync(request.StaffId, request.ShiftId, DateOnly.FromDateTime(request.Date));
-            if (schedule == null) return false;
+            //Todo: check if staff is assigned to that shift on that date
+
+            // var schedule = await _context.Schedules.FirstOrDefaultAsync(s =>
+            //     s.StaffId == request.StaffId &&
+            //     s.ShiftId == request.ShiftId &&
+            //     s.StartDate <= DateOnly.FromDateTime(request.Date) &&
+            //     (s.EndDate == null || s.EndDate >= DateOnly.FromDateTime(request.Date)) &&
+            //     (s.IsFixedShift || s.StartDate == DateOnly.FromDateTime(request.Date))
+            // );
+            // if (schedule == null) return false;
             var newAttendanceRecord = _mapper.Map<Entities.AttendanceRecord>(request);
             newAttendanceRecord.Status = statusByShift;
-            await _context.AttendanceRecords.AddAsync(newAttendanceRecord);
+            _context.AttendanceRecords.Add(newAttendanceRecord);
+            await _context.SaveChangesAsync();
         }
         else
         {
@@ -45,9 +55,9 @@ public class AttendanceService : IAttendanceService
             attendanceRecord.CheckInTime = request.CheckInTime ?? attendanceRecord.CheckInTime;
             attendanceRecord.CheckOutTime = request.CheckOutTime ?? attendanceRecord.CheckOutTime;
             attendanceRecord.Notes = request.Notes ?? attendanceRecord.Notes;
-
+            _context.AttendanceRecords.Update(attendanceRecord);
+            await _context.SaveChangesAsync();
         }
-        await _context.SaveChangesAsync();
         return true;
     }
     public async Task<AttendanceResponse?> GetAttendanceRecordByIdAsync(int attendanceRecordId)

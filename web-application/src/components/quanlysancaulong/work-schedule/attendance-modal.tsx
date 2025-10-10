@@ -9,6 +9,8 @@ const statusMap = {
 import React, { useState } from "react";
 import { Modal, Button, Input, Radio, Checkbox, DatePicker, Tabs, Tag, Select } from "antd";
 import dayjs from "dayjs";
+import { attendanceService } from "@/services/attendanceService";
+import { AttendanceRequest } from "@/types-openapi/api";
 
 interface AttendanceModalProps {
   open: boolean;
@@ -24,9 +26,7 @@ interface AttendanceModalProps {
   };
   date?: string; // YYYY-MM-DD
   status?: "Attended" | "Absent" | "NotYet";
-  note?: string;
-  checkIn?: string; // HH:mm
-  checkOut?: string; // HH:mm
+  attendanceRecordId?: number | null;
   onSave?: (data: any) => void;
 }
 
@@ -45,33 +45,84 @@ const AttendanceModal: React.FC<AttendanceModalProps> = ({
   shift,
   date,
   status = "NotYet",
-  note = "",
-  checkIn = "",
-  checkOut = "",
+  attendanceRecordId = null,
   onSave,
 }) => {
   const [attendanceStatus, setAttendanceStatus] = useState<string>(status);
-  const [attendanceNote, setAttendanceNote] = useState<string>(note);
-  const [checkInTime, setCheckInTime] = useState<string>(checkIn);
-  const [checkOutTime, setCheckOutTime] = useState<string>(checkOut);
-  const [checkInEnabled, setCheckInEnabled] = useState<boolean>(!!checkIn);
-  const [checkOutEnabled, setCheckOutEnabled] = useState<boolean>(!!checkOut);
+  const [attendanceNote, setAttendanceNote] = useState<string>("");
+  const [checkInTime, setCheckInTime] = useState<string>("");
+  const [checkOutTime, setCheckOutTime] = useState<string>("");
+  const [checkInEnabled, setCheckInEnabled] = useState<boolean>(false);
+  const [checkOutEnabled, setCheckOutEnabled] = useState<boolean>(false);
+  const [initialData, setInitialData] = useState<any>(null);
 
   React.useEffect(() => {
     setAttendanceStatus(status ?? "NotYet");
-  }, [status, open]);
-
-  const handleSave = () => {
-    if (onSave) {
-      onSave({
-        staff,
-        shift,
-        date,
-        status: attendanceStatus,
-        note: attendanceNote,
-        checkIn: checkInEnabled ? checkInTime : "",
-        checkOut: checkOutEnabled ? checkOutTime : "",
+    setAttendanceNote("");
+    setCheckInTime("");
+    setCheckOutTime("");
+    setCheckInEnabled(false);
+    setCheckOutEnabled(false);
+    // Nếu attendanceRecordId có giá trị, fetch dữ liệu từ API
+    if (attendanceRecordId) {
+      attendanceService.getAttendanceById(attendanceRecordId).then((res) => {
+        if (res?.data) {
+          setAttendanceStatus(res.data.status ?? "NotYet");
+          setAttendanceNote(res.data.notes ?? "");
+          setCheckInTime(res.data.checkInTime ?? "");
+          setCheckOutTime(res.data.checkOutTime ?? "");
+          setCheckInEnabled(!!res.data.checkInTime);
+          setCheckOutEnabled(!!res.data.checkOutTime);
+          setInitialData({
+            attendanceStatus: res.data.status ?? "NotYet",
+            attendanceNote: res.data.notes ?? "",
+            checkInTime: res.data.checkInTime ?? "",
+            checkOutTime: res.data.checkOutTime ?? "",
+            checkInEnabled: !!res.data.checkInTime,
+            checkOutEnabled: !!res.data.checkOutTime,
+          });
+        }
       });
+    } else {
+      setInitialData({
+        attendanceStatus: status ?? "NotYet",
+        attendanceNote: "",
+        checkInTime: "",
+        checkOutTime: "",
+        checkInEnabled: false,
+        checkOutEnabled: false,
+      });
+    }
+  }, [status, open, attendanceRecordId]);
+  const [errorMsg, setErrorMsg] = useState<string>("");
+
+  const handleSave = async () => {
+    setErrorMsg("");
+    // Chuyển sang dạng HH:mm:ss nếu có dữ liệu
+    const formatTime = (t: string) => (t ? `${t}:00` : undefined);
+    if (checkInEnabled && checkOutEnabled && checkInTime && checkOutTime) {
+      // So sánh giờ phút
+      const inParts = checkInTime.split(":");
+      const outParts = checkOutTime.split(":");
+      const inMinutes = parseInt(inParts[0], 10) * 60 + parseInt(inParts[1], 10);
+      const outMinutes = parseInt(outParts[0], 10) * 60 + parseInt(outParts[1], 10);
+      if (inMinutes >= outMinutes) {
+        setErrorMsg("Giờ vào phải nhỏ hơn giờ ra!");
+        return;
+      }
+    }
+    const payload: AttendanceRequest = {
+      id: attendanceRecordId ?? undefined,
+      staffId: staff?.id,
+      shiftId: shift?.id,
+      date: date ? new Date(date) : undefined,
+      notes: attendanceNote,
+      checkInTime: checkInEnabled ? formatTime(checkInTime) : undefined,
+      checkOutTime: checkOutEnabled ? formatTime(checkOutTime) : undefined,
+    };
+    await attendanceService.createOrUpdateAttendance(payload);
+    if (onSave) {
+      onSave({});
     }
     onClose();
   };
@@ -131,9 +182,22 @@ const AttendanceModal: React.FC<AttendanceModalProps> = ({
         </div>
       </div>
 
+      {errorMsg && <div style={{ color: "#ff4d4f", marginBottom: 8, textAlign: "right" }}>{errorMsg}</div>}
       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 24 }}>
         <Button onClick={onClose}>Bỏ qua</Button>
-        <Button type="primary" onClick={handleSave}>
+        <Button
+          type="primary"
+          onClick={handleSave}
+          disabled={
+            !initialData ||
+            (attendanceStatus === initialData.attendanceStatus &&
+              attendanceNote === initialData.attendanceNote &&
+              checkInTime === initialData.checkInTime &&
+              checkOutTime === initialData.checkOutTime &&
+              checkInEnabled === initialData.checkInEnabled &&
+              checkOutEnabled === initialData.checkOutEnabled)
+          }
+        >
           Lưu
         </Button>
       </div>

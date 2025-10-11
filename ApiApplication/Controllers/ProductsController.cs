@@ -92,7 +92,7 @@ namespace ApiApplication.Controllers
                 ApiResponse<object?>.SuccessResponse(null, "Cập nhật hình ảnh sản phẩm thành công")
             );
         }
-        
+
         [HttpPost("check-low-stock")]
         public async Task<ActionResult<ApiResponse<object>>> CheckLowStock(
             [FromQuery] string? branch = null

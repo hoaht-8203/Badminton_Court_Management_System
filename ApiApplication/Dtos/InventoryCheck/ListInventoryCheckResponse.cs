@@ -14,4 +14,4 @@ public class ListInventoryCheckResponse
     public int TotalDeltaDecrease { get; set; }
     public int TotalDelta { get; set; }
     public decimal TotalDeltaValue { get; set; }
-} 
+}

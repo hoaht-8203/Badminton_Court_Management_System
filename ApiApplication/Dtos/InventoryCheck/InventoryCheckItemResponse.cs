@@ -10,4 +10,4 @@ public class InventoryCheckItemResponse
     public int DeltaQuantity => ActualQuantity - SystemQuantity;
     public decimal CostPrice { get; set; }
     public decimal DeltaValue => CostPrice * DeltaQuantity;
-} 
+}

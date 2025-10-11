@@ -555,12 +555,12 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                   const badgeHtml = badgeText ? `<span class="${badgeClasses}">${badgeText}</span>` : "";
 
                   args.data.html = `
-              <div class="flex flex-col gap-1">
-                ${badgeHtml}
-                <span class="font-semibold">${customerName}</span>
-                <span class="text-xs text-gray-700">(${startText} - ${endText})</span>
-              </div>
-            `;
+                    <div class="flex flex-col gap-1">
+                      ${badgeHtml}
+                      <span class="font-semibold">${customerName}</span>
+                      <span class="text-xs text-gray-700">(${startText} - ${endText})</span>
+                    </div>
+                  `;
 
                   // if (eventStart.getTime() < now.getTime()) {
                   //   args.data.barColor = "orange";
@@ -594,12 +594,9 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                   }, 0);
                 }}
                 onTimeRangeSelected={async (args) => {
-                  const scheduler = args.control;
                   const currentTime = new DayPilot.Date();
                   if (args.start.getTime() < currentTime.getTime()) {
-                    message.error("Không thể đặt sân trong quá khứ");
-                    scheduler.clearSelection();
-                    return;
+                    message.warning("Lưu ý: Bạn đang đặt sân trong quá khứ");
                   }
 
                   setOpen(true);

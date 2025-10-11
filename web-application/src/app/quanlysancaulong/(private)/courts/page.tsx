@@ -5,7 +5,7 @@ import CreateNewCourtDrawer from "@/components/quanlysancaulong/courts/create-ne
 import ManageCourtPricingRuleTemplateDrawer from "@/components/quanlysancaulong/courts/manage-court-pricing-rule-template-drawer";
 import SearchCourt from "@/components/quanlysancaulong/courts/search-court";
 import UpdateCourtDrawer from "@/components/quanlysancaulong/courts/update-court-drawer";
-import { useChangeCourtStatus, useDeleteCourt, useListCourts } from "@/hooks/useCourt";
+import { useChangeCourtStatus, useListCourts } from "@/hooks/useCourt";
 import { ApiError } from "@/lib/axios";
 import { ListCourtRequest, ListCourtResponse } from "@/types-openapi/api";
 import { CourtStatus } from "@/types/commons";

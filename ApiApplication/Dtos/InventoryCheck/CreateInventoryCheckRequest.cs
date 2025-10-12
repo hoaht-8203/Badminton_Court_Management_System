@@ -9,4 +9,4 @@ public class CreateInventoryCheckRequest
     public string? Note { get; set; }
 
     public List<CreateInventoryCheckItem> Items { get; set; } = new();
-} 
+}

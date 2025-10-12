@@ -22,4 +22,4 @@ public class InventoryCheck : BaseEntity, IAuditableEntity
     public string? Note { get; set; }
 
     public List<InventoryCheckItem> Items { get; set; } = new();
-} 
+}

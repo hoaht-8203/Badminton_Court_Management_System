@@ -10,4 +10,4 @@ public class CreateInventoryCheckItem
     public int SystemQuantity { get; set; }
 
     public int ActualQuantity { get; set; }
-} 
+}

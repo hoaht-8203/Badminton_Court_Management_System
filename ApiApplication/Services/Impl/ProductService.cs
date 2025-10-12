@@ -55,10 +55,15 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
 
     public async Task<DetailProductResponse> DetailAsync(int id)
     {
-        var item = await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
+        var item = await _context
+            .Products.Include(p => p.Category)
+            .FirstOrDefaultAsync(p => p.Id == id);
         if (item == null)
         {
-            throw new ApiException($"Sản phẩm không tồn tại: {id}", System.Net.HttpStatusCode.NotFound);
+            throw new ApiException(
+                $"Sản phẩm không tồn tại: {id}",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
         return _mapper.Map<DetailProductResponse>(item);
     }
@@ -72,7 +77,10 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
                 var existed = await _context.Products.AnyAsync(p => p.Code == request.Code);
                 if (existed)
                 {
-                    throw new ApiException($"Mã hàng đã tồn tại: {request.Code}", System.Net.HttpStatusCode.BadRequest);
+                    throw new ApiException(
+                        $"Mã hàng đã tồn tại: {request.Code}",
+                        System.Net.HttpStatusCode.BadRequest
+                    );
                 }
             }
             if (!string.IsNullOrWhiteSpace(request.Name))
@@ -80,7 +88,10 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
                 var existedName = await _context.Products.AnyAsync(p => p.Name == request.Name);
                 if (existedName)
                 {
-                    throw new ApiException($"Tên hàng đã tồn tại: {request.Name}", System.Net.HttpStatusCode.BadRequest);
+                    throw new ApiException(
+                        $"Tên hàng đã tồn tại: {request.Name}",
+                        System.Net.HttpStatusCode.BadRequest
+                    );
                 }
             }
 
@@ -93,7 +104,7 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             {
                 await CreateInitialInventoryCheckAsync(entity);
             }
-            
+
             // Kiểm tra nếu tồn kho ban đầu đã thấp hơn mức tối thiểu thì tạo phiếu cảnh báo
             if (entity.ManageInventory && entity.MinStock > 0 && entity.Stock < entity.MinStock)
             {
@@ -122,7 +133,10 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         var entity = await _context.Products.FirstOrDefaultAsync(p => p.Id == request.Id);
         if (entity == null)
         {
-            throw new ApiException($"Sản phẩm không tồn tại: {request.Id}", System.Net.HttpStatusCode.NotFound);
+            throw new ApiException(
+                $"Sản phẩm không tồn tại: {request.Id}",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
 
         if (!string.IsNullOrWhiteSpace(request.Code) && request.Code != entity.Code)
@@ -132,10 +146,13 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             );
             if (existed)
             {
-                throw new ApiException($"Mã hàng đã tồn tại: {request.Code}", System.Net.HttpStatusCode.BadRequest);
+                throw new ApiException(
+                    $"Mã hàng đã tồn tại: {request.Code}",
+                    System.Net.HttpStatusCode.BadRequest
+                );
             }
         }
-        
+
         // Lưu lại giá trị cũ để kiểm tra thay đổi
         bool previousManageInventory = entity.ManageInventory;
         int previousStock = entity.Stock;
@@ -147,7 +164,10 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             );
             if (existedName)
             {
-                throw new ApiException($"Tên hàng đã tồn tại: {request.Name}", System.Net.HttpStatusCode.BadRequest);
+                throw new ApiException(
+                    $"Tên hàng đã tồn tại: {request.Name}",
+                    System.Net.HttpStatusCode.BadRequest
+                );
             }
         }
 
@@ -155,21 +175,21 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         {
             _mapper.Map(request, entity);
             await _context.SaveChangesAsync();
-            
+
             // Kiểm tra và tạo phiếu kiểm kho tự động nếu cần
-            
+
             // Trường hợp 1: Sản phẩm mới bắt đầu quản lý tồn kho với tồn ban đầu > 0
             if (entity.ManageInventory && !previousManageInventory && entity.Stock > 0)
             {
                 await CreateInitialInventoryCheckAsync(entity);
             }
-            
+
             // Trường hợp 1b: Tồn kho được cập nhật thủ công (thay đổi so với trước) -> tạo phiếu cân bằng
             if (entity.ManageInventory && entity.Stock != previousStock)
             {
                 await CreateBalancedInventoryCheckOnUpdateAsync(entity, previousStock);
             }
-            
+
             // Trường hợp 2: Tồn kho được cập nhật và thấp hơn mức tồn kho tối thiểu
             if (entity.ManageInventory && entity.MinStock > 0 && entity.Stock < entity.MinStock)
             {
@@ -191,7 +211,10 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         var entity = await _context.Products.FirstOrDefaultAsync(p => p.Id == request.Id);
         if (entity == null)
         {
-            throw new ApiException($"Sản phẩm không tồn tại: {request.Id}", System.Net.HttpStatusCode.NotFound);
+            throw new ApiException(
+                $"Sản phẩm không tồn tại: {request.Id}",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
 
         // Clean up images when deleting the product
@@ -227,7 +250,10 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         var entity = await _context.Products.FirstOrDefaultAsync(p => p.Id == request.Id);
         if (entity == null)
         {
-            throw new ApiException($"Sản phẩm không tồn tại: {request.Id}", System.Net.HttpStatusCode.NotFound);
+            throw new ApiException(
+                $"Sản phẩm không tồn tại: {request.Id}",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
 
         // Delete old images
@@ -257,7 +283,10 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         var entity = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
         if (entity == null)
         {
-            throw new ApiException($"Sản phẩm không tồn tại: {id}", System.Net.HttpStatusCode.NotFound);
+            throw new ApiException(
+                $"Sản phẩm không tồn tại: {id}",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
 
         entity.IsActive = isActive;
@@ -266,8 +295,8 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
 
     private async Task<string> GenerateNextInventoryCodeAsync()
     {
-        var last = await _context.InventoryChecks
-            .OrderByDescending(x => x.Id)
+        var last = await _context
+            .InventoryChecks.OrderByDescending(x => x.Id)
             .Select(x => x.Code)
             .FirstOrDefaultAsync();
         if (string.IsNullOrWhiteSpace(last) || last.Length < 2)
@@ -300,9 +329,9 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
                 {
                     ProductId = product.Id,
                     SystemQuantity = previousStock,
-                    ActualQuantity = product.Stock
-                }
-            }
+                    ActualQuantity = product.Stock,
+                },
+            },
         };
         _context.InventoryChecks.Add(check);
         await _context.SaveChangesAsync();
@@ -312,7 +341,8 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
     private async Task CreateInitialInventoryCheckAsync(Product product)
     {
         var code = await GenerateNextInventoryCodeAsync();
-        var note = $"Phiếu kiểm kho được tạo tự động khi thêm mới Hàng hóa:{product.Code ?? product.Id.ToString()}";
+        var note =
+            $"Phiếu kiểm kho được tạo tự động khi thêm mới Hàng hóa:{product.Code ?? product.Id.ToString()}";
         var check = new InventoryCheck
         {
             Code = code,
@@ -326,21 +356,22 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
                 {
                     ProductId = product.Id,
                     SystemQuantity = 0,
-                    ActualQuantity = product.Stock
-                }
-            }
+                    ActualQuantity = product.Stock,
+                },
+            },
         };
         _context.InventoryChecks.Add(check);
         await _context.SaveChangesAsync();
     }
-    
+
     // Tạo phiếu kiểm kê kho tự động khi tồn kho thấp hơn mức tối thiểu
     private async Task CreateLowStockInventoryCheckAsync(Product product)
     {
         var code = await GenerateNextInventoryCodeAsync();
-        var note = $"Cảnh báo: Tồn kho thấp cho sản phẩm {product.Name} ({product.Code ?? product.Id.ToString()}). " +
-                   $"Hiện tại: {product.Stock}, Tối thiểu: {product.MinStock}";
-                   
+        var note =
+            $"Cảnh báo: Tồn kho thấp cho sản phẩm {product.Name} ({product.Code ?? product.Id.ToString()}). "
+            + $"Hiện tại: {product.Stock}, Tối thiểu: {product.MinStock}";
+
         var check = new InventoryCheck
         {
             Code = code,
@@ -354,9 +385,9 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
                 {
                     ProductId = product.Id,
                     SystemQuantity = product.Stock,
-                    ActualQuantity = product.Stock // Giá trị ban đầu giống nhau, người dùng sẽ điều chỉnh
-                }
-            }
+                    ActualQuantity = product.Stock, // Giá trị ban đầu giống nhau, người dùng sẽ điều chỉnh
+                },
+            },
         };
         _context.InventoryChecks.Add(check);
         await _context.SaveChangesAsync();
@@ -366,25 +397,26 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
     public async Task<int> CheckLowStockAndCreateInventoryChecksAsync(string? branch = null)
     {
         // Tìm tất cả sản phẩm quản lý tồn kho, có tồn kho thấp hơn mức tối thiểu
-        var query = _context.Products
-            .Where(p => p.ManageInventory && p.MinStock > 0 && p.Stock < p.MinStock);
-            
+        var query = _context.Products.Where(p =>
+            p.ManageInventory && p.MinStock > 0 && p.Stock < p.MinStock
+        );
+
         // Lọc theo chi nhánh nếu được chỉ định
         // Ở đây chúng ta giả định cùng một sản phẩm có thể có các mức tồn kho khác nhau ở các chi nhánh khác nhau
         // Nhưng vì thiết kế hiện tại không có trường branch trong Product nên tạm bỏ qua
-            
+
         var lowStockProducts = await query.ToListAsync();
-        
+
         int count = 0;
         foreach (var product in lowStockProducts)
         {
             await CreateLowStockInventoryCheckAsync(product);
             count++;
         }
-        
+
         return count;
     }
-    
+
     private static string? ExtractFileNameFromUrl(string url)
     {
         if (string.IsNullOrWhiteSpace(url))

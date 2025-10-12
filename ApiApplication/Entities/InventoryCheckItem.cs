@@ -22,4 +22,4 @@ public class InventoryCheckItem : BaseEntity
 
     [NotMapped]
     public int DeltaQuantity => ActualQuantity - SystemQuantity;
-} 
+}

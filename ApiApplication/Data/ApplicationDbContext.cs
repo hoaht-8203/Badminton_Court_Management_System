@@ -49,6 +49,9 @@ public class ApplicationDbContext(
     public DbSet<InventoryCheck> InventoryChecks { get; set; }
     public DbSet<InventoryCheckItem> InventoryCheckItems { get; set; }
 
+    public DbSet<Service> Services { get; set; }
+    public DbSet<ServicePricingRule> ServicePricingRules { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -82,9 +85,10 @@ public class ApplicationDbContext(
             entity.Property(p => p.SalePrice).HasColumnType("decimal(18,2)");
             entity.HasIndex(p => p.Code).IsUnique(false);
             entity.HasIndex(p => p.Name);
-            
+
             // Category relationship
-            entity.HasOne(p => p.Category)
+            entity
+                .HasOne(p => p.Category)
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
@@ -93,13 +97,20 @@ public class ApplicationDbContext(
         // Price table mappings
         builder.Entity<PriceTable>(entity =>
         {
-            entity.HasMany(p => p.TimeRanges).WithOne(r => r.PriceTable).HasForeignKey(r => r.PriceTableId).OnDelete(DeleteBehavior.Cascade);
+            entity
+                .HasMany(p => p.TimeRanges)
+                .WithOne(r => r.PriceTable)
+                .HasForeignKey(r => r.PriceTableId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
         builder.Entity<PriceTimeRange>(entity => { });
         builder.Entity<PriceTableProduct>(entity =>
         {
             entity.HasKey(x => new { x.PriceTableId, x.ProductId });
-            entity.HasOne(x => x.PriceTable).WithMany(p => p.PriceTableProducts).HasForeignKey(x => x.PriceTableId);
+            entity
+                .HasOne(x => x.PriceTable)
+                .WithMany(p => p.PriceTableProducts)
+                .HasForeignKey(x => x.PriceTableId);
             entity.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId);
             entity.Property(x => x.OverrideSalePrice).HasColumnType("decimal(18,2)");
         });
@@ -109,14 +120,16 @@ public class ApplicationDbContext(
         {
             entity.Property(p => p.Code).HasMaxLength(20);
             entity.Property(p => p.Note).HasMaxLength(500);
-            entity.HasMany(p => p.Items)
+            entity
+                .HasMany(p => p.Items)
                 .WithOne(i => i.InventoryCheck)
                 .HasForeignKey(i => i.InventoryCheckId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
         builder.Entity<InventoryCheckItem>(entity =>
         {
-            entity.HasOne(i => i.Product)
+            entity
+                .HasOne(i => i.Product)
                 .WithMany()
                 .HasForeignKey(i => i.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
@@ -191,8 +204,6 @@ public class ApplicationDbContext(
                 "AQAAAAIAAYagAAAAEFqGX2kp4KdZKDMjapLakqUamDNwC0vTXnvlme/+yss14bhAg0PbRCxpq4LkX3TzyQ==",
         };
 
-        
-
         builder.Entity<ApplicationUser>().HasData(adminUser);
 
         // Gán role Admin cho user
@@ -207,7 +218,7 @@ public class ApplicationDbContext(
             );
     }
 
-     private static void SeedCustomerData(ModelBuilder builder)
+    private static void SeedCustomerData(ModelBuilder builder)
     {
         builder
             .Entity<Customer>()
@@ -336,37 +347,53 @@ public class ApplicationDbContext(
                 {
                     Id = 1,
                     Name = "Nước Giải Khát",
-                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
                     CreatedBy = "System",
-                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
-                    UpdatedBy = "System"
+                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
+                    UpdatedBy = "System",
                 },
                 new Category
                 {
                     Id = 2,
                     Name = "Đồ Ăn",
-                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
                     CreatedBy = "System",
-                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
-                    UpdatedBy = "System"
+                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
+                    UpdatedBy = "System",
                 },
                 new Category
                 {
                     Id = 3,
                     Name = "Thiết Bị Thể Thao",
-                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
                     CreatedBy = "System",
-                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
-                    UpdatedBy = "System"
+                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
+                    UpdatedBy = "System",
                 },
                 new Category
                 {
                     Id = 4,
                     Name = "Phụ Kiện",
-                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
+                    CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
                     CreatedBy = "System",
-                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
-                    UpdatedBy = "System"
+                    UpdatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(
+                        7670
+                    ),
+                    UpdatedBy = "System",
                 }
             );
     }
@@ -380,7 +407,9 @@ public class ApplicationDbContext(
                 && (e.State == EntityState.Added || e.State == EntityState.Modified)
             );
 
-        var username = string.IsNullOrWhiteSpace(_currentUser.Username) ? "System" : _currentUser.Username;
+        var username = string.IsNullOrWhiteSpace(_currentUser.Username)
+            ? "System"
+            : _currentUser.Username;
 
         foreach (var entityEntry in entries)
         {

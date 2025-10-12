@@ -75,6 +75,7 @@ builder.Services.AddScoped<IBookingCourtService, BookingCourtService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IInventoryCheckService, InventoryCheckService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<IServiceService, ServiceService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -93,6 +94,8 @@ builder.Services.AddAutoMapper(config => config.AddProfile<CategoryMappingProfil
 builder.Services.AddAutoMapper(config => config.AddProfile<PriceTableMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<BookingCourtMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<AttendanceRecordMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<ServiceMappingProfile>());
+
 builder.Services.AddAutoMapper(config => config.AddProfile<PaymentMappingProfile>());
 builder.Services.Configure<MinioOptions>(
     builder.Configuration.GetSection(MinioOptions.MinioOptionsKey)

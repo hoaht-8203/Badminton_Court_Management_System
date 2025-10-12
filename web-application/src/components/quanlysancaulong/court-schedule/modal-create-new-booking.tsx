@@ -396,9 +396,9 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
                                     return Promise.reject(new Error("Giờ bắt đầu phải trước giờ kết thúc"));
                                   }
                                   // prevent past time when selected date is today
-                                  if (value && startDateWatch && startDateWatch.isSame(dayjs(), "day") && value.isBefore(dayjs())) {
-                                    return Promise.reject(new Error("Giờ bắt đầu không được trong quá khứ hôm nay"));
-                                  }
+                                  // if (value && startDateWatch && startDateWatch.isSame(dayjs(), "day") && value.isBefore(dayjs())) {
+                                  //   return Promise.reject(new Error("Giờ bắt đầu không được trong quá khứ hôm nay"));
+                                  // }
                                   return Promise.resolve();
                                 },
                               },

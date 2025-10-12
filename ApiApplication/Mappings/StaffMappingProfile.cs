@@ -17,7 +17,10 @@ namespace ApiApplication.Mappings
                 )
                 .ForMember(
                     dest => dest.UserId,
-                    opt => opt.MapFrom(src => src.AccountId != null ? Guid.Parse(src.AccountId) : Guid.Empty)
+                    opt =>
+                        opt.MapFrom(src =>
+                            src.AccountId != null ? Guid.Parse(src.AccountId) : Guid.Empty
+                        )
                 );
         }
     }

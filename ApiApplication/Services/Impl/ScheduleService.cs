@@ -23,7 +23,9 @@ namespace ApiApplication.Services.Impl
         )
         {
             var startDate = DateOnly.FromDateTime(request.StartDate);
-            var endDate = request.EndDate.HasValue ? DateOnly.FromDateTime(request.EndDate.Value) : default;
+            var endDate = request.EndDate.HasValue
+                ? DateOnly.FromDateTime(request.EndDate.Value)
+                : default;
             var notFixedSchedules = await _context
                 .Schedules.Where(s =>
                     !s.IsFixedShift && s.StartDate >= startDate && s.StartDate <= endDate
@@ -92,10 +94,12 @@ namespace ApiApplication.Services.Impl
         )
         {
             var startDate = DateOnly.FromDateTime(request.StartDate);
-            var endDate = request.EndDate.HasValue ? DateOnly.FromDateTime(request.EndDate.Value) : default;
+            var endDate = request.EndDate.HasValue
+                ? DateOnly.FromDateTime(request.EndDate.Value)
+                : default;
             var notFixedSchedules = await _context
                 .Schedules.Where(s =>
-                    !s.IsFixedShift && s.StartDate >= startDate && s.StartDate <= endDate   
+                    !s.IsFixedShift && s.StartDate >= startDate && s.StartDate <= endDate
                 )
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
@@ -134,26 +138,22 @@ namespace ApiApplication.Services.Impl
 
             return grouped;
         }
+
         public async Task<List<ScheduleResponse>> GetScheduleOfWeekByStaffIdAsync(
             ScheduleRequest request,
             int staffId
         )
         {
             var startDate = DateOnly.FromDateTime(request.StartDate);
-            var endDate = request.EndDate.HasValue ? DateOnly.FromDateTime(request.EndDate.Value) : default;
+            var endDate = request.EndDate.HasValue
+                ? DateOnly.FromDateTime(request.EndDate.Value)
+                : default;
             var result = await _context
-                .Schedules.Where(s =>
-                    s.StaffId == staffId
-                )
+                .Schedules.Where(s => s.StaffId == staffId)
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
                 .ToListAsync();
-            return Helpers.ScheduleHelper.StandardizeSchedule(
-                result,
-                startDate,
-                endDate,
-                _mapper
-            );
+            return Helpers.ScheduleHelper.StandardizeSchedule(result, startDate, endDate, _mapper);
         }
 
         public async Task<bool> RemoveStaffFromShiftAsync(ScheduleRequest request)

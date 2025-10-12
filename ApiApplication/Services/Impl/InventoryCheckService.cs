@@ -7,7 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
 
-public class InventoryCheckService(ApplicationDbContext context, IMapper mapper) : IInventoryCheckService
+public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
+    : IInventoryCheckService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
@@ -42,10 +43,20 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
                     Status = x.Status,
                     BalancedAt = x.BalancedAt,
                     Note = x.Note,
-                    TotalDeltaIncrease = x.Items.Sum(i => i.ActualQuantity > i.SystemQuantity ? i.ActualQuantity - i.SystemQuantity : 0),
-                    TotalDeltaDecrease = x.Items.Sum(i => i.SystemQuantity > i.ActualQuantity ? i.SystemQuantity - i.ActualQuantity : 0),
+                    TotalDeltaIncrease = x.Items.Sum(i =>
+                        i.ActualQuantity > i.SystemQuantity
+                            ? i.ActualQuantity - i.SystemQuantity
+                            : 0
+                    ),
+                    TotalDeltaDecrease = x.Items.Sum(i =>
+                        i.SystemQuantity > i.ActualQuantity
+                            ? i.SystemQuantity - i.ActualQuantity
+                            : 0
+                    ),
                     TotalDelta = x.Items.Sum(i => i.ActualQuantity - i.SystemQuantity),
-                    TotalDeltaValue = x.Items.Sum(i => (i.ActualQuantity - i.SystemQuantity) * i.Product.CostPrice)
+                    TotalDeltaValue = x.Items.Sum(i =>
+                        (i.ActualQuantity - i.SystemQuantity) * i.Product.CostPrice
+                    ),
                 })
                 .ToListAsync();
 
@@ -53,7 +64,10 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
         }
         catch (Exception ex)
         {
-            throw new ApiException($"List inventory checks failed: {ex.Message}", System.Net.HttpStatusCode.InternalServerError);
+            throw new ApiException(
+                $"List inventory checks failed: {ex.Message}",
+                System.Net.HttpStatusCode.InternalServerError
+            );
         }
     }
 
@@ -61,13 +75,16 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
     {
         try
         {
-            var entity = await _context.InventoryChecks
-                .Include(x => x.Items)
+            var entity = await _context
+                .InventoryChecks.Include(x => x.Items)
                 .ThenInclude(i => i.Product)
                 .FirstOrDefaultAsync(x => x.Id == id);
             if (entity == null)
             {
-                throw new ApiException($"Phiếu kiểm kho không tồn tại: {id}", System.Net.HttpStatusCode.NotFound);
+                throw new ApiException(
+                    $"Phiếu kiểm kho không tồn tại: {id}",
+                    System.Net.HttpStatusCode.NotFound
+                );
             }
             var detail = _mapper.Map<DetailInventoryCheckResponse>(entity);
             // fill pricing for items
@@ -80,18 +97,27 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
         }
         catch (Exception ex)
         {
-            throw new ApiException($"Detail inventory check failed: {ex.Message}", System.Net.HttpStatusCode.InternalServerError);
+            throw new ApiException(
+                $"Detail inventory check failed: {ex.Message}",
+                System.Net.HttpStatusCode.InternalServerError
+            );
         }
     }
 
     public async Task<int> CreateAsync(CreateInventoryCheckRequest request)
     {
         var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
-        var existingProducts = await _context.Products.Where(p => productIds.Contains(p.Id)).Select(p => p.Id).ToListAsync();
+        var existingProducts = await _context
+            .Products.Where(p => productIds.Contains(p.Id))
+            .Select(p => p.Id)
+            .ToListAsync();
         var missing = productIds.Except(existingProducts).ToList();
         if (missing.Count > 0)
         {
-            throw new ApiException($"Sản phẩm không tồn tại: {string.Join(",", missing)}", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                $"Sản phẩm không tồn tại: {string.Join(",", missing)}",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
 
         var entity = _mapper.Map<InventoryCheck>(request);
@@ -107,7 +133,10 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
 
     private async Task<string> GenerateNextCodeAsync()
     {
-        var last = await _context.InventoryChecks.OrderByDescending(x => x.Id).Select(x => x.Code).FirstOrDefaultAsync();
+        var last = await _context
+            .InventoryChecks.OrderByDescending(x => x.Id)
+            .Select(x => x.Code)
+            .FirstOrDefaultAsync();
         if (string.IsNullOrWhiteSpace(last) || last.Length < 2)
         {
             return "KK000001";
@@ -122,35 +151,41 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
 
     public async Task UpdateAsync(int id, CreateInventoryCheckRequest request)
     {
-        var entity = await _context.InventoryChecks
-            .Include(x => x.Items)
+        var entity = await _context
+            .InventoryChecks.Include(x => x.Items)
             .FirstOrDefaultAsync(x => x.Id == id);
 
         if (entity == null)
         {
-            throw new ApiException($"Phiếu kiểm kho không tồn tại: {id}", System.Net.HttpStatusCode.NotFound);
+            throw new ApiException(
+                $"Phiếu kiểm kho không tồn tại: {id}",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
         if (entity.Status == Entities.Shared.InventoryCheckStatus.Cancelled)
         {
-            throw new ApiException("Phiếu kiểm kho đã bị hủy, không thể cập nhật", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                "Phiếu kiểm kho đã bị hủy, không thể cập nhật",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
 
         // Cập nhật thông tin cơ bản
         entity.CheckTime = request.CheckTime;
         entity.Note = request.Note;
-        
+
         // Xử lý các items
         var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
-        var existingProducts = await _context.Products
-            .Where(p => productIds.Contains(p.Id))
+        var existingProducts = await _context
+            .Products.Where(p => productIds.Contains(p.Id))
             .Select(p => p.Id)
             .ToListAsync();
-            
+
         var missing = productIds.Except(existingProducts).ToList();
         if (missing.Count > 0)
         {
             throw new ApiException(
-                $"Sản phẩm không tồn tại: {string.Join(",", missing)}", 
+                $"Sản phẩm không tồn tại: {string.Join(",", missing)}",
                 System.Net.HttpStatusCode.BadRequest
             );
         }
@@ -159,22 +194,22 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
         _context.InventoryCheckItems.RemoveRange(entity.Items);
 
         // Thêm các item mới
-        entity.Items = request.Items.Select(i => new InventoryCheckItem
-        {
-            InventoryCheckId = id,
-            ProductId = i.ProductId,
-            SystemQuantity = i.SystemQuantity,
-            ActualQuantity = i.ActualQuantity
-        }).ToList();
+        entity.Items = request
+            .Items.Select(i => new InventoryCheckItem
+            {
+                InventoryCheckId = id,
+                ProductId = i.ProductId,
+                SystemQuantity = i.SystemQuantity,
+                ActualQuantity = i.ActualQuantity,
+            })
+            .ToList();
 
         // Sau khi cập nhật phiếu tạm → chuyển thành trạng thái "Đã cân bằng" và cập nhật tồn kho
         entity.Status = Entities.Shared.InventoryCheckStatus.Balanced;
         entity.BalancedAt = DateTime.UtcNow;
 
         // Cập nhật tồn kho sản phẩm
-        var products = await _context.Products
-            .Where(p => productIds.Contains(p.Id))
-            .ToListAsync();
+        var products = await _context.Products.Where(p => productIds.Contains(p.Id)).ToListAsync();
 
         foreach (var item in request.Items)
         {
@@ -190,12 +225,14 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
 
     public async Task CancelAsync(int id)
     {
-        var entity = await _context.InventoryChecks
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var entity = await _context.InventoryChecks.FirstOrDefaultAsync(x => x.Id == id);
 
         if (entity == null)
         {
-            throw new ApiException($"Phiếu kiểm kho không tồn tại: {id}", System.Net.HttpStatusCode.NotFound);
+            throw new ApiException(
+                $"Phiếu kiểm kho không tồn tại: {id}",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
         if (entity.Status == Entities.Shared.InventoryCheckStatus.Cancelled)
         {
@@ -207,9 +244,7 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
 
     public async Task<List<int>> BulkCancelAsync(List<int> ids)
     {
-        var entities = await _context.InventoryChecks
-            .Where(x => ids.Contains(x.Id))
-            .ToListAsync();
+        var entities = await _context.InventoryChecks.Where(x => ids.Contains(x.Id)).ToListAsync();
 
         var cancelledIds = entities.Select(x => x.Id).ToList();
 
@@ -224,18 +259,24 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
 
     public async Task CompleteAsync(int id)
     {
-        var entity = await _context.InventoryChecks
-            .Include(x => x.Items)
+        var entity = await _context
+            .InventoryChecks.Include(x => x.Items)
             .ThenInclude(x => x.Product)
             .FirstOrDefaultAsync(x => x.Id == id);
-            
+
         if (entity == null)
         {
-            throw new ApiException($"Phiếu kiểm kho không tồn tại: {id}", System.Net.HttpStatusCode.NotFound);
+            throw new ApiException(
+                $"Phiếu kiểm kho không tồn tại: {id}",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
         if (entity.Status == Entities.Shared.InventoryCheckStatus.Cancelled)
         {
-            throw new ApiException("Phiếu kiểm kho đã bị hủy, không thể hoàn thành", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                "Phiếu kiểm kho đã bị hủy, không thể hoàn thành",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
         if (entity.Status == Entities.Shared.InventoryCheckStatus.Balanced)
         {
@@ -243,8 +284,8 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
         }
 
         // Cập nhật tồn kho sản phẩm khi hoàn thành
-        var products = await _context.Products
-            .Where(p => entity.Items.Select(i => i.ProductId).Contains(p.Id))
+        var products = await _context
+            .Products.Where(p => entity.Items.Select(i => i.ProductId).Contains(p.Id))
             .ToListAsync();
 
         foreach (var item in entity.Items)
@@ -265,33 +306,44 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
     {
         if (ids.Count < 2)
         {
-            throw new ApiException("Cần ít nhất 2 phiếu để gộp", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                "Cần ít nhất 2 phiếu để gộp",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
 
         // Lấy các phiếu kiểm kho
-        var entities = await _context.InventoryChecks
-            .Include(x => x.Items)
+        var entities = await _context
+            .InventoryChecks.Include(x => x.Items)
             .ThenInclude(i => i.Product)
             .Where(x => ids.Contains(x.Id))
             .ToListAsync();
 
         if (entities.Count != ids.Count)
         {
-            throw new ApiException("Một số phiếu kiểm kho không tồn tại", System.Net.HttpStatusCode.NotFound);
+            throw new ApiException(
+                "Một số phiếu kiểm kho không tồn tại",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
 
         // Kiểm tra tất cả phiếu đều ở trạng thái Draft (Phiếu tạm)
-        var nonDraftChecks = entities.Where(x => x.Status != Entities.Shared.InventoryCheckStatus.Draft).ToList();
+        var nonDraftChecks = entities
+            .Where(x => x.Status != Entities.Shared.InventoryCheckStatus.Draft)
+            .ToList();
         if (nonDraftChecks.Any())
         {
             var codes = string.Join(", ", nonDraftChecks.Select(x => x.Code));
-            throw new ApiException($"Chỉ có thể gộp các phiếu tạm. Các phiếu sau không phải phiếu tạm: {codes}", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                $"Chỉ có thể gộp các phiếu tạm. Các phiếu sau không phải phiếu tạm: {codes}",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
 
         // Tạo phiếu mới từ việc gộp
         var mergedCode = await GenerateNextCodeAsync();
         var mergedNote = $"Gộp các phiếu: {string.Join(", ", entities.Select(x => x.Code))}";
-        
+
         var mergedCheck = new InventoryCheck
         {
             Code = mergedCode,
@@ -299,7 +351,7 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
             Status = Entities.Shared.InventoryCheckStatus.Balanced,
             BalancedAt = DateTime.UtcNow,
             Note = mergedNote,
-            Items = new List<InventoryCheckItem>()
+            Items = new List<InventoryCheckItem>(),
         };
 
         // Gộp tất cả items từ các phiếu
@@ -310,26 +362,26 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
         {
             var productId = group.Key;
             var product = group.First().Product;
-            
+
             // Tính tổng số lượng thực tế (lấy giá trị cao nhất)
             var maxActualQuantity = group.Max(x => x.ActualQuantity);
             var systemQuantity = product.Stock;
 
-            mergedCheck.Items.Add(new InventoryCheckItem
-            {
-                ProductId = productId,
-                SystemQuantity = systemQuantity,
-                ActualQuantity = maxActualQuantity
-            });
+            mergedCheck.Items.Add(
+                new InventoryCheckItem
+                {
+                    ProductId = productId,
+                    SystemQuantity = systemQuantity,
+                    ActualQuantity = maxActualQuantity,
+                }
+            );
         }
 
         _context.InventoryChecks.Add(mergedCheck);
 
         // Cập nhật tồn kho sản phẩm
         var productIds = groupedItems.Select(x => x.Key).ToList();
-        var products = await _context.Products
-            .Where(p => productIds.Contains(p.Id))
-            .ToListAsync();
+        var products = await _context.Products.Where(p => productIds.Contains(p.Id)).ToListAsync();
 
         foreach (var group in groupedItems)
         {
@@ -350,4 +402,4 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
         await _context.SaveChangesAsync();
         return mergedCheck.Id;
     }
-} 
+}

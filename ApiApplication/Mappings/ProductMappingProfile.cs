@@ -9,9 +9,15 @@ public class ProductMappingProfile : Profile
     public ProductMappingProfile()
     {
         CreateMap<Product, ListProductResponse>()
-            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null));
+            .ForMember(
+                dest => dest.Category,
+                opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null)
+            );
         CreateMap<Product, DetailProductResponse>()
-            .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null));
+            .ForMember(
+                dest => dest.Category,
+                opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null)
+            );
 
         CreateMap<CreateProductRequest, Product>()
             .ForMember(

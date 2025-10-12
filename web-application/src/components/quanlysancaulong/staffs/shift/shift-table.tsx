@@ -101,10 +101,10 @@ const ShiftTable = ({
   );
 
   return (
-    <div style={{ background: "#fff", padding: 24 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h2 style={{ fontWeight: 600, fontSize: 20, margin: 0 }}>Danh sách ca làm việc</h2>
-        <Button type="primary" icon={<PlusOutlined />} style={{ background: "#52c41a" }} onClick={onAdd}>
+    <div style={{ background: '#fff', padding: 24, borderRadius: 8, boxShadow: '0 2px 8px #f0f1f2' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div style={{ fontWeight: 600, fontSize: 18, color: '#222' }}>Danh sách ca làm việc</div>
+        <Button type="primary" icon={<PlusOutlined />} style={{ background: '#52c41a', borderRadius: 6 }} onClick={onAdd}>
           Thêm ca làm việc
         </Button>
       </div>
@@ -114,6 +114,8 @@ const ShiftTable = ({
         loading={isFetching || modalLoading}
         pagination={false}
         rowKey={(record) => record.id ?? record.key}
+        bordered
+        style={{ borderRadius: 8 }}
       />
       <ModalComponent onOk={onModalOk} loading={modalLoading} />
     </div>

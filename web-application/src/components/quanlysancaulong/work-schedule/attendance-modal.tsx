@@ -7,7 +7,7 @@ const statusMap = {
   Absent: { color: "#ff4d4f", text: "Nghỉ làm" },
 } as const;
 import React, { useState } from "react";
-import { Modal, Button, Input, Radio, Checkbox, DatePicker, Tabs, Tag, Select } from "antd";
+import { Modal, Button, Input, Radio, Checkbox, DatePicker, Tabs, Tag, Select, message } from "antd";
 import dayjs from "dayjs";
 import { attendanceService } from "@/services/attendanceService";
 import { AttendanceRequest } from "@/types-openapi/api";
@@ -126,6 +126,7 @@ const AttendanceModal: React.FC<AttendanceModalProps> = ({
       checkOutTime: checkOutEnabled ? formatTime(checkOutTime) : undefined,
     };
     await attendanceService.createOrUpdateAttendance(payload);
+    message.success("Lưu chấm công thành công!");
     if (onSave) {
       onSave({});
     }

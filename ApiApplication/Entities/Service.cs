@@ -29,5 +29,3 @@ public class Service : BaseEntity
 
     public ICollection<ServicePricingRule> ServicePricingRules { get; set; } = [];
 }
-
-

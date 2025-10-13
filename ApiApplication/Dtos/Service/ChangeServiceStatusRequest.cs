@@ -14,5 +14,3 @@ public class ChangeServiceStatusRequest
         return ServiceStatus.ValidStatuses.Contains(Status);
     }
 }
-
-

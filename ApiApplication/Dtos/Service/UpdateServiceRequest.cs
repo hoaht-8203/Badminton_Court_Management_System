@@ -19,5 +19,3 @@ public class UpdateServiceRequest
 
     public decimal? PricePerHour { get; set; }
 }
-
-

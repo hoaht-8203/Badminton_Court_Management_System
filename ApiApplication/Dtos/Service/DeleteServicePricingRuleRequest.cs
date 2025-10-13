@@ -6,5 +6,3 @@ public class DeleteServicePricingRuleRequest
 {
     public required Guid ServiceId { get; set; }
 }
-
-

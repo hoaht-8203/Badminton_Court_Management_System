@@ -6,5 +6,3 @@ public class DetailServiceRequest
 {
     public required Guid Id { get; set; }
 }
-
-

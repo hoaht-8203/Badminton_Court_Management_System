@@ -44,12 +44,14 @@ const SalaryConfigTab = ({ staff }: { staff: any }) => {
           )}
           {(salaryObj.deductionLateMethod || salaryObj.deductionLateValue || salaryObj.deductionLateParam) && (
             <Descriptions.Item label="Giảm trừ đi muộn">
-              {salaryObj.deductionLateMethod === "count" ? "Theo số lần" : "Theo số phút"} - <b>{salaryObj.deductionLateValue}</b> VNĐ / {salaryObj.deductionLateParam}
+              {salaryObj.deductionLateMethod === "count" ? "Theo số lần" : "Theo số phút"} - <b>{salaryObj.deductionLateValue}</b> VNĐ /{" "}
+              {salaryObj.deductionLateParam}
             </Descriptions.Item>
           )}
           {(salaryObj.deductionEarlyMethod || salaryObj.deductionEarlyValue || salaryObj.deductionEarlyParam) && (
             <Descriptions.Item label="Giảm trừ về sớm">
-              {salaryObj.deductionEarlyMethod === "count" ? "Theo số lần" : "Theo số phút"} - <b>{salaryObj.deductionEarlyValue}</b> VNĐ / {salaryObj.deductionEarlyParam}
+              {salaryObj.deductionEarlyMethod === "count" ? "Theo số lần" : "Theo số phút"} - <b>{salaryObj.deductionEarlyValue}</b> VNĐ /{" "}
+              {salaryObj.deductionEarlyParam}
             </Descriptions.Item>
           )}
         </Descriptions>

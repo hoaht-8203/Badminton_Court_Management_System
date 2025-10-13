@@ -101,10 +101,10 @@ const ShiftTable = ({
   );
 
   return (
-    <div style={{ background: '#fff', padding: 24, borderRadius: 8, boxShadow: '0 2px 8px #f0f1f2' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <div style={{ fontWeight: 600, fontSize: 18, color: '#222' }}>Danh sách ca làm việc</div>
-        <Button type="primary" icon={<PlusOutlined />} style={{ background: '#52c41a', borderRadius: 6 }} onClick={onAdd}>
+    <div style={{ background: "#fff", padding: 24, borderRadius: 8, boxShadow: "0 2px 8px #f0f1f2" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <div style={{ fontWeight: 600, fontSize: 18, color: "#222" }}>Danh sách ca làm việc</div>
+        <Button type="primary" icon={<PlusOutlined />} style={{ background: "#1677ff", borderColor: "#1677ff", borderRadius: 6 }} onClick={onAdd}>
           Thêm ca làm việc
         </Button>
       </div>

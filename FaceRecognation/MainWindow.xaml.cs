@@ -33,6 +33,7 @@ namespace FaceRecognation
         private HttpClient? httpClient;
         private string compreFaceBaseUrl = "http://localhost:8000";
         private string recognitionApiKey = "80bea556-2d8b-43de-b0b3-efdc7d9caa2e";
+        private string antiSpoofingUrl = "http://localhost:5001";
 
         public MainWindow()
         {
@@ -197,7 +198,7 @@ namespace FaceRecognation
             {
                 if (WebcamImage.Source != null && httpClient != null)
                 {
-                    StatusText.Text = "Recognizing face...";
+                    StatusText.Text = "Checking liveness...";
 
                     // Create a bitmap from the current image source
                     BitmapSource bitmapSource = (BitmapSource)WebcamImage.Source;
@@ -205,7 +206,30 @@ namespace FaceRecognation
                     // Convert to byte array
                     byte[] imageBytes = ConvertBitmapSourceToByteArray(bitmapSource);
 
-                    // Create multipart form data
+                    // Step 1: Check anti-spoofing/liveness first
+                    bool isReal = await CheckLiveness(imageBytes);
+
+                    if (!isReal)
+                    {
+                        StatusText.Text = "❌ Spoofing detected! Face not real.";
+
+                        // Clear info tab and show spoofing warning
+                        RecognitionInfoText.Text =
+                            $"🚫 ANTI-SPOOFING DETECTED\n\n"
+                            + $"The system detected a fake face or photo!\n\n"
+                            + $"Security measures:\n"
+                            + $"• Please use a real face\n"
+                            + $"• Remove any photos or screens\n"
+                            + $"• Ensure good lighting\n"
+                            + $"• Look directly at the camera\n\n"
+                            + $"Try again with a live person.";
+                        return;
+                    }
+
+                    // Step 2: If liveness check passes, proceed with CompreFace recognition
+                    StatusText.Text = "✅ Liveness verified! Recognizing face...";
+
+                    // Create multipart form data for CompreFace
                     using (var content = new MultipartFormDataContent())
                     {
                         content.Add(new ByteArrayContent(imageBytes), "file", "face.jpg");
@@ -235,7 +259,7 @@ namespace FaceRecognation
 
                             // Clear info tab and show error
                             RecognitionInfoText.Text =
-                                $"❌ API ERROR\n\n"
+                                $"❌ COMPREFACE API ERROR\n\n"
                                 + $"Status Code: {response.StatusCode}\n"
                                 + $"Error Details: {jsonResponse}\n\n"
                                 + $"Please check:\n"
@@ -372,6 +396,115 @@ namespace FaceRecognation
             }
         }
 
+        private async Task<bool> CheckLiveness(byte[] imageBytes)
+        {
+            try
+            {
+                Console.WriteLine("=== CHECKING LIVENESS ===");
+                Console.WriteLine($"Image size: {imageBytes.Length} bytes");
+
+                // Create HTTP client for anti-spoofing API
+                using (var antiSpoofingClient = new HttpClient())
+                {
+                    antiSpoofingClient.BaseAddress = new Uri(antiSpoofingUrl);
+                    antiSpoofingClient.Timeout = TimeSpan.FromSeconds(30); // 30 second timeout
+
+                    // Create multipart form data for anti-spoofing
+                    using (var content = new MultipartFormDataContent())
+                    {
+                        content.Add(new ByteArrayContent(imageBytes), "file", "liveness_check.jpg");
+
+                        Console.WriteLine($"Sending request to: {antiSpoofingUrl}/check-liveness");
+
+                        // Call anti-spoofing API
+                        var response = await antiSpoofingClient.PostAsync(
+                            "/check-liveness",
+                            content
+                        );
+                        var jsonResponse = await response.Content.ReadAsStringAsync();
+
+                        Console.WriteLine($"Anti-spoofing response status: {response.StatusCode}");
+                        Console.WriteLine($"Anti-spoofing response: {jsonResponse}");
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            // Parse JSON response
+                            using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
+                            {
+                                if (
+                                    doc.RootElement.TryGetProperty(
+                                        "is_real",
+                                        out JsonElement isRealElement
+                                    )
+                                )
+                                {
+                                    bool isReal = isRealElement.GetBoolean();
+                                    Console.WriteLine($"Liveness check result: {isReal}");
+
+                                    if (
+                                        doc.RootElement.TryGetProperty(
+                                            "score",
+                                            out JsonElement scoreElement
+                                        )
+                                    )
+                                    {
+                                        double score = scoreElement.GetDouble();
+                                        Console.WriteLine($"Confidence score: {score}");
+                                    }
+
+                                    return isReal;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("No 'is_real' property found in response");
+                                    return false;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine(
+                                $"Anti-spoofing API error: {response.StatusCode} - {jsonResponse}"
+                            );
+                            StatusText.Text = $"Anti-spoofing API error: {response.StatusCode}";
+
+                            // Clear info tab and show anti-spoofing error
+                            RecognitionInfoText.Text =
+                                $"❌ ANTI-SPOOFING API ERROR\n\n"
+                                + $"Status Code: {response.StatusCode}\n"
+                                + $"Error Details: {jsonResponse}\n\n"
+                                + $"Please check:\n"
+                                + $"• Anti-spoofing server is running on port 5001\n"
+                                + $"• DeepFace dependencies are installed\n"
+                                + $"• Network connection is stable";
+
+                            return false;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"=== LIVENESS CHECK ERROR ===");
+                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                Console.WriteLine($"=== END ERROR ===");
+
+                StatusText.Text = $"Liveness check failed: {ex.Message}";
+
+                // Clear info tab and show liveness error
+                RecognitionInfoText.Text =
+                    $"❌ LIVENESS CHECK ERROR\n\n"
+                    + $"Error: {ex.Message}\n\n"
+                    + $"Please check:\n"
+                    + $"• Anti-spoofing server is running\n"
+                    + $"• DeepFace is properly installed\n"
+                    + $"• Network connectivity to port 5001";
+
+                return false;
+            }
+        }
+
         private void DisplayRecognitionResults(string jsonResponse)
         {
             try
@@ -443,6 +576,11 @@ namespace FaceRecognation
             try
             {
                 var infoText = "=== FACE RECOGNITION RESULTS ===\n\n";
+
+                // Add liveness verification status
+                infoText += "✅ LIVENESS VERIFIED\n";
+                infoText += "   Anti-spoofing check passed\n";
+                infoText += "   Real face detected\n\n";
 
                 // Age information
                 if (result.TryGetProperty("age", out JsonElement age))

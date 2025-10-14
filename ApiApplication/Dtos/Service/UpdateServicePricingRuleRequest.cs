@@ -8,5 +8,3 @@ public class UpdateServicePricingRuleRequest
 
     public required decimal PricePerHour { get; set; }
 }
-
-

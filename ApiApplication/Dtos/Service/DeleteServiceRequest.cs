@@ -6,5 +6,3 @@ public class DeleteServiceRequest
 {
     public required Guid Id { get; set; }
 }
-
-

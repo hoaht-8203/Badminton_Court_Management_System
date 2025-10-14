@@ -16,9 +16,7 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
 
     public async Task<List<ListServiceResponse>> ListServiceAsync(ListServiceRequest request)
     {
-        var query = _context
-            .Services.Include(s => s.ServicePricingRules)
-            .AsQueryable();
+        var query = _context.Services.Include(s => s.ServicePricingRules).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Name))
         {
@@ -65,7 +63,9 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
         // Validate linked product if provided
         if (request.LinkedProductId.HasValue)
         {
-            var exists = await _context.Products.AnyAsync(p => p.Id == request.LinkedProductId.Value);
+            var exists = await _context.Products.AnyAsync(p =>
+                p.Id == request.LinkedProductId.Value
+            );
             if (!exists)
             {
                 throw new ApiException("LinkedProductId không tồn tại", HttpStatusCode.BadRequest);
@@ -106,7 +106,9 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
 
         if (!string.IsNullOrEmpty(request.Name) && request.Name != service.Name)
         {
-            var isExist = await _context.Services.AnyAsync(s => s.Name == request.Name && s.Id != request.Id);
+            var isExist = await _context.Services.AnyAsync(s =>
+                s.Name == request.Name && s.Id != request.Id
+            );
             if (isExist)
             {
                 throw new ApiException(
@@ -121,7 +123,9 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
         // Validate linked product if provided
         if (request.LinkedProductId.HasValue)
         {
-            var exists = await _context.Products.AnyAsync(p => p.Id == request.LinkedProductId.Value);
+            var exists = await _context.Products.AnyAsync(p =>
+                p.Id == request.LinkedProductId.Value
+            );
             if (!exists)
             {
                 throw new ApiException("LinkedProductId không tồn tại", HttpStatusCode.BadRequest);
@@ -133,22 +137,27 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
             var rule = service.ServicePricingRules.FirstOrDefault();
             if (rule == null)
             {
-                rule = _mapper.Map<ServicePricingRule>(new UpdateServicePricingRuleRequest
-                {
-                    ServiceId = service.Id,
-                    PricePerHour = request.PricePerHour.Value,
-                });
+                rule = _mapper.Map<ServicePricingRule>(
+                    new UpdateServicePricingRuleRequest
+                    {
+                        ServiceId = service.Id,
+                        PricePerHour = request.PricePerHour.Value,
+                    }
+                );
                 rule.Id = Guid.NewGuid();
                 rule.Service = service;
                 service.ServicePricingRules.Add(rule);
             }
             else
             {
-                _mapper.Map(new UpdateServicePricingRuleRequest
-                {
-                    ServiceId = service.Id,
-                    PricePerHour = request.PricePerHour.Value,
-                }, rule);
+                _mapper.Map(
+                    new UpdateServicePricingRuleRequest
+                    {
+                        ServiceId = service.Id,
+                        PricePerHour = request.PricePerHour.Value,
+                    },
+                    rule
+                );
             }
 
             // Enforce single pricing rule invariant
@@ -185,7 +194,9 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
         return true;
     }
 
-    public async Task<DetailServiceResponse> ChangeServiceStatusAsync(ChangeServiceStatusRequest request)
+    public async Task<DetailServiceResponse> ChangeServiceStatusAsync(
+        ChangeServiceStatusRequest request
+    )
     {
         var service = await _context.Services.FirstOrDefaultAsync(s => s.Id == request.Id);
         if (service == null)
@@ -206,5 +217,3 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
         return _mapper.Map<DetailServiceResponse>(service);
     }
 }
-
-

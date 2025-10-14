@@ -14,13 +14,19 @@ public class ServiceMappingProfile : Profile
         CreateMap<Service, ListServiceResponse>()
             .ForMember(
                 d => d.Pricing,
-                opt => opt.MapFrom(s => s.ServicePricingRules.Count > 0 ? s.ServicePricingRules.First() : null)
+                opt =>
+                    opt.MapFrom(s =>
+                        s.ServicePricingRules.Count > 0 ? s.ServicePricingRules.First() : null
+                    )
             );
 
         CreateMap<Service, DetailServiceResponse>()
             .ForMember(
                 d => d.Pricing,
-                opt => opt.MapFrom(s => s.ServicePricingRules.Count > 0 ? s.ServicePricingRules.First() : null)
+                opt =>
+                    opt.MapFrom(s =>
+                        s.ServicePricingRules.Count > 0 ? s.ServicePricingRules.First() : null
+                    )
             );
 
         CreateMap<CreateServiceRequest, Service>()
@@ -44,8 +50,5 @@ public class ServiceMappingProfile : Profile
         CreateMap<CreateServicePricingRuleRequest, ServicePricingRule>()
             .ForMember(d => d.Id, opt => opt.MapFrom(_ => Guid.NewGuid()))
             .ForMember(d => d.Service, opt => opt.Ignore());
-
     }
 }
-
-

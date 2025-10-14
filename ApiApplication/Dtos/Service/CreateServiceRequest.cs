@@ -18,5 +18,3 @@ public class CreateServiceRequest
 
     public required decimal PricePerHour { get; set; }
 }
-
-

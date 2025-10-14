@@ -10,7 +10,4 @@ public interface IServiceService
     Task<DetailServiceResponse> UpdateServiceAsync(UpdateServiceRequest request);
     Task<bool> DeleteServiceAsync(DeleteServiceRequest request);
     Task<DetailServiceResponse> ChangeServiceStatusAsync(ChangeServiceStatusRequest request);
-
 }
-
-

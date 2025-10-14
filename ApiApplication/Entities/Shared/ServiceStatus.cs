@@ -11,5 +11,3 @@ public static class ServiceStatus
 
     public static readonly string[] ValidStatuses = [Active, Inactive, Deleted, Maintenance];
 }
-
-

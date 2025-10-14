@@ -14,5 +14,3 @@ public class ServicePricingRule : BaseEntity
 
     public required decimal PricePerHour { get; set; }
 }
-
-

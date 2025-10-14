@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { Breadcrumb, Button, Table, Space, Tag, Card, Form, Input, DatePicker, Modal, Row, Col, Checkbox, Spin, message } from "antd";
+import { Breadcrumb, Button, Table, Space, Tag, Card, Form, Input, DatePicker, Modal, Row, Col, Checkbox, Spin, message, Tabs } from "antd";
 import { PlusOutlined, ReloadOutlined, SearchOutlined, CalendarOutlined, FileTextOutlined, CloseOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import type { ColumnsType, TableProps } from "antd/es/table";
@@ -53,6 +53,8 @@ const InventoryManagementPage = () => {
   const { data, isLoading, refetch } = useListInventoryChecks({});
   const mergeMutation = useMergeInventoryChecks();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [productMatchIds, setProductMatchIds] = useState<Set<number> | null>(null);
+  const [debouncedProductQuery, setDebouncedProductQuery] = useState<string>("");
 
   // Auto refresh every 5 seconds
   useEffect(() => {
@@ -128,8 +130,7 @@ const InventoryManagementPage = () => {
 
     return listData.filter((x) => {
       const okCode = !code || (x.code || "").toLowerCase().includes(code);
-      // productQuery placeholder: if inventory item details are not present, ignore this filter
-      const okProduct = !productQuery || false;
+      const okProduct = !productQuery || (productMatchIds?.has((x.id as number) || -1) ?? false);
       const okStatus = !statuses || statuses.has((x.status as number) ?? -1);
 
       if (!range) return okCode && okProduct && okStatus;
@@ -141,7 +142,59 @@ const InventoryManagementPage = () => {
 
       return okCode && okProduct && okStatus && okTime;
     });
-  }, [data?.data, searchValues, resolvedRange]);
+  }, [data?.data, searchValues, resolvedRange, productMatchIds]);
+
+  // Debounce productQuery
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedProductQuery((searchValues.productQuery || "").trim().toLowerCase()), 200);
+    return () => clearTimeout(t);
+  }, [searchValues.productQuery]);
+
+  // Build productMatchIds by fetching details and checking items
+  useEffect(() => {
+    const run = async () => {
+      const listData = data?.data ?? [];
+      const q = debouncedProductQuery;
+      if (!q) { setProductMatchIds(null); return; }
+      try {
+        // Limit to current filtered by basic conditions (code/status/time) to reduce requests
+        const code = (searchValues.code || "").trim().toLowerCase();
+        const statuses = searchValues.statuses && searchValues.statuses.length > 0 ? new Set(searchValues.statuses) : undefined;
+        const range = resolvedRange;
+        const prelim = listData.filter((x) => {
+          const okCode = !code || (x.code || "").toLowerCase().includes(code);
+          const okStatus = !statuses || statuses.has((x.status as number) ?? -1);
+          const from = range?.[0]?.startOf("day");
+          const to = range?.[1]?.endOf("day");
+          const checkTime = x.checkTime ? dayjs(x.checkTime) : null;
+          const okTime = !checkTime || (checkTime.isAfter(from) && checkTime.isBefore(to));
+          return okCode && okStatus && okTime;
+        });
+
+        const svc = (await import("@/services/inventoryService")).inventoryService;
+        const chunks: any[][] = [];
+        const ids = prelim.map(p => p.id as number).filter(Boolean);
+        const concurrency = 5;
+        for (let i = 0; i < ids.length; i += concurrency) chunks.push(ids.slice(i, i + concurrency));
+        const matched = new Set<number>();
+        for (const batch of chunks) {
+          const results = await Promise.all(batch.map(async (id) => {
+            try { const res = await svc.detail(id); return { id, data: res.data }; } catch { return { id, data: null }; }
+          }));
+          for (const r of results) {
+            const items = (r.data?.items || []) as any[];
+            if (items.some(it => (String(it.productCode || "").toLowerCase().includes(q)) || (String(it.productName || "").toLowerCase().includes(q)))) {
+              matched.add(r.id);
+            }
+          }
+        }
+        setProductMatchIds(matched);
+      } catch {
+        setProductMatchIds(new Set<number>());
+      }
+    };
+    run();
+  }, [debouncedProductQuery, data?.data, resolvedRange, searchValues.code, searchValues.statuses]);
 
   const columns: ColumnsType<
     InventoryCheck & { totalDelta?: number; balancedAt?: Date; totalDeltaIncrease?: number; totalDeltaDecrease?: number; note?: string }
@@ -457,7 +510,7 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
     );
   }
 
-  return (
+  const infoTab = (
     <div className="p-3">
       <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-3">
         <div>
@@ -495,7 +548,16 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
             <Button onClick={() => d?.id && onEdit(d.id)} type="primary">
               Cập nhật
             </Button>
-            <Button danger onClick={() => d?.id && cancelMutation.mutate(d.id)} loading={cancelMutation.isPending}>
+            <Button danger onClick={() => {
+              Modal.confirm({
+                title: "Xác nhận hủy phiếu",
+                content: "Bạn có chắc chắn muốn hủy phiếu kiểm kê này?",
+                okText: "Hủy phiếu",
+                cancelText: "Đóng",
+                okButtonProps: { danger: true },
+                onOk: () => d?.id && cancelMutation.mutate(d.id),
+              });
+            }} loading={cancelMutation.isPending}>
               Hủy phiếu
             </Button>
           </>
@@ -547,6 +609,15 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
         </div>
       </div>
     </div>
+  );
+
+  return (
+    <Tabs
+      defaultActiveKey="info"
+      items={[
+        { key: "info", label: "Thông tin", children: infoTab },
+      ]}
+    />
   );
 };
 

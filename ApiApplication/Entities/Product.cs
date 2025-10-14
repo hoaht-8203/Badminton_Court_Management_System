@@ -51,4 +51,6 @@ public class Product : BaseEntity, IAuditableEntity
     // Unit
     [MaxLength(50)]
     public string? Unit { get; set; } // Đơn vị tính
+
+    public virtual List<InventoryCard> InventoryCards { get; set; } = new();
 }

@@ -3,8 +3,8 @@
 import { useDeleteProduct, useListProducts, /* useUpdateProduct, */ useDetailProduct } from "@/hooks/useProducts";
 import { ApiError, axiosInstance } from "@/lib/axios";
 import { DetailProductResponse, ListProductRequest, ListProductResponse } from "@/types-openapi/api";
-import { Breadcrumb, Button, Col, Divider, Image, message, Modal, Row, Table, TableProps } from "antd";
-import { useMemo, useState } from "react";
+import { Breadcrumb, Button, Col, Divider, Image, message, Modal, Row, Table, TableProps, Tabs } from "antd";
+import { useMemo, useState, useEffect } from "react";
 import { productColumns } from "@/components/quanlysancaulong/products/products-columns";
 import CreateNewProductDrawer from "@/components/quanlysancaulong/products/create-new-product-drawer";
 import UpdateProductDrawer from "@/components/quanlysancaulong/products/update-product-drawer";
@@ -24,7 +24,6 @@ const tableProps: TableProps<ListProductResponse> = {
 const ProductCategoryPage = () => {
   const [searchParams, setSearchParams] = useState<ProductFilters>({});
   const [openCreate, setOpenCreate] = useState(false);
-  const [openCreateService, setOpenCreateService] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
   const [currentId, setCurrentId] = useState<number | null>(null);
   const [modal, contextHolder] = Modal.useModal();
@@ -68,9 +67,6 @@ const ProductCategoryPage = () => {
           <div className="flex gap-2">
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenCreate(true)}>
               Thêm hàng hóa
-            </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenCreateService(true)}>
-              Thêm dịch vụ
             </Button>
             <Button type="primary" icon={<ReloadOutlined />} onClick={() => refetch()}>
               Tải lại
@@ -127,13 +123,6 @@ const ProductCategoryPage = () => {
       </div>
 
       <CreateNewProductDrawer open={openCreate} onClose={() => setOpenCreate(false)} />
-      <CreateNewProductDrawer
-        open={openCreateService}
-        onClose={() => setOpenCreateService(false)}
-        title="Thêm dịch vụ"
-        presetMenuType="Khác"
-        isService
-      />
       <UpdateProductDrawer open={openUpdate} onClose={() => setOpenUpdate(false)} productId={currentId ?? 0} />
 
       {contextHolder}
@@ -158,6 +147,14 @@ const ProductInformation = ({
 
   return (
     <div>
+      <Tabs
+        defaultActiveKey="info"
+        items={[
+          {
+            key: "info",
+            label: "Thông tin",
+            children: (
+              <div>
       <Row gutter={16} className="mb-4">
         <Col span={18}>
           <Row gutter={[16, 0]}>
@@ -293,7 +290,111 @@ const ProductInformation = ({
           )}
         </div>
       </div>
+              </div>
+            ),
+          },
+          {
+            key: "cards",
+            label: "Thẻ kho",
+            children: <ProductInventoryCards productId={record.id!} />,
+          },
+        ]}
+      />
     </div>
+  );
+};
+
+const ProductInventoryCards = ({ productId }: { productId: number }) => {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const svc = await import("@/services/inventoryService");
+        const res: any = await svc.inventoryService.listCardsByProduct(productId);
+        setData(res?.data || []);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [productId]);
+
+  return (
+    <Table
+      size="small"
+      rowKey={(r) => `${r.code}-${r.occurredAt}`}
+      loading={loading}
+      dataSource={data}
+      pagination={false}
+      scroll={{ x: 800 }}
+      bordered
+      locale={{
+        emptyText: (
+          <div className="py-8 text-center text-gray-500">
+            <div className="mb-2 text-4xl">📋</div>
+            <div>Chưa có thẻ kho nào</div>
+            <div className="text-sm">Thẻ kho sẽ được tạo tự động khi có giao dịch tồn kho</div>
+          </div>
+        )
+      }}
+      columns={[
+        { 
+          title: "Chứng từ", 
+          dataIndex: "code", 
+          key: "code", 
+          width: 120,
+          fixed: "left"
+        },
+        { 
+          title: "Phương thức", 
+          dataIndex: "method", 
+          key: "method", 
+          width: 160,
+          ellipsis: true
+        },
+        { 
+          title: "Thời gian", 
+          dataIndex: "occurredAt", 
+          key: "occurredAt", 
+          width: 160, 
+          render: (d: any) => (d ? new Date(d).toLocaleString("vi-VN") : "-") 
+        },
+        { 
+          title: "Giá vốn", 
+          dataIndex: "costPrice", 
+          key: "costPrice", 
+          width: 120, 
+          align: "right",
+          render: (v: any) => (Number(v) || 0).toLocaleString("vi-VN") + " đ" 
+        },
+        { 
+          title: "Số lượng", 
+          dataIndex: "quantityChange", 
+          key: "quantityChange", 
+          width: 100,
+          align: "right",
+          render: (v: any) => {
+            const num = Number(v) || 0;
+            return (
+              <span className={num > 0 ? "text-green-600" : num < 0 ? "text-red-600" : ""}>
+                {num > 0 ? "+" : ""}{num.toLocaleString("vi-VN")}
+              </span>
+            );
+          }
+        },
+        { 
+          title: "Tồn cuối", 
+          dataIndex: "endingStock", 
+          key: "endingStock", 
+          width: 100,
+          align: "right",
+          render: (v: any) => (Number(v) || 0).toLocaleString("vi-VN")
+        },
+      ]}
+    />
   );
 };
 

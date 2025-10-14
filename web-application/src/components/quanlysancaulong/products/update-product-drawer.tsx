@@ -31,7 +31,9 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
   // FE no longer creates inventory checks here; backend handles auto-balanced creation when stock changes.
 
   const onSubmit = (values: UpdateProductRequest) => {
-    updateMutation.mutate(values, {
+    // Ensure not to accidentally change active status; backend has a dedicated endpoint
+    const { isActive, ...rest } = values as any;
+    updateMutation.mutate(rest as UpdateProductRequest, {
       onSuccess: async () => {
         message.success("Cập nhật hàng hóa thành công");
         onClose();
@@ -67,7 +69,7 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
                   },
                 ]}
               >
-                <Input placeholder="VD: SP001" />
+                <Input placeholder="VD: SP001" disabled />
               </Form.Item>
             </Col>
             <Col span={12}>

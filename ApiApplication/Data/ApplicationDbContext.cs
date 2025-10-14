@@ -49,6 +49,12 @@ public class ApplicationDbContext(
 
     public DbSet<InventoryCheck> InventoryChecks { get; set; }
     public DbSet<InventoryCheckItem> InventoryCheckItems { get; set; }
+    public DbSet<InventoryCard> InventoryCards { get; set; }
+    public DbSet<SupplierBankAccount> SupplierBankAccounts { get; set; }
+    public DbSet<Receipt> Receipts { get; set; }
+    public DbSet<ReceiptItem> ReceiptItems { get; set; }
+    public DbSet<StockOut> StockOuts { get; set; }
+    public DbSet<StockOutItem> StockOutItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -121,6 +127,66 @@ public class ApplicationDbContext(
                 .WithMany()
                 .HasForeignKey(i => i.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Inventory card mappings
+        builder.Entity<InventoryCard>(entity =>
+        {
+            entity.Property(p => p.CostPrice).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.Code).HasMaxLength(20);
+            entity.Property(p => p.Method).HasMaxLength(100);
+            entity.HasOne(p => p.Product)
+                .WithMany(p => p.InventoryCards)
+                .HasForeignKey(p => p.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Supplier bank accounts
+        builder.Entity<SupplierBankAccount>(entity =>
+        {
+            entity.Property(p => p.AccountNumber).HasMaxLength(50);
+            entity.Property(p => p.AccountName).HasMaxLength(100);
+            entity.Property(p => p.BankName).HasMaxLength(120);
+            entity.HasOne(p => p.Supplier)
+                .WithMany()
+                .HasForeignKey(p => p.SupplierId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Receipts
+        builder.Entity<Receipt>(entity =>
+        {
+            entity.Property(p => p.Code).HasMaxLength(20);
+            entity.Property(p => p.Discount).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.PaymentAmount).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.PaymentMethod).HasMaxLength(10);
+            entity.Property(p => p.SupplierBankAccountNumber).HasMaxLength(50);
+            entity.Property(p => p.SupplierBankAccountName).HasMaxLength(100);
+            entity.Property(p => p.SupplierBankName).HasMaxLength(120);
+            entity.HasOne(r => r.Supplier).WithMany().HasForeignKey(r => r.SupplierId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasMany(r => r.Items).WithOne(i => i.Receipt).HasForeignKey(i => i.ReceiptId).OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<ReceiptItem>(entity =>
+        {
+            entity.Property(p => p.CostPrice).HasColumnType("decimal(18,2)");
+        });
+
+        // StockOuts
+        builder.Entity<StockOut>(entity =>
+        {
+            entity.Property(p => p.Code).HasMaxLength(50);
+            entity.Property(p => p.OutBy).HasMaxLength(100);
+            entity.Property(p => p.CreatedBy).HasMaxLength(100);
+            entity.Property(p => p.Note).HasMaxLength(500);
+            entity.Property(p => p.TotalValue).HasColumnType("decimal(18,2)");
+            entity.HasOne(s => s.Supplier).WithMany().HasForeignKey(s => s.SupplierId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasMany(s => s.Items).WithOne(i => i.StockOut).HasForeignKey(i => i.StockOutId).OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<StockOutItem>(entity =>
+        {
+            entity.Property(p => p.CostPrice).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.Note).HasMaxLength(500);
+            entity.HasOne(i => i.Product).WithMany().HasForeignKey(i => i.ProductId).OnDelete(DeleteBehavior.Restrict);
         });
 
         builder
@@ -399,6 +465,16 @@ public class ApplicationDbContext(
             {
                 entity.UpdatedAt = DateTime.UtcNow;
                 entity.UpdatedBy = username;
+            }
+        }
+
+        // Normalize StockOut.OutTime to UTC
+        foreach (var soEntry in ChangeTracker.Entries<StockOut>()
+                     .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified))
+        {
+            if (soEntry.Entity.OutTime.Kind != DateTimeKind.Utc)
+            {
+                soEntry.Entity.OutTime = DateTime.SpecifyKind(soEntry.Entity.OutTime, DateTimeKind.Utc);
             }
         }
 

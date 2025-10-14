@@ -1,12 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ApiError } from "@/lib/axios";
-import { ApiResponse } from "@/types/api";
 import { categoryService } from "@/services/categoryService";
 import { 
   ListCategoryRequest, 
-  ListCategoryResponse, 
   DetailCategoryRequest, 
-  DetailCategoryResponse,
   CreateCategoryRequest,
   UpdateCategoryRequest,
   DeleteCategoryRequest

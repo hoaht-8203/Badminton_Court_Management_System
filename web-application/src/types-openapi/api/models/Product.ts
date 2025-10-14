@@ -20,6 +20,13 @@ import {
     CategoryToJSON,
     CategoryToJSONTyped,
 } from './Category';
+import type { InventoryCard } from './InventoryCard';
+import {
+    InventoryCardFromJSON,
+    InventoryCardFromJSONTyped,
+    InventoryCardToJSON,
+    InventoryCardToJSONTyped,
+} from './InventoryCard';
 
 /**
  * 
@@ -165,6 +172,12 @@ export interface Product {
      * @memberof Product
      */
     unit?: string | null;
+    /**
+     * 
+     * @type {Array<InventoryCard>}
+     * @memberof Product
+     */
+    inventoryCards?: Array<InventoryCard> | null;
 }
 
 /**
@@ -208,6 +221,7 @@ export function ProductFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'noteTemplate': json['noteTemplate'] == null ? undefined : json['noteTemplate'],
         'images': json['images'] == null ? undefined : json['images'],
         'unit': json['unit'] == null ? undefined : json['unit'],
+        'inventoryCards': json['inventoryCards'] == null ? undefined : ((json['inventoryCards'] as Array<any>).map(InventoryCardFromJSON)),
     };
 }
 
@@ -245,6 +259,7 @@ export function ProductToJSONTyped(value?: Product | null, ignoreDiscriminator: 
         'noteTemplate': value['noteTemplate'],
         'images': value['images'],
         'unit': value['unit'],
+        'inventoryCards': value['inventoryCards'] == null ? undefined : ((value['inventoryCards'] as Array<any>).map(InventoryCardToJSON)),
     };
 }
 

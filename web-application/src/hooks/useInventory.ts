@@ -113,22 +113,4 @@ export const useBulkDeleteInventoryChecks = () => {
   });
 };
 
-// Check low stock products
-export const useCheckLowStockProducts = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (branch?: string) => inventoryService.checkLowStock(branch),
-    onSuccess: (count) => {
-      queryClient.invalidateQueries({ queryKey: ["inventoryChecks"] });
-      if (count && count > 0) {
-        message.success(`Đã tạo ${count} phiếu kiểm kê cho sản phẩm có tồn kho thấp!`);
-      } else {
-        message.info("Không có sản phẩm nào có tồn kho dưới mức tối thiểu.");
-      }
-    },
-    onError: (error: any) => {
-      message.error(error?.message || "Có lỗi xảy ra khi kiểm tra tồn kho thấp");
-    }
-  });
-};
+

@@ -8,7 +8,7 @@ import { CreateProductRequest } from "@/types-openapi/api";
 import { Button, Checkbox, Col, Drawer, Form, Input, InputNumber, Row, Space, Upload, UploadFile, UploadProps, message, Select, Divider } from "antd";
 import { Tooltip } from "antd";
 import { InfoCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type CreateNewProductDrawerProps = {
   open: boolean;
@@ -36,6 +36,38 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
   };
 
   // Không tạo phiếu kiểm kho ở FE; backend sẽ tự tạo phiếu cân bằng khi phù hợp
+
+  // Auto-generate code: SP0001 style
+  const generateNextCode = async () => {
+    try {
+      const res = await productService.list({});
+      const codes = (res.data || [])
+        .map((p) => p.code)
+        .filter((c): c is string => !!c && /^SP\d+$/.test(c));
+      const maxNum = codes.reduce((acc, c) => {
+        const n = parseInt(c.replace(/^SP/, ""), 10);
+        return Number.isFinite(n) && n > acc ? n : acc;
+      }, 0);
+      const next = maxNum + 1;
+      const nextCode = `SP${String(next).padStart(4, "0")}`;
+      form.setFieldsValue({ code: nextCode });
+    } catch {
+      // fallback default when list fails
+      form.setFieldsValue({ code: "SP0001" });
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      // preset menu type if provided
+      if (presetMenuType) {
+        form.setFieldsValue({ menuType: presetMenuType });
+      }
+      // generate code on open
+      generateNextCode();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const onSubmit = async (values: CreateProductRequest) => {
     createMutation.mutate(values, {
@@ -76,7 +108,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
         form={form}
         layout="vertical"
         onFinish={onSubmit}
-        initialValues={{ isDirectSale: true, manageInventory: false, menuType: presetMenuType }}
+        initialValues={{ isDirectSale: true, manageInventory: false, menuType: presetMenuType, maxStock: 999 }}
       >
         <Row gutter={16}>
           <Col span={12}>
@@ -95,7 +127,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
                 },
               ]}
             >
-              <Input placeholder="VD: SP001" />
+              <Input placeholder="VD: SP0001" disabled />
             </Form.Item>
           </Col>
           <Col span={12}>

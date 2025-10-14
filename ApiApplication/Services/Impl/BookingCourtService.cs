@@ -7,6 +7,9 @@ using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
 using ApiApplication.SignalR;
 using AutoMapper;
+using ApiApplication.Services;
+using ApiApplication.Dtos.Notification;
+using ApiApplication.Enums;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +20,8 @@ public class BookingCourtService(
     IMapper mapper,
     IPaymentService paymentService,
     IConfiguration configuration,
-    IHubContext<BookingHub> hub
+    IHubContext<BookingHub> hub,
+    INotificationService notificationService
 ) : IBookingCourtService
 {
     private readonly ApplicationDbContext _context = context;
@@ -25,6 +29,7 @@ public class BookingCourtService(
     private readonly IPaymentService _paymentService = paymentService;
     private readonly IConfiguration _configuration = configuration;
     private readonly IHubContext<BookingHub> _hub = hub;
+    private readonly INotificationService _notificationService = notificationService;
 
     public async Task<DetailBookingCourtResponse> CreateBookingCourtAsync(
         CreateBookingCourtRequest request
@@ -217,6 +222,18 @@ public class BookingCourtService(
 
         await _context.BookingCourts.AddAsync(entity);
         await _context.SaveChangesAsync();
+
+        // Notify roles about new booking creation (pending payment)
+        await _notificationService.SendToRolesAsync(
+            new NotificationRoleSendRequestDto
+            {
+                Roles = new[] { "Receptionist", "branch-administrator" }, // Branch administrator assumed as Admin
+                Title = "Đặt sân mới được tạo",
+                Message = $"Booking #{entity.Id} cho sân {entity.CourtId} đã được tạo.",
+                NotificationByType = NotificationCategory.Booking,
+                Type = NotificationType.Info,
+            }
+        );
 
         // Create payment with preferences (deposit or full, method)
         var payInFull = request.PayInFull == true;

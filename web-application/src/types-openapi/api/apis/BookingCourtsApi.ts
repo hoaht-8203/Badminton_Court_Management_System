@@ -15,11 +15,17 @@
 
 import * as runtime from '../runtime';
 import type {
+  BooleanApiResponse,
+  CancelBookingCourtRequest,
   CreateBookingCourtRequest,
   DetailBookingCourtResponseApiResponse,
   ListBookingCourtResponseListApiResponse,
 } from '../models/index';
 import {
+    BooleanApiResponseFromJSON,
+    BooleanApiResponseToJSON,
+    CancelBookingCourtRequestFromJSON,
+    CancelBookingCourtRequestToJSON,
     CreateBookingCourtRequestFromJSON,
     CreateBookingCourtRequestToJSON,
     DetailBookingCourtResponseApiResponseFromJSON,
@@ -27,6 +33,10 @@ import {
     ListBookingCourtResponseListApiResponseFromJSON,
     ListBookingCourtResponseListApiResponseToJSON,
 } from '../models/index';
+
+export interface ApiBookingCourtsCancelPostRequest {
+    cancelBookingCourtRequest?: CancelBookingCourtRequest;
+}
 
 export interface ApiBookingCourtsCreatePostRequest {
     createBookingCourtRequest?: CreateBookingCourtRequest;
@@ -50,6 +60,19 @@ export interface ApiBookingCourtsListGetRequest {
  * @interface BookingCourtsApiInterface
  */
 export interface BookingCourtsApiInterface {
+    /**
+     * 
+     * @param {CancelBookingCourtRequest} [cancelBookingCourtRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BookingCourtsApiInterface
+     */
+    apiBookingCourtsCancelPostRaw(requestParameters: ApiBookingCourtsCancelPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>>;
+
+    /**
+     */
+    apiBookingCourtsCancelPost(requestParameters: ApiBookingCourtsCancelPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse>;
+
     /**
      * 
      * @param {CreateBookingCourtRequest} [createBookingCourtRequest] 
@@ -98,6 +121,36 @@ export interface BookingCourtsApiInterface {
  * 
  */
 export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsApiInterface {
+
+    /**
+     */
+    async apiBookingCourtsCancelPostRaw(requestParameters: ApiBookingCourtsCancelPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/BookingCourts/cancel`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CancelBookingCourtRequestToJSON(requestParameters['cancelBookingCourtRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BooleanApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiBookingCourtsCancelPost(requestParameters: ApiBookingCourtsCancelPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse> {
+        const response = await this.apiBookingCourtsCancelPostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      */

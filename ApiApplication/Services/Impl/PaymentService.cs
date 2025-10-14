@@ -186,11 +186,12 @@ public class PaymentService(
             return totalForDay;
         }
 
-        // If fixed schedule: sum for each applicable date between StartDate..EndDate inclusive
+        // Calculate court rental cost
+        var courtCost = 0m;
         var daysArray = booking.DaysOfWeek ?? Array.Empty<int>();
         if (daysArray.Length > 0)
         {
-            var total = 0m;
+            // Fixed schedule: sum for each applicable date between StartDate..EndDate inclusive
             var cursor = booking.StartDate;
             var end = booking.EndDate;
             while (cursor <= end)
@@ -198,17 +199,30 @@ public class PaymentService(
                 var dow = GetCustomDayOfWeek(cursor);
                 if (daysArray.Contains(dow))
                 {
-                    total += await ComputePerDayAsync(dow);
+                    courtCost += await ComputePerDayAsync(dow);
                 }
                 cursor = cursor.AddDays(1);
             }
-            return Math.Round(total, 2);
+        }
+        else
+        {
+            // Walk-in: single day (StartDate)
+            var walkInDow = GetCustomDayOfWeek(booking.StartDate);
+            courtCost = await ComputePerDayAsync(walkInDow);
         }
 
-        // Walk-in: single day (StartDate)
-        var walkInDow = GetCustomDayOfWeek(booking.StartDate);
-        var walkInTotal = await ComputePerDayAsync(walkInDow);
-        return Math.Round(walkInTotal, 2);
+        // Calculate service costs
+        var serviceCost = 0m;
+        var bookingServices = await _context.BookingServices
+            .Where(bs => bs.BookingId == booking.Id)
+            .ToListAsync();
+
+        foreach (var bookingService in bookingServices)
+        {
+            serviceCost += bookingService.TotalPrice;
+        }
+
+        return Math.Round(courtCost + serviceCost, 2);
     }
 
     private static TimeOnly Max(TimeOnly a, TimeOnly b) => a > b ? a : b;

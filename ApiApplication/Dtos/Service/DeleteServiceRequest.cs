@@ -1,8 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace ApiApplication.Dtos.Service;
 
 public class DeleteServiceRequest
 {
-    public required Guid Id { get; set; }
+    public Guid Id { get; set; }
 }

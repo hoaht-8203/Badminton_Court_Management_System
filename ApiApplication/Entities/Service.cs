@@ -10,22 +10,37 @@ public class Service : BaseEntity
     [Key]
     public required Guid Id { get; set; }
 
-    [MaxLength(50)]
-    public string? Code { get; set; }
+    [Required]
+    [MaxLength(100)]
+    public required string Code { get; set; }
 
     [Required]
     [MaxLength(255)]
     public required string Name { get; set; }
 
+    [MaxLength(1000)]
     public string? Description { get; set; }
 
+    [MaxLength(500)]
     public string? ImageUrl { get; set; }
 
+    [Required]
     public required string Status { get; set; } = ServiceStatus.Active;
 
-    // Optional: liên kết hàng hóa để kiểm soát tồn kho khi sử dụng dịch vụ (vd thuê vợt)
-    public int? LinkedProductId { get; set; }
-    public Product? LinkedProduct { get; set; }
+    [Required]
+    public required decimal PricePerHour { get; set; }
 
-    public ICollection<ServicePricingRule> ServicePricingRules { get; set; } = [];
+    [MaxLength(50)]
+    public string? Category { get; set; } // e.g., "Equipment", "Referee", "Clothing"
+
+    [MaxLength(100)]
+    public string? Unit { get; set; } // e.g., "per racket", "per person", "per set"
+
+    public int? StockQuantity { get; set; } // Available quantity for rental
+
+    [MaxLength(1000)]
+    public string? Note { get; set; }
+
+    // Navigation properties
+    public ICollection<BookingService> BookingServices { get; set; } = [];
 }

@@ -14,7 +14,7 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
     private readonly IServiceService _serviceService = serviceService;
 
     [HttpGet("list")]
-    public async Task<ActionResult<ApiResponse<ListServiceResponse>>> List(
+    public async Task<ActionResult<ApiResponse<List<ListServiceResponse>>>> List(
         [FromQuery] ListServiceRequest request
     )
     {
@@ -85,6 +85,45 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
             ApiResponse<DetailServiceResponse>.SuccessResponse(
                 result,
                 "Change service status successfully"
+            )
+        );
+    }
+
+    [HttpPost("booking/add-service")]
+    public async Task<ActionResult<ApiResponse<BookingServiceDto>>> AddBookingService(
+        [FromBody] AddBookingServiceRequest request
+    )
+    {
+        var result = await _serviceService.AddBookingServiceAsync(request);
+        return Ok(
+            ApiResponse<BookingServiceDto>.SuccessResponse(
+                result,
+                "Add service to booking successfully"
+            )
+        );
+    }
+
+    [HttpDelete("booking/remove-service")]
+    public async Task<ActionResult<ApiResponse<bool>>> RemoveBookingService(
+        [FromBody] RemoveBookingServiceRequest request
+    )
+    {
+        var result = await _serviceService.RemoveBookingServiceAsync(request);
+        return Ok(
+            ApiResponse<bool>.SuccessResponse(result, "Remove service from booking successfully")
+        );
+    }
+
+    [HttpGet("booking/{bookingId}/services")]
+    public async Task<ActionResult<ApiResponse<List<BookingServiceDto>>>> GetBookingServices(
+        Guid bookingId
+    )
+    {
+        var result = await _serviceService.GetBookingServicesAsync(bookingId);
+        return Ok(
+            ApiResponse<List<BookingServiceDto>>.SuccessResponse(
+                result,
+                "Get booking services successfully"
             )
         );
     }

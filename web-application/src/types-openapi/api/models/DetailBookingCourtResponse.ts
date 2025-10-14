@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { BookingServiceDto } from './BookingServiceDto';
+import {
+    BookingServiceDtoFromJSON,
+    BookingServiceDtoFromJSONTyped,
+    BookingServiceDtoToJSON,
+    BookingServiceDtoToJSONTyped,
+} from './BookingServiceDto';
 import type { CustomerDto } from './CustomerDto';
 import {
     CustomerDtoFromJSON,
@@ -114,6 +121,12 @@ export interface DetailBookingCourtResponse {
     payments?: Array<PaymentDto> | null;
     /**
      * 
+     * @type {Array<BookingServiceDto>}
+     * @memberof DetailBookingCourtResponse
+     */
+    bookingServices?: Array<BookingServiceDto> | null;
+    /**
+     * 
      * @type {number}
      * @memberof DetailBookingCourtResponse
      */
@@ -198,6 +211,7 @@ export function DetailBookingCourtResponseFromJSONTyped(json: any, ignoreDiscrim
         'totalHours': json['totalHours'] == null ? undefined : json['totalHours'],
         'customer': json['customer'] == null ? undefined : CustomerDtoFromJSON(json['customer']),
         'payments': json['payments'] == null ? undefined : ((json['payments'] as Array<any>).map(PaymentDtoFromJSON)),
+        'bookingServices': json['bookingServices'] == null ? undefined : ((json['bookingServices'] as Array<any>).map(BookingServiceDtoFromJSON)),
         'totalAmount': json['totalAmount'] == null ? undefined : json['totalAmount'],
         'paidAmount': json['paidAmount'] == null ? undefined : json['paidAmount'],
         'remainingAmount': json['remainingAmount'] == null ? undefined : json['remainingAmount'],
@@ -234,6 +248,7 @@ export function DetailBookingCourtResponseToJSONTyped(value?: DetailBookingCourt
         'totalHours': value['totalHours'],
         'customer': CustomerDtoToJSON(value['customer']),
         'payments': value['payments'] == null ? undefined : ((value['payments'] as Array<any>).map(PaymentDtoToJSON)),
+        'bookingServices': value['bookingServices'] == null ? undefined : ((value['bookingServices'] as Array<any>).map(BookingServiceDtoToJSON)),
         'totalAmount': value['totalAmount'],
         'paidAmount': value['paidAmount'],
         'remainingAmount': value['remainingAmount'],

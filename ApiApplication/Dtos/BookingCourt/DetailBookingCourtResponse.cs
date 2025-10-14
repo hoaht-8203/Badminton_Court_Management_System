@@ -1,3 +1,6 @@
+using ApiApplication.Dtos.Payment;
+using ApiApplication.Dtos.Service;
+
 namespace ApiApplication.Dtos.BookingCourt;
 
 public class DetailBookingCourtResponse
@@ -15,8 +18,9 @@ public class DetailBookingCourtResponse
     public decimal TotalHours { get; set; }
 
     // Extra info
-    public ApiApplication.Dtos.Customer.CustomerDto Customer { get; set; } = null!;
-    public List<ApiApplication.Dtos.Payment.PaymentDto> Payments { get; set; } = [];
+    public Customer.CustomerDto Customer { get; set; } = null!;
+    public List<PaymentDto> Payments { get; set; } = [];
+    public List<BookingServiceDto> BookingServices { get; set; } = [];
 
     // Payment summary
     public decimal TotalAmount { get; set; }

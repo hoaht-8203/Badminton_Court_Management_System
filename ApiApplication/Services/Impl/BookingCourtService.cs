@@ -384,6 +384,7 @@ public class BookingCourtService(
             .BookingCourts.Include(x => x.Court)
             .Include(x => x.Customer)
             .Include(x => x.Payments)
+            .Include(x => x.BookingServices)
             .FirstOrDefaultAsync(x => x.Id == request.Id);
 
         if (entity == null)

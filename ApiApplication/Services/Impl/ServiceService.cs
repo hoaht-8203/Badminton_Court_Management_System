@@ -1,8 +1,8 @@
 using System.Net;
+using ApiApplication.Constants;
 using ApiApplication.Data;
 using ApiApplication.Dtos.Service;
 using ApiApplication.Entities;
-using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +16,7 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
 
     public async Task<List<ListServiceResponse>> ListServiceAsync(ListServiceRequest request)
     {
-        var query = _context.Services.Include(s => s.ServicePricingRules).AsQueryable();
+        var query = _context.Services.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Name))
         {
@@ -26,6 +26,10 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
         {
             query = query.Where(s => s.Status == request.Status);
         }
+        if (!string.IsNullOrWhiteSpace(request.Category))
+        {
+            query = query.Where(s => s.Category == request.Category);
+        }
 
         query = query.OrderByDescending(s => s.CreatedAt);
         var services = await query.ToListAsync();
@@ -34,9 +38,7 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
 
     public async Task<DetailServiceResponse> DetailServiceAsync(DetailServiceRequest request)
     {
-        var service = await _context
-            .Services.Include(s => s.ServicePricingRules)
-            .FirstOrDefaultAsync(s => s.Id == request.Id);
+        var service = await _context.Services.FirstOrDefaultAsync(s => s.Id == request.Id);
 
         if (service == null)
         {
@@ -51,6 +53,18 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
 
     public async Task<DetailServiceResponse> CreateServiceAsync(CreateServiceRequest request)
     {
+        // Generate code if not provided
+        string serviceCode = request.Code ?? await GenerateServiceCodeAsync();
+
+        // Validate unique code
+        if (await _context.Services.AnyAsync(s => s.Code == serviceCode))
+        {
+            throw new ApiException(
+                $"Mã dịch vụ {serviceCode} đã được sử dụng",
+                HttpStatusCode.BadRequest
+            );
+        }
+
         // Validate unique name
         if (await _context.Services.AnyAsync(s => s.Name == request.Name))
         {
@@ -60,41 +74,20 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
             );
         }
 
-        // Validate linked product if provided
-        if (request.LinkedProductId.HasValue)
-        {
-            var exists = await _context.Products.AnyAsync(p =>
-                p.Id == request.LinkedProductId.Value
-            );
-            if (!exists)
-            {
-                throw new ApiException("LinkedProductId không tồn tại", HttpStatusCode.BadRequest);
-            }
-        }
-
         var entity = _mapper.Map<Service>(request);
+        entity.Code = serviceCode;
         entity.Status = ServiceStatus.Active;
-
-        // Create pricing rule from request via mapper
-        var pricingRule = _mapper.Map<ServicePricingRule>(request);
-        pricingRule.Service = entity;
-        pricingRule.ServiceId = entity.Id;
-        entity.ServicePricingRules.Add(pricingRule);
 
         var created = await _context.Services.AddAsync(entity);
         await _context.SaveChangesAsync();
 
-        var reloaded = await _context
-            .Services.Include(s => s.ServicePricingRules)
-            .FirstAsync(s => s.Id == created.Entity.Id);
+        var reloaded = await _context.Services.FirstAsync(s => s.Id == created.Entity.Id);
         return _mapper.Map<DetailServiceResponse>(reloaded);
     }
 
     public async Task<DetailServiceResponse> UpdateServiceAsync(UpdateServiceRequest request)
     {
-        var service = await _context
-            .Services.Include(s => s.ServicePricingRules)
-            .FirstOrDefaultAsync(s => s.Id == request.Id);
+        var service = await _context.Services.FirstOrDefaultAsync(s => s.Id == request.Id);
 
         if (service == null)
         {
@@ -102,6 +95,20 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
                 $"Không tìm thấy dịch vụ với ID: {request.Id}",
                 HttpStatusCode.BadRequest
             );
+        }
+
+        if (!string.IsNullOrEmpty(request.Code) && request.Code != service.Code)
+        {
+            var isExist = await _context.Services.AnyAsync(s =>
+                s.Code == request.Code && s.Id != request.Id
+            );
+            if (isExist)
+            {
+                throw new ApiException(
+                    $"Mã dịch vụ {request.Code} đã được sử dụng",
+                    HttpStatusCode.BadRequest
+                );
+            }
         }
 
         if (!string.IsNullOrEmpty(request.Name) && request.Name != service.Name)
@@ -119,61 +126,6 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
         }
 
         _mapper.Map(request, service);
-
-        // Validate linked product if provided
-        if (request.LinkedProductId.HasValue)
-        {
-            var exists = await _context.Products.AnyAsync(p =>
-                p.Id == request.LinkedProductId.Value
-            );
-            if (!exists)
-            {
-                throw new ApiException("LinkedProductId không tồn tại", HttpStatusCode.BadRequest);
-            }
-        }
-
-        if (request.PricePerHour.HasValue)
-        {
-            var rule = service.ServicePricingRules.FirstOrDefault();
-            if (rule == null)
-            {
-                rule = _mapper.Map<ServicePricingRule>(
-                    new UpdateServicePricingRuleRequest
-                    {
-                        ServiceId = service.Id,
-                        PricePerHour = request.PricePerHour.Value,
-                    }
-                );
-                rule.Id = Guid.NewGuid();
-                rule.Service = service;
-                service.ServicePricingRules.Add(rule);
-            }
-            else
-            {
-                _mapper.Map(
-                    new UpdateServicePricingRuleRequest
-                    {
-                        ServiceId = service.Id,
-                        PricePerHour = request.PricePerHour.Value,
-                    },
-                    rule
-                );
-            }
-
-            // Enforce single pricing rule invariant
-            if (service.ServicePricingRules.Count > 1)
-            {
-                var keep = service.ServicePricingRules.First();
-                var extras = service.ServicePricingRules.Skip(1).ToList();
-                foreach (var extra in extras)
-                {
-                    _context.ServicePricingRules.Remove(extra);
-                }
-                service.ServicePricingRules.Clear();
-                service.ServicePricingRules.Add(keep);
-            }
-        }
-
         await _context.SaveChangesAsync();
         return _mapper.Map<DetailServiceResponse>(service);
     }
@@ -215,5 +167,112 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
         service.Status = request.Status;
         await _context.SaveChangesAsync();
         return _mapper.Map<DetailServiceResponse>(service);
+    }
+
+    public async Task<BookingServiceDto> AddBookingServiceAsync(AddBookingServiceRequest request)
+    {
+        var booking =
+            await _context.BookingCourts.FirstOrDefaultAsync(b => b.Id == request.BookingId)
+            ?? throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
+        var service =
+            await _context.Services.FirstOrDefaultAsync(s => s.Id == request.ServiceId)
+            ?? throw new ApiException("Không tìm thấy dịch vụ", HttpStatusCode.BadRequest);
+
+        // Check if service already exists for this booking
+        var existingBookingService = await _context.BookingServices.FirstOrDefaultAsync(bs =>
+            bs.BookingId == request.BookingId && bs.ServiceId == request.ServiceId
+        );
+
+        if (existingBookingService != null)
+        {
+            // Update quantity
+            existingBookingService.Quantity += request.Quantity;
+            existingBookingService.TotalPrice =
+                existingBookingService.Quantity
+                * existingBookingService.UnitPrice
+                * existingBookingService.Hours;
+            await _context.SaveChangesAsync();
+            return _mapper.Map<BookingServiceDto>(existingBookingService);
+        }
+
+        // Calculate hours based on booking duration
+        var startTime = booking.StartTime;
+        var endTime = booking.EndTime;
+        var hours = (decimal)(endTime.ToTimeSpan() - startTime.ToTimeSpan()).TotalHours;
+
+        var bookingService = new BookingService
+        {
+            Id = Guid.NewGuid(),
+            BookingId = request.BookingId,
+            ServiceId = request.ServiceId,
+            Booking = booking,
+            Service = service,
+            Quantity = request.Quantity,
+            UnitPrice = service.PricePerHour,
+            Hours = hours,
+            TotalPrice = request.Quantity * service.PricePerHour * hours,
+            Notes = request.Notes,
+            Status = BookingServiceStatus.Pending,
+        };
+
+        await _context.BookingServices.AddAsync(bookingService);
+        await _context.SaveChangesAsync();
+
+        // Reload with service information
+        var reloaded = await _context
+            .BookingServices.Include(bs => bs.Service)
+            .FirstAsync(bs => bs.Id == bookingService.Id);
+
+        return _mapper.Map<BookingServiceDto>(reloaded);
+    }
+
+    public async Task<bool> RemoveBookingServiceAsync(RemoveBookingServiceRequest request)
+    {
+        var bookingService = await _context.BookingServices.FirstOrDefaultAsync(bs =>
+            bs.Id == request.Id
+        );
+        if (bookingService == null)
+        {
+            throw new ApiException("Không tìm thấy dịch vụ đặt sân", HttpStatusCode.BadRequest);
+        }
+
+        _context.BookingServices.Remove(bookingService);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<List<BookingServiceDto>> GetBookingServicesAsync(Guid bookingId)
+    {
+        var bookingServices = await _context
+            .BookingServices.Include(bs => bs.Service)
+            .Where(bs => bs.BookingId == bookingId)
+            .OrderBy(bs => bs.CreatedAt)
+            .ToListAsync();
+
+        return _mapper.Map<List<BookingServiceDto>>(bookingServices);
+    }
+
+    private async Task<string> GenerateServiceCodeAsync()
+    {
+        // Get the latest service code
+        var latestService = await _context
+            .Services.Where(s => s.Code.StartsWith("DV"))
+            .OrderByDescending(s => s.Code)
+            .FirstOrDefaultAsync();
+
+        if (latestService == null)
+        {
+            return "DV000001";
+        }
+
+        // Extract number from the latest code
+        var codeNumber = latestService.Code.Substring(2); // Remove "DV" prefix
+        if (int.TryParse(codeNumber, out int number))
+        {
+            return $"DV{(number + 1):D6}";
+        }
+
+        // If parsing fails, start from 1
+        return "DV000001";
     }
 }

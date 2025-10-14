@@ -6,5 +6,3 @@ public class ListNotificationRequestDto
 {
     public Guid? UserId { get; set; }
 }
-
-

@@ -12,5 +12,3 @@ public class NotificationRoleSendRequestDto
     public NotificationCategory NotificationByType { get; set; } = NotificationCategory.General;
     public NotificationType Type { get; set; } = NotificationType.Info;
 }
-
-

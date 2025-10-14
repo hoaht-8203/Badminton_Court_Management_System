@@ -12,5 +12,3 @@ public class NotificationResponseDto
     public Guid[] UserIds { get; set; } = Array.Empty<Guid>();
     public DateTime CreatedAt { get; set; }
 }
-
-

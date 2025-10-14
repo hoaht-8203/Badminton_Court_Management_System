@@ -8,5 +8,3 @@ public enum NotificationCategory
     Payment = 3,
     Inventory = 4,
 }
-
-

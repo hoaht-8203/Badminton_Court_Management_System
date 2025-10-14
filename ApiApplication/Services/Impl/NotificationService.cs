@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 using ApiApplication.Data;
 using ApiApplication.Dtos.Notification;
 using ApiApplication.Entities;
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.SignalR;
 using ApiApplication.SignalR;
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
 
@@ -43,7 +43,9 @@ public class NotificationService(
         NotificationBulkSendRequestDto request
     )
     {
-        var userIdArray = request.UserIds?.Where(id => id != Guid.Empty).Distinct().ToArray() ?? Array.Empty<Guid>();
+        var userIdArray =
+            request.UserIds?.Where(id => id != Guid.Empty).Distinct().ToArray()
+            ?? Array.Empty<Guid>();
         if (userIdArray.Length == 0)
         {
             return Array.Empty<NotificationResponseDto>();
@@ -70,7 +72,12 @@ public class NotificationService(
         NotificationRoleSendRequestDto request
     )
     {
-        var roles = request.Roles?.Where(r => !string.IsNullOrWhiteSpace(r)).Select(r => r.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray() ?? Array.Empty<string>();
+        var roles =
+            request
+                .Roles?.Where(r => !string.IsNullOrWhiteSpace(r))
+                .Select(r => r.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray() ?? Array.Empty<string>();
         var recipientIds = new HashSet<Guid>();
         foreach (var role in roles)
         {
@@ -107,13 +114,8 @@ public class NotificationService(
             query = query.Where(n => n.UserIds.Contains(request.UserId.Value));
         }
 
-        var items = await query
-            .OrderByDescending(n => n.CreatedAt)
-            .Take(200)
-            .ToListAsync();
+        var items = await query.OrderByDescending(n => n.CreatedAt).Take(200).ToListAsync();
 
         return items.Select(n => _mapper.Map<NotificationResponseDto>(n)).ToList();
     }
 }
-
-

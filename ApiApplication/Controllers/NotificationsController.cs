@@ -14,11 +14,11 @@ public class NotificationsController(INotificationService notificationService) :
     private readonly INotificationService _notificationService = notificationService;
 
     [HttpGet("list")]
-    public async Task<ActionResult<ApiResponse<List<NotificationResponseDto>>>> ListAsync([FromQuery] ListNotificationRequestDto request)
+    public async Task<ActionResult<ApiResponse<List<NotificationResponseDto>>>> ListAsync(
+        [FromQuery] ListNotificationRequestDto request
+    )
     {
         var items = await _notificationService.ListAsync(request);
         return Ok(ApiResponse<List<NotificationResponseDto>>.SuccessResponse(items));
     }
 }
-
-

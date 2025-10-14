@@ -7,5 +7,3 @@ public enum NotificationType
     Warning = 2,
     Error = 3,
 }
-
-

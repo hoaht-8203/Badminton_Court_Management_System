@@ -19,8 +19,5 @@ public class NotificationMappingProfile : Profile
 
         CreateMap<NotificationRoleSendRequestDto, Notification>()
             .ForMember(d => d.Id, opt => opt.Ignore());
-
     }
 }
-
-

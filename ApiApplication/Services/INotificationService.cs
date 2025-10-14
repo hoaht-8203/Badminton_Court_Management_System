@@ -13,11 +13,7 @@ public interface INotificationService
         NotificationBulkSendRequestDto request
     );
 
-    Task<NotificationResponseDto> SendToRolesAsync(
-        NotificationRoleSendRequestDto request
-    );
+    Task<NotificationResponseDto> SendToRolesAsync(NotificationRoleSendRequestDto request);
 
     Task<List<NotificationResponseDto>> ListAsync(ListNotificationRequestDto request);
 }
-
-

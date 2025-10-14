@@ -16,4 +16,3 @@ public class Notification : BaseEntity, IAuditableEntity
     public NotificationType Type { get; set; } = NotificationType.Info;
     public required Guid[] UserIds { get; set; } = Array.Empty<Guid>();
 }
-

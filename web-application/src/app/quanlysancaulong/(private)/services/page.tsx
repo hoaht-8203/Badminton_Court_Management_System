@@ -203,13 +203,6 @@ const ServiceInformation = ({
               <Col span={24}>
                 <Divider size="small" />
               </Col>
-              <Col span={8}>Ngày tạo:</Col>
-              <Col span={16}>{record.createdAt ? new Date(record.createdAt).toLocaleDateString("vi-VN") : "-"}</Col>
-              <Col span={24}>
-                <Divider size="small" />
-              </Col>
-              <Col span={8}>Ngày cập nhật:</Col>
-              <Col span={16}>{record.updatedAt ? new Date(record.updatedAt).toLocaleDateString("vi-VN") : "-"}</Col>
             </Row>
           </Col>
         </Row>

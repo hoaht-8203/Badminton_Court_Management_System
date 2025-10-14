@@ -19,6 +19,5 @@ public class StaffResponse
 
 public class StaffAttendanceResponse : StaffResponse
 {
-    public int? AttendanceRecordId { get; set; }
     public string? AttendanceStatus { get; set; }
 }

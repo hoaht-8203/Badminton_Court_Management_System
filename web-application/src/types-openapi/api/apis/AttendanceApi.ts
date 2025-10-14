@@ -22,12 +22,21 @@ import {
     AttendanceRequestToJSON,
 } from '../models/index';
 
-export interface ApiAttendanceAttendanceRecordIdGetRequest {
+export interface ApiAttendanceAttendanceRecordIdDeleteRequest {
     attendanceRecordId: number;
 }
 
 export interface ApiAttendancePostRequest {
     attendanceRequest?: AttendanceRequest;
+}
+
+export interface ApiAttendancePutRequest {
+    attendanceRequest?: AttendanceRequest;
+}
+
+export interface ApiAttendanceStaffStaffIdGetRequest {
+    staffId: number;
+    date?: Date;
 }
 
 /**
@@ -44,11 +53,11 @@ export interface AttendanceApiInterface {
      * @throws {RequiredError}
      * @memberof AttendanceApiInterface
      */
-    apiAttendanceAttendanceRecordIdGetRaw(requestParameters: ApiAttendanceAttendanceRecordIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
+    apiAttendanceAttendanceRecordIdDeleteRaw(requestParameters: ApiAttendanceAttendanceRecordIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
 
     /**
      */
-    apiAttendanceAttendanceRecordIdGet(requestParameters: ApiAttendanceAttendanceRecordIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
+    apiAttendanceAttendanceRecordIdDelete(requestParameters: ApiAttendanceAttendanceRecordIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
 
     /**
      * 
@@ -63,6 +72,33 @@ export interface AttendanceApiInterface {
      */
     apiAttendancePost(requestParameters: ApiAttendancePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
 
+    /**
+     * 
+     * @param {AttendanceRequest} [attendanceRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AttendanceApiInterface
+     */
+    apiAttendancePutRaw(requestParameters: ApiAttendancePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
+
+    /**
+     */
+    apiAttendancePut(requestParameters: ApiAttendancePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
+
+    /**
+     * 
+     * @param {number} staffId 
+     * @param {Date} [date] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AttendanceApiInterface
+     */
+    apiAttendanceStaffStaffIdGetRaw(requestParameters: ApiAttendanceStaffStaffIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
+
+    /**
+     */
+    apiAttendanceStaffStaffIdGet(requestParameters: ApiAttendanceStaffStaffIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
+
 }
 
 /**
@@ -72,11 +108,11 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
 
     /**
      */
-    async apiAttendanceAttendanceRecordIdGetRaw(requestParameters: ApiAttendanceAttendanceRecordIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async apiAttendanceAttendanceRecordIdDeleteRaw(requestParameters: ApiAttendanceAttendanceRecordIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         if (requestParameters['attendanceRecordId'] == null) {
             throw new runtime.RequiredError(
                 'attendanceRecordId',
-                'Required parameter "attendanceRecordId" was null or undefined when calling apiAttendanceAttendanceRecordIdGet().'
+                'Required parameter "attendanceRecordId" was null or undefined when calling apiAttendanceAttendanceRecordIdDelete().'
             );
         }
 
@@ -90,7 +126,7 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
 
         const response = await this.request({
             path: urlPath,
-            method: 'GET',
+            method: 'DELETE',
             headers: headerParameters,
             query: queryParameters,
         }, initOverrides);
@@ -100,8 +136,8 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
 
     /**
      */
-    async apiAttendanceAttendanceRecordIdGet(requestParameters: ApiAttendanceAttendanceRecordIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.apiAttendanceAttendanceRecordIdGetRaw(requestParameters, initOverrides);
+    async apiAttendanceAttendanceRecordIdDelete(requestParameters: ApiAttendanceAttendanceRecordIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.apiAttendanceAttendanceRecordIdDeleteRaw(requestParameters, initOverrides);
     }
 
     /**
@@ -131,6 +167,73 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
      */
     async apiAttendancePost(requestParameters: ApiAttendancePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.apiAttendancePostRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async apiAttendancePutRaw(requestParameters: ApiAttendancePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Attendance`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: AttendanceRequestToJSON(requestParameters['attendanceRequest']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiAttendancePut(requestParameters: ApiAttendancePutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.apiAttendancePutRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async apiAttendanceStaffStaffIdGetRaw(requestParameters: ApiAttendanceStaffStaffIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['staffId'] == null) {
+            throw new runtime.RequiredError(
+                'staffId',
+                'Required parameter "staffId" was null or undefined when calling apiAttendanceStaffStaffIdGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['date'] != null) {
+            queryParameters['date'] = (requestParameters['date'] as any).toISOString();
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Attendance/staff/{staffId}`;
+        urlPath = urlPath.replace(`{${"staffId"}}`, encodeURIComponent(String(requestParameters['staffId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiAttendanceStaffStaffIdGet(requestParameters: ApiAttendanceStaffStaffIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.apiAttendanceStaffStaffIdGetRaw(requestParameters, initOverrides);
     }
 
 }

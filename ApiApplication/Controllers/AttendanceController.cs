@@ -16,18 +16,31 @@ namespace ApiApplication.Controllers
         {
             _attendanceService = attendanceService;
         }
-
         [HttpPost]
+        public async Task<IActionResult> AddAttendanceRecord([FromBody] AttendanceRequest request)
+        {
+            var result = await _attendanceService.AddAttendanceRecordAsync(request);
+            return Ok(ApiResponse<bool>.SuccessResponse(result, "Thêm chấm công thành công"));
+        }
+
+        [HttpPut]
         public async Task<IActionResult> UpdateAttendanceRecord([FromBody] AttendanceRequest request)
         {
-            var result = await _attendanceService.AddOrUpdateAttendanceRecordAsync(request);
+            var result = await _attendanceService.UpdateAttendanceRecordAsync(request);
             return Ok(ApiResponse<bool>.SuccessResponse(result, "Cập nhật chấm công thành công"));
         }
-        [HttpGet("{attendanceRecordId}")]
-        public async Task<IActionResult> GetAttendanceRecordById(int attendanceRecordId)
+
+        [HttpGet("staff/{staffId}")]
+        public async Task<IActionResult> GetAttendanceRecordsByStaffId(int staffId, [FromQuery] DateTime date)
         {
-            var result = await _attendanceService.GetAttendanceRecordByIdAsync(attendanceRecordId);
-            return Ok(ApiResponse<AttendanceResponse?>.SuccessResponse(result, "Get attendance record successfully"));
+            var result = await _attendanceService.GetAttendanceRecordsByStaffIdAsync(staffId, date);
+            return Ok(ApiResponse<List<AttendanceResponse>>.SuccessResponse(result, "Get attendance records successfully"));
+        }
+        [HttpDelete("{attendanceRecordId}")]
+        public async Task<IActionResult> DeleteAttendanceRecord(int attendanceRecordId)
+        {
+            var result = await _attendanceService.DeleteAttendanceRecordAsync(attendanceRecordId);
+            return Ok(ApiResponse<bool>.SuccessResponse(result, "Xoá chấm công thành công"));
         }
     }
 }

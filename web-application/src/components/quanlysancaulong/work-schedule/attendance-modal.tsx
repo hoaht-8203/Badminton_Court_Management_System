@@ -67,14 +67,12 @@ const AttendanceModal: React.FC<AttendanceModalProps> = ({
     if (attendanceRecordId) {
       attendanceService.getAttendanceById(attendanceRecordId).then((res) => {
         if (res?.data) {
-          setAttendanceStatus(res.data.status ?? "NotYet");
           setAttendanceNote(res.data.notes ?? "");
           setCheckInTime(res.data.checkInTime ?? "");
           setCheckOutTime(res.data.checkOutTime ?? "");
           setCheckInEnabled(!!res.data.checkInTime);
           setCheckOutEnabled(!!res.data.checkOutTime);
           setInitialData({
-            attendanceStatus: res.data.status ?? "NotYet",
             attendanceNote: res.data.notes ?? "",
             checkInTime: res.data.checkInTime ?? "",
             checkOutTime: res.data.checkOutTime ?? "",
@@ -119,7 +117,6 @@ const AttendanceModal: React.FC<AttendanceModalProps> = ({
     const payload: AttendanceRequest = {
       id: attendanceRecordId ?? undefined,
       staffId: staff?.id,
-      shiftId: shift?.id,
       date: date ? new Date(date) : undefined,
       notes: attendanceNote,
       checkInTime: checkInEnabled ? formatTime(checkInTime) : undefined,

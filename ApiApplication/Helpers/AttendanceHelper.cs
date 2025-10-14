@@ -1,31 +1,41 @@
 using System;
+using ApiApplication.Dtos;
+using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Helpers;
 
 public static class AttendanceHelper
 {
-    public static string DetermineStatusByShift(TimeOnly? checkInTime, TimeOnly? checkOutTime, Entities.Shift shift)
+    public static string DetermineStatusOfShift(List<AttendanceRecord> attendanceRecords, ShiftResponse shift)
     {
-        var now = DateTime.Now;
+        // Giả sử shift có StartTime, EndTime kiểu TimeSpan hoặc DateTime
+        // AttendanceRecord có CheckInTime, CheckOutTime kiểu DateTime?
         var shiftStart = shift.StartTime;
         var shiftEnd = shift.EndTime;
+        // Tìm bản ghi có thời gian giao với ca làm việc
+        var relevantRecord = attendanceRecords
+            .Where(a => a.CheckInTime <= shiftEnd && a.CheckOutTime >= shiftStart)
+            .FirstOrDefault();
 
-        if (checkInTime.HasValue && checkOutTime.HasValue)
+        if (relevantRecord == null)
         {
-            if (checkInTime <= shiftStart && checkOutTime >= shiftEnd)
+            var missingRecord = attendanceRecords
+                .Where(a => a.CheckInTime <= shiftEnd && a.CheckOutTime == null)
+                .FirstOrDefault();
+            if (missingRecord != null)
             {
-                return AttendanceStatus.Attended; // Đúng giờ
+                return AttendanceStatus.Missing;
             }
-            else
-            {
-                return AttendanceStatus.Late; // Đi muộn hoặc về sớm
-            }
+            return AttendanceStatus.Absent;
         }
-        if ((checkInTime.HasValue && !checkOutTime.HasValue) || (!checkInTime.HasValue && checkOutTime.HasValue))
+
+        if (relevantRecord.CheckInTime > shiftStart || (relevantRecord.CheckOutTime.HasValue && relevantRecord.CheckOutTime < shiftEnd))
         {
-            return AttendanceStatus.Missing; // Chấm công thiếu
+            return AttendanceStatus.Late;
         }
-        return AttendanceStatus.Absent; // Nghỉ làm
+        
+
+        return AttendanceStatus.Attended;
     }
 }

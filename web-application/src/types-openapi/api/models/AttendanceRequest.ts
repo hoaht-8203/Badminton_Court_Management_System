@@ -33,12 +33,6 @@ export interface AttendanceRequest {
     staffId?: number;
     /**
      * 
-     * @type {number}
-     * @memberof AttendanceRequest
-     */
-    shiftId?: number;
-    /**
-     * 
      * @type {Date}
      * @memberof AttendanceRequest
      */
@@ -82,7 +76,6 @@ export function AttendanceRequestFromJSONTyped(json: any, ignoreDiscriminator: b
         
         'id': json['id'] == null ? undefined : json['id'],
         'staffId': json['staffId'] == null ? undefined : json['staffId'],
-        'shiftId': json['shiftId'] == null ? undefined : json['shiftId'],
         'date': json['date'] == null ? undefined : (new Date(json['date'])),
         'checkInTime': json['checkInTime'] == null ? undefined : json['checkInTime'],
         'checkOutTime': json['checkOutTime'] == null ? undefined : json['checkOutTime'],
@@ -103,7 +96,6 @@ export function AttendanceRequestToJSONTyped(value?: AttendanceRequest | null, i
         
         'id': value['id'],
         'staffId': value['staffId'],
-        'shiftId': value['shiftId'],
         'date': value['date'] == null ? undefined : ((value['date']).toISOString()),
         'checkInTime': value['checkInTime'],
         'checkOutTime': value['checkOutTime'],

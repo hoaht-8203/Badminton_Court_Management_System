@@ -13,13 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { ShiftResponse } from './ShiftResponse';
-import {
-    ShiftResponseFromJSON,
-    ShiftResponseFromJSONTyped,
-    ShiftResponseToJSON,
-    ShiftResponseToJSONTyped,
-} from './ShiftResponse';
 import type { StaffResponse } from './StaffResponse';
 import {
     StaffResponseFromJSON,
@@ -54,18 +47,6 @@ export interface AttendanceResponse {
     staff?: StaffResponse;
     /**
      * 
-     * @type {number}
-     * @memberof AttendanceResponse
-     */
-    shiftId?: number;
-    /**
-     * 
-     * @type {ShiftResponse}
-     * @memberof AttendanceResponse
-     */
-    shift?: ShiftResponse;
-    /**
-     * 
      * @type {Date}
      * @memberof AttendanceResponse
      */
@@ -87,12 +68,6 @@ export interface AttendanceResponse {
      * @type {string}
      * @memberof AttendanceResponse
      */
-    status: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof AttendanceResponse
-     */
     notes?: string | null;
 }
 
@@ -100,7 +75,6 @@ export interface AttendanceResponse {
  * Check if a given object implements the AttendanceResponse interface.
  */
 export function instanceOfAttendanceResponse(value: object): value is AttendanceResponse {
-    if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
 
@@ -117,12 +91,9 @@ export function AttendanceResponseFromJSONTyped(json: any, ignoreDiscriminator: 
         'id': json['id'] == null ? undefined : json['id'],
         'staffId': json['staffId'] == null ? undefined : json['staffId'],
         'staff': json['staff'] == null ? undefined : StaffResponseFromJSON(json['staff']),
-        'shiftId': json['shiftId'] == null ? undefined : json['shiftId'],
-        'shift': json['shift'] == null ? undefined : ShiftResponseFromJSON(json['shift']),
         'date': json['date'] == null ? undefined : (new Date(json['date'])),
         'checkInTime': json['checkInTime'] == null ? undefined : json['checkInTime'],
         'checkOutTime': json['checkOutTime'] == null ? undefined : json['checkOutTime'],
-        'status': json['status'],
         'notes': json['notes'] == null ? undefined : json['notes'],
     };
 }
@@ -141,12 +112,9 @@ export function AttendanceResponseToJSONTyped(value?: AttendanceResponse | null,
         'id': value['id'],
         'staffId': value['staffId'],
         'staff': StaffResponseToJSON(value['staff']),
-        'shiftId': value['shiftId'],
-        'shift': ShiftResponseToJSON(value['shift']),
         'date': value['date'] == null ? undefined : ((value['date']).toISOString()),
         'checkInTime': value['checkInTime'],
         'checkOutTime': value['checkOutTime'],
-        'status': value['status'],
         'notes': value['notes'],
     };
 }

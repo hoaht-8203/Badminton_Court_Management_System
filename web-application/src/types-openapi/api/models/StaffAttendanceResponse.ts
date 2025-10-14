@@ -81,12 +81,6 @@ export interface StaffAttendanceResponse {
     salarySettings?: string | null;
     /**
      * 
-     * @type {number}
-     * @memberof StaffAttendanceResponse
-     */
-    attendanceRecordId?: number | null;
-    /**
-     * 
      * @type {string}
      * @memberof StaffAttendanceResponse
      */
@@ -120,7 +114,6 @@ export function StaffAttendanceResponseFromJSONTyped(json: any, ignoreDiscrimina
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'salarySettings': json['salarySettings'] == null ? undefined : json['salarySettings'],
-        'attendanceRecordId': json['attendanceRecordId'] == null ? undefined : json['attendanceRecordId'],
         'attendanceStatus': json['attendanceStatus'] == null ? undefined : json['attendanceStatus'],
     };
 }
@@ -146,7 +139,6 @@ export function StaffAttendanceResponseToJSONTyped(value?: StaffAttendanceRespon
         'avatarUrl': value['avatarUrl'],
         'isActive': value['isActive'],
         'salarySettings': value['salarySettings'],
-        'attendanceRecordId': value['attendanceRecordId'],
         'attendanceStatus': value['attendanceStatus'],
     };
 }

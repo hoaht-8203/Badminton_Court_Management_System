@@ -13,13 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { Shift } from './Shift';
-import {
-    ShiftFromJSON,
-    ShiftFromJSONTyped,
-    ShiftToJSON,
-    ShiftToJSONTyped,
-} from './Shift';
 import type { Staff } from './Staff';
 import {
     StaffFromJSON,
@@ -54,18 +47,6 @@ export interface AttendanceRecord {
     staff?: Staff;
     /**
      * 
-     * @type {number}
-     * @memberof AttendanceRecord
-     */
-    shiftId?: number;
-    /**
-     * 
-     * @type {Shift}
-     * @memberof AttendanceRecord
-     */
-    shift?: Shift;
-    /**
-     * 
      * @type {Date}
      * @memberof AttendanceRecord
      */
@@ -87,12 +68,6 @@ export interface AttendanceRecord {
      * @type {string}
      * @memberof AttendanceRecord
      */
-    status: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof AttendanceRecord
-     */
     notes?: string | null;
 }
 
@@ -100,7 +75,6 @@ export interface AttendanceRecord {
  * Check if a given object implements the AttendanceRecord interface.
  */
 export function instanceOfAttendanceRecord(value: object): value is AttendanceRecord {
-    if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
 
@@ -117,12 +91,9 @@ export function AttendanceRecordFromJSONTyped(json: any, ignoreDiscriminator: bo
         'id': json['id'] == null ? undefined : json['id'],
         'staffId': json['staffId'] == null ? undefined : json['staffId'],
         'staff': json['staff'] == null ? undefined : StaffFromJSON(json['staff']),
-        'shiftId': json['shiftId'] == null ? undefined : json['shiftId'],
-        'shift': json['shift'] == null ? undefined : ShiftFromJSON(json['shift']),
         'date': json['date'] == null ? undefined : (new Date(json['date'])),
         'checkInTime': json['checkInTime'] == null ? undefined : json['checkInTime'],
         'checkOutTime': json['checkOutTime'] == null ? undefined : json['checkOutTime'],
-        'status': json['status'],
         'notes': json['notes'] == null ? undefined : json['notes'],
     };
 }
@@ -141,12 +112,9 @@ export function AttendanceRecordToJSONTyped(value?: AttendanceRecord | null, ign
         'id': value['id'],
         'staffId': value['staffId'],
         'staff': StaffToJSON(value['staff']),
-        'shiftId': value['shiftId'],
-        'shift': ShiftToJSON(value['shift']),
         'date': value['date'] == null ? undefined : ((value['date']).toISOString().substring(0,10)),
         'checkInTime': value['checkInTime'],
         'checkOutTime': value['checkOutTime'],
-        'status': value['status'],
         'notes': value['notes'],
     };
 }

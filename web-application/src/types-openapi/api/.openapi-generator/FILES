@@ -12,11 +12,13 @@ apis/FilesApi.ts
 apis/InventoryChecksApi.ts
 apis/PaymentWebhooksApi.ts
 apis/PaymentsApi.ts
+apis/PayrollApi.ts
 apis/PricesApi.ts
 apis/ProductsApi.ts
 apis/RolesApi.ts
 apis/SalaryFormApi.ts
 apis/ScheduleApi.ts
+apis/ServicesApi.ts
 apis/ShiftApi.ts
 apis/StaffApi.ts
 apis/SuppliersApi.ts
@@ -39,6 +41,7 @@ models/CancelledShift.ts
 models/Category.ts
 models/ChangeCourtStatusRequest.ts
 models/ChangeCustomerStatusRequest.ts
+models/ChangeServiceStatusRequest.ts
 models/ChangeStaffStatusRequest.ts
 models/ChangeSupplierStatusRequest.ts
 models/ChangeUserStatusRequest.ts
@@ -62,9 +65,12 @@ models/CreateCustomerRequest.ts
 models/CreateInventoryCheckItem.ts
 models/CreateInventoryCheckRequest.ts
 models/CreatePaymentRequest.ts
+models/CreatePayrollRequest.ts
 models/CreatePriceTableRequest.ts
 models/CreateProductRequest.ts
 models/CreateRoleRequest.ts
+models/CreateServicePricingRuleRequest.ts
+models/CreateServiceRequest.ts
 models/CreateSupplierRequest.ts
 models/CurrentUserResponse.ts
 models/CurrentUserResponseApiResponse.ts
@@ -80,6 +86,8 @@ models/DeleteFileRequest.ts
 models/DeletePriceTableRequest.ts
 models/DeleteProductRequest.ts
 models/DeleteRoleRequest.ts
+models/DeleteServicePricingRuleRequest.ts
+models/DeleteServiceRequest.ts
 models/DeleteSupplierRequest.ts
 models/Department.ts
 models/DetailAdministratorRequest.ts
@@ -115,6 +123,9 @@ models/DetailProductResponseApiResponse.ts
 models/DetailRoleRequest.ts
 models/DetailRoleResponse.ts
 models/DetailRoleResponseApiResponse.ts
+models/DetailServiceRequest.ts
+models/DetailServiceResponse.ts
+models/DetailServiceResponseApiResponse.ts
 models/DetailSupplierRequest.ts
 models/DetailSupplierResponse.ts
 models/DetailSupplierResponseApiResponse.ts
@@ -162,6 +173,7 @@ models/ListCustomerResponsePagedResponseApiResponse.ts
 models/ListInventoryCheckRequest.ts
 models/ListInventoryCheckResponse.ts
 models/ListInventoryCheckResponseListApiResponse.ts
+models/ListPayrollResponse.ts
 models/ListPriceTableProductsResponse.ts
 models/ListPriceTableProductsResponseApiResponse.ts
 models/ListPriceTableRequest.ts
@@ -173,6 +185,9 @@ models/ListProductResponseListApiResponse.ts
 models/ListRoleRequest.ts
 models/ListRoleResponse.ts
 models/ListRoleResponseListApiResponse.ts
+models/ListServiceRequest.ts
+models/ListServiceResponse.ts
+models/ListServiceResponseApiResponse.ts
 models/ListStaffRequest.ts
 models/ListSupplierRequest.ts
 models/ListSupplierResponse.ts
@@ -189,7 +204,9 @@ models/PaginationRequest.ts
 models/Payment.ts
 models/PaymentDto.ts
 models/Payroll.ts
+models/PayrollDetailResponse.ts
 models/PayrollItem.ts
+models/PayrollItemResponse.ts
 models/PriceTable.ts
 models/PriceTableProduct.ts
 models/PriceTableProductItem.ts
@@ -216,6 +233,9 @@ models/ScheduleResponseListApiResponse.ts
 models/SePayWebhookRequest.ts
 models/SendBookingConfirmationEmailAsyncRequest.ts
 models/SendPaymentRequestEmailAsyncRequest.ts
+models/Service.ts
+models/ServicePricingRule.ts
+models/ServicePricingRuleDto.ts
 models/SetPriceTableProductItem.ts
 models/SetPriceTableProductsRequest.ts
 models/Shift.ts
@@ -244,6 +264,8 @@ models/UpdatePriceTableRequest.ts
 models/UpdateProductImagesRequest.ts
 models/UpdateProductRequest.ts
 models/UpdateRoleRequest.ts
+models/UpdateServicePricingRuleRequest.ts
+models/UpdateServiceRequest.ts
 models/UpdateSupplierRequest.ts
 models/UpdateUserRequest.ts
 models/UpdateUserRolesRequest.ts

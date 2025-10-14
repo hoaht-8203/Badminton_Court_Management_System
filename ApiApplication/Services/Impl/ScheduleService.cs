@@ -67,17 +67,24 @@ namespace ApiApplication.Services.Impl
                             DayOfWeek = dayGroup.First().DayOfWeek,
                             Staffs = dayGroup.Select(x =>
                             {
-                                var attendance = attendanceRecords.FirstOrDefault(ar =>
+                                
+                                var attendances = attendanceRecords.Where(ar =>
                                     ar.StaffId == x.Staff.Id &&
                                     ar.Date == DateOnly.FromDateTime(x.Date)
+                                ).ToList();
+                                var statusByDate = Helpers.AttendanceHelper.DetermineStatusOfShift(
+                                    attendances,
+                                    x.Shift
                                 );
-                                var statusByDate = dayGroup.Key < DateTime.Now ? (attendance != null ? attendance.Status : AttendanceStatus.Absent) : AttendanceStatus.NotYet;
+                                if(x.Date > DateTime.Now)
+                                {
+                                    statusByDate = AttendanceStatus.NotYet;
+                                }
                                 return new StaffAttendanceResponse
                                 {
                                     Id = x.Staff.Id,
                                     FullName = x.Staff.FullName,
                                     AvatarUrl = x.Staff.AvatarUrl,
-                                    AttendanceRecordId = attendance?.Id ?? null,
                                     AttendanceStatus = statusByDate,
                                 };
                             }).ToList(),

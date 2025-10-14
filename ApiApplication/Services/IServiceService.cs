@@ -10,4 +10,9 @@ public interface IServiceService
     Task<DetailServiceResponse> UpdateServiceAsync(UpdateServiceRequest request);
     Task<bool> DeleteServiceAsync(DeleteServiceRequest request);
     Task<DetailServiceResponse> ChangeServiceStatusAsync(ChangeServiceStatusRequest request);
+
+    // BookingService methods
+    Task<BookingServiceDto> AddBookingServiceAsync(AddBookingServiceRequest request);
+    Task<bool> RemoveBookingServiceAsync(RemoveBookingServiceRequest request);
+    Task<List<BookingServiceDto>> GetBookingServicesAsync(Guid bookingId);
 }

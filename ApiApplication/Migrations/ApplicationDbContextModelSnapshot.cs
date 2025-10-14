@@ -300,6 +300,59 @@ namespace ApiApplication.Migrations
                     b.ToTable("BookingCourts");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.BookingService", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("Hours")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ServiceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("BookingServices");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Branch", b =>
                 {
                     b.Property<int>("Id")
@@ -1225,9 +1278,14 @@ namespace ApiApplication.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Code")
+                    b.Property<string>("Category")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1236,53 +1294,35 @@ namespace ApiApplication.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
-
-                    b.Property<int?>("LinkedProductId")
-                        .HasColumnType("integer");
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LinkedProductId");
-
-                    b.ToTable("Services");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.ServicePricingRule", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<decimal>("PricePerHour")
                         .HasColumnType("numeric");
 
-                    b.Property<Guid>("ServiceId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("StockQuantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1292,9 +1332,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ServiceId");
-
-                    b.ToTable("ServicePricingRules");
+                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Shift", b =>
@@ -1713,6 +1751,25 @@ namespace ApiApplication.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.BookingService", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.BookingCourt", "Booking")
+                        .WithMany("BookingServices")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiApplication.Entities.Service", "Service")
+                        .WithMany("BookingServices")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("Service");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.CancelledShift", b =>
                 {
                     b.HasOne("ApiApplication.Entities.Shift", "Shift")
@@ -1866,26 +1923,6 @@ namespace ApiApplication.Migrations
                     b.Navigation("Staff");
                 });
 
-            modelBuilder.Entity("ApiApplication.Entities.Service", b =>
-                {
-                    b.HasOne("ApiApplication.Entities.Product", "LinkedProduct")
-                        .WithMany()
-                        .HasForeignKey("LinkedProductId");
-
-                    b.Navigation("LinkedProduct");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.ServicePricingRule", b =>
-                {
-                    b.HasOne("ApiApplication.Entities.Service", "Service")
-                        .WithMany("ServicePricingRules")
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Service");
-                });
-
             modelBuilder.Entity("ApiApplication.Entities.Staff", b =>
                 {
                     b.HasOne("ApiApplication.Entities.Branch", "Branch")
@@ -1965,6 +2002,8 @@ namespace ApiApplication.Migrations
 
             modelBuilder.Entity("ApiApplication.Entities.BookingCourt", b =>
                 {
+                    b.Navigation("BookingServices");
+
                     b.Navigation("Payments");
                 });
 
@@ -2002,7 +2041,7 @@ namespace ApiApplication.Migrations
 
             modelBuilder.Entity("ApiApplication.Entities.Service", b =>
                 {
-                    b.Navigation("ServicePricingRules");
+                    b.Navigation("BookingServices");
                 });
 #pragma warning restore 612, 618
         }

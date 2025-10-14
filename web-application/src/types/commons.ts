@@ -36,3 +36,9 @@ export const PaymentStatus = {
   Paid: "Paid",
   Cancelled: "Cancelled",
 };
+
+export const ServiceStatus = {
+  Active: "Active",
+  Inactive: "Inactive",
+  Maintenance: "Maintenance",
+};

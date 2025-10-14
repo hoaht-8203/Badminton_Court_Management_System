@@ -51,7 +51,7 @@ public class ApplicationDbContext(
     public DbSet<InventoryCheckItem> InventoryCheckItems { get; set; }
 
     public DbSet<Service> Services { get; set; }
-    public DbSet<ServicePricingRule> ServicePricingRules { get; set; }
+    public DbSet<BookingService> BookingServices { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -4,7 +4,7 @@ import React from "react";
 
 import { useAuth } from "@/context/AuthContext";
 import { CurrentUserResponse } from "@/types-openapi/api";
-import { LogoutOutlined, SettingOutlined, UserOutlined, CalendarOutlined } from "@ant-design/icons";
+import { LogoutOutlined, SettingOutlined, UserOutlined, CalendarOutlined, ToolOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Avatar, Dropdown, Layout, Menu } from "antd";
 import { ArrowLeftRight, ChartSpline, Columns2, Handshake, IdCardLanyard, Package, Settings } from "lucide-react";
@@ -46,6 +46,11 @@ const sideBarItems: MenuProps["items"] = [
     key: "/quanlysancaulong/courts",
     label: "Quản lý sân cầu lông",
     icon: <Columns2 className="h-4 w-4" />,
+  },
+  {
+    key: "/quanlysancaulong/services",
+    label: "Quản lý dịch vụ",
+    icon: <ToolOutlined className="h-4 w-4" />,
   },
   {
     key: "quanlygiaodich",

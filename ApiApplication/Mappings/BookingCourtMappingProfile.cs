@@ -27,7 +27,8 @@ public class BookingCourtMappingProfile : Profile
             )
             .ForMember(d => d.CourtName, opt => opt.MapFrom(s => s.Court!.Name))
             .ForMember(d => d.Customer, opt => opt.MapFrom(s => s.Customer))
-            .ForMember(d => d.Payments, opt => opt.MapFrom(s => s.Payments));
+            .ForMember(d => d.Payments, opt => opt.MapFrom(s => s.Payments))
+            .ForMember(d => d.BookingServices, opt => opt.MapFrom(s => s.BookingServices));
         CreateMap<BookingCourt, ListBookingCourtResponse>()
             .ForMember(
                 d => d.TotalHours,

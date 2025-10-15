@@ -68,19 +68,6 @@ public class BookingCourtService(
             }
             // set as empty for consistency with entity schema
             request.DaysOfWeek = Array.Empty<int>();
-
-            // Chặn đặt giờ đã qua trong ngày hôm nay (vãng lai)
-            if (startDate == today)
-            {
-                var nowTime = TimeOnly.FromDateTime(nowUtc);
-                if (request.StartTime <= nowTime)
-                {
-                    throw new ApiException(
-                        "Giờ bắt đầu phải lớn hơn thời điểm hiện tại.",
-                        HttpStatusCode.BadRequest
-                    );
-                }
-            }
         }
         else
         {

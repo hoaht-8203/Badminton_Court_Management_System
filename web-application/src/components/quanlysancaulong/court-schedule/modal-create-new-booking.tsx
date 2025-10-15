@@ -187,8 +187,14 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
     } = {
       ...values,
       customerId: customerWatch.value,
-      startDate: isFixedSchedule && dateRange?.[0] ? dayjs(dateRange[0]).toDate() : dayjs(values.startDate).toDate(),
-      endDate: isFixedSchedule && dateRange?.[1] ? dayjs(dateRange[1]).toDate() : dayjs(values.startDate).toDate(),
+      startDate:
+        isFixedSchedule && dateRange?.[0]
+          ? new Date(dayjs(dateRange[0]).format("YYYY-MM-DD"))
+          : new Date(dayjs(values.startDate).format("YYYY-MM-DD")),
+      endDate:
+        isFixedSchedule && dateRange?.[1]
+          ? new Date(dayjs(dateRange[1]).format("YYYY-MM-DD"))
+          : new Date(dayjs(values.startDate).format("YYYY-MM-DD")),
       startTime: dayjs(values.startTime).format("HH:mm:ss"),
       endTime: dayjs(values.endTime).format("HH:mm:ss"),
       daysOfWeek: isFixedSchedule ? values.daysOfWeek : undefined,

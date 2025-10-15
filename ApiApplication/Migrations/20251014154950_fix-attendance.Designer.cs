@@ -13,7 +13,7 @@ namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20251014154950_fix-attendance")]
-    partial class fixattendance
+    partial class FixAttendance
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

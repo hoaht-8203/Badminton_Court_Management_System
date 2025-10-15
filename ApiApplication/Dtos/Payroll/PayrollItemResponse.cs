@@ -1,4 +1,5 @@
 using System;
+using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Dtos.Payroll;
 
@@ -10,5 +11,5 @@ public class PayrollItemResponse
     public decimal NetSalary { get; set; } = 0;
     public decimal PaidAmount { get; set; } = 0;
     public string? Note { get; set; }
-    public string Status { get; set; }
+    public string Status { get; set; } = PayrollStatus.Pending;
 }

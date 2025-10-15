@@ -10,11 +10,13 @@ public class AttendanceService : IAttendanceService
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
+
     public AttendanceService(ApplicationDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
     }
+
     // public async Task<bool> AddOrUpdateAttendanceRecordAsync(AttendanceRequest request)
     // {
 
@@ -55,6 +57,7 @@ public class AttendanceService : IAttendanceService
         _context.AttendanceRecords.Add(newAttendanceRecord);
         return await _context.SaveChangesAsync() > 0;
     }
+
     public async Task<bool> UpdateAttendanceRecordAsync(AttendanceRequest request)
     {
         if (request.Id == null)
@@ -62,7 +65,8 @@ public class AttendanceService : IAttendanceService
             return false;
         }
         var attendanceRecord = await _context.AttendanceRecords.FindAsync(request.Id.Value);
-        if (attendanceRecord == null) return false;
+        if (attendanceRecord == null)
+            return false;
 
         if (request.CheckInTime == null && request.CheckOutTime == null && request.Notes == null)
             return false;
@@ -73,23 +77,27 @@ public class AttendanceService : IAttendanceService
         _context.AttendanceRecords.Update(attendanceRecord);
         return await _context.SaveChangesAsync() > 0;
     }
-    public async Task<List<AttendanceResponse>> GetAttendanceRecordsByStaffIdAsync(int staffId, DateTime date)
+
+    public async Task<List<AttendanceResponse>> GetAttendanceRecordsByStaffIdAsync(
+        int staffId,
+        DateTime date
+    )
     {
         var dateOnly = DateOnly.FromDateTime(date);
-        var attendanceRecords = await _context.AttendanceRecords
-            .Where(ar => ar.StaffId == staffId && ar.Date == dateOnly)
+        var attendanceRecords = await _context
+            .AttendanceRecords.Where(ar => ar.StaffId == staffId && ar.Date == dateOnly)
             .ToListAsync();
-        if (attendanceRecords == null || attendanceRecords.Count == 0) return null;
 
         return _mapper.Map<List<AttendanceResponse>>(attendanceRecords);
     }
+
     public async Task<bool> DeleteAttendanceRecordAsync(int attendanceRecordId)
     {
         var attendanceRecord = await _context.AttendanceRecords.FindAsync(attendanceRecordId);
-        if (attendanceRecord == null) return false;
+        if (attendanceRecord == null)
+            return false;
 
         _context.AttendanceRecords.Remove(attendanceRecord);
         return await _context.SaveChangesAsync() > 0;
     }
-   
 }

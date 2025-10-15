@@ -142,14 +142,14 @@ public static class SalaryHelper
                         && row.ContainsKey("sunday")
                         && row["sunday"] != null
                     )
-                        factor = ParsePercent(row["sunday"].ToString());
+                        factor = ParsePercent(row["sunday"]?.ToString() ?? "100%");
                     // Thứ 7
                     else if (
                         schedule.Date.DayOfWeek == DayOfWeek.Saturday
                         && row.ContainsKey("saturday")
                         && row["saturday"] != null
                     )
-                        factor = ParsePercent(row["saturday"].ToString());
+                        factor = ParsePercent(row["saturday"]?.ToString() ?? "100%");
                     // Ngày nghỉ lễ, đặc biệt: có thể bổ sung logic nhận diện ngày nghỉ lễ/specialDay ở đây
 
                     totalSalary += (decimal)overlapTime * rate * factor;
@@ -193,7 +193,7 @@ public static class SalaryHelper
                             ? overlapAttendance.CheckInTime
                             : schedule.Shift.StartTime;
                     var overlapEnd =
-                        overlapAttendance.CheckOutTime.Value < schedule.Shift.EndTime
+                        overlapAttendance.CheckOutTime!.Value < schedule.Shift.EndTime
                             ? overlapAttendance.CheckOutTime.Value
                             : schedule.Shift.EndTime;
                     var overlapTime = (overlapEnd - overlapStart).TotalHours;
@@ -268,14 +268,14 @@ public static class SalaryHelper
                         && row.ContainsKey("sunday")
                         && row["sunday"] != null
                     )
-                        factor = ParsePercent(row["sunday"].ToString());
+                        factor = ParsePercent(row["sunday"]?.ToString() ?? "100%");
                     // Thứ 7
                     else if (
                         schedule.Date.DayOfWeek == DayOfWeek.Saturday
                         && row.ContainsKey("saturday")
                         && row["saturday"] != null
                     )
-                        factor = ParsePercent(row["saturday"].ToString());
+                        factor = ParsePercent(row["saturday"]?.ToString() ?? "100%");
                     // Ngày nghỉ lễ, đặc biệt: có thể bổ sung logic nhận diện ngày nghỉ lễ/specialDay ở đây
 
                     totalSalary += rate * factor;

@@ -13,7 +13,7 @@ namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20251012150751_add-system-config-and-payroll")]
-    partial class addsystemconfigandpayroll
+    partial class AddSystemConfigAndPayroll
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

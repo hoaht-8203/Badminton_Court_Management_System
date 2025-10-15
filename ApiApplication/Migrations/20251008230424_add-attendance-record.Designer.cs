@@ -13,7 +13,7 @@ namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20251008230424_add-attendance-record")]
-    partial class addattendancerecord
+    partial class AddAttendanceRecord
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

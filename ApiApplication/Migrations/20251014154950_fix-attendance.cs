@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ApiApplication.Migrations
 {
     /// <inheritdoc />
-    public partial class fixattendance : Migration
+    public partial class FixAttendance : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -42,12 +42,6 @@ export interface PayrollItem {
     id?: number;
     /**
      * 
-     * @type {string}
-     * @memberof PayrollItem
-     */
-    code?: string | null;
-    /**
-     * 
      * @type {number}
      * @memberof PayrollItem
      */
@@ -114,7 +108,6 @@ export function PayrollItemFromJSONTyped(json: any, ignoreDiscriminator: boolean
     return {
         
         'id': json['id'] == null ? undefined : json['id'],
-        'code': json['code'] == null ? undefined : json['code'],
         'staffId': json['staffId'] == null ? undefined : json['staffId'],
         'staff': json['staff'] == null ? undefined : StaffFromJSON(json['staff']),
         'payrollId': json['payrollId'] == null ? undefined : json['payrollId'],
@@ -138,7 +131,6 @@ export function PayrollItemToJSONTyped(value?: PayrollItem | null, ignoreDiscrim
     return {
         
         'id': value['id'],
-        'code': value['code'],
         'staffId': value['staffId'],
         'staff': StaffToJSON(value['staff']),
         'payrollId': value['payrollId'],

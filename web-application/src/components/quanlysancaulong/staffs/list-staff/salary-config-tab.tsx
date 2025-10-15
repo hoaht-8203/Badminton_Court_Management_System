@@ -14,9 +14,9 @@ const SalaryConfigTab = ({ staff }: { staff: any }) => {
     (salaryObj.showAdvanced && Array.isArray(salaryObj.advancedRows) && salaryObj.advancedRows.length > 0);
 
   return (
-    <Card title="Thông tin lương" extra={<Button type="primary">Cập nhật</Button>}>
+    <Card title="Thông tin lương" extra={<Button type="primary">Cập nhật</Button>} style={{ marginTop: 8, borderRadius: 8 }}>
       {hasSalary ? (
-        <Descriptions column={1} bordered size="small">
+        <Descriptions column={1} bordered size="small" style={{ marginTop: 8 }}>
           <Descriptions.Item label="Loại lương">
             {salaryObj.salaryType === "fixed" && "Lương cố định"}
             {salaryObj.salaryType === "hourly" && "Lương theo giờ"}
@@ -24,7 +24,7 @@ const SalaryConfigTab = ({ staff }: { staff: any }) => {
           </Descriptions.Item>
           {salaryObj.salaryAmount && (
             <Descriptions.Item label="Mức lương">
-              {salaryObj.salaryAmount}
+              <b>{salaryObj.salaryAmount}</b>
               {salaryObj.salaryType === "fixed" && " / tháng"}
               {salaryObj.salaryType === "hourly" && " / giờ"}
               {salaryObj.salaryType === "shift" && " / ca"}
@@ -44,13 +44,13 @@ const SalaryConfigTab = ({ staff }: { staff: any }) => {
           )}
           {(salaryObj.deductionLateMethod || salaryObj.deductionLateValue || salaryObj.deductionLateParam) && (
             <Descriptions.Item label="Giảm trừ đi muộn">
-              {salaryObj.deductionLateMethod === "count" ? "Theo số lần" : "Theo số phút"} -{salaryObj.deductionLateValue} VNĐ /{" "}
+              {salaryObj.deductionLateMethod === "count" ? "Theo số lần" : "Theo số phút"} - <b>{salaryObj.deductionLateValue}</b> VNĐ /{" "}
               {salaryObj.deductionLateParam}
             </Descriptions.Item>
           )}
           {(salaryObj.deductionEarlyMethod || salaryObj.deductionEarlyValue || salaryObj.deductionEarlyParam) && (
             <Descriptions.Item label="Giảm trừ về sớm">
-              {salaryObj.deductionEarlyMethod === "count" ? "Theo số lần" : "Theo số phút"} -{salaryObj.deductionEarlyValue} VNĐ /{" "}
+              {salaryObj.deductionEarlyMethod === "count" ? "Theo số lần" : "Theo số phút"} - <b>{salaryObj.deductionEarlyValue}</b> VNĐ /{" "}
               {salaryObj.deductionEarlyParam}
             </Descriptions.Item>
           )}

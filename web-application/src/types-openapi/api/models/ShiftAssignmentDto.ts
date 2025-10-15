@@ -20,13 +20,13 @@ import {
     DayOfWeekToJSON,
     DayOfWeekToJSONTyped,
 } from './DayOfWeek';
-import type { StaffResponse } from './StaffResponse';
+import type { StaffAttendanceResponse } from './StaffAttendanceResponse';
 import {
-    StaffResponseFromJSON,
-    StaffResponseFromJSONTyped,
-    StaffResponseToJSON,
-    StaffResponseToJSONTyped,
-} from './StaffResponse';
+    StaffAttendanceResponseFromJSON,
+    StaffAttendanceResponseFromJSONTyped,
+    StaffAttendanceResponseToJSON,
+    StaffAttendanceResponseToJSONTyped,
+} from './StaffAttendanceResponse';
 
 /**
  * 
@@ -48,10 +48,10 @@ export interface ShiftAssignmentDto {
     dayOfWeek?: DayOfWeek;
     /**
      * 
-     * @type {Array<StaffResponse>}
+     * @type {Array<StaffAttendanceResponse>}
      * @memberof ShiftAssignmentDto
      */
-    staffs?: Array<StaffResponse> | null;
+    staffs?: Array<StaffAttendanceResponse> | null;
 }
 
 
@@ -75,7 +75,7 @@ export function ShiftAssignmentDtoFromJSONTyped(json: any, ignoreDiscriminator: 
         
         'date': json['date'] == null ? undefined : (new Date(json['date'])),
         'dayOfWeek': json['dayOfWeek'] == null ? undefined : DayOfWeekFromJSON(json['dayOfWeek']),
-        'staffs': json['staffs'] == null ? undefined : ((json['staffs'] as Array<any>).map(StaffResponseFromJSON)),
+        'staffs': json['staffs'] == null ? undefined : ((json['staffs'] as Array<any>).map(StaffAttendanceResponseFromJSON)),
     };
 }
 
@@ -92,7 +92,7 @@ export function ShiftAssignmentDtoToJSONTyped(value?: ShiftAssignmentDto | null,
         
         'date': value['date'] == null ? undefined : ((value['date']).toISOString()),
         'dayOfWeek': DayOfWeekToJSON(value['dayOfWeek']),
-        'staffs': value['staffs'] == null ? undefined : ((value['staffs'] as Array<any>).map(StaffResponseToJSON)),
+        'staffs': value['staffs'] == null ? undefined : ((value['staffs'] as Array<any>).map(StaffAttendanceResponseToJSON)),
     };
 }
 

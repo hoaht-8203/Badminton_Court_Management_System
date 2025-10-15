@@ -37,8 +37,7 @@ public class ApplicationDbContext(
     public DbSet<CourtPricingRuleTemplate> CourtPricingRuleTemplates { get; set; }
     public DbSet<BookingCourt> BookingCourts { get; set; }
     public DbSet<Payment> Payments { get; set; }
-
-    // public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
+    public DbSet<AttendanceRecord> AttendanceRecords { get; set; }
     public DbSet<CancelledShift> CancelledShifts { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<Category> Categories { get; set; }
@@ -178,6 +177,35 @@ public class ApplicationDbContext(
         SeedCustomerData(builder);
         SeedSupplierData(builder);
         SeedCategoryData(builder);
+        SeedSystemConfigData(builder);
+    }
+
+    private static void SeedSystemConfigData(ModelBuilder builder)
+    {
+        builder.Entity<SystemConfig>().HasData(
+            new SystemConfig
+            {
+                Id = 1,
+                Key = "MonthlyPayrollGeneration",
+                Value = "1",
+                Description = "Ngày tạo bảng lương hàng tháng",
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = "System",
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = "System",
+            },
+            new SystemConfig
+            {
+                Id = 2,
+                Key = "Holidays",
+                Value = "",
+                Description = "Chế độ nghỉ lễ của hệ thống",
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = "System",
+                UpdatedAt = DateTime.UtcNow,
+                UpdatedBy = "System",
+            }
+        );
     }
 
     private static void SeedAdministratorUser(ModelBuilder builder)

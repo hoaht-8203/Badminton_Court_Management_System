@@ -99,6 +99,17 @@ public class UserService(
 
         await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.Admin));
 
+        //nếu có staffId thì gán userId cho staff
+        if(createAdministratorRequest.StaffId.HasValue)
+        {
+            var staff = await _context.Staffs.FindAsync(createAdministratorRequest.StaffId.Value);
+            if(staff != null)
+            {
+                staff.UserId = user.Id;
+                await _context.SaveChangesAsync();
+            }
+        }
+
         //hết hạn sau 7 ngày
         var tempPasswordToken = Guid.NewGuid().ToString("N");
         _context.ApplicationUserTokens.Add(

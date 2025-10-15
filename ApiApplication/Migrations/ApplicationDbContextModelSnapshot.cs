@@ -241,6 +241,36 @@ namespace ApiApplication.Migrations
                     b.ToTable("ApplicationUserTokens");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.AttendanceRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<TimeOnly>("CheckInTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<TimeOnly?>("CheckOutTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
+
+                    b.Property<int>("StaffId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StaffId");
+
+                    b.ToTable("AttendanceRecords");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.BookingCourt", b =>
                 {
                     b.Property<Guid>("Id")
@@ -949,10 +979,6 @@ namespace ApiApplication.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -976,6 +1002,12 @@ namespace ApiApplication.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<decimal>("TotalNetSalary")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("TotalPaidAmount")
+                        .HasColumnType("numeric");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -994,10 +1026,6 @@ namespace ApiApplication.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<decimal>("NetSalary")
                         .HasColumnType("numeric");
@@ -1568,6 +1596,30 @@ namespace ApiApplication.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("SystemConfigs");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 10, 14, 15, 49, 48, 389, DateTimeKind.Utc).AddTicks(1146),
+                            CreatedBy = "System",
+                            Description = "Ngày tạo bảng lương hàng tháng",
+                            Key = "MonthlyPayrollGeneration",
+                            UpdatedAt = new DateTime(2025, 10, 14, 15, 49, 48, 389, DateTimeKind.Utc).AddTicks(1147),
+                            UpdatedBy = "System",
+                            Value = "1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 10, 14, 15, 49, 48, 389, DateTimeKind.Utc).AddTicks(1148),
+                            CreatedBy = "System",
+                            Description = "Chế độ nghỉ lễ của hệ thống",
+                            Key = "Holidays",
+                            UpdatedAt = new DateTime(2025, 10, 14, 15, 49, 48, 389, DateTimeKind.Utc).AddTicks(1149),
+                            UpdatedBy = "System",
+                            Value = ""
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -1730,6 +1782,17 @@ namespace ApiApplication.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.AttendanceRecord", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.Staff", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Staff");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.BookingCourt", b =>

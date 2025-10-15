@@ -15,13 +15,7 @@ namespace ApiApplication.Mappings
                     dest => dest.SalarySettings,
                     opt => opt.MapFrom(src => src.SalarySettings)
                 )
-                .ForMember(
-                    dest => dest.UserId,
-                    opt =>
-                        opt.MapFrom(src =>
-                            src.AccountId != null ? Guid.Parse(src.AccountId) : Guid.Empty
-                        )
-                );
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.AccountId));
         }
     }
 }

@@ -42,8 +42,8 @@ namespace ApiApplication.Helpers
                     {
                         Staff = _mapper.Map<StaffResponse>(schedule.Staff),
                         Shift = _mapper.Map<ShiftResponse>(schedule.Shift),
-                        Date = startDate.ToDateTime(TimeOnly.MinValue),
-                        DayOfWeek = startDate.DayOfWeek,
+                        Date = schedule.StartDate.ToDateTime(TimeOnly.MinValue),
+                        DayOfWeek = schedule.StartDate.DayOfWeek,
                     };
                     result.Add(scheduleResponse);
                 }

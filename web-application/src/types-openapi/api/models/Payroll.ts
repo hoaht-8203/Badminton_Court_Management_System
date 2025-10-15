@@ -62,12 +62,6 @@ export interface Payroll {
      * @type {string}
      * @memberof Payroll
      */
-    code: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof Payroll
-     */
     name: string | null;
     /**
      * 
@@ -95,6 +89,18 @@ export interface Payroll {
     note?: string | null;
     /**
      * 
+     * @type {number}
+     * @memberof Payroll
+     */
+    totalNetSalary?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof Payroll
+     */
+    totalPaidAmount?: number;
+    /**
+     * 
      * @type {Array<PayrollItem>}
      * @memberof Payroll
      */
@@ -105,7 +111,6 @@ export interface Payroll {
  * Check if a given object implements the Payroll interface.
  */
 export function instanceOfPayroll(value: object): value is Payroll {
-    if (!('code' in value) || value['code'] === undefined) return false;
     if (!('name' in value) || value['name'] === undefined) return false;
     return true;
 }
@@ -125,12 +130,13 @@ export function PayrollFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
         'id': json['id'] == null ? undefined : json['id'],
-        'code': json['code'],
         'name': json['name'],
         'startDate': json['startDate'] == null ? undefined : (new Date(json['startDate'])),
         'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
         'status': json['status'] == null ? undefined : json['status'],
         'note': json['note'] == null ? undefined : json['note'],
+        'totalNetSalary': json['totalNetSalary'] == null ? undefined : json['totalNetSalary'],
+        'totalPaidAmount': json['totalPaidAmount'] == null ? undefined : json['totalPaidAmount'],
         'payrollItems': json['payrollItems'] == null ? undefined : ((json['payrollItems'] as Array<any>).map(PayrollItemFromJSON)),
     };
 }
@@ -151,12 +157,13 @@ export function PayrollToJSONTyped(value?: Payroll | null, ignoreDiscriminator: 
         'createdBy': value['createdBy'],
         'updatedBy': value['updatedBy'],
         'id': value['id'],
-        'code': value['code'],
         'name': value['name'],
         'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString().substring(0,10)),
         'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString().substring(0,10)),
         'status': value['status'],
         'note': value['note'],
+        'totalNetSalary': value['totalNetSalary'],
+        'totalPaidAmount': value['totalPaidAmount'],
         'payrollItems': value['payrollItems'] == null ? undefined : ((value['payrollItems'] as Array<any>).map(PayrollItemToJSON)),
     };
 }

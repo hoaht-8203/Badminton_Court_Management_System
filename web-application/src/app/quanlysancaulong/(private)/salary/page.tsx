@@ -1,9 +1,9 @@
 "use client";
-import SalaryFilter from "@/components/quanlysancaulong/salary/salary-filter";
-import SalaryList from "@/components/quanlysancaulong/salary/salary-list";
-import { useState } from "react";
-import { Card, Breadcrumb, Button, message } from "antd";
+import { Breadcrumb, Button, message, Table } from "antd";
 import { PlusOutlined, ReloadOutlined, FileExcelOutlined } from "@ant-design/icons";
+import { useState } from "react";
+import SalaryFilter from "@/components/quanlysancaulong/salary/salary-filter";
+import SalaryTabs from "@/components/quanlysancaulong/salary/salary-tabs";
 
 const mockData = [
   {
@@ -15,6 +15,11 @@ const mockData = [
     paidStaff: 0,
     remaining: 0,
     status: "Tạm tính",
+    slips: [{ name: "Phiếu lương demo", amount: 0 }],
+    history: [
+      { date: "2025-10-01", action: "Tạo bảng lương", user: "Kim Tu Dan", amount: 0 },
+      { date: "2025-10-05", action: "Chốt lương", user: "Admin", amount: 0 },
+    ],
   },
   {
     code: "BL000002",
@@ -25,6 +30,11 @@ const mockData = [
     paidStaff: 0,
     remaining: 0,
     status: "Tạm tính",
+    slips: [{ name: "Phiếu lương demo", amount: 0 }],
+    history: [
+      { date: "2025-09-01", action: "Tạo bảng lương", user: "Kim Tu Dan", amount: 0 },
+      { date: "2025-09-05", action: "Chốt lương", user: "Admin", amount: 0 },
+    ],
   },
 ];
 
@@ -56,26 +66,57 @@ export default function SalaryPage() {
 
   return (
     <section>
-      <div style={{ marginBottom: 16 }}>
+      <div className="mb-4">
         <Breadcrumb items={[{ title: "Quản lý sân cầu lông" }, { title: "Bảng lương" }]} />
       </div>
-      <Card title={<SalaryFilter onSearch={handleSearch} onReset={handleReset} />} style={{ marginBottom: 16 }}>
-        <div style={{ marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontWeight: 600, color: "#52c41a" }}>Tổng số bảng lương: {data.length}</span>
-          <div style={{ display: "flex", gap: 8 }}>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAddSalary}>
-              + Bảng tính lương
-            </Button>
-            <Button type="primary" icon={<ReloadOutlined />} onClick={handleReload}>
-              Tải lại
-            </Button>
-            <Button icon={<FileExcelOutlined />} onClick={handleExportExcel}>
-              Xuất file
-            </Button>
-          </div>
+
+      <div className="mb-4">
+        <SalaryFilter onSearch={handleSearch} onReset={handleReset} />
+      </div>
+
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-bold text-green-500">Tổng số bảng lương: {data.length}</span>
+        <div className="flex gap-2">
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAddSalary}>
+            Thêm bảng tính lương
+          </Button>
+          <Button type="primary" icon={<ReloadOutlined />} onClick={handleReload}>
+            Tải lại
+          </Button>
+          <Button icon={<FileExcelOutlined />} onClick={handleExportExcel}>
+            Xuất file
+          </Button>
         </div>
-        <SalaryList data={data} loading={loading} />
-      </Card>
+      </div>
+
+      <Table
+        columns={[
+          { title: "Mã bảng lương", dataIndex: "code", key: "code" },
+          { title: "Tên bảng lương", dataIndex: "name", key: "name" },
+          { title: "Kỳ lương", dataIndex: "payPeriod", key: "payPeriod" },
+          { title: "Thời gian làm việc", dataIndex: "workDate", key: "workDate" },
+          { title: "Tổng lương", dataIndex: "totalSalary", key: "totalSalary" },
+          { title: "Đã trả nhân viên", dataIndex: "paidStaff", key: "paidStaff" },
+          { title: "Còn lại", dataIndex: "remaining", key: "remaining" },
+          {
+            title: "Trạng thái",
+            dataIndex: "status",
+            key: "status",
+            render: (text: string) => <span style={{ color: "#52c41a", fontWeight: 600 }}>{text}</span>,
+          },
+        ]}
+        dataSource={data}
+        loading={loading}
+        rowKey="code"
+        scroll={{ x: "max-content" }}
+        bordered
+        expandable={{
+          expandRowByClick: true,
+          expandedRowRender: (record) => <SalaryTabs salary={record} />,
+        }}
+        pagination={false}
+        style={{ marginTop: 8 }}
+      />
     </section>
   );
 }

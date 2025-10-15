@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { StaffResponse } from './StaffResponse';
+import {
+    StaffResponseFromJSON,
+    StaffResponseFromJSONTyped,
+    StaffResponseToJSON,
+    StaffResponseToJSONTyped,
+} from './StaffResponse';
+
 /**
  * 
  * @export
@@ -27,10 +35,16 @@ export interface PayrollItemResponse {
     id?: number;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof PayrollItemResponse
      */
-    staffName?: string | null;
+    staffId?: number;
+    /**
+     * 
+     * @type {StaffResponse}
+     * @memberof PayrollItemResponse
+     */
+    staff?: StaffResponse;
     /**
      * 
      * @type {number}
@@ -75,7 +89,8 @@ export function PayrollItemResponseFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'id': json['id'] == null ? undefined : json['id'],
-        'staffName': json['staffName'] == null ? undefined : json['staffName'],
+        'staffId': json['staffId'] == null ? undefined : json['staffId'],
+        'staff': json['staff'] == null ? undefined : StaffResponseFromJSON(json['staff']),
         'netSalary': json['netSalary'] == null ? undefined : json['netSalary'],
         'paidAmount': json['paidAmount'] == null ? undefined : json['paidAmount'],
         'note': json['note'] == null ? undefined : json['note'],
@@ -95,7 +110,8 @@ export function PayrollItemResponseToJSONTyped(value?: PayrollItemResponse | nul
     return {
         
         'id': value['id'],
-        'staffName': value['staffName'],
+        'staffId': value['staffId'],
+        'staff': StaffResponseToJSON(value['staff']),
         'netSalary': value['netSalary'],
         'paidAmount': value['paidAmount'],
         'note': value['note'],

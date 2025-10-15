@@ -6,8 +6,12 @@ namespace ApiApplication.Services;
 public interface IScheduleService
 {
     Task<bool> AssignShiftToStaffAsync(ScheduleRequest request);
-    Task<List<ScheduleByShiftResponse>> GetScheduleOfWeekByShiftAsync(ScheduleRequest request);
-    Task<List<ScheduleByStaffResponse>> GetScheduleOfWeekByStaffAsync(ScheduleRequest request);
+    Task<List<ScheduleByShiftResponse>> GetScheduleOfWeekByShiftAsync(
+        WeeklyScheduleRequest request
+    );
+    Task<List<ScheduleByStaffResponse>> GetScheduleOfWeekByStaffAsync(
+        WeeklyScheduleRequest request
+    );
     Task<List<ScheduleResponse>> GetScheduleOfWeekByStaffIdAsync(
         ScheduleRequest request,
         int staffId

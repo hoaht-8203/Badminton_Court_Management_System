@@ -103,11 +103,7 @@ const WorkScheduleTable: React.FC = () => {
     setAttendanceModalOpen(true);
   };
 
-  return loadingSchedule ? (
-    <div style={{ textAlign: "center", padding: 40 }}>
-      <Spin size="large" tip="Đang tải lịch làm việc..." />
-    </div>
-  ) : (
+  return (
     <div style={{ background: "#fff", borderRadius: 8, padding: 16 }}>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
         <span style={{ fontWeight: 700, fontSize: 20, marginRight: 16 }}>Bảng chấm công</span>
@@ -237,11 +233,10 @@ const WorkScheduleTable: React.FC = () => {
       {/* Modal chấm công */}
       <AttendanceModal
         open={attendanceModalOpen}
-        onClose={() => setAttendanceModalOpen(false)}
         {...attendanceModalData}
-        onSave={() => {
+        onClose={() => {
           setAttendanceModalOpen(false);
-          refetch(); // refresh lại lịch làm việc
+          refetch();
         }}
       />
     </div>

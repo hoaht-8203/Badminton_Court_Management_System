@@ -275,5 +275,6 @@ models/UploadFileResponseApiResponse.ts
 models/ValidateForgotPasswordRequest.ts
 models/VerifyEmailRequest.ts
 models/WaitHandle.ts
+models/WeeklyScheduleRequest.ts
 models/index.ts
 runtime.ts

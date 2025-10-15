@@ -15,10 +15,7 @@ namespace ApiApplication.Mappings
                     dest => dest.SalarySettings,
                     opt => opt.MapFrom(src => src.SalarySettings)
                 )
-                .ForMember(
-                    dest => dest.UserId,
-                    opt => opt.MapFrom(src => src.AccountId)
-                );
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.AccountId));
         }
     }
 }

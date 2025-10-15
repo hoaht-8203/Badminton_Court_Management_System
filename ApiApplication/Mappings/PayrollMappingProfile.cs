@@ -13,6 +13,7 @@ public class PayrollMappingProfile : AutoMapper.Profile
             .ForMember(dest => dest.PayrollItems, opt => opt.MapFrom(src => src.PayrollItems));
         CreateMap<Payroll, ListPayrollResponse>();
         CreateMap<PayrollItem, PayrollItemResponse>()
-            .ForMember(dest => dest.StaffName, opt => opt.MapFrom(src => src.Staff!.FullName ?? string.Empty));
+            .ForMember(dest => dest.StaffId, opt => opt.MapFrom(src => src.StaffId))
+            .ForMember(dest => dest.Staff, opt => opt.MapFrom(src => src.Staff));
     }
 }

@@ -250,3 +250,4 @@ export * from './UploadFileResponseApiResponse';
 export * from './ValidateForgotPasswordRequest';
 export * from './VerifyEmailRequest';
 export * from './WaitHandle';
+export * from './WeeklyScheduleRequest';

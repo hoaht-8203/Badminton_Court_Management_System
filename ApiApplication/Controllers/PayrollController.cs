@@ -31,7 +31,12 @@ namespace ApiApplication.Controllers
         public async Task<IActionResult> GetPayrolls()
         {
             var result = await _payrollService.GetPayrollsAsync();
-            return Ok(ApiResponse<List<ListPayrollResponse>>.SuccessResponse(result, "Lấy danh sách bảng lương thành công"));
+            return Ok(
+                ApiResponse<List<ListPayrollResponse>>.SuccessResponse(
+                    result,
+                    "Lấy danh sách bảng lương thành công"
+                )
+            );
         }
 
         // POST: api/Payroll/refresh/{payrollId}
@@ -39,25 +44,42 @@ namespace ApiApplication.Controllers
         public async Task<IActionResult> RefreshPayroll(int payrollId)
         {
             var result = await _payrollService.RefreshPayrollAsync(payrollId);
-            return Ok(ApiResponse<object?>.SuccessResponse(result, "Cập nhật bảng lương thành công"));
+            return Ok(
+                ApiResponse<object?>.SuccessResponse(result, "Cập nhật bảng lương thành công")
+            );
         }
 
         // Pay the bill
         // POST: api/Payroll/pay-item/{payrollItemId}
         [HttpPost("pay-item/{payrollItemId}")]
-        public async Task<IActionResult> PayPayrollItem(int payrollItemId, [FromQuery] decimal amount)
+        public async Task<IActionResult> PayPayrollItem(
+            int payrollItemId,
+            [FromQuery] decimal amount
+        )
         {
             var result = await _payrollService.PayPayrollItemAsync(payrollItemId, amount);
-            return Ok(ApiResponse<object?>.SuccessResponse(result, "Thanh toán phiếu lương thành công"));
+            return Ok(
+                ApiResponse<object?>.SuccessResponse(result, "Thanh toán phiếu lương thành công")
+            );
         }
+
         // GET: api/Payroll/{payrollId}
         [HttpGet("{payrollId}")]
         public async Task<IActionResult> GetPayrollById(int payrollId)
         {
             var result = await _payrollService.GetPayrollByIdAsync(payrollId);
             if (result == null)
-                return NotFound(ApiResponse<PayrollDetailResponse>.ErrorResponse($"Bảng lương với id {payrollId} không tìm thấy"));
-            return Ok(ApiResponse<PayrollDetailResponse>.SuccessResponse(result, "Lấy bảng lương theo id thành công"));
+                return NotFound(
+                    ApiResponse<PayrollDetailResponse>.ErrorResponse(
+                        $"Bảng lương với id {payrollId} không tìm thấy"
+                    )
+                );
+            return Ok(
+                ApiResponse<PayrollDetailResponse>.SuccessResponse(
+                    result,
+                    "Lấy bảng lương theo id thành công"
+                )
+            );
         }
     }
 }

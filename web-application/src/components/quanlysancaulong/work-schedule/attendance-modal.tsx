@@ -1,4 +1,18 @@
-// Map màu trạng thái giống bên bảng
+import React, { useEffect, useState } from "react";
+import { Drawer, Button, Input, Tag, message } from "antd";
+import dayjs from "dayjs";
+import { attendanceService } from "@/services/attendanceService";
+
+interface AttendanceModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSave?: () => void;
+  staff?: { id: number; fullName: string };
+  shift?: { id: number; name: string; time: string };
+  date?: string; // YYYY-MM-DD
+  status?: "Attended" | "Absent" | "NotYet";
+}
+
 const statusMap = {
   NotYet: { color: "#faad14", text: "Chưa diễn ra" },
   Attended: { color: "#1890ff", text: "Đã chấm công" },
@@ -6,150 +20,111 @@ const statusMap = {
   Missing: { color: "#bfbfbf", text: "Chấm công thiếu" },
   Absent: { color: "#ff4d4f", text: "Nghỉ làm" },
 } as const;
-import React, { useState } from "react";
-import { Modal, Button, Input, Radio, Checkbox, DatePicker, Tabs, Tag, Select, message } from "antd";
-import dayjs from "dayjs";
-import { attendanceService } from "@/services/attendanceService";
-import { AttendanceRequest } from "@/types-openapi/api";
 
-interface AttendanceModalProps {
-  open: boolean;
-  onClose: () => void;
-  staff?: {
-    id: number;
-    fullName: string;
-  };
-  shift?: {
-    id: number;
-    name: string;
-    time: string;
-  };
-  date?: string; // YYYY-MM-DD
-  status?: "Attended" | "Absent" | "NotYet";
-  attendanceRecordId?: number | null;
-  onSave?: (data: any) => void;
-}
+const AttendanceDrawer: React.FC<AttendanceModalProps> = ({ open, onClose, onSave, staff, shift, date, status = "NotYet" }) => {
+  const [attendanceList, setAttendanceList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-const statusOptions = [
-  { label: "Chưa diễn ra", value: "NotYet" },
-  { label: "Đã chấm công", value: "Attended" },
-  { label: "Đi muộn / Về sớm", value: "Late" },
-  { label: "Chấm công thiếu", value: "Missing" },
-  { label: "Nghỉ làm", value: "Absent" },
-];
-
-const AttendanceModal: React.FC<AttendanceModalProps> = ({
-  open,
-  onClose,
-  staff,
-  shift,
-  date,
-  status = "NotYet",
-  attendanceRecordId = null,
-  onSave,
-}) => {
-  const [attendanceStatus, setAttendanceStatus] = useState<string>(status);
-  const [attendanceNote, setAttendanceNote] = useState<string>("");
-  const [checkInTime, setCheckInTime] = useState<string>("");
-  const [checkOutTime, setCheckOutTime] = useState<string>("");
-  const [checkInEnabled, setCheckInEnabled] = useState<boolean>(false);
-  const [checkOutEnabled, setCheckOutEnabled] = useState<boolean>(false);
-  const [initialData, setInitialData] = useState<any>(null);
-
-  React.useEffect(() => {
-    setAttendanceStatus(status ?? "NotYet");
-    setAttendanceNote("");
-    setCheckInTime("");
-    setCheckOutTime("");
-    setCheckInEnabled(false);
-    setCheckOutEnabled(false);
-    // Nếu attendanceRecordId có giá trị, fetch dữ liệu từ API
-    if (attendanceRecordId) {
-      attendanceService.getAttendanceById(attendanceRecordId).then((res) => {
-        if (res?.data) {
-          setAttendanceNote(res.data.notes ?? "");
-          setCheckInTime(res.data.checkInTime ?? "");
-          setCheckOutTime(res.data.checkOutTime ?? "");
-          setCheckInEnabled(!!res.data.checkInTime);
-          setCheckOutEnabled(!!res.data.checkOutTime);
-          setInitialData({
-            attendanceNote: res.data.notes ?? "",
-            checkInTime: res.data.checkInTime ?? "",
-            checkOutTime: res.data.checkOutTime ?? "",
-            checkInEnabled: !!res.data.checkInTime,
-            checkOutEnabled: !!res.data.checkOutTime,
-          });
-        }
-      });
+  const fetchAttendance = async () => {
+    if (staff?.id && date) {
+      setLoading(true);
+      const res = await attendanceService.getAttendanceRecordsByStaffId(staff.id, date);
+      setAttendanceList(res?.data ?? []);
+      setLoading(false);
     } else {
-      setInitialData({
-        attendanceStatus: status ?? "NotYet",
-        attendanceNote: "",
-        checkInTime: "",
-        checkOutTime: "",
-        checkInEnabled: false,
-        checkOutEnabled: false,
-      });
+      setAttendanceList([]);
     }
-  }, [status, open, attendanceRecordId]);
-  const [errorMsg, setErrorMsg] = useState<string>("");
+  };
 
-  const handleSave = async () => {
-    setErrorMsg("");
-    const formatTime = (t: string) => {
-      if (!t) return undefined;
-      const parts = t.split(":");
-      if (parts.length === 3) return t;
-      if (parts.length === 2) return `${t}:00`;
-      return t;
-    };
-    if (checkInEnabled && checkOutEnabled && checkInTime && checkOutTime) {
-      // So sánh giờ phút
-      const inParts = checkInTime.split(":");
-      const outParts = checkOutTime.split(":");
-      const inMinutes = parseInt(inParts[0], 10) * 60 + parseInt(inParts[1], 10);
-      const outMinutes = parseInt(outParts[0], 10) * 60 + parseInt(outParts[1], 10);
-      if (inMinutes >= outMinutes) {
-        setErrorMsg("Giờ vào phải nhỏ hơn giờ ra!");
-        return;
-      }
+  useEffect(() => {
+    if (open) {
+      fetchAttendance();
+    } else {
+      setAttendanceList([]);
     }
-    const payload: AttendanceRequest = {
-      id: attendanceRecordId ?? undefined,
+  }, [open, staff?.id, date]);
+
+  const handleChange = (idx: number, field: string, value: any) => {
+    const newList = [...attendanceList];
+    newList[idx] = { ...newList[idx], [field]: value, _changed: true };
+    setAttendanceList(newList);
+  };
+
+  const formatTime = (t?: string) => {
+    if (!t) return "";
+    // Nếu là HH:mm thì thêm :00
+    if (/^\d{2}:\d{2}$/.test(t)) return t + ":00";
+    // Nếu đã là HH:mm:ss thì giữ nguyên
+    if (/^\d{2}:\d{2}:\d{2}$/.test(t)) return t;
+    return t; // fallback
+  };
+
+  const handleSave = async (idx: number) => {
+    const att = attendanceList[idx];
+    setLoading(true);
+    const payload: any = {
+      id: att.id,
       staffId: staff?.id,
       date: date ? new Date(date) : undefined,
-      notes: attendanceNote,
-      checkInTime: checkInEnabled ? formatTime(checkInTime) : undefined,
-      checkOutTime: checkOutEnabled ? formatTime(checkOutTime) : undefined,
+      notes: att.notes,
     };
-    await attendanceService.createOrUpdateAttendance(payload);
-    message.success("Lưu chấm công thành công!");
-    if (onSave) {
-      onSave({});
+    const checkIn = formatTime(att.checkInTime);
+    if (checkIn) payload.checkInTime = checkIn;
+    const checkOut = formatTime(att.checkOutTime);
+    if (checkOut) payload.checkOutTime = checkOut;
+    if (att.id) {
+      await attendanceService.updateAttendance(payload); // update
+      message.success("Đã cập nhật chấm công!");
+    } else {
+      await attendanceService.createAttendance({ ...payload, id: undefined }); // create
+      message.success("Đã thêm chấm công!");
     }
-    onClose();
+    await fetchAttendance();
+    setLoading(false);
+    if (onSave) onSave();
   };
 
+  const handleDelete = async (idx: number) => {
+    const att = attendanceList[idx];
+    if (att.id) {
+      await attendanceService.deleteAttendanceRecord(att.id);
+      message.success("Đã xoá chấm công!");
+      await fetchAttendance();
+      if (onSave) onSave();
+    } else {
+      const newList = attendanceList.filter((_, i) => i !== idx);
+      setAttendanceList(newList);
+    }
+  };
+
+  const handleAdd = () => {
+    setAttendanceList([
+      ...attendanceList,
+      {
+        checkInTime: "",
+        checkOutTime: "",
+        notes: "",
+      },
+    ]);
+  };
+
+  // ...existing code...
+
   return (
-    <Modal
+    <Drawer
       open={open}
-      onCancel={onClose}
-      footer={null}
+      onClose={onClose}
       title={
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span>Chấm công</span>
-          {staff?.fullName && (
-            <span style={{ fontWeight: 500 }}>
-              <Tag color="blue">{staff.fullName}</Tag>
-            </span>
-          )}
-          {/* Hiển thị label trạng thái với màu tương ứng */}
-          <Tag color={statusMap[attendanceStatus as keyof typeof statusMap]?.color || "orange"}>
-            {statusOptions.find((s) => s.value === attendanceStatus)?.label || "Chưa chấm công"}
-          </Tag>
+          {staff?.fullName && <Tag color="blue">{staff.fullName}</Tag>}
+          <Tag color={statusMap[status]?.color || "orange"}>{statusMap[status]?.text || "Chưa chấm công"}</Tag>
         </div>
       }
       width={600}
+      footer={null}
+      closable
+      maskClosable
     >
       <div style={{ marginBottom: 16 }}>
         <div style={{ display: "flex", gap: 24, marginBottom: 8 }}>
@@ -164,48 +139,69 @@ const AttendanceModal: React.FC<AttendanceModalProps> = ({
             </span>
           </div>
         </div>
-        <Input.TextArea placeholder="Ghi chú" value={attendanceNote} onChange={(e) => setAttendanceNote(e.target.value)} rows={2} />
       </div>
-      <div>
-        <div style={{ display: "flex", gap: 32, marginBottom: 16 }}>
-          <Checkbox checked={checkInEnabled} onChange={(e) => setCheckInEnabled(e.target.checked)}>
-            Vào
-          </Checkbox>
-          <Input type="time" value={checkInTime} onChange={(e) => setCheckInTime(e.target.value)} disabled={!checkInEnabled} style={{ width: 120 }} />
-          <Checkbox checked={checkOutEnabled} onChange={(e) => setCheckOutEnabled(e.target.checked)}>
-            Ra
-          </Checkbox>
-          <Input
-            type="time"
-            value={checkOutTime}
-            onChange={(e) => setCheckOutTime(e.target.value)}
-            disabled={!checkOutEnabled}
-            style={{ width: 120 }}
-          />
+      {attendanceList.length > 0 ? (
+        <div style={{ marginBottom: 16 }}>
+          <span style={{ fontWeight: 500 }}>Danh sách chấm công trong ngày:</span>
+          <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 12 }}>
+            {attendanceList.map((att, idx) => (
+              <div
+                key={att.id ? `id-${att.id}` : `new-${idx}`}
+                style={{ border: "1px solid #eee", borderRadius: 6, padding: 12, background: "#fafafa", position: "relative" }}
+              >
+                <div style={{ display: "flex", gap: 24, alignItems: "center", marginBottom: 8 }}>
+                  <span style={{ fontWeight: 500 }}>Giờ vào:</span>
+                  <Input
+                    type="time"
+                    value={att.checkInTime ?? undefined}
+                    onChange={(e) => handleChange(idx, "checkInTime", e.target.value)}
+                    style={{ width: 120 }}
+                  />
+                  <span style={{ fontWeight: 500 }}>Giờ ra:</span>
+                  <Input
+                    type="time"
+                    value={att.checkOutTime ?? undefined}
+                    onChange={(e) => handleChange(idx, "checkOutTime", e.target.value)}
+                    style={{ width: 120 }}
+                  />
+                </div>
+                <div style={{ marginBottom: 8 }}>
+                  <span style={{ fontWeight: 500 }}>Ghi chú:</span>
+                  <Input.TextArea
+                    value={att.notes ?? ""}
+                    onChange={(e) => handleChange(idx, "notes", e.target.value)}
+                    rows={2}
+                    style={{ marginTop: 4 }}
+                  />
+                </div>
+                <div style={{ display: "flex", gap: 8, position: "absolute", top: 12, right: 12 }}>
+                  {att._changed && (
+                    <Button type="primary" ghost size="small" loading={loading} onClick={() => handleSave(idx)}>
+                      Lưu
+                    </Button>
+                  )}
+                  <Button danger ghost size="small" onClick={() => handleDelete(idx)}>
+                    Xoá
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-
-      {errorMsg && <div style={{ color: "#ff4d4f", marginBottom: 8, textAlign: "right" }}>{errorMsg}</div>}
-      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 24 }}>
-        <Button onClick={onClose}>Bỏ qua</Button>
+      ) : (
+        <div style={{ color: "#888", textAlign: "center", padding: "32px 0" }}>Không có bản ghi chấm công nào trong ngày này.</div>
+      )}
+      <div style={{ display: "flex", justifyContent: "center", marginTop: 24 }}>
         <Button
-          type="primary"
-          onClick={handleSave}
-          disabled={
-            !initialData ||
-            (attendanceStatus === initialData.attendanceStatus &&
-              attendanceNote === initialData.attendanceNote &&
-              checkInTime === initialData.checkInTime &&
-              checkOutTime === initialData.checkOutTime &&
-              checkInEnabled === initialData.checkInEnabled &&
-              checkOutEnabled === initialData.checkOutEnabled)
-          }
+          type="dashed"
+          style={{ borderStyle: "dashed", background: "transparent", color: "#1890ff", borderColor: "#1890ff" }}
+          onClick={handleAdd}
         >
-          Lưu
+          + Thêm dữ liệu chấm công
         </Button>
       </div>
-    </Modal>
+    </Drawer>
   );
 };
 
-export default AttendanceModal;
+export default AttendanceDrawer;

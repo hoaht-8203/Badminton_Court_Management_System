@@ -15,12 +15,14 @@ apis/PaymentsApi.ts
 apis/PricesApi.ts
 apis/ProductsApi.ts
 apis/ReceiptsApi.ts
+apis/ReturnGoodsApi.ts
 apis/RolesApi.ts
 apis/SalaryFormApi.ts
 apis/ScheduleApi.ts
 apis/ShiftApi.ts
 apis/StaffApi.ts
 apis/StockOutsApi.ts
+apis/StoreBankAccountsApi.ts
 apis/SupplierBankAccountsApi.ts
 apis/SuppliersApi.ts
 apis/UsersApi.ts
@@ -65,9 +67,12 @@ models/CreatePriceTableRequest.ts
 models/CreateProductRequest.ts
 models/CreateReceiptItem.ts
 models/CreateReceiptRequest.ts
+models/CreateReturnGoodsItem.ts
+models/CreateReturnGoodsRequest.ts
 models/CreateRoleRequest.ts
 models/CreateStockOutItem.ts
 models/CreateStockOutRequest.ts
+models/CreateStoreBankAccountRequest.ts
 models/CreateSupplierRequest.ts
 models/CurrentUserResponse.ts
 models/CurrentUserResponseApiResponse.ts
@@ -118,6 +123,9 @@ models/DetailProductResponseApiResponse.ts
 models/DetailReceiptItem.ts
 models/DetailReceiptResponse.ts
 models/DetailReceiptResponseApiResponse.ts
+models/DetailReturnGoodsItem.ts
+models/DetailReturnGoodsResponse.ts
+models/DetailReturnGoodsResponseApiResponse.ts
 models/DetailRoleRequest.ts
 models/DetailRoleResponse.ts
 models/DetailRoleResponseApiResponse.ts
@@ -184,6 +192,9 @@ models/ListProductResponse.ts
 models/ListProductResponseListApiResponse.ts
 models/ListReceiptResponse.ts
 models/ListReceiptResponseListApiResponse.ts
+models/ListReturnGoodsRequest.ts
+models/ListReturnGoodsResponse.ts
+models/ListReturnGoodsResponseListApiResponse.ts
 models/ListRoleRequest.ts
 models/ListRoleResponse.ts
 models/ListRoleResponseListApiResponse.ts
@@ -216,6 +227,9 @@ models/Receipt.ts
 models/ReceiptItem.ts
 models/ReceiptStatus.ts
 models/RegisterRequest.ts
+models/ReturnGoods.ts
+models/ReturnGoodsItem.ts
+models/ReturnGoodsStatus.ts
 models/SafeWaitHandle.ts
 models/SalaryForm.ts
 models/SalaryFormRequest.ts
@@ -248,6 +262,8 @@ models/StaffShiftDto.ts
 models/StockOut.ts
 models/StockOutItem.ts
 models/StockOutStatus.ts
+models/StoreBankAccount.ts
+models/StoreBankAccountResponse.ts
 models/StringApiResponse.ts
 models/Supplier.ts
 models/SupplierBankAccount.ts

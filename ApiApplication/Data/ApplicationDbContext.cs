@@ -55,6 +55,9 @@ public class ApplicationDbContext(
     public DbSet<ReceiptItem> ReceiptItems { get; set; }
     public DbSet<StockOut> StockOuts { get; set; }
     public DbSet<StockOutItem> StockOutItems { get; set; }
+    public DbSet<ReturnGoods> ReturnGoods { get; set; }
+    public DbSet<ReturnGoodsItem> ReturnGoodsItems { get; set; }
+    public DbSet<StoreBankAccount> StoreBankAccounts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -153,6 +156,14 @@ public class ApplicationDbContext(
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // Store bank accounts
+        builder.Entity<StoreBankAccount>(entity =>
+        {
+            entity.Property(p => p.AccountNumber).HasMaxLength(50).IsRequired();
+            entity.Property(p => p.AccountName).HasMaxLength(150).IsRequired();
+            entity.Property(p => p.BankName).HasMaxLength(200).IsRequired();
+        });
+
         // Receipts
         builder.Entity<Receipt>(entity =>
         {
@@ -185,6 +196,34 @@ public class ApplicationDbContext(
         builder.Entity<StockOutItem>(entity =>
         {
             entity.Property(p => p.CostPrice).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.Note).HasMaxLength(500);
+            entity.HasOne(i => i.Product).WithMany().HasForeignKey(i => i.ProductId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ReturnGoods
+        builder.Entity<ReturnGoods>(entity =>
+        {
+            entity.Property(p => p.Code).HasMaxLength(50);
+            entity.Property(p => p.ReturnBy).HasMaxLength(100);
+            entity.Property(p => p.CreatedBy).HasMaxLength(100);
+            entity.Property(p => p.Note).HasMaxLength(500);
+            entity.Property(p => p.TotalValue).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.Discount).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.SupplierNeedToPay).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.SupplierPaid).HasColumnType("decimal(18,2)");
+            entity.HasOne(r => r.StoreBankAccount)
+                .WithMany()
+                .HasForeignKey(r => r.StoreBankAccountId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(r => r.Supplier).WithMany().HasForeignKey(r => r.SupplierId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasMany(r => r.Items).WithOne(i => i.ReturnGoods).HasForeignKey(i => i.ReturnGoodsId).OnDelete(DeleteBehavior.Cascade);
+        });
+        builder.Entity<ReturnGoodsItem>(entity =>
+        {
+            entity.Property(p => p.ImportPrice).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.ReturnPrice).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.Discount).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.LineTotal).HasColumnType("decimal(18,2)");
             entity.Property(p => p.Note).HasMaxLength(500);
             entity.HasOne(i => i.Product).WithMany().HasForeignKey(i => i.ProductId).OnDelete(DeleteBehavior.Restrict);
         });

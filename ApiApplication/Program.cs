@@ -74,10 +74,12 @@ builder.Services.AddScoped<IPriceTableService, PriceTableService>();
 builder.Services.AddScoped<IBookingCourtService, BookingCourtService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IInventoryCheckService, InventoryCheckService>();
+builder.Services.AddScoped<IStoreBankAccountService, StoreBankAccountService>();
 builder.Services.AddScoped<IInventoryCardService, InventoryCardService>();
 builder.Services.AddScoped<ISupplierBankAccountService, SupplierBankAccountService>();
 builder.Services.AddScoped<IReceiptService, ReceiptService>();
 builder.Services.AddScoped<IStockOutService, StockOutService>();
+builder.Services.AddScoped<IReturnGoodsService, ReturnGoodsService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());

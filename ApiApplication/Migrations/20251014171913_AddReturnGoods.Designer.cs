@@ -3,6 +3,7 @@ using System;
 using ApiApplication.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251014171913_AddReturnGoods")]
+    partial class AddReturnGoods
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1316,9 +1319,6 @@ namespace ApiApplication.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<int>("PaymentMethod")
-                        .HasColumnType("integer");
-
                     b.Property<string>("ReturnBy")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -1327,9 +1327,6 @@ namespace ApiApplication.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("StoreBankAccountId")
                         .HasColumnType("integer");
 
                     b.Property<int>("SupplierId")
@@ -1348,8 +1345,6 @@ namespace ApiApplication.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("StoreBankAccountId");
 
                     b.HasIndex("SupplierId");
 
@@ -1670,49 +1665,6 @@ namespace ApiApplication.Migrations
                     b.HasIndex("StockOutId");
 
                     b.ToTable("StockOutItems");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.StoreBankAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("BankName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsDefault")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("StoreBankAccounts");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Supplier", b =>
@@ -2248,18 +2200,11 @@ namespace ApiApplication.Migrations
 
             modelBuilder.Entity("ApiApplication.Entities.ReturnGoods", b =>
                 {
-                    b.HasOne("ApiApplication.Entities.StoreBankAccount", "StoreBankAccount")
-                        .WithMany()
-                        .HasForeignKey("StoreBankAccountId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("ApiApplication.Entities.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("StoreBankAccount");
 
                     b.Navigation("Supplier");
                 });

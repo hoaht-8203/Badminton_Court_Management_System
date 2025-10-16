@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+  images: {
+    domains: ["img.freepik.com", "dailynuoc.com", "minio.caulong365.store"],
+  },
 };
 
 export default nextConfig;

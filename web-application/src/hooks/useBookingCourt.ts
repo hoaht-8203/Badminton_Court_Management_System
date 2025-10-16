@@ -3,10 +3,13 @@ import { courtScheduleService } from "@/services/courtScheduleService";
 import { paymentService, QrPaymentResponse } from "@/services/paymentService";
 import {
   CancelBookingCourtRequest,
+  CheckInBookingCourtRequest,
+  CheckOutBookingCourtRequest,
   CreateBookingCourtRequest,
   DetailBookingCourtResponse,
   ListBookingCourtRequest,
   ListBookingCourtResponse,
+  NoShowBookingCourtRequest,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -60,6 +63,36 @@ export function useCancelBookingCourt() {
   const queryClient = useQueryClient();
   return useMutation<ApiResponse<boolean>, ApiError, CancelBookingCourtRequest>({
     mutationFn: (data: CancelBookingCourtRequest) => courtScheduleService.cancelBooking(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+    },
+  });
+}
+
+export function useCheckInBookingCourt() {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<boolean>, ApiError, CheckInBookingCourtRequest>({
+    mutationFn: (data) => courtScheduleService.checkInBooking(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+    },
+  });
+}
+
+export function useCheckOutBookingCourt() {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<boolean>, ApiError, CheckOutBookingCourtRequest>({
+    mutationFn: (data) => courtScheduleService.checkOutBooking(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+    },
+  });
+}
+
+export function useNoShowBookingCourt() {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<boolean>, ApiError, NoShowBookingCourtRequest>({
+    mutationFn: (data) => courtScheduleService.noShowBooking(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
     },

@@ -170,8 +170,12 @@ const CourtInformation = ({
               <span className="font-bold text-green-500">Đang hoạt động</span>
             ) : record.status === CourtStatus.Maintenance ? (
               <span className="font-bold text-yellow-600">Bảo trì</span>
-            ) : (
+            ) : record.status === CourtStatus.Inactive ? (
               <span className="font-bold text-red-500">Không hoạt động</span>
+            ) : record.status === CourtStatus.InUse ? (
+              <span className="font-bold text-blue-500">Đang sử dụng</span>
+            ) : (
+              <span className="font-bold text-gray-500">Không xác định</span>
             )}
           </div>
           <Divider size="small" />

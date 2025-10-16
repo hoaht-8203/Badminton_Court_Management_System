@@ -19,8 +19,12 @@ export const columns: TableProps<ListCourtResponse>["columns"] = [
         <span className="font-bold text-green-500">Đang hoạt động</span>
       ) : status === CourtStatus.Maintenance ? (
         <span className="font-bold text-yellow-600">Bảo trì</span>
-      ) : (
+      ) : status === CourtStatus.Inactive ? (
         <span className="font-bold text-red-500">Không hoạt động</span>
+      ) : status === CourtStatus.InUse ? (
+        <span className="font-bold text-blue-500">Đang sử dụng</span>
+      ) : (
+        <span className="font-bold text-gray-500">Không xác định</span>
       ),
   },
   {

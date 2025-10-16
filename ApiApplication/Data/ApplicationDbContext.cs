@@ -51,6 +51,7 @@ public class ApplicationDbContext(
 
     public DbSet<Service> Services { get; set; }
     public DbSet<BookingService> BookingServices { get; set; }
+    public DbSet<BookingOrderItem> BookingOrderItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -182,30 +183,32 @@ public class ApplicationDbContext(
 
     private static void SeedSystemConfigData(ModelBuilder builder)
     {
-        builder.Entity<SystemConfig>().HasData(
-            new SystemConfig
-            {
-                Id = 1,
-                Key = "MonthlyPayrollGeneration",
-                Value = "1",
-                Description = "Ngày tạo bảng lương hàng tháng",
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = "System",
-                UpdatedAt = DateTime.UtcNow,
-                UpdatedBy = "System",
-            },
-            new SystemConfig
-            {
-                Id = 2,
-                Key = "Holidays",
-                Value = "",
-                Description = "Chế độ nghỉ lễ của hệ thống",
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = "System",
-                UpdatedAt = DateTime.UtcNow,
-                UpdatedBy = "System",
-            }
-        );
+        builder
+            .Entity<SystemConfig>()
+            .HasData(
+                new SystemConfig
+                {
+                    Id = 1,
+                    Key = "MonthlyPayrollGeneration",
+                    Value = "1",
+                    Description = "Ngày tạo bảng lương hàng tháng",
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = "System",
+                    UpdatedAt = DateTime.UtcNow,
+                    UpdatedBy = "System",
+                },
+                new SystemConfig
+                {
+                    Id = 2,
+                    Key = "Holidays",
+                    Value = "",
+                    Description = "Chế độ nghỉ lễ của hệ thống",
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = "System",
+                    UpdatedAt = DateTime.UtcNow,
+                    UpdatedBy = "System",
+                }
+            );
     }
 
     private static void SeedAdministratorUser(ModelBuilder builder)

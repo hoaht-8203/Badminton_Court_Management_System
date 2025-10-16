@@ -6,6 +6,8 @@ public static class BookingCourtStatus
     public const string Active = "Active";
     public const string Cancelled = "Cancelled"; // Khi đặt sân thành công nhưng bị hủy
     public const string Completed = "Completed";
+    public const string CheckedIn = "CheckedIn"; // Khách đã đến và nhận sân
+    public const string NoShow = "NoShow"; // Khách không đến, mất cọc
 
     public static readonly string[] ValidCustomerStatus =
     [
@@ -13,5 +15,7 @@ public static class BookingCourtStatus
         Active,
         Cancelled,
         Completed,
+        CheckedIn,
+        NoShow,
     ];
 }

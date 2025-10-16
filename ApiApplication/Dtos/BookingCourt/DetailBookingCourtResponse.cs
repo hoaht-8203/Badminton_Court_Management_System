@@ -34,4 +34,10 @@ public class DetailBookingCourtResponse
     public string? QrUrl { get; set; }
     public int? HoldMinutes { get; set; }
     public DateTime? ExpiresAtUtc { get; set; }
+
+    // Late info (for cashier UI)
+    public int OverdueMinutes { get; set; }
+    public decimal OverdueHours { get; set; }
+    public decimal SurchargeAmount { get; set; }
+    public decimal LateFeePercentage { get; set; } = 150m; // Default 150%
 }

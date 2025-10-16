@@ -12,6 +12,10 @@ public class ProductMappingProfile : Profile
             .ForMember(
                 dest => dest.Category,
                 opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null)
+            )
+            .ForMember(
+                dest => dest.Images,
+                opt => opt.MapFrom(src => src.Images ?? Array.Empty<string>())
             );
         CreateMap<Product, DetailProductResponse>()
             .ForMember(

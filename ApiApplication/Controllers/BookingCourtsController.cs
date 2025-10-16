@@ -145,4 +145,99 @@ public class BookingCourtsController(
             ApiResponse<bool>.SuccessResponse(ok, ok ? "Huỷ lịch thành công" : "Huỷ lịch thất bại")
         );
     }
+
+    [HttpPost("checkin")]
+    public async Task<ActionResult<ApiResponse<bool>>> CheckIn(
+        [FromBody] CheckInBookingCourtRequest request
+    )
+    {
+        var ok = await _service.CheckInAsync(request);
+        return Ok(
+            ApiResponse<bool>.SuccessResponse(ok, ok ? "Check-in thành công" : "Check-in thất bại")
+        );
+    }
+
+    [HttpPost("checkout")]
+    public async Task<ActionResult<ApiResponse<bool>>> CheckOut(
+        [FromBody] CheckOutBookingCourtRequest request
+    )
+    {
+        var ok = await _service.CheckOutAsync(request);
+        return Ok(
+            ApiResponse<bool>.SuccessResponse(
+                ok,
+                ok ? "Check-out thành công" : "Check-out thất bại"
+            )
+        );
+    }
+
+    [HttpPost("noshow")]
+    public async Task<ActionResult<ApiResponse<bool>>> NoShow(
+        [FromBody] NoShowBookingCourtRequest request
+    )
+    {
+        var ok = await _service.MarkNoShowAsync(request);
+        return Ok(
+            ApiResponse<bool>.SuccessResponse(
+                ok,
+                ok ? "Đánh dấu no-show thành công" : "Đánh dấu no-show thất bại"
+            )
+        );
+    }
+
+    [HttpPost("checkout/estimate")]
+    public async Task<ActionResult<ApiResponse<CheckoutEstimateResponse>>> EstimateCheckout(
+        [FromBody] CheckoutEstimateRequest request
+    )
+    {
+        var result = await _service.EstimateCheckoutAsync(request);
+        return Ok(
+            ApiResponse<CheckoutEstimateResponse>.SuccessResponse(
+                result,
+                "Tính toán checkout thành công"
+            )
+        );
+    }
+
+    [HttpPost("order/add-item")]
+    public async Task<ActionResult<ApiResponse<bool>>> AddOrderItem(
+        [FromBody] AddOrderItemRequest request
+    )
+    {
+        var ok = await _service.AddOrderItemAsync(request);
+        return Ok(
+            ApiResponse<bool>.SuccessResponse(
+                ok,
+                ok ? "Lưu tạm món thành công" : "Lưu tạm thất bại"
+            )
+        );
+    }
+
+    [HttpGet("order/list")]
+    public async Task<ActionResult<ApiResponse<List<BookingOrderItemResponse>>>> ListOrderItems(
+        [FromQuery] Guid bookingId
+    )
+    {
+        var items = await _service.ListOrderItemsAsync(bookingId);
+        return Ok(
+            ApiResponse<List<BookingOrderItemResponse>>.SuccessResponse(
+                items,
+                "Lấy danh sách món tạm thành công"
+            )
+        );
+    }
+
+    [HttpPost("order/update-item")]
+    public async Task<ActionResult<ApiResponse<bool>>> UpdateOrderItem(
+        [FromBody] UpdateOrderItemRequest request
+    )
+    {
+        var ok = await _service.UpdateOrderItemAsync(request);
+        return Ok(
+            ApiResponse<bool>.SuccessResponse(
+                ok,
+                ok ? "Cập nhật món thành công" : "Cập nhật món thất bại"
+            )
+        );
+    }
 }

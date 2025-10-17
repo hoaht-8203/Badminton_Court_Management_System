@@ -3,6 +3,7 @@ using System;
 using ApiApplication.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251016073545_addCashFlow")]
+    partial class addCashFlow
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -396,6 +399,9 @@ namespace ApiApplication.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool>("IsPayment")
                         .HasColumnType("boolean");
 
@@ -409,12 +415,6 @@ namespace ApiApplication.Migrations
                     b.Property<string>("ReferenceNumber")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<int?>("RelatedId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("RelatedPerson")
-                        .HasColumnType("text");
 
                     b.Property<int?>("RelatedPersonId")
                         .HasColumnType("integer");
@@ -439,6 +439,8 @@ namespace ApiApplication.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CashflowTypeId");
+
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("RelatedPersonId");
 
@@ -495,86 +497,6 @@ namespace ApiApplication.Migrations
                         .IsUnique();
 
                     b.ToTable("CashflowTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Code = "TTM",
-                            CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Description = "Thu nhập khác",
-                            IsActive = true,
-                            IsPayment = false,
-                            Name = "Thu nhập khác",
-                            UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            UpdatedBy = "System"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Code = "CTM",
-                            CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Description = "Chi phí khác",
-                            IsActive = true,
-                            IsPayment = true,
-                            Name = "Chi phí khác",
-                            UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            UpdatedBy = "System"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Code = "TTTS",
-                            CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Description = "Thu từ khách hàng thuê sân cầu lông",
-                            IsActive = true,
-                            IsPayment = false,
-                            Name = "Thu tiền thuê sân",
-                            UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            UpdatedBy = "System"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Code = "TTBH",
-                            CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Description = "Thu tiền từ việc bán hàng hóa, đồ uống",
-                            IsActive = true,
-                            IsPayment = false,
-                            Name = "Thu tiền bán hàng",
-                            UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            UpdatedBy = "System"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Code = "CMHH",
-                            CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Description = "Chi để nhập hàng hóa, vật tư",
-                            IsActive = true,
-                            IsPayment = true,
-                            Name = "Chi mua hàng hóa",
-                            UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            UpdatedBy = "System"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Code = "CLNV",
-                            CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Description = "Chi trả lương cho nhân viên",
-                            IsActive = true,
-                            IsPayment = true,
-                            Name = "Chi lương nhân viên",
-                            UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            UpdatedBy = "System"
-                        });
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Category", b =>
@@ -1914,11 +1836,20 @@ namespace ApiApplication.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ApiApplication.Entities.RelatedPerson", null)
+                    b.HasOne("ApiApplication.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
+                    b.HasOne("ApiApplication.Entities.RelatedPerson", "RelatedPerson")
                         .WithMany("Cashflows")
-                        .HasForeignKey("RelatedPersonId");
+                        .HasForeignKey("RelatedPersonId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("CashflowType");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("RelatedPerson");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Court", b =>

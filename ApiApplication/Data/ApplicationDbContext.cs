@@ -46,6 +46,9 @@ public class ApplicationDbContext(
     public DbSet<PriceTable> PriceTables { get; set; }
     public DbSet<PriceTimeRange> PriceTimeRanges { get; set; }
     public DbSet<PriceTableProduct> PriceTableProducts { get; set; }
+    public DbSet<Cashflow> Cashflows { get; set; }
+    public DbSet<CashflowType> CashflowTypes { get; set; }
+    public DbSet<RelatedPerson> RelatedPeople { get; set; }
 
     public DbSet<InventoryCheck> InventoryChecks { get; set; }
     public DbSet<InventoryCheckItem> InventoryCheckItems { get; set; }
@@ -103,6 +106,25 @@ public class ApplicationDbContext(
             entity.HasOne(x => x.PriceTable).WithMany(p => p.PriceTableProducts).HasForeignKey(x => x.PriceTableId);
             entity.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId);
             entity.Property(x => x.OverrideSalePrice).HasColumnType("decimal(18,2)");
+        });
+
+        // Cashflow mappings
+        builder.Entity<CashflowType>(entity =>
+        {
+            entity.HasIndex(x => x.Code).IsUnique();
+            entity.Property(x => x.Name).HasMaxLength(100);
+            entity.Property(x => x.Code).HasMaxLength(20);
+        });
+
+        builder.Entity<Cashflow>(entity =>
+        {
+            entity.Property(x => x.Value).HasColumnType("decimal(18,2)");
+            entity.HasIndex(x => x.Time);
+            entity.HasIndex(x => x.Status);
+            entity.HasOne(x => x.CashflowType)
+                .WithMany(t => t.Cashflows)
+                .HasForeignKey(x => x.CashflowTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Inventory check mappings
@@ -165,6 +187,7 @@ public class ApplicationDbContext(
         SeedCustomerData(builder);
         SeedSupplierData(builder);
         SeedCategoryData(builder);
+        SeedCashflowTypeData(builder);
     }
 
     private static void SeedAdministratorUser(ModelBuilder builder)
@@ -370,6 +393,89 @@ public class ApplicationDbContext(
                     UpdatedBy = "System"
                 }
             );
+    }
+    private static void SeedCashflowTypeData(ModelBuilder builder)
+    {
+        builder.Entity<CashflowType>().HasData(
+            new CashflowType
+            {
+                Id = 1,
+                Name = "Thu nhập khác",
+                Code = "TTM",
+                IsPayment = false,
+                Description = "Thu nhập khác",
+                IsActive = true,
+                CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, DateTimeKind.Utc),
+                CreatedBy = "System",
+                UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, DateTimeKind.Utc),
+                UpdatedBy = "System"
+            },
+            new CashflowType
+            {
+                Id = 2,
+                Name = "Chi phí khác",
+                Code = "CTM",
+                IsPayment = true,
+                Description = "Chi phí khác",
+                IsActive = true,
+                CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, DateTimeKind.Utc),
+                CreatedBy = "System",
+                UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, DateTimeKind.Utc),
+                UpdatedBy = "System"
+            },
+            new CashflowType
+            {
+                Id = 3,
+                Name = "Thu tiền thuê sân",
+                Code = "TTTS",
+                IsPayment = false,
+                Description = "Thu từ khách hàng thuê sân cầu lông",
+                IsActive = true,
+                CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, DateTimeKind.Utc),
+                CreatedBy = "System",
+                UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, DateTimeKind.Utc),
+                UpdatedBy = "System"
+            },
+            new CashflowType
+            {
+                Id = 4,
+                Name = "Thu tiền bán hàng",
+                Code = "TTBH",
+                IsPayment = false,
+                Description = "Thu tiền từ việc bán hàng hóa, đồ uống",
+                IsActive = true,
+                CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, DateTimeKind.Utc),
+                CreatedBy = "System",
+                UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, DateTimeKind.Utc),
+                UpdatedBy = "System"
+            },
+            new CashflowType
+            {
+                Id = 5,
+                Name = "Chi mua hàng hóa",
+                Code = "CMHH",
+                IsPayment = true,
+                Description = "Chi để nhập hàng hóa, vật tư",
+                IsActive = true,
+                CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, DateTimeKind.Utc),
+                CreatedBy = "System",
+                UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, DateTimeKind.Utc),
+                UpdatedBy = "System"
+            },
+            new CashflowType
+            {
+                Id = 6,
+                Name = "Chi lương nhân viên",
+                Code = "CLNV",
+                IsPayment = true,
+                Description = "Chi trả lương cho nhân viên",
+                IsActive = true,
+                CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, DateTimeKind.Utc),
+                CreatedBy = "System",
+                UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, DateTimeKind.Utc),
+                UpdatedBy = "System"
+            }
+        );
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

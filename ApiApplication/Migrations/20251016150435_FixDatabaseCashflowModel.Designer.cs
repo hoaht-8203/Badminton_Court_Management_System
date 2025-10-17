@@ -3,6 +3,7 @@ using System;
 using ApiApplication.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251016150435_FixDatabaseCashflowModel")]
+    partial class FixDatabaseCashflowModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -495,86 +498,6 @@ namespace ApiApplication.Migrations
                         .IsUnique();
 
                     b.ToTable("CashflowTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Code = "TTM",
-                            CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Description = "Thu nhập khác",
-                            IsActive = true,
-                            IsPayment = false,
-                            Name = "Thu nhập khác",
-                            UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            UpdatedBy = "System"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Code = "CTM",
-                            CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Description = "Chi phí khác",
-                            IsActive = true,
-                            IsPayment = true,
-                            Name = "Chi phí khác",
-                            UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            UpdatedBy = "System"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Code = "TTTS",
-                            CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Description = "Thu từ khách hàng thuê sân cầu lông",
-                            IsActive = true,
-                            IsPayment = false,
-                            Name = "Thu tiền thuê sân",
-                            UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            UpdatedBy = "System"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Code = "TTBH",
-                            CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Description = "Thu tiền từ việc bán hàng hóa, đồ uống",
-                            IsActive = true,
-                            IsPayment = false,
-                            Name = "Thu tiền bán hàng",
-                            UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            UpdatedBy = "System"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Code = "CMHH",
-                            CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Description = "Chi để nhập hàng hóa, vật tư",
-                            IsActive = true,
-                            IsPayment = true,
-                            Name = "Chi mua hàng hóa",
-                            UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            UpdatedBy = "System"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Code = "CLNV",
-                            CreatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "System",
-                            Description = "Chi trả lương cho nhân viên",
-                            IsActive = true,
-                            IsPayment = true,
-                            Name = "Chi lương nhân viên",
-                            UpdatedAt = new DateTime(2025, 10, 17, 9, 0, 0, 0, DateTimeKind.Utc),
-                            UpdatedBy = "System"
-                        });
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Category", b =>

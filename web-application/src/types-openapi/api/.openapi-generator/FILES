@@ -264,6 +264,8 @@ models/StockOutItem.ts
 models/StockOutStatus.ts
 models/StoreBankAccount.ts
 models/StoreBankAccountResponse.ts
+models/StoreBankAccountResponseApiResponse.ts
+models/StoreBankAccountResponseIEnumerableApiResponse.ts
 models/StringApiResponse.ts
 models/Supplier.ts
 models/SupplierBankAccount.ts

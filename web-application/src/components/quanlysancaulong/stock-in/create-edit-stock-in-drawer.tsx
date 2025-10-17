@@ -8,7 +8,6 @@ import dayjs from "dayjs";
 import { useAuth } from "@/context/AuthContext";
 import { useListSuppliers } from "@/hooks/useSuppliers";
 import { useListCategories } from "@/hooks/useCategories";
-import { axiosInstance } from "@/lib/axios";
 import { supplierBankAccountsService } from "@/services/supplierBankAccountsService";
 import { receiptsService } from "@/services/receiptsService";
 import { CreateReceiptRequest } from "@/types-openapi/api";
@@ -23,7 +22,6 @@ type StockInItem = {
   images?: string[];
 };
 
-type RecentItem = StockInItem & { action?: "search" | "edit" | "delete" };
 
 type SupplierBank = {
   id: string;
@@ -47,7 +45,6 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
 
   const isEdit = !!receiptId;
   const [items, setItems] = useState<StockInItem[]>([]);
-  const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   // Removed tab filters; always show all items
@@ -63,13 +60,17 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
   const [editingBank, setEditingBank] = useState<SupplierBank | null>(null);
   const [bankForm] = Form.useForm();
   const supplierId = Form.useWatch("supplierId", form);
+  
+  // Watch form values for bank info display
+  const supplierBankAccountNumber = Form.useWatch("supplierBankAccountNumber", form);
+  const supplierBankAccountName = Form.useWatch("supplierBankAccountName", form);
+  const supplierBankName = Form.useWatch("supplierBankName", form);
 
   useEffect(() => {
     if (!open) return;
     if (!isEdit) {
       form.resetFields();
       setItems([]);
-      setRecentItems([]);
       form.setFieldsValue({ date: dayjs() });
       return;
     }
@@ -103,7 +104,7 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
         message.error(e?.message || "Tải phiếu thất bại");
       }
     })();
-  }, [open, isEdit, form]);
+  }, [open, isEdit, form, receiptId]);
 
   // Load banks when modal opens and supplier selected
   useEffect(() => {
@@ -111,7 +112,8 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
       if (!bankModalOpen || !supplierId) return;
       try {
         const res = await supplierBankAccountsService.list({ supplierId: Number(supplierId) });
-        setBanks(res.data || []);
+        const data = res.data;
+        setBanks(Array.isArray(data) ? data : []);
       } catch {
         setBanks([]);
       }
@@ -207,14 +209,11 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
       images: p.images || [],
     };
     setItems(prev => (prev.some(x => x.productId === id) ? prev : [...prev, newItem]));
-    setRecentItems(prev => (prev.some(x => x.productId === id) ? prev : [...prev, { ...newItem, action: "search" }]));
   };
 
   const updateQuantity = (productId: number, q: number) => {
     const quantity = Math.max(0, Number(q) || 0);
     setItems(prev => prev.map(i => i.productId === productId ? { ...i, quantity, lineTotal: quantity * (i.costPrice ?? 0) } : i));
-    const item = items.find(x => x.productId === productId);
-    if (item) setRecentItems(prev => [...prev, { ...item, quantity, lineTotal: quantity * (item.costPrice ?? 0), action: "edit" }]);
   };
 
   const updateCost = (productId: number, c: number) => {
@@ -223,8 +222,6 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
   };
 
   const removeItem = (productId: number) => {
-    const item = items.find(x => x.productId === productId);
-    if (item) setRecentItems(prev => [...prev, { ...item, action: "delete" }]);
     setItems(prev => prev.filter(i => i.productId !== productId));
   };
 
@@ -235,10 +232,7 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
       okText: "Xóa tất cả",
       okButtonProps: { danger: true },
       cancelText: "Hủy",
-      onOk: () => {
-        setItems([]);
-        setRecentItems((prev) => prev.concat(items.map(i => ({ ...i, action: "delete" as const }))));
-      },
+      onOk: () => setItems([]),
     });
   };
 
@@ -282,6 +276,13 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
 
   const doSave = async (complete: boolean) => {
     const values = form.getFieldsValue();
+    
+    // Validate supplier selection
+    if (!values.supplierId) {
+      message.warning("Vui lòng chọn nhà cung cấp");
+      return;
+    }
+    
     if ((items || []).length === 0) {
       message.warning("Vui lòng thêm sản phẩm");
       return;
@@ -351,6 +352,13 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                 <Button type="default" onClick={async () => {
                   try {
                     const values = form.getFieldsValue();
+                    
+                    // Validate supplier selection
+                    if (!values.supplierId) {
+                      message.warning("Vui lòng chọn nhà cung cấp");
+                      return;
+                    }
+                    
                     const payload: CreateReceiptRequest = {
                       supplierId: Number(values.supplierId),
                       receiptTime: (values.date ? dayjs(values.date) : dayjs()).toISOString() as any,
@@ -378,16 +386,26 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                   } catch (e: any) { message.error(e?.message || "Lưu thất bại"); }
                 }} icon={<SaveOutlined />}>Lưu</Button>
                 <Button type="primary" onClick={async () => {
-                  Modal.confirm({
-                    title: "Xác nhận hoàn thành",
-                    content: "Bạn có chắc chắn muốn hoàn thành phiếu nhập?",
-                    okText: "Hoàn thành",
-                    cancelText: "Đóng",
-                    onOk: async () => {
-                      try { await receiptsService.complete(Number(receiptId)); message.success("Đã hoàn thành phiếu"); try { onChanged?.(); } catch {} onClose(); }
-                      catch (e: any) { message.error(e?.message || "Hoàn thành thất bại"); }
+                  try {
+                    const values = form.getFieldsValue();
+                    
+                    // Validate supplier selection
+                    if (!values.supplierId) {
+                      message.warning("Vui lòng chọn nhà cung cấp");
+                      return;
                     }
-                  });
+                    
+                    Modal.confirm({
+                      title: "Xác nhận hoàn thành",
+                      content: "Bạn có chắc chắn muốn hoàn thành phiếu nhập?",
+                      okText: "Hoàn thành",
+                      cancelText: "Đóng",
+                      onOk: async () => {
+                        try { await receiptsService.complete(Number(receiptId)); message.success("Đã hoàn thành phiếu"); try { onChanged?.(); } catch {} onClose(); }
+                        catch (e: any) { message.error(e?.message || "Hoàn thành thất bại"); }
+                      }
+                    });
+                  } catch (e: any) { message.error(e?.message || "Hoàn thành thất bại"); }
                 }} icon={<SaveOutlined />}>Hoàn thành</Button>
               </>
             )}
@@ -523,7 +541,15 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                       Chuyển khoản
                     </Button>
                   </div>
-                  {paymentMethod === "transfer" && null}
+                  {paymentMethod === "transfer" && supplierBankAccountNumber && (
+                    <div className="mt-2 p-2 bg-blue-50 rounded border">
+                      <div className="text-sm text-gray-600">Thông tin ngân hàng đã chọn:</div>
+                      <div className="text-sm font-medium">
+                        {supplierBankAccountNumber} - {supplierBankAccountName}
+                      </div>
+                      <div className="text-sm text-gray-500">{supplierBankName}</div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Tính vào công nợ</span>
@@ -567,11 +593,14 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                   await supplierBankAccountsService.create(payload as any);
                 }
                 const res = await supplierBankAccountsService.list({ supplierId: Number(supplierId) });
-                setBanks(res.data || []);
+                const data = res.data;
+                setBanks(Array.isArray(data) ? data : []);
                 setEditingBank(null);
                 message.success(editingBank ? "Đã cập nhật ngân hàng" : "Đã thêm ngân hàng");
               } catch (e: any) {
-                message.error(e?.message || "Lưu ngân hàng thất bại");
+                // Handle backend validation errors
+                const errorMessage = e?.response?.data?.message || e?.message || "Lưu ngân hàng thất bại";
+                message.error(errorMessage);
               }
             }}
           >
@@ -632,9 +661,11 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                     try {
                       await supplierBankAccountsService.delete(Number(r.id));
                       const res = await supplierBankAccountsService.list({ supplierId: Number(supplierId) });
-                      setBanks(res.data || []);
+                      const data = res.data;
+                      setBanks(Array.isArray(data) ? data : []);
                     } catch (e: any) {
-                      message.error(e?.message || "Xóa thất bại");
+                      const errorMessage = e?.response?.data?.message || e?.message || "Xóa thất bại";
+                      message.error(errorMessage);
                     }
                   }}>Xóa</Button>
                 </Space>

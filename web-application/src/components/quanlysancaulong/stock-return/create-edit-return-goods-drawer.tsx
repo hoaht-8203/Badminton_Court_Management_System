@@ -20,7 +20,7 @@ import {
   List,
   Image,
 } from "antd";
-import { CreditCardOutlined, SaveOutlined, CloseOutlined, PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import { CreditCardOutlined, SaveOutlined, CloseOutlined, SearchOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useAuth } from "@/context/AuthContext";
 import { useListSuppliers } from "@/hooks/useSuppliers";
@@ -63,6 +63,11 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
   const [banks, setBanks] = useState<any[]>([]);
   const [editingBank, setEditingBank] = useState<any | null>(null);
   const [bankForm] = Form.useForm();
+  
+  // Watch form values for bank info display
+  const storeBankAccountNumber = Form.useWatch("storeBankAccountNumber", form);
+  const storeBankAccountName = Form.useWatch("storeBankAccountName", form);
+  const storeBankName = Form.useWatch("storeBankName", form);
 
   // Categories filter
   const { data: categoriesData } = useListCategories({});
@@ -125,8 +130,10 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
     (async () => {
       try {
         const res = await storeBankAccountsService.list();
-        setBanks((res as any)?.data ?? []);
-      } catch {
+        const data = (res as any)?.data;
+        setBanks(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Error loading store bank accounts:', error);
         setBanks([]);
       }
     })();
@@ -222,32 +229,32 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
     return { itemsTotal, needPay, debt, totalQuantity };
   }, [items, discount, supplierPaid]);
 
-  const addProductByQuery = async () => {
-    const q = query.trim();
-    if (!q) return;
-    try {
-      const svc = await import("@/services/productService");
-      const res = await svc.productService.list({ name: q } as any);
-      const list: any[] = (res as any)?.data || [];
-      const p = list[0];
-      if (!p) {
-        message.info("Không tìm thấy sản phẩm");
-        return;
-      }
-      let cost = 0;
-      try {
-        const d = await svc.productService.detail({ id: p.id } as any);
-        cost = (d as any)?.data?.costPrice ?? 0;
-      } catch {}
-      const exist = items.some((x) => x.productId === p.id);
-      if (exist) return;
-      setItems((prev) =>
-        prev.concat([
-          { productId: p.id, code: p.code || String(p.id), name: p.name, quantity: 1, importPrice: cost, returnPrice: cost, lineTotal: cost },
-        ]),
-      );
-    } catch {}
-  };
+  // const addProductByQuery = async () => {
+  //   const q = query.trim();
+  //   if (!q) return;
+  //   try {
+  //     const svc = await import("@/services/productService");
+  //     const res = await svc.productService.list({ name: q } as any);
+  //     const list: any[] = (res as any)?.data || [];
+  //     const p = list[0];
+  //     if (!p) {
+  //       message.info("Không tìm thấy sản phẩm");
+  //       return;
+  //     }
+  //     let cost = 0;
+  //     try {
+  //       const d = await svc.productService.detail({ id: p.id } as any);
+  //       cost = (d as any)?.data?.costPrice ?? 0;
+  //     } catch {}
+  //     const exist = items.some((x) => x.productId === p.id);
+  //     if (exist) return;
+  //     setItems((prev) =>
+  //       prev.concat([
+  //         { productId: p.id, code: p.code || String(p.id), name: p.name, quantity: 1, importPrice: cost, returnPrice: cost, lineTotal: cost },
+  //       ]),
+  //     );
+  //   } catch {}
+  // };
 
   const updateQuantity = (productId: number, q: number) => {
     const quantity = Math.max(0, Number(q) || 0);
@@ -302,6 +309,12 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
   const doSave = async (complete: boolean) => {
     try {
       const values = form.getFieldsValue();
+
+      // Validate supplier selection
+      if (!values.supplierId) {
+        message.warning("Vui lòng chọn nhà cung cấp");
+        return;
+      }
 
       if (complete && isEdit && returnGoodsId) {
         // Sử dụng API complete riêng biệt cho edit mode
@@ -455,6 +468,15 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
     >
       <Form form={form} layout="vertical" initialValues={{ date: dayjs() }}>
         <Form.Item name="storeBankAccountId" hidden>
+          <Input />
+        </Form.Item>
+        <Form.Item name="storeBankAccountNumber" hidden>
+          <Input />
+        </Form.Item>
+        <Form.Item name="storeBankAccountName" hidden>
+          <Input />
+        </Form.Item>
+        <Form.Item name="storeBankName" hidden>
           <Input />
         </Form.Item>
         <Row gutter={16}>
@@ -641,6 +663,15 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                       Chuyển khoản
                     </Button>
                   </div>
+                  {paymentMethod === "transfer" && storeBankAccountNumber && (
+                    <div className="mt-2 p-2 bg-blue-50 rounded border">
+                      <div className="text-sm text-gray-600">Thông tin ngân hàng đã chọn:</div>
+                      <div className="text-sm font-medium">
+                        {storeBankAccountNumber} - {storeBankAccountName}
+                      </div>
+                      <div className="text-sm text-gray-500">{storeBankName}</div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Tính vào công nợ</span>
@@ -677,11 +708,14 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                   await storeBankAccountsService.create(vals);
                 }
                 const res = await storeBankAccountsService.list();
-                setBanks((res as any)?.data ?? []);
+                const data = (res as any)?.data;
+                setBanks(Array.isArray(data) ? data : []);
                 setEditingBank(null);
                 message.success(editingBank ? "Đã cập nhật tài khoản" : "Đã thêm tài khoản");
               } catch (e: any) {
-                message.error(e?.message || "Lưu tài khoản thất bại");
+                // Handle backend validation errors
+                const errorMessage = e?.response?.data?.message || e?.message || "Lưu tài khoản thất bại";
+                message.error(errorMessage);
               }
             }}
           >
@@ -731,7 +765,12 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                   <Button
                     size="small"
                     onClick={() => {
-                      form.setFieldsValue({ storeBankAccountId: r.id });
+                      form.setFieldsValue({ 
+                        storeBankAccountId: r.id,
+                        storeBankAccountNumber: r.accountNumber,
+                        storeBankAccountName: r.accountName,
+                        storeBankName: r.bankName
+                      });
                       setBankModalOpen(false);
                       message.success("Đã chọn tài khoản");
                     }}
@@ -748,9 +787,11 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                       try {
                         await storeBankAccountsService.delete(Number(r.id));
                         const res = await storeBankAccountsService.list();
-                        setBanks((res as any)?.data ?? []);
+                        const data = (res as any)?.data;
+                        setBanks(Array.isArray(data) ? data : []);
                       } catch (e: any) {
-                        message.error(e?.message || "Xóa thất bại");
+                        const errorMessage = e?.response?.data?.message || e?.message || "Xóa thất bại";
+                        message.error(errorMessage);
                       }
                     }}
                   >

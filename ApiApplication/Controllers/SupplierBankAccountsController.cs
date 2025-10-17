@@ -12,7 +12,7 @@ public class SupplierBankAccountsController(ISupplierBankAccountService service)
 {
     private readonly ISupplierBankAccountService _service = service;
 
-    // DTO moved to Dtos/SupplierBankAccount/UpsertBankAccountRequest.cs
+    
 
     [HttpGet("list")] 
     public async Task<ActionResult<ApiResponse<List<SupplierBankAccount>>>> List([FromQuery] int supplierId)
@@ -24,6 +24,13 @@ public class SupplierBankAccountsController(ISupplierBankAccountService service)
     [HttpPost]
     public async Task<ActionResult<ApiResponse<int>>> Create([FromBody] UpsertBankAccountRequest req)
     {
+        // Check if account number already exists for this supplier
+        var existingAccounts = await _service.ListAsync(req.SupplierId);
+        if (existingAccounts.Any(x => x.AccountNumber == req.AccountNumber))
+        {
+            return BadRequest(ApiResponse<int>.ErrorResponse("Số tài khoản đã tồn tại cho nhà cung cấp này"));
+        }
+
         var id = await _service.CreateAsync(req);
         return Ok(ApiResponse<int>.SuccessResponse(id, "Tạo ngân hàng thành công"));
     }
@@ -31,6 +38,13 @@ public class SupplierBankAccountsController(ISupplierBankAccountService service)
     [HttpPut("{id}")]
     public async Task<ActionResult<ApiResponse<string>>> Update(int id, [FromBody] UpsertBankAccountRequest req)
     {
+        // Check if account number already exists for this supplier (excluding current record)
+        var existingAccounts = await _service.ListAsync(req.SupplierId);
+        if (existingAccounts.Any(x => x.AccountNumber == req.AccountNumber && x.Id != id))
+        {
+            return BadRequest(ApiResponse<string>.ErrorResponse("Số tài khoản đã tồn tại cho nhà cung cấp này"));
+        }
+
         await _service.UpdateAsync(id, req);
         return Ok(ApiResponse<string>.SuccessResponse("OK"));
     }

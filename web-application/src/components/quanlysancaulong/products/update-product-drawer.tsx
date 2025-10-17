@@ -32,7 +32,7 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
 
   const onSubmit = (values: UpdateProductRequest) => {
     // Ensure not to accidentally change active status; backend has a dedicated endpoint
-    const { isActive, ...rest } = values as any;
+    const { ...rest } = values as any;
     updateMutation.mutate(rest as UpdateProductRequest, {
       onSuccess: async () => {
         message.success("Cập nhật hàng hóa thành công");

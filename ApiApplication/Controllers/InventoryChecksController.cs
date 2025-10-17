@@ -118,4 +118,11 @@ public class InventoryChecksController(IInventoryCheckService inventoryCheckServ
             )
         );
     }
+
+    [HttpGet("debug/latest")]
+    public async Task<ActionResult<ApiResponse<object?>>> GetLatestInventoryChecks()
+    {
+        var result = await _inventoryCheckService.ListAsync(new ListInventoryCheckRequest());
+        return Ok(ApiResponse<object?>.SuccessResponse(result, "Lấy danh sách phiếu kiểm kê gần nhất"));
+    }
 }

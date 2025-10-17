@@ -236,6 +236,8 @@ export * from './StockOutItem';
 export * from './StockOutStatus';
 export * from './StoreBankAccount';
 export * from './StoreBankAccountResponse';
+export * from './StoreBankAccountResponseApiResponse';
+export * from './StoreBankAccountResponseIEnumerableApiResponse';
 export * from './StringApiResponse';
 export * from './Supplier';
 export * from './SupplierBankAccount';

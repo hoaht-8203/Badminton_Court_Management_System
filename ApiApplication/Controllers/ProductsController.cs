@@ -7,9 +7,9 @@ namespace ApiApplication.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductsController(IProductService productService) : ControllerBase
-    {
-        private readonly IProductService _productService = productService;
+public class ProductsController(IProductService productService) : ControllerBase
+{
+    private readonly IProductService _productService = productService;
 
         [HttpGet("list")]
         public async Task<ActionResult<ApiResponse<List<ListProductResponse>>>> List(
@@ -99,6 +99,9 @@ namespace ApiApplication.Controllers
         )
         {
             var count = await _productService.CheckLowStockAndCreateInventoryChecksAsync(branch);
+            if (count > 0)
+            {
+            }
             return Ok(
                 ApiResponse<object>.SuccessResponse(
                     new { count },

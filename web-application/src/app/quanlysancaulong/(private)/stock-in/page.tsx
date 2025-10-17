@@ -125,7 +125,6 @@ const StockInPage = () => {
       setProductMatchIds(matched);
     };
     run();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedProduct, data, filters.supplierId, resolvedRange, filters.statuses]);
 
   const onCreate = () => { setEditingId(null); setOpen(true); };
@@ -222,12 +221,10 @@ export default StockInPage;
 
 const ReceiptRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdit: () => void; onCancelled: () => void }) => {
   const [detail, setDetail] = React.useState<any | null>(null);
-  const [loading, setLoading] = React.useState(false);
   React.useEffect(() => {
     const run = async () => {
-      try { setLoading(true); const res = await receiptsService.detail(record.id); setDetail(res.data); }
+      try { const res = await receiptsService.detail(record.id); setDetail(res.data); }
       catch { setDetail(null); }
-      finally { setLoading(false); }
     };
     run();
   }, [record?.id]);

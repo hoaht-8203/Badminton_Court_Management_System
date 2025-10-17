@@ -21,6 +21,30 @@ import { mapValues } from '../runtime';
 export interface StoreBankAccount {
     /**
      * 
+     * @type {Date}
+     * @memberof StoreBankAccount
+     */
+    createdAt?: Date;
+    /**
+     * 
+     * @type {Date}
+     * @memberof StoreBankAccount
+     */
+    updatedAt?: Date | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof StoreBankAccount
+     */
+    createdBy?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof StoreBankAccount
+     */
+    updatedBy?: string | null;
+    /**
+     * 
      * @type {number}
      * @memberof StoreBankAccount
      */
@@ -49,24 +73,6 @@ export interface StoreBankAccount {
      * @memberof StoreBankAccount
      */
     isDefault?: boolean;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof StoreBankAccount
-     */
-    isActive?: boolean;
-    /**
-     * 
-     * @type {Date}
-     * @memberof StoreBankAccount
-     */
-    createdAt?: Date;
-    /**
-     * 
-     * @type {Date}
-     * @memberof StoreBankAccount
-     */
-    updatedAt?: Date | null;
 }
 
 /**
@@ -89,14 +95,15 @@ export function StoreBankAccountFromJSONTyped(json: any, ignoreDiscriminator: bo
     }
     return {
         
+        'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
+        'updatedAt': json['updatedAt'] == null ? undefined : (new Date(json['updatedAt'])),
+        'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
+        'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
         'id': json['id'] == null ? undefined : json['id'],
         'bankName': json['bankName'],
         'accountNumber': json['accountNumber'],
         'accountName': json['accountName'],
         'isDefault': json['isDefault'] == null ? undefined : json['isDefault'],
-        'isActive': json['isActive'] == null ? undefined : json['isActive'],
-        'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
-        'updatedAt': json['updatedAt'] == null ? undefined : (new Date(json['updatedAt'])),
     };
 }
 
@@ -111,14 +118,15 @@ export function StoreBankAccountToJSONTyped(value?: StoreBankAccount | null, ign
 
     return {
         
+        'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
+        'updatedAt': value['updatedAt'] === null ? null : ((value['updatedAt'] as any)?.toISOString()),
+        'createdBy': value['createdBy'],
+        'updatedBy': value['updatedBy'],
         'id': value['id'],
         'bankName': value['bankName'],
         'accountNumber': value['accountNumber'],
         'accountName': value['accountName'],
         'isDefault': value['isDefault'],
-        'isActive': value['isActive'],
-        'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
-        'updatedAt': value['updatedAt'] === null ? null : ((value['updatedAt'] as any)?.toISOString()),
     };
 }
 

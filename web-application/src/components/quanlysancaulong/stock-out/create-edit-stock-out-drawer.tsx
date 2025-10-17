@@ -22,7 +22,6 @@ type StockOutItem = {
   images?: string[];
 };
 
-type RecentItem = StockOutItem & { action?: "search" | "edit" | "delete" };
 
 interface Props {
   open: boolean;
@@ -39,7 +38,6 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
 
   const isEdit = !!stockOutId;
   const [items, setItems] = useState<StockOutItem[]>([]);
-  const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
@@ -52,7 +50,6 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
     if (!isEdit) {
       form.resetFields();
       setItems([]);
-      setRecentItems([]);
       form.setFieldsValue({ 
         outTime: dayjs(),
         outBy: user?.fullName || user?.userName || user?.email || "Người dùng"
@@ -85,7 +82,7 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
         message.error(e?.message || "Tải phiếu thất bại");
       }
     })();
-  }, [open, isEdit, form]);
+  }, [open, isEdit, form, stockOutId, user?.email, user?.fullName, user?.userName]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query.trim()), 120);
@@ -161,14 +158,11 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       images: p.images || [],
     };
     setItems(prev => (prev.some(x => x.productId === id) ? prev : [...prev, newItem]));
-    setRecentItems(prev => (prev.some(x => x.productId === id) ? prev : [...prev, { ...newItem, action: "search" }]));
   };
 
   const updateQuantity = (productId: number, q: number) => {
     const quantity = Math.max(0, Number(q) || 0);
     setItems(prev => prev.map(i => i.productId === productId ? { ...i, quantity, lineTotal: quantity * (i.costPrice ?? 0) } : i));
-    const item = items.find(x => x.productId === productId);
-    if (item) setRecentItems(prev => [...prev, { ...item, quantity, lineTotal: quantity * (item.costPrice ?? 0), action: "edit" }]);
   };
 
   const updateCost = (productId: number, c: number) => {
@@ -181,8 +175,6 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
   };
 
   const removeItem = (productId: number) => {
-    const item = items.find(x => x.productId === productId);
-    if (item) setRecentItems(prev => [...prev, { ...item, action: "delete" }]);
     setItems(prev => prev.filter(i => i.productId !== productId));
   };
 
@@ -195,7 +187,6 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       cancelText: "Hủy",
       onOk: () => {
         setItems([]);
-        setRecentItems((prev) => prev.concat(items.map(i => ({ ...i, action: "delete" as const }))));
       },
     });
   };
@@ -246,6 +237,13 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
 
   const doSave = async (complete: boolean) => {
     const values = form.getFieldsValue();
+    
+    // Validate supplier selection
+    if (!values.supplierId) {
+      message.warning("Vui lòng chọn nhà cung cấp");
+      return;
+    }
+    
     if ((items || []).length === 0) {
       message.warning("Vui lòng thêm sản phẩm");
       return;

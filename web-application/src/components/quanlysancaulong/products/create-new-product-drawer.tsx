@@ -8,7 +8,7 @@ import { CreateProductRequest } from "@/types-openapi/api";
 import { Button, Checkbox, Col, Drawer, Form, Input, InputNumber, Row, Space, Upload, UploadFile, UploadProps, message, Select, Divider } from "antd";
 import { Tooltip } from "antd";
 import { InfoCircleOutlined, PlusOutlined } from "@ant-design/icons";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type CreateNewProductDrawerProps = {
   open: boolean;

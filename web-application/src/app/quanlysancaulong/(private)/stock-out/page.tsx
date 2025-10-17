@@ -197,12 +197,10 @@ export default StockOutPage;
 
 const StockOutRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdit: () => void; onCancelled: () => void }) => {
   const [detail, setDetail] = React.useState<any | null>(null);
-  const [loading, setLoading] = React.useState(false);
   React.useEffect(() => {
     const run = async () => {
-      try { setLoading(true); const res = await stockOutService.detail(record.id); setDetail(res.data); }
+      try { const res = await stockOutService.detail(record.id); setDetail(res.data); }
       catch { setDetail(null); }
-      finally { setLoading(false); }
     };
     run();
   }, [record?.id]);

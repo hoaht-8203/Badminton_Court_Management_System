@@ -213,8 +213,8 @@ public class PaymentService(
 
         // Calculate service costs
         var serviceCost = 0m;
-        var bookingServices = await _context.BookingServices
-            .Where(bs => bs.BookingId == booking.Id)
+        var bookingServices = await _context
+            .BookingServices.Where(bs => bs.BookingId == booking.Id)
             .ToListAsync();
 
         foreach (var bookingService in bookingServices)

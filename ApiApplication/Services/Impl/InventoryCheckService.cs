@@ -216,7 +216,21 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
             var product = products.FirstOrDefault(p => p.Id == item.ProductId);
             if (product != null)
             {
+                var previous = product.Stock;
                 product.Stock = item.ActualQuantity;
+                // Write inventory card
+                _context.InventoryCards.Add(
+                    new InventoryCard
+                    {
+                        ProductId = product.Id,
+                        Code = await GenerateNextInventoryCardCodeAsync(),
+                        Method = "Kiểm hàng",
+                        OccurredAt = DateTime.UtcNow,
+                        CostPrice = product.CostPrice,
+                        QuantityChange = item.ActualQuantity - previous,
+                        EndingStock = product.Stock,
+                    }
+                );
             }
         }
 
@@ -293,7 +307,21 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
             var product = products.FirstOrDefault(p => p.Id == item.ProductId);
             if (product != null)
             {
+                var previous = product.Stock;
                 product.Stock = item.ActualQuantity;
+                // Write inventory card
+                _context.InventoryCards.Add(
+                    new InventoryCard
+                    {
+                        ProductId = product.Id,
+                        Code = await GenerateNextInventoryCardCodeAsync(),
+                        Method = "Hoàn thành kiểm kho",
+                        OccurredAt = DateTime.UtcNow,
+                        CostPrice = product.CostPrice,
+                        QuantityChange = item.ActualQuantity - previous,
+                        EndingStock = product.Stock,
+                    }
+                );
             }
         }
 
@@ -401,5 +429,23 @@ public class InventoryCheckService(ApplicationDbContext context, IMapper mapper)
 
         await _context.SaveChangesAsync();
         return mergedCheck.Id;
+    }
+
+    private async Task<string> GenerateNextInventoryCardCodeAsync()
+    {
+        var last = await _context
+            .InventoryCards.OrderByDescending(x => x.Id)
+            .Select(x => x.Code)
+            .FirstOrDefaultAsync();
+        if (string.IsNullOrWhiteSpace(last) || last.Length < 2)
+        {
+            return "TC000001";
+        }
+        var numberPart = new string(last.Skip(2).ToArray());
+        if (!int.TryParse(numberPart, out var num))
+        {
+            return "TC000001";
+        }
+        return $"TC{(num + 1).ToString("D6")}";
     }
 }

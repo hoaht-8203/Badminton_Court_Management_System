@@ -100,10 +100,10 @@ public class UserService(
         await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.Admin));
 
         //nếu có staffId thì gán userId cho staff
-        if(createAdministratorRequest.StaffId.HasValue)
+        if (createAdministratorRequest.StaffId.HasValue)
         {
             var staff = await _context.Staffs.FindAsync(createAdministratorRequest.StaffId.Value);
-            if(staff != null)
+            if (staff != null)
             {
                 staff.UserId = user.Id;
                 await _context.SaveChangesAsync();

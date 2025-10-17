@@ -99,6 +99,7 @@ namespace ApiApplication.Controllers
         )
         {
             var count = await _productService.CheckLowStockAndCreateInventoryChecksAsync(branch);
+            if (count > 0) { }
             return Ok(
                 ApiResponse<object>.SuccessResponse(
                     new { count },

@@ -35,6 +35,18 @@ const sideBarItems: MenuProps["items"] = [
         key: "/quanlysancaulong/inventory",
         label: "Kiểm kho",
       },
+      {
+        key: "/quanlysancaulong/stock-in",
+        label: "Nhập kho",
+      },
+      {
+        key: "/quanlysancaulong/stock-out",
+        label: "Xuất huỷ",
+      },
+      {
+        key: "/quanlysancaulong/stock-return",
+        label: "Trả hàng nhập",
+      },
     ],
   },
   {

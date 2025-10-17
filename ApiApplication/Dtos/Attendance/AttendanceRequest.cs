@@ -11,4 +11,3 @@ public class AttendanceRequest
     public TimeOnly? CheckOutTime { get; set; }
     public string? Notes { get; set; }
 }
-    

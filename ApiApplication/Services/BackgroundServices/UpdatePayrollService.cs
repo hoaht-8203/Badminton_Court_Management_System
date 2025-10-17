@@ -2,7 +2,4 @@ using System;
 
 namespace ApiApplication.Services.BackgroundServices;
 
-public class UpdatePayrollService
-{
-
-}
+public class UpdatePayrollService { }

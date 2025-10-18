@@ -4,53 +4,47 @@ using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Entities;
 
-public class Product : BaseEntity, IAuditableEntity
+public class Product : BaseEntity
 {
     [Key]
     public int Id { get; set; }
 
-    // General information
+
     [MaxLength(50)]
-    public string? Code { get; set; } // Mã hàng hóa (tự động có thể null khi tạo)
+    public string? Code { get; set; } 
 
     [Required]
     [MaxLength(255)]
-    public string Name { get; set; } = string.Empty; // Tên hàng
+    public required string Name { get; set; } 
 
     [MaxLength(100)]
-    public string? MenuType { get; set; } // Loại thực đơn (Đồ ăn/Đồ uống/Khác)
+    public string? MenuType { get; set; } 
 
-    // Category relationship
-    public int? CategoryId { get; set; } // Foreign key to Category
-    public virtual Category? Category { get; set; } // Navigation property
+
+    public int? CategoryId { get; set; } 
+    public virtual Category? Category { get; set; } 
 
     [MaxLength(150)]
-    public string? Position { get; set; } // Vị trí hiển thị
+    public string? Position { get; set; } 
 
-    // Pricing
-    public decimal CostPrice { get; set; } // Giá vốn
-    public decimal SalePrice { get; set; } // Giá bán
+    public decimal CostPrice { get; set; } 
+    public decimal SalePrice { get; set; } 
 
-    // Flags
-    public bool IsDirectSale { get; set; } = true; // Bán trực tiếp
-    public bool IsActive { get; set; } = true; // Trạng thái kinh doanh
+    public bool IsDirectSale { get; set; } = true;
+    public bool IsActive { get; set; } = true; 
 
-    // Inventory management
-    public bool ManageInventory { get; set; } = false; // Quản lý tồn kho
-    public int Stock { get; set; } = 0; // Tồn kho hiện tại
-    public int MinStock { get; set; } = 0; // Ít nhất
-    public int MaxStock { get; set; } = 0; // Nhiều nhất
+    public bool ManageInventory { get; set; } = false; 
+    public int Stock { get; set; } = 0; 
+    public int MinStock { get; set; } = 0; 
+    public int MaxStock { get; set; } = 0; 
 
-    // Details
-    public string? Description { get; set; } // Mô tả chi tiết (rich text)
-    public string? NoteTemplate { get; set; } // Mẫu ghi chú (hóa đơn, đặt hàng)
+    public string? Description { get; set; } 
+    public string? NoteTemplate { get; set; } 
 
-    // Media & attributes
-    public string[] Images { get; set; } = Array.Empty<string>(); // Danh sách ảnh
+    public string[] Images { get; set; } = Array.Empty<string>(); 
 
-    // Unit
     [MaxLength(50)]
-    public string? Unit { get; set; } // Đơn vị tính
+    public string? Unit { get; set; } 
 
     public virtual List<InventoryCard> InventoryCards { get; set; } = new();
 }

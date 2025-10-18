@@ -82,7 +82,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("UserName");
 
-                    b.ToTable("Activities");
+                    b.ToTable("Activities", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.ApplicationUser", b =>
@@ -238,7 +238,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ApplicationUserTokens");
+                    b.ToTable("ApplicationUserTokens", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.AttendanceRecord", b =>
@@ -268,7 +268,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("StaffId");
 
-                    b.ToTable("AttendanceRecords");
+                    b.ToTable("AttendanceRecords", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.BookingCourt", b =>
@@ -327,7 +327,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("BookingCourts");
+                    b.ToTable("BookingCourts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.BookingOrderItem", b =>
@@ -369,7 +369,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("BookingOrderItems");
+                    b.ToTable("BookingOrderItems", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.BookingService", b =>
@@ -422,7 +422,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("BookingServices");
+                    b.ToTable("BookingServices", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Branch", b =>
@@ -468,7 +468,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Branches");
+                    b.ToTable("Branches", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.CancelledShift", b =>
@@ -498,7 +498,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("StaffId");
 
-                    b.ToTable("CancelledShifts");
+                    b.ToTable("CancelledShifts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Category", b =>
@@ -530,7 +530,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
 
                     b.HasData(
                         new
@@ -610,7 +610,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("CourtAreaId");
 
-                    b.ToTable("Courts");
+                    b.ToTable("Courts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.CourtArea", b =>
@@ -639,7 +639,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CourtAreas");
+                    b.ToTable("CourtAreas", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.CourtPricingRuleTemplate", b =>
@@ -675,7 +675,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CourtPricingRuleTemplates");
+                    b.ToTable("CourtPricingRuleTemplates", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.CourtPricingRules", b =>
@@ -719,7 +719,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("CourtId");
 
-                    b.ToTable("CourtPricingRules");
+                    b.ToTable("CourtPricingRules", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Customer", b =>
@@ -787,7 +787,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
 
                     b.HasData(
                         new
@@ -878,59 +878,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Departments");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.InventoryCard", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<decimal>("CostPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int>("EndingStock")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Method")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("OccurredAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("QuantityChange")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.ToTable("InventoryCards");
+                    b.ToTable("Departments", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.InventoryCheck", b =>
@@ -958,9 +906,6 @@ namespace ApiApplication.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsAutoGenerated")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Note")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -976,7 +921,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("InventoryChecks");
+                    b.ToTable("InventoryChecks", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.InventoryCheckItem", b =>
@@ -1017,7 +962,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("InventoryCheckItems");
+                    b.ToTable("InventoryCheckItems", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Payment", b =>
@@ -1065,7 +1010,7 @@ namespace ApiApplication.Migrations
                     b.HasIndex("Id")
                         .IsUnique();
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Payroll", b =>
@@ -1113,7 +1058,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Payrolls");
+                    b.ToTable("Payrolls", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PayrollItem", b =>
@@ -1149,7 +1094,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("StaffId");
 
-                    b.ToTable("PayrollItems");
+                    b.ToTable("PayrollItems", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PriceTable", b =>
@@ -1188,7 +1133,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PriceTables");
+                    b.ToTable("PriceTables", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PriceTableProduct", b =>
@@ -1206,7 +1151,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("PriceTableProducts");
+                    b.ToTable("PriceTableProducts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PriceTimeRange", b =>
@@ -1230,7 +1175,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("PriceTableId");
 
-                    b.ToTable("PriceTimeRanges");
+                    b.ToTable("PriceTimeRanges", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Product", b =>
@@ -1319,215 +1264,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Products");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.Receipt", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("Discount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("PaymentAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
-
-                    b.Property<DateTime>("ReceiptTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("SupplierBankAccountName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("SupplierBankAccountNumber")
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("SupplierBankName")
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
-
-                    b.Property<int>("SupplierId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SupplierId");
-
-                    b.ToTable("Receipts");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.ReceiptItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("CostPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ReceiptId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("ReceiptId");
-
-                    b.ToTable("ReceiptItems");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.ReturnGoods", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<decimal>("Discount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<int>("PaymentMethod")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("ReturnBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("ReturnTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("StoreBankAccountId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("SupplierId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("SupplierNeedToPay")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("SupplierPaid")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("TotalValue")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StoreBankAccountId");
-
-                    b.HasIndex("SupplierId");
-
-                    b.ToTable("ReturnGoods");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.ReturnGoodsItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("Discount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("ImportPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("LineTotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ReturnGoodsId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("ReturnPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("ReturnGoodsId");
-
-                    b.ToTable("ReturnGoodsItems");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.SalaryForm", b =>
@@ -1554,7 +1291,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SalaryForms");
+                    b.ToTable("SalaryForms", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Schedule", b =>
@@ -1602,7 +1339,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("StaffId");
 
-                    b.ToTable("Schedules");
+                    b.ToTable("Schedules", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Service", b =>
@@ -1665,7 +1402,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Services");
+                    b.ToTable("Services", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Shift", b =>
@@ -1703,7 +1440,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Shifts");
+                    b.ToTable("Shifts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Staff", b =>
@@ -1775,133 +1512,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Staffs");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.StockOut", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<string>("OutBy")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("OutTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("SupplierId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("TotalValue")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SupplierId");
-
-                    b.ToTable("StockOuts");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.StockOutItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("CostPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("StockOutId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("StockOutId");
-
-                    b.ToTable("StockOutItems");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.StoreBankAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("BankName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsDefault")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("StoreBankAccounts");
+                    b.ToTable("Staffs", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Supplier", b =>
@@ -1957,7 +1568,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
 
                     b.HasData(
                         new
@@ -1988,54 +1599,6 @@ namespace ApiApplication.Migrations
                             Status = "Active",
                             Ward = ""
                         });
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.SupplierBankAccount", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<string>("BankName")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsDefault")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("SupplierId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SupplierId");
-
-                    b.ToTable("SupplierBankAccounts");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.SystemConfig", b =>
@@ -2074,28 +1637,28 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SystemConfigs");
+                    b.ToTable("SystemConfigs", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 17, 10, 51, 38, 134, DateTimeKind.Utc).AddTicks(2270),
+                            CreatedAt = new DateTime(2025, 10, 16, 9, 27, 40, 208, DateTimeKind.Utc).AddTicks(1970),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 10, 17, 10, 51, 38, 134, DateTimeKind.Utc).AddTicks(2270),
+                            UpdatedAt = new DateTime(2025, 10, 16, 9, 27, 40, 208, DateTimeKind.Utc).AddTicks(1970),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 10, 17, 10, 51, 38, 134, DateTimeKind.Utc).AddTicks(2270),
+                            CreatedAt = new DateTime(2025, 10, 16, 9, 27, 40, 208, DateTimeKind.Utc).AddTicks(1980),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 10, 17, 10, 51, 38, 134, DateTimeKind.Utc).AddTicks(2270),
+                            UpdatedAt = new DateTime(2025, 10, 16, 9, 27, 40, 208, DateTimeKind.Utc).AddTicks(1980),
                             UpdatedBy = "System",
                             Value = ""
                         });
@@ -2370,17 +1933,6 @@ namespace ApiApplication.Migrations
                     b.Navigation("Court");
                 });
 
-            modelBuilder.Entity("ApiApplication.Entities.InventoryCard", b =>
-                {
-                    b.HasOne("ApiApplication.Entities.Product", "Product")
-                        .WithMany("InventoryCards")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-                });
-
             modelBuilder.Entity("ApiApplication.Entities.InventoryCheckItem", b =>
                 {
                     b.HasOne("ApiApplication.Entities.InventoryCheck", "InventoryCheck")
@@ -2478,73 +2030,6 @@ namespace ApiApplication.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("ApiApplication.Entities.Receipt", b =>
-                {
-                    b.HasOne("ApiApplication.Entities.Supplier", "Supplier")
-                        .WithMany()
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Supplier");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.ReceiptItem", b =>
-                {
-                    b.HasOne("ApiApplication.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ApiApplication.Entities.Receipt", "Receipt")
-                        .WithMany("Items")
-                        .HasForeignKey("ReceiptId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("Receipt");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.ReturnGoods", b =>
-                {
-                    b.HasOne("ApiApplication.Entities.StoreBankAccount", "StoreBankAccount")
-                        .WithMany()
-                        .HasForeignKey("StoreBankAccountId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ApiApplication.Entities.Supplier", "Supplier")
-                        .WithMany()
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("StoreBankAccount");
-
-                    b.Navigation("Supplier");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.ReturnGoodsItem", b =>
-                {
-                    b.HasOne("ApiApplication.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ApiApplication.Entities.ReturnGoods", "ReturnGoods")
-                        .WithMany("Items")
-                        .HasForeignKey("ReturnGoodsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("ReturnGoods");
-                });
-
             modelBuilder.Entity("ApiApplication.Entities.Schedule", b =>
                 {
                     b.HasOne("ApiApplication.Entities.Shift", "Shift")
@@ -2581,47 +2066,6 @@ namespace ApiApplication.Migrations
                     b.Navigation("Department");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.StockOut", b =>
-                {
-                    b.HasOne("ApiApplication.Entities.Supplier", "Supplier")
-                        .WithMany()
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Supplier");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.StockOutItem", b =>
-                {
-                    b.HasOne("ApiApplication.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("ApiApplication.Entities.StockOut", "StockOut")
-                        .WithMany("Items")
-                        .HasForeignKey("StockOutId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("StockOut");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.SupplierBankAccount", b =>
-                {
-                    b.HasOne("ApiApplication.Entities.Supplier", "Supplier")
-                        .WithMany()
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -2719,29 +2163,9 @@ namespace ApiApplication.Migrations
                     b.Navigation("TimeRanges");
                 });
 
-            modelBuilder.Entity("ApiApplication.Entities.Product", b =>
-                {
-                    b.Navigation("InventoryCards");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.Receipt", b =>
-                {
-                    b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.ReturnGoods", b =>
-                {
-                    b.Navigation("Items");
-                });
-
             modelBuilder.Entity("ApiApplication.Entities.Service", b =>
                 {
                     b.Navigation("BookingServices");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.StockOut", b =>
-                {
-                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

@@ -4,8 +4,7 @@ import { ListProductResponse } from "@/types-openapi/api";
 import { TableProps } from "antd";
 
 export const productColumns: TableProps<ListProductResponse>["columns"] = [
-  { title: "Mã hàng", dataIndex: "id", key: "id", width: 100, fixed: "left" },
-  { title: "Mã code", dataIndex: "code", key: "code", width: 150 },
+  { title: "Mã code", dataIndex: "code", key: "code", width: 150, fixed: "left" },
   { title: "Tên hàng", dataIndex: "name", key: "name", width: 220 },
   { title: "Nhóm hàng", dataIndex: "category", key: "category", width: 150 },
   { title: "Giá bán", dataIndex: "salePrice", key: "salePrice", width: 120, sorter: (a, b) => (a.salePrice ?? 0) - (b.salePrice ?? 0) },

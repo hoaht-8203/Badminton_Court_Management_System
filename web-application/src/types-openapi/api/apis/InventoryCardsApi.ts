@@ -15,12 +15,22 @@
 
 import * as runtime from '../runtime';
 import type {
+  CreateInventoryCardRequest,
   ListByProductResponseListApiResponse,
+  UpdateInventoryCardResponseApiResponse,
 } from '../models/index';
 import {
+    CreateInventoryCardRequestFromJSON,
+    CreateInventoryCardRequestToJSON,
     ListByProductResponseListApiResponseFromJSON,
     ListByProductResponseListApiResponseToJSON,
+    UpdateInventoryCardResponseApiResponseFromJSON,
+    UpdateInventoryCardResponseApiResponseToJSON,
 } from '../models/index';
+
+export interface ApiInventoryCardsCreatePostRequest {
+    createInventoryCardRequest?: CreateInventoryCardRequest;
+}
 
 export interface ApiInventoryCardsListByProductGetRequest {
     productId?: number;
@@ -33,6 +43,19 @@ export interface ApiInventoryCardsListByProductGetRequest {
  * @interface InventoryCardsApiInterface
  */
 export interface InventoryCardsApiInterface {
+    /**
+     * 
+     * @param {CreateInventoryCardRequest} [createInventoryCardRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof InventoryCardsApiInterface
+     */
+    apiInventoryCardsCreatePostRaw(requestParameters: ApiInventoryCardsCreatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UpdateInventoryCardResponseApiResponse>>;
+
+    /**
+     */
+    apiInventoryCardsCreatePost(requestParameters: ApiInventoryCardsCreatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UpdateInventoryCardResponseApiResponse>;
+
     /**
      * 
      * @param {number} [productId] 
@@ -52,6 +75,36 @@ export interface InventoryCardsApiInterface {
  * 
  */
 export class InventoryCardsApi extends runtime.BaseAPI implements InventoryCardsApiInterface {
+
+    /**
+     */
+    async apiInventoryCardsCreatePostRaw(requestParameters: ApiInventoryCardsCreatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UpdateInventoryCardResponseApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/InventoryCards/create`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateInventoryCardRequestToJSON(requestParameters['createInventoryCardRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UpdateInventoryCardResponseApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiInventoryCardsCreatePost(requestParameters: ApiInventoryCardsCreatePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UpdateInventoryCardResponseApiResponse> {
+        const response = await this.apiInventoryCardsCreatePostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      */

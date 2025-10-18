@@ -49,12 +49,24 @@ import {
   ListPriceTableRequest,
   ListPriceTableResponse,
   PriceTimeRangeDto,
+  PriceTable,
+  PriceTableProductItem,
+  SetPriceTableProductsRequest,
+  CreatePriceTableRequest,
+  UpdatePriceTableRequest,
 } from "@/types-openapi/api";
 import { useListProducts } from "@/hooks/useProducts";
 // import { ApiError } from "@/lib/axios"; // Unused
 import React from "react";
 import { useDetailProduct } from "@/hooks/useProducts";
 import { axiosInstance as axios } from "@/lib/axios";
+import { useListCategories } from "@/hooks/useCategories";
+
+// Utility function to format currency
+const formatCurrency = (value: number | undefined | null): string => {
+  if (value === undefined || value === null) return "-";
+  return new Intl.NumberFormat('vi-VN').format(value);
+};
 
 const columns = [
   { title: "Tên bảng giá", dataIndex: "name", key: "name" },
@@ -182,6 +194,7 @@ const PriceManagementPage = () => {
         columns={[...columns]}
         dataSource={filteredData}
         loading={isFetching}
+        bordered
         expandable={{
           expandRowByClick: true,
           expandedRowRender: (record) => (
@@ -255,10 +268,9 @@ const PriceInformation = ({
   const { data } = useDetailPrice({ id: record.id! }, true);
   const d = data?.data as DetailPriceTableResponse | undefined;
   const { data: mapped } = useGetPriceTableProducts(record.id!, true);
-  const mapData: any = mapped?.data as any;
-  const itemsFromApi: Array<any> = mapData?.items || mapData?.Items || [];
+  const priceTableProducts = mapped?.data?.products || [];
   const selectedIdToPrice = new Map<number, number | undefined>(
-    itemsFromApi.map((i: any) => [i.productId ?? i.ProductId, i.overrideSalePrice ?? i.OverrideSalePrice ?? undefined]),
+    priceTableProducts.map((product: any) => [product.productId, product.overrideSalePrice ?? undefined]),
   );
   const { data: allProducts } = useListProducts({} as any);
   const products = (allProducts?.data || []).filter((x) => selectedIdToPrice.has(x.id!));
@@ -266,7 +278,7 @@ const PriceInformation = ({
   const CostCell = ({ productId }: { productId: number }) => {
     const { data: detail } = useDetailProduct({ id: productId }, true);
     const cost = (detail?.data as any)?.costPrice;
-    return <>{cost ?? "-"}</>;
+    return <>{formatCurrency(cost)}</>;
   };
 
   return (
@@ -341,7 +353,7 @@ const PriceInformation = ({
             { title: "Tên hàng", dataIndex: "name", key: "name" },
             { title: "Nhóm", dataIndex: "category", key: "category" },
             { title: "Giá vốn", key: "costPrice", render: (_: any, r: any) => <CostCell productId={r.id} /> },
-            { title: "Giá áp dụng", key: "override", render: (_: any, r: any) => selectedIdToPrice.get(r.id) ?? r.salePrice ?? "-" },
+            { title: "Giá áp dụng", key: "override", render: (_: any, r: any) => formatCurrency(selectedIdToPrice.get(r.id) ?? r.salePrice) },
           ]}
         />
       </div>
@@ -377,7 +389,7 @@ const PriceInformation = ({
 const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClose: () => void; priceId: number | null; onSaved: () => void }) => {
   const [activeTab, setActiveTab] = useState<string>("info");
   const [form] = Form.useForm<
-    DetailPriceTableResponse & {
+    PriceTable & {
       ranges: PriceTimeRangeDto[];
       months?: number[];
       daysOfMonth?: number[];
@@ -401,9 +413,11 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
         id: d.id,
         name: d.name,
         isActive: d.isActive,
-
+        effectiveFrom: d.effectiveFrom,
+        effectiveTo: d.effectiveTo,
         effective: [d.effectiveFrom ? dayjs(d.effectiveFrom) : undefined, d.effectiveTo ? dayjs(d.effectiveTo) : undefined] as any,
         ranges: (d.timeRanges || []).map((r) => ({
+          id: r.id,
           startTime: r.startTime ? dayjs(r.startTime, "HH:mm:ss") : undefined,
           endTime: r.endTime ? dayjs(r.endTime, "HH:mm:ss") : undefined,
         })),
@@ -413,28 +427,29 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
 
   useEffect(() => {
     if (productIdsRes?.data && open) {
-      setSelectedProductIds(productIdsRes.data.productIds || []);
+      const productIds = productIdsRes.data.products?.map(p => p.productId) || [];
+      setSelectedProductIds(productIds);
     }
   }, [productIdsRes?.data, open]);
 
   const onSubmit = (values: any) => {
     const cleanRanges = (values.ranges || [])
       .map((r: any) => ({
+        id: r?.id || null,
         startTime: r?.startTime ? dayjs(r.startTime).format("HH:mm:ss") : undefined,
         endTime: r?.endTime ? dayjs(r.endTime).format("HH:mm:ss") : undefined,
       }))
       .filter((r: any) => !!r.startTime && !!r.endTime);
 
-    const payload = {
-      id: priceId ?? values.id,
-      name: values.name,
-      isActive: !!values.isActive,
-      effectiveFrom: values.effective?.[0]?.toISOString?.(),
-      effectiveTo: values.effective?.[1]?.toISOString?.(),
-      timeRanges: cleanRanges,
-    } as any;
-
     if (isCreate) {
+      const payload: CreatePriceTableRequest = {
+        name: values.name,
+        isActive: !!values.isActive,
+        effectiveFrom: values.effective?.[0]?.toDate?.(),
+        effectiveTo: values.effective?.[1]?.toDate?.(),
+        timeRanges: cleanRanges,
+      };
+
       createMutation.mutate(payload, {
         onSuccess: () => {
           message.success("Tạo bảng giá thành công");
@@ -442,6 +457,15 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
         },
       });
     } else {
+      const payload: UpdatePriceTableRequest = {
+        id: priceId!,
+        name: values.name,
+        isActive: !!values.isActive,
+        effectiveFrom: values.effective?.[0]?.toDate?.(),
+        effectiveTo: values.effective?.[1]?.toDate?.(),
+        timeRanges: cleanRanges,
+      };
+
       updateMutation.mutate(payload, {
         onSuccess: () => {
           message.success("Cập nhật bảng giá thành công");
@@ -579,24 +603,24 @@ const ProductsSelector = ({
   const { data: mapped } = useGetPriceTableProducts(priceId || 0, !!priceId);
   const [rowsState, setRowsState] = useState<Record<number, number | undefined>>({});
   const setProducts = useSetPriceTableProducts();
+  const { data: categoriesRes } = useListCategories({});
 
   const rows = productsRes?.data ?? [];
   const CostCell = ({ productId }: { productId: number }) => {
     const { data: detail } = useDetailProduct({ id: productId }, true);
     const cost = (detail?.data as any)?.costPrice;
-    return <>{cost ?? "-"}</>;
+    return <>{formatCurrency(cost)}</>;
   };
 
   useEffect(() => {
     if (mapped?.data && priceId) {
       const initial: Record<number, number | undefined> = {};
-      const md: any = mapped.data as any;
-      const arr: Array<any> = md?.items || md?.Items || (md?.productIds || []).map((id: number) => ({ productId: id }));
-      arr.forEach((i: any) => {
-        initial[i.productId ?? i.ProductId] = i.overrideSalePrice ?? i.OverrideSalePrice ?? undefined;
+      const products = mapped.data.products || [];
+      products.forEach((product: any) => {
+        initial[product.productId] = product.overrideSalePrice ?? undefined;
       });
       setRowsState(initial);
-      onChangeSelected(arr.map((i: any) => i.productId ?? i.ProductId));
+      onChangeSelected(products.map((p: any) => p.productId));
     }
   }, [mapped?.data, priceId, onChangeSelected]);
 
@@ -614,10 +638,14 @@ const ProductsSelector = ({
   } as any;
 
   const onSearch = (v: any) => {
+    // Map categoryId to category name
+    const selectedCategory = categoriesRes?.data?.find((cat: any) => cat.id === v.categoryId);
+    const categoryName = selectedCategory?.name;
+    
     setParams({
       code: v.code || undefined,
       name: v.name || undefined,
-      category: v.category || undefined,
+      category: categoryName || undefined,
       menuType: v.menuType || undefined,
       isActive: typeof v.isActive === "boolean" ? v.isActive : undefined,
     });
@@ -639,13 +667,18 @@ const ProductsSelector = ({
       message.error("Không thể lưu: có sản phẩm 'Không kinh doanh' trong lựa chọn");
       return;
     }
-    const items = selected.map((id) => {
+    const products: PriceTableProductItem[] = selected.map((id) => {
       const row = rows.find((r: any) => r.id === id);
       const value = rowsState[id] ?? row?.salePrice;
       return { productId: id, overrideSalePrice: value };
     });
-    const productIds = selected;
-    setProducts.mutate({ priceTableId: priceId, items, productIds } as any, { onSuccess: () => message.success("Đã lưu sản phẩm áp dụng") });
+    
+    const payload: SetPriceTableProductsRequest = {
+      priceTableId: priceId,
+      products: products,
+    };
+    
+    setProducts.mutate(payload, { onSuccess: () => message.success("Đã lưu sản phẩm áp dụng") });
   };
 
   return (
@@ -673,8 +706,15 @@ const ProductsSelector = ({
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item name="category" label="Nhóm hàng">
-              <Input placeholder="Nhập nhóm" allowClear />
+            <Form.Item name="categoryId" label="Nhóm hàng">
+              <Select
+                allowClear
+                placeholder="Chọn nhóm hàng"
+                options={categoriesRes?.data?.map((cat: any) => ({
+                  value: cat.id,
+                  label: cat.name,
+                })) || []}
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -728,6 +768,8 @@ const ProductsSelector = ({
                 style={{ width: 140 }}
                 value={rowsState[r.id] ?? r.salePrice}
                 onChange={(val) => setRowsState((s) => ({ ...s, [r.id]: val as number }))}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
               />
             ),
           },

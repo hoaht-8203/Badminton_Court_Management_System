@@ -1,5 +1,6 @@
 using ApiApplication.Data;
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.PriceTable;
 using ApiApplication.Entities;
 using ApiApplication.Exceptions;
 using AutoMapper;
@@ -18,7 +19,7 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
         if (!string.IsNullOrWhiteSpace(request.Name))
         {
             var name = request.Name.ToLower();
-            query = query.Where(x => x.Name.ToLower().Contains(name));
+            query = query.Where(x => x.Name != null && x.Name.ToLower().Contains(name));
         }
         if (request.IsActive.HasValue)
         {
@@ -175,7 +176,7 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
         if (table == null)
             throw new ArgumentException($"Bảng giá không tồn tại: {request.PriceTableId}");
 
-        var productIds = (request.Items ?? new List<SetPriceTableProductItem>())
+        var productIds = (request.Products ?? new List<PriceTableProductItem>())
             .Select(i => i.ProductId)
             .ToList();
         var validIds = await _context
@@ -184,7 +185,7 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
             .ToListAsync();
 
         table.PriceTableProducts.Clear();
-        foreach (var it in request.Items ?? new List<SetPriceTableProductItem>())
+        foreach (var it in request.Products ?? new List<PriceTableProductItem>())
         {
             if (!validIds.Contains(it.ProductId))
                 continue;
@@ -202,20 +203,29 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
 
     public async Task<ListPriceTableProductsResponse> GetProductsAsync(int priceTableId)
     {
+        var priceTable = await _context.PriceTables
+            .FirstOrDefaultAsync(pt => pt.Id == priceTableId);
+        
+        if (priceTable == null)
+        {
+            throw new ArgumentException($"Bảng giá không tồn tại: {priceTableId}");
+        }
+
         var items = await _context
             .PriceTableProducts.Where(x => x.PriceTableId == priceTableId)
-            .Select(x => new PriceTableProductItem
+            .Select(x => new PriceTableProductDto
             {
+                PriceTableId = x.PriceTableId,
                 ProductId = x.ProductId,
                 OverrideSalePrice = x.OverrideSalePrice,
             })
             .ToListAsync();
-        var productIds = items.Select(x => x.ProductId).ToList();
+        
         return new ListPriceTableProductsResponse
         {
             PriceTableId = priceTableId,
-            ProductIds = productIds,
-            Items = items,
+            PriceTableName = priceTable.Name ?? string.Empty,
+            Products = items,
         };
     }
 

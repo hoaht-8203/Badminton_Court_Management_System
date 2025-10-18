@@ -1,6 +1,6 @@
 using System;
 
-namespace ApiApplication.Dtos;
+namespace ApiApplication.Dtos.PriceTable;
 
 public class ListPriceTableResponse
 {

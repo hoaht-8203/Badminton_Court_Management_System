@@ -3,22 +3,22 @@ using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Entities
 {
-    public class StoreBankAccount : BaseEntity, IAuditableEntity
+    public class StoreBankAccount : BaseEntity
     {
         [Key]
         public int Id { get; set; }
 
         [MaxLength(200)]
         [Required]
-        public string BankName { get; set; } = string.Empty;
+        public required string BankName { get; set; }
 
         [MaxLength(50)]
         [Required]
-        public string AccountNumber { get; set; } = string.Empty;
+        public required string AccountNumber { get; set; }
 
         [MaxLength(150)]
         [Required]
-        public string AccountName { get; set; } = string.Empty;
+        public required string AccountName { get; set; } 
 
         public bool IsDefault { get; set; } = false;
     }

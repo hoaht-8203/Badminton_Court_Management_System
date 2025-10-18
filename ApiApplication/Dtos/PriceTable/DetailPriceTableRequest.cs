@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ApiApplication.Dtos;
+namespace ApiApplication.Dtos.PriceTable;
 
 public class DetailPriceTableRequest
 {

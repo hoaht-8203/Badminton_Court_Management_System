@@ -1,7 +1,9 @@
 using ApiApplication.Data;
 using ApiApplication.Dtos.StoreBankAccount;
 using ApiApplication.Entities;
+using ApiApplication.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace ApiApplication.Services.Impl
 {
@@ -34,6 +36,12 @@ namespace ApiApplication.Services.Impl
             CreateStoreBankAccountRequest request
         )
         {
+            // Check for required fields
+            if (string.IsNullOrEmpty(request.AccountNumber) || string.IsNullOrEmpty(request.AccountName) || string.IsNullOrEmpty(request.BankName))
+            {
+                throw new ApiException("Số tài khoản, tên tài khoản và tên ngân hàng là các trường bắt buộc", HttpStatusCode.BadRequest);
+            }
+            
             var entity = new StoreBankAccount
             {
                 AccountNumber = request.AccountNumber.Trim(),
@@ -56,7 +64,13 @@ namespace ApiApplication.Services.Impl
         {
             var entity =
                 await _context.StoreBankAccounts.FindAsync(id)
-                ?? throw new KeyNotFoundException("Not found");
+                ?? throw new ApiException("Không tìm thấy tài khoản ngân hàng", HttpStatusCode.NotFound);
+            // Check for required fields
+            if (string.IsNullOrEmpty(request.AccountNumber) || string.IsNullOrEmpty(request.AccountName) || string.IsNullOrEmpty(request.BankName))
+            {
+                throw new ApiException("Số tài khoản, tên tài khoản và tên ngân hàng là các trường bắt buộc", HttpStatusCode.BadRequest);
+            }
+            
             entity.AccountNumber = request.AccountNumber.Trim();
             entity.AccountName = request.AccountName.Trim();
             entity.BankName = request.BankName.Trim();
@@ -68,7 +82,7 @@ namespace ApiApplication.Services.Impl
         {
             var entity =
                 await _context.StoreBankAccounts.FindAsync(id)
-                ?? throw new KeyNotFoundException("Not found");
+                ?? throw new ApiException("Không tìm thấy tài khoản ngân hàng", HttpStatusCode.NotFound);
             _context.StoreBankAccounts.Remove(entity);
             await _context.SaveChangesAsync();
             return "OK";

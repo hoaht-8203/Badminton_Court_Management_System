@@ -263,13 +263,23 @@ namespace ApiApplication.Services.Impl
             foreach (var item in stockOut.Items)
             {
                 var product = await _context.Products.FindAsync(item.ProductId);
-                var inventoryCheckItem = new InventoryCheckItem
+                if (product != null)
                 {
-                    ProductId = item.ProductId,
-                    SystemQuantity = product?.Stock ?? 0,
-                    ActualQuantity = product?.Stock ?? 0,
-                };
-                inventoryCheck.Items.Add(inventoryCheckItem);
+                    // System quantity is the quantity before stock out
+                    var systemQuantity = product.Stock + item.Quantity;
+                    // Actual quantity is the quantity after stock out
+                    var actualQuantity = product.Stock;
+                    
+                    var inventoryCheckItem = new InventoryCheckItem
+                    {
+                        ProductId = item.ProductId,
+                        SystemQuantity = systemQuantity,
+                        ActualQuantity = actualQuantity,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                    };
+                    inventoryCheck.Items.Add(inventoryCheckItem);
+                }
             }
 
             _context.InventoryChecks.Add(inventoryCheck);

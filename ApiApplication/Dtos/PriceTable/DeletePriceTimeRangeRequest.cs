@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ApiApplication.Dtos;
+namespace ApiApplication.Dtos.PriceTable;
 
-public class UpdatePriceTableRequest : CreatePriceTableRequest
+public class DeletePriceTimeRangeRequest
 {
     [Required]
     public int Id { get; set; }

@@ -1,6 +1,7 @@
 using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Minio;
+using ApiApplication.Dtos.Product;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
@@ -463,28 +464,108 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         await _context.SaveChangesAsync();
     }
 
-    // Kiểm tra tồn kho thấp và tạo phiếu kiểm kho nếu cần
-    public async Task<int> CheckLowStockAndCreateInventoryChecksAsync(string? branch = null)
+   
+
+    // Lấy danh sách sản phẩm theo bảng giá với giá theo thời gian
+    public async Task<List<ListProductsByPriceTableResponse>> ListByPriceTableAsync(ListProductsByPriceTableRequest request)
     {
-        // Tìm tất cả sản phẩm quản lý tồn kho, có tồn kho thấp hơn mức tối thiểu
-        var query = _context.Products.Where(p =>
-            p.ManageInventory && p.MinStock > 0 && p.Stock < p.MinStock
-        );
+        // Kiểm tra bảng giá có tồn tại và đang hoạt động không
+        var priceTable = await _context.PriceTables
+            .Include(pt => pt.TimeRanges)
+            .Include(pt => pt.PriceTableProducts)
+            .FirstOrDefaultAsync(pt => pt.Id == request.PriceTableId && pt.IsActive);
 
-        // Lọc theo chi nhánh nếu được chỉ định
-        // Ở đây chúng ta giả định cùng một sản phẩm có thể có các mức tồn kho khác nhau ở các chi nhánh khác nhau
-        // Nhưng vì thiết kế hiện tại không có trường branch trong Product nên tạm bỏ qua
-
-        var lowStockProducts = await query.ToListAsync();
-
-        int count = 0;
-        foreach (var product in lowStockProducts)
+        if (priceTable == null)
         {
-            await CreateLowStockInventoryCheckAsync(product);
-            count++;
+            throw new ApiException(
+                $"Bảng giá không tồn tại hoặc không hoạt động: {request.PriceTableId}",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
 
-        return count;
+        // Kiểm tra thời gian hiệu lực của bảng giá
+        var now = DateTime.UtcNow;
+        bool isPriceTableEffective = true;
+        
+        if (priceTable.EffectiveFrom.HasValue && now < priceTable.EffectiveFrom.Value)
+        {
+            isPriceTableEffective = false; // Bảng giá chưa có hiệu lực
+        }
+        
+        if (priceTable.EffectiveTo.HasValue && now > priceTable.EffectiveTo.Value)
+        {
+            isPriceTableEffective = false; // Bảng giá đã hết hiệu lực
+        }
+
+       
+        var productIds = priceTable.PriceTableProducts.Select(pp => pp.ProductId).ToList();
+
+        var query = _context.Products
+            .Include(p => p.Category)
+            .Where(p => productIds.Contains(p.Id));
+
+       
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var search = request.Search.ToLower();
+            query = query.Where(p => 
+                p.Name.ToLower().Contains(search) ||
+                (p.Code != null && p.Code.ToLower().Contains(search)) ||
+                (p.Category != null && p.Category.Name.ToLower().Contains(search))
+            );
+        }
+
+        if (request.CategoryId.HasValue)
+        {
+            query = query.Where(p => p.CategoryId == request.CategoryId);
+        }
+
+        if (request.IsActive.HasValue)
+        {
+            query = query.Where(p => p.IsActive == request.IsActive);
+        }
+
+        var products = await query.ToListAsync();
+
+      
+        var result = new List<ListProductsByPriceTableResponse>();
+
+        foreach (var product in products)
+        {
+            var priceTableProduct = priceTable.PriceTableProducts.FirstOrDefault(pp => pp.ProductId == product.Id);
+            var overridePrice = priceTableProduct?.OverrideSalePrice;
+
+          
+            decimal finalPrice = product.SalePrice;
+            bool isPriceOverridden = false;
+
+            // Chỉ áp dụng giá override khi bảng giá còn hiệu lực
+            if (overridePrice.HasValue && isPriceTableEffective)
+            {
+                finalPrice = overridePrice.Value;
+                isPriceOverridden = true;
+            }
+
+            result.Add(new ListProductsByPriceTableResponse
+            {
+                Id = product.Id,
+                Code = product.Code,
+                Name = product.Name,
+                Category = product.Category?.Name,
+                MenuType = product.MenuType,
+                SalePrice = product.SalePrice,
+                OverrideSalePrice = overridePrice,
+                FinalPrice = finalPrice,
+                IsDirectSale = product.IsDirectSale,
+                IsActive = product.IsActive,
+                Images = product.Images,
+                Unit = product.Unit,
+                Stock = product.Stock,
+                IsPriceOverridden = isPriceOverridden
+            });
+        }
+
+        return result.OrderBy(p => p.Name).ToList();
     }
 
     private static string? ExtractFileNameFromUrl(string url)

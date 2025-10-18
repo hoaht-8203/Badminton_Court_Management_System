@@ -6,14 +6,14 @@ namespace ApiApplication.Dtos.StoreBankAccount
     {
         [Required]
         [MaxLength(50)]
-        public string AccountNumber { get; set; } = string.Empty;
+        public string? AccountNumber { get; set; }
 
         [Required]
         [MaxLength(150)]
-        public string AccountName { get; set; } = string.Empty;
+        public string? AccountName { get; set; }
 
         [Required]
         [MaxLength(200)]
-        public string BankName { get; set; } = string.Empty;
+        public string? BankName { get; set; }
     }
 }

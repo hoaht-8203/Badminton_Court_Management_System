@@ -77,6 +77,8 @@ public class PayrollService : IPayrollService
                 attendance,
                 standardizedSchedules
             );
+            if (totalSalary <= 0)
+                continue;
 
             payrollItems.Add(
                 new PayrollItem
@@ -214,10 +216,21 @@ public class PayrollService : IPayrollService
         return true;
     }
 
+    public async Task<bool> RefreshPayrollAsync()
+    {
+        var payrolls = await _context.Payrolls.ToListAsync();
+        foreach (var payroll in payrolls)
+        {
+            await RefreshPayrollAsync(payroll.Id);
+        }
+        return true;
+    }
+
     public async Task<PayrollDetailResponse?> GetPayrollByIdAsync(int payrollId)
     {
         var payroll = await _context
             .Payrolls.Include(p => p.PayrollItems)
+            .ThenInclude(pi => pi.Staff)
             .FirstOrDefaultAsync(p => p.Id == payrollId);
 
         if (payroll == null)
@@ -240,8 +253,8 @@ public class PayrollService : IPayrollService
         var payrollItem = await _context.PayrollItems.FindAsync(payrollItemId);
         if (payrollItem == null)
             throw new ApiException("Phiếu lương không tồn tại", HttpStatusCode.NotFound);
-        if (amount <= 0)
-            throw new ApiException("Số tiền thanh toán phải lớn hơn 0", HttpStatusCode.BadRequest);
+        // if (amount <= 0)
+        //     throw new ApiException("Số tiền thanh toán phải lớn hơn 0", HttpStatusCode.BadRequest);
         if (payrollItem.PaidAmount + amount > payrollItem.NetSalary)
             throw new ApiException(
                 "Số tiền thanh toán vượt quá số tiền còn lại",

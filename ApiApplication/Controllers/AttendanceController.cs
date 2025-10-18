@@ -16,6 +16,7 @@ namespace ApiApplication.Controllers
         {
             _attendanceService = attendanceService;
         }
+
         [HttpPost]
         public async Task<IActionResult> AddAttendanceRecord([FromBody] AttendanceRequest request)
         {
@@ -24,18 +25,29 @@ namespace ApiApplication.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateAttendanceRecord([FromBody] AttendanceRequest request)
+        public async Task<IActionResult> UpdateAttendanceRecord(
+            [FromBody] AttendanceRequest request
+        )
         {
             var result = await _attendanceService.UpdateAttendanceRecordAsync(request);
             return Ok(ApiResponse<bool>.SuccessResponse(result, "Cập nhật chấm công thành công"));
         }
 
         [HttpGet("staff/{staffId}")]
-        public async Task<IActionResult> GetAttendanceRecordsByStaffId(int staffId, [FromQuery] DateTime date)
+        public async Task<IActionResult> GetAttendanceRecordsByStaffId(
+            int staffId,
+            [FromQuery] DateTime date
+        )
         {
             var result = await _attendanceService.GetAttendanceRecordsByStaffIdAsync(staffId, date);
-            return Ok(ApiResponse<List<AttendanceResponse>>.SuccessResponse(result, "Get attendance records successfully"));
+            return Ok(
+                ApiResponse<List<AttendanceResponse>>.SuccessResponse(
+                    result,
+                    "Get attendance records successfully"
+                )
+            );
         }
+
         [HttpDelete("{attendanceRecordId}")]
         public async Task<IActionResult> DeleteAttendanceRecord(int attendanceRecordId)
         {

@@ -110,6 +110,24 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             {
                 await CreateLowStockInventoryCheckAsync(entity);
             }
+
+            // Ghi thẻ kho khi tạo mới có tồn kho ban đầu
+            if (entity.ManageInventory && entity.Stock > 0)
+            {
+                _context.InventoryCards.Add(
+                    new InventoryCard
+                    {
+                        ProductId = entity.Id,
+                        Code = await GenerateNextInventoryCardCodeAsync(),
+                        Method = "Kiểm hàng (tạo mới)",
+                        OccurredAt = DateTime.UtcNow,
+                        CostPrice = entity.CostPrice,
+                        QuantityChange = entity.Stock,
+                        EndingStock = entity.Stock,
+                    }
+                );
+                await _context.SaveChangesAsync();
+            }
         }
         catch (DbUpdateException ex)
         {
@@ -173,6 +191,8 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
 
         try
         {
+            var previousCostPrice = entity.CostPrice;
+            var prevStockLocal = entity.Stock;
             _mapper.Map(request, entity);
             await _context.SaveChangesAsync();
 
@@ -185,15 +205,47 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             }
 
             // Trường hợp 1b: Tồn kho được cập nhật thủ công (thay đổi so với trước) -> tạo phiếu cân bằng
-            if (entity.ManageInventory && entity.Stock != previousStock)
+            if (entity.ManageInventory && entity.Stock != prevStockLocal)
             {
-                await CreateBalancedInventoryCheckOnUpdateAsync(entity, previousStock);
+                await CreateBalancedInventoryCheckOnUpdateAsync(entity, prevStockLocal);
+                // Ghi thẻ kho khi thay đổi tồn kho
+                _context.InventoryCards.Add(
+                    new InventoryCard
+                    {
+                        ProductId = entity.Id,
+                        Code = await GenerateNextInventoryCardCodeAsync(),
+                        Method = "Cập nhật tồn kho",
+                        OccurredAt = DateTime.UtcNow,
+                        CostPrice = entity.CostPrice,
+                        QuantityChange = entity.Stock - prevStockLocal,
+                        EndingStock = entity.Stock,
+                    }
+                );
+                await _context.SaveChangesAsync();
             }
 
             // Trường hợp 2: Tồn kho được cập nhật và thấp hơn mức tồn kho tối thiểu
             if (entity.ManageInventory && entity.MinStock > 0 && entity.Stock < entity.MinStock)
             {
                 await CreateLowStockInventoryCheckAsync(entity);
+            }
+
+            // Nếu thay đổi giá vốn -> ghi thẻ "Cập nhật giá vốn" (không đổi tồn)
+            if (entity.CostPrice != previousCostPrice)
+            {
+                _context.InventoryCards.Add(
+                    new InventoryCard
+                    {
+                        ProductId = entity.Id,
+                        Code = await GenerateNextInventoryCardCodeAsync(),
+                        Method = "Cập nhật giá vốn",
+                        OccurredAt = DateTime.UtcNow,
+                        CostPrice = entity.CostPrice,
+                        QuantityChange = 0,
+                        EndingStock = entity.Stock,
+                    }
+                );
+                await _context.SaveChangesAsync();
             }
         }
         catch (DbUpdateException ex)
@@ -309,6 +361,24 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             return "KK000001";
         }
         return $"KK{(num + 1).ToString("D6")}";
+    }
+
+    private async Task<string> GenerateNextInventoryCardCodeAsync()
+    {
+        var last = await _context
+            .InventoryCards.OrderByDescending(x => x.Id)
+            .Select(x => x.Code)
+            .FirstOrDefaultAsync();
+        if (string.IsNullOrWhiteSpace(last) || last.Length < 2)
+        {
+            return "TC000001";
+        }
+        var numberPart = new string(last.Skip(2).ToArray());
+        if (!int.TryParse(numberPart, out var num))
+        {
+            return "TC000001";
+        }
+        return $"TC{(num + 1).ToString("D6")}";
     }
 
     // Tạo phiếu kiểm kho cân bằng khi cập nhật tồn kho thủ công ở Danh mục

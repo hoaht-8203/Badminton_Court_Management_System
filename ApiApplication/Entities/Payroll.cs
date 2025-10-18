@@ -15,4 +15,3 @@ namespace ApiApplication.Entities
         public ICollection<PayrollItem> PayrollItems { get; set; } = new List<PayrollItem>();
     }
 }
-    

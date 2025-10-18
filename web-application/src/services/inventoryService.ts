@@ -4,6 +4,7 @@ import {
   DetailInventoryCheckResponseApiResponse,
   ListInventoryCheckRequest,
   ListInventoryCheckResponseListApiResponse,
+  ListByProductResponseListApiResponse,
 } from "@/types-openapi/api";
 
 export const inventoryService = {
@@ -46,6 +47,22 @@ export const inventoryService = {
     return axiosInstance
       .post("/api/InventoryChecks/merge", { inventoryCheckIds: ids })
       .then((r) => r.data);
+  },
+  listCardsByProduct(productId: number) {
+    return axiosInstance
+      .get<ListByProductResponseListApiResponse>("/api/InventoryCards/list-by-product", { params: { productId } })
+      .then((r) => r.data);
+  },
+  // Optional helper - backend may not implement this yet; keep non-breaking default
+  checkLowStock(branch?: string) {
+    try {
+      return axiosInstance
+        .get<number>("/api/InventoryChecks/check-low-stock", { params: { branch } })
+        .then((r) => (r as any)?.data ?? 0);
+    } catch {
+      // Fallback to 0 to avoid build-time type errors when endpoint missing
+      return Promise.resolve(0);
+    }
   },
   
 }; 

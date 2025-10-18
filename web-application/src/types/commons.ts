@@ -21,6 +21,7 @@ export const CourtStatus = {
   Inactive: "Inactive",
   Deleted: "Deleted",
   Maintenance: "Maintenance",
+  InUse: "InUse",
 };
 
 export const BookingCourtStatus = {
@@ -28,6 +29,8 @@ export const BookingCourtStatus = {
   Cancelled: "Cancelled",
   Completed: "Completed",
   PendingPayment: "PendingPayment",
+  CheckedIn: "CheckedIn",
+  NoShow: "NoShow",
 };
 
 export const PaymentStatus = {

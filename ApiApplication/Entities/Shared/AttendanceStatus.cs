@@ -16,6 +16,6 @@ public class AttendanceStatus
         Attended,
         Late,
         Absent,
-        Missing
+        Missing,
     ];
 }

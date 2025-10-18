@@ -1,19 +1,19 @@
 import { bookingCourtsKeys, useListBookingCourts } from "@/hooks/useBookingCourt";
+import { apiBaseUrl } from "@/lib/axios";
 import { expandBookings, getDayOfWeekToVietnamese } from "@/lib/common";
 import { ListCourtGroupByCourtAreaResponse } from "@/types-openapi/api";
 import { BookingCourtStatus } from "@/types/commons";
-import { DayPilot, DayPilotScheduler } from "daypilot-pro-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { HubConnection, HubConnectionBuilder, LogLevel, ILogger } from "@microsoft/signalr";
+import { CalendarOutlined, TableOutlined } from "@ant-design/icons";
+import { HttpTransportType, HubConnection, HubConnectionBuilder, ILogger, LogLevel } from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
+import { Alert, Checkbox, message, Segmented } from "antd";
+import { DayPilot, DayPilotScheduler } from "daypilot-pro-react";
+import { PersonStandingIcon, UserCheckIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import BookingDetailDrawer from "./booking-detail-drawer";
+import CourtScheduleTable from "./court-schedule-table";
 import ModalCreateNewBooking from "./modal-create-new-booking";
 import PickCalendar from "./pick-calendar";
-import CourtScheduleTable from "./court-schedule-table";
-import { HttpTransportType } from "@microsoft/signalr";
-import { apiBaseUrl } from "@/lib/axios";
-import { Alert, message, Segmented, Checkbox } from "antd";
-import { CalendarOutlined, TableOutlined } from "@ant-design/icons";
-import BookingDetailDrawer from "./booking-detail-drawer";
 
 interface CourtSchedulerProps {
   courts: ListCourtGroupByCourtAreaResponse[];
@@ -21,6 +21,7 @@ interface CourtSchedulerProps {
 
 const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   const schedulerRef = useRef<DayPilotScheduler>(null);
+  const [activeTab, setActiveTab] = useState("1");
   const [viewOption, setViewOption] = useState<"schedule" | "list">("schedule");
   const [open, setOpen] = useState(false);
   const [isSignalRConnected, setIsSignalRConnected] = useState<boolean | null>(null);
@@ -36,6 +37,9 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     BookingCourtStatus.Active,
     BookingCourtStatus.PendingPayment,
     BookingCourtStatus.Completed,
+    BookingCourtStatus.CheckedIn,
+    BookingCourtStatus.Cancelled,
+    BookingCourtStatus.NoShow,
   ]);
   const queryClient = useQueryClient();
   const connectionRef = useRef<HubConnection | null>(null);
@@ -55,6 +59,53 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   const bookingCourtsEvent = useMemo(() => {
     return expandBookings(filteredBookings);
   }, [filteredBookings]);
+
+  // Upcoming customers within the next 1 hour (unique courts that have a start within 1 hour)
+  const upcomingWithinHourCount = useMemo(() => {
+    try {
+      const events: any[] = (bookingCourtsEvent as any[]) || [];
+      const now = new Date();
+      const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
+      const sel = selectedDate.toDate();
+      const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+      const courts = new Set<string>();
+      for (const ev of events) {
+        if (!ev?.start || !ev?.resource) continue;
+        const start = new Date(ev.start);
+        if (!sameDay(start, sel)) continue;
+        if (start >= now && start <= nextHour) {
+          courts.add(String(ev.resource));
+        }
+      }
+      return courts.size;
+    } catch {
+      return 0;
+    }
+  }, [bookingCourtsEvent, selectedDate]);
+
+  // Arrived but not checked-in yet: events whose start time has passed (and not ended) on selected date, status is Active (paid) and not CheckedIn
+  const arrivedNotCheckedInCount = useMemo(() => {
+    try {
+      const events: any[] = (bookingCourtsEvent as any[]) || [];
+      const now = new Date();
+      const sel = selectedDate.toDate();
+      const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+      let count = 0;
+      for (const ev of events) {
+        if (!ev?.start || !ev?.end) continue;
+        const start = new Date(ev.start);
+        const end = new Date(ev.end);
+        if (!sameDay(start, sel)) continue;
+        const status = ev?.status as string | undefined;
+        if (status === BookingCourtStatus.Active && start <= now && now < end) {
+          count += 1;
+        }
+      }
+      return count;
+    } catch {
+      return 0;
+    }
+  }, [bookingCourtsEvent, selectedDate]);
 
   // Compute totals only for bookings that actually occur on the selected date
   const selectedCustomDow = useMemo(() => {
@@ -89,6 +140,9 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   }, [bookingsForSelectedDay]);
   const totalCompleted = useMemo(() => {
     return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Completed).length;
+  }, [bookingsForSelectedDay]);
+  const totalNoShow = useMemo(() => {
+    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.NoShow).length;
   }, [bookingsForSelectedDay]);
 
   // Function để setup UI cho realtime connection dot
@@ -237,6 +291,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     });
     conn.on("bookingUpdated", (bookingId: string) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      message.open({ type: "info", content: "Lịch đặt sân đã được cập nhật", key: "booking-updated", duration: 3 });
       invalidateDetailIfOpen(bookingId);
     });
     conn.on("paymentCreated", (payload: any) => {
@@ -355,8 +410,10 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
             options={[
               { label: "Đã đặt & thanh toán", value: BookingCourtStatus.Active },
               { label: "Đã đặt - chưa thanh toán", value: BookingCourtStatus.PendingPayment },
+              { label: "Đã check-in", value: BookingCourtStatus.CheckedIn },
               { label: "Hoàn tất", value: BookingCourtStatus.Completed },
               { label: "Đã hủy", value: BookingCourtStatus.Cancelled },
+              { label: "No-show", value: BookingCourtStatus.NoShow },
             ]}
             value={statusFilter}
             onChange={(vals) => setStatusFilter(vals as string[])}
@@ -530,6 +587,12 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                   if (eventStatus === BookingCourtStatus.PendingPayment) {
                     args.data.barColor = "yellow";
                   }
+                  if (eventStatus === BookingCourtStatus.CheckedIn) {
+                    args.data.barColor = "#3b82f6"; // tailwind blue-500
+                  }
+                  if (eventStatus === BookingCourtStatus.NoShow) {
+                    args.data.barColor = "#f97316"; // tailwind orange-500
+                  }
 
                   // Customize event text with a status badge + customer name + time range
                   const startText = new DayPilot.Date(args.data.start).toString("HH:mm");
@@ -550,6 +613,12 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                   } else if (eventStatus === BookingCourtStatus.Cancelled) {
                     badgeText = "Đã hủy";
                     badgeClasses = "text-red-800";
+                  } else if (eventStatus === BookingCourtStatus.CheckedIn) {
+                    badgeText = "Đã check-in";
+                    badgeClasses = "text-blue-700";
+                  } else if (eventStatus === BookingCourtStatus.NoShow) {
+                    badgeText = "Không đến";
+                    badgeClasses = "text-orange-700";
                   }
 
                   const badgeHtml = badgeText ? `<span class="${badgeClasses}">${badgeText}</span>` : "";
@@ -627,11 +696,21 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                 rowEmptyHeight={50}
                 eventHeight={70}
               />
-              <div>
+              <div className="flex items-start justify-between">
                 <div className="flex gap-2 text-sm font-bold">
                   <span className="text-green-500">Đã đặt & thanh toán: {totalActive}</span> •
                   <span className="text-yellow-500">Đã đặt - chưa thanh toán: {totalPendingPayment}</span> •
-                  <span className="text-blue-500">Hoàn tất: {totalCompleted}</span> •<span className="text-red-500">Đã hủy: {totalCancelled}</span>
+                  <span className="text-blue-500">Hoàn tất: {totalCompleted}</span> •
+                  <span className="text-orange-500">Đã đặt - không đến: {totalNoShow}</span> •
+                  <span className="text-red-500">Đã hủy: {totalCancelled}</span>
+                </div>
+                <div className="mt-1 flex flex-col items-end gap-2 text-sm">
+                  <span className="flex items-center font-semibold text-green-500">
+                    <PersonStandingIcon className="mr-2 h-4 w-4" /> Lượt khách sắp tới (≤ 1 giờ): {upcomingWithinHourCount} lượt
+                  </span>
+                  <span className="flex items-center font-semibold text-orange-500">
+                    <UserCheckIcon className="mr-2 h-4 w-4" /> Đã đến nhưng chưa check-in: {arrivedNotCheckedInCount} lượt
+                  </span>
                 </div>
               </div>
             </>

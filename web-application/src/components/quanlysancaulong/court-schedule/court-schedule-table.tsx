@@ -155,6 +155,8 @@ const PaymentHistory = ({ record }: { record: ListBookingCourtResponse }) => {
       [BookingCourtStatus.PendingPayment]: { color: "orange", text: "Đã đặt - chưa thanh toán" },
       [BookingCourtStatus.Completed]: { color: "blue", text: "Hoàn tất" },
       [BookingCourtStatus.Cancelled]: { color: "red", text: "Đã hủy" },
+      [BookingCourtStatus.CheckedIn]: { color: "geekblue", text: "Đã check-in" },
+      [BookingCourtStatus.NoShow]: { color: "volcano", text: "No-show" },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || { color: "default", text: status };

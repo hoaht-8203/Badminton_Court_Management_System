@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { CurrentUserResponse } from "@/types-openapi/api";
 import { LogoutOutlined, SettingOutlined, UserOutlined, CalendarOutlined, ToolOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
-import { Avatar, Dropdown, Layout, Menu } from "antd";
+import { Avatar, Button, Dropdown, Layout, Menu } from "antd";
 import { ArrowLeftRight, ChartSpline, Columns2, Handshake, IdCardLanyard, Package, Settings } from "lucide-react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname, useRouter } from "next/navigation";
@@ -34,6 +34,18 @@ const sideBarItems: MenuProps["items"] = [
       {
         key: "/quanlysancaulong/inventory",
         label: "Kiểm kho",
+      },
+      {
+        key: "/quanlysancaulong/stock-in",
+        label: "Nhập kho",
+      },
+      {
+        key: "/quanlysancaulong/stock-out",
+        label: "Xuất huỷ",
+      },
+      {
+        key: "/quanlysancaulong/stock-return",
+        label: "Trả hàng nhập",
       },
     ],
   },
@@ -263,7 +275,11 @@ const ComponentLayout = ({ children }: { children: React.ReactNode }) => {
           }}
         >
           <div className="text-xl font-bold text-black">Hệ thống quản lý sân cầu lông</div>
-          <div>
+          <div className="flex items-center gap-5">
+            <Button type="primary" icon={<ArrowLeftRight className="h-4 w-4" />} onClick={() => router.push("/quanlysancaulong/cashier")}>
+              Thu ngân
+            </Button>
+
             <Dropdown
               menu={{
                 items: userMenuItems(user || ({} as CurrentUserResponse), router, logout),

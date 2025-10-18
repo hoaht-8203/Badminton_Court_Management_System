@@ -87,6 +87,7 @@ export const columns: TableProps<ListBookingCourtResponse>["columns"] = [
         [BookingCourtStatus.PendingPayment]: { color: "orange", text: "Đã đặt - chưa thanh toán" },
         [BookingCourtStatus.Completed]: { color: "blue", text: "Hoàn tất" },
         [BookingCourtStatus.Cancelled]: { color: "red", text: "Đã hủy" },
+        [BookingCourtStatus.NoShow]: { color: "orange", text: "Không đến" },
       };
 
       const config = statusConfig[status as keyof typeof statusConfig] || { color: "default", text: status };

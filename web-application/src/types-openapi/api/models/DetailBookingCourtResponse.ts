@@ -179,6 +179,30 @@ export interface DetailBookingCourtResponse {
      * @memberof DetailBookingCourtResponse
      */
     expiresAtUtc?: Date | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    overdueMinutes?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    overdueHours?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    surchargeAmount?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    lateFeePercentage?: number;
 }
 
 /**
@@ -221,6 +245,10 @@ export function DetailBookingCourtResponseFromJSONTyped(json: any, ignoreDiscrim
         'qrUrl': json['qrUrl'] == null ? undefined : json['qrUrl'],
         'holdMinutes': json['holdMinutes'] == null ? undefined : json['holdMinutes'],
         'expiresAtUtc': json['expiresAtUtc'] == null ? undefined : (new Date(json['expiresAtUtc'])),
+        'overdueMinutes': json['overdueMinutes'] == null ? undefined : json['overdueMinutes'],
+        'overdueHours': json['overdueHours'] == null ? undefined : json['overdueHours'],
+        'surchargeAmount': json['surchargeAmount'] == null ? undefined : json['surchargeAmount'],
+        'lateFeePercentage': json['lateFeePercentage'] == null ? undefined : json['lateFeePercentage'],
     };
 }
 
@@ -258,6 +286,10 @@ export function DetailBookingCourtResponseToJSONTyped(value?: DetailBookingCourt
         'qrUrl': value['qrUrl'],
         'holdMinutes': value['holdMinutes'],
         'expiresAtUtc': value['expiresAtUtc'] === null ? null : ((value['expiresAtUtc'] as any)?.toISOString()),
+        'overdueMinutes': value['overdueMinutes'],
+        'overdueHours': value['overdueHours'],
+        'surchargeAmount': value['surchargeAmount'],
+        'lateFeePercentage': value['lateFeePercentage'],
     };
 }
 

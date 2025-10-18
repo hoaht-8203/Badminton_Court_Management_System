@@ -77,6 +77,13 @@ builder.Services.AddScoped<IInventoryCheckService, InventoryCheckService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IPayrollService, PayrollService>();
+builder.Services.AddScoped<IStoreBankAccountService, StoreBankAccountService>();
+builder.Services.AddScoped<IInventoryCardService, InventoryCardService>();
+builder.Services.AddScoped<ISupplierBankAccountService, SupplierBankAccountService>();
+builder.Services.AddScoped<IReceiptService, ReceiptService>();
+builder.Services.AddScoped<IStockOutService, StockOutService>();
+builder.Services.AddScoped<IReturnGoodsService, ReturnGoodsService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -97,6 +104,7 @@ builder.Services.AddAutoMapper(config => config.AddProfile<BookingCourtMappingPr
 builder.Services.AddAutoMapper(config => config.AddProfile<AttendanceRecordMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<ServiceMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<PayrollMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<NotificationMappingProfile>());
 
 builder.Services.AddAutoMapper(config => config.AddProfile<PaymentMappingProfile>());
 builder.Services.Configure<MinioOptions>(
@@ -105,6 +113,10 @@ builder.Services.Configure<MinioOptions>(
 builder.Services.AddAutoMapper(config => config.AddProfile<CourtMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<CourtAreaMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<InventoryCheckMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<InventoryCardMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<SupplierBankAccountMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<ReceiptMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<StockOutMappingProfile>());
 
 // MinIO client
 builder.Services.AddSingleton<IMinioClient>(sp =>
@@ -212,6 +224,7 @@ builder
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHostedService<BookingHoldExpiryHostedService>();
+builder.Services.AddHostedService<AutoCheckoutHostedService>();
 builder.Services.AddSignalR(options =>
 {
     options.EnableDetailedErrors = true;
@@ -304,5 +317,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.UseWebSockets();
 app.MapHub<BookingHub>("/hubs/booking").RequireCors("Frontend");
+app.MapHub<NotificationHub>("/hubs/notifications").RequireCors("Frontend");
 
 app.Run();

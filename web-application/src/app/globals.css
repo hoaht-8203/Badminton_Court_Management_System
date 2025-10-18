@@ -26,3 +26,38 @@
 .scheduler_default_event_float_inner {
   width: 100% !important;
 }
+
+.cashier-page-section .ant-tabs-content-holder {
+  overflow-y: scroll !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  border-bottom-left-radius: 8px !important;
+}
+
+.cashier-page-section .cashier-page-section-right .card-section {
+  overflow-y: scroll !important;
+  border: 1px solid #f0f0f0 !important;
+  border-radius: 8px !important;
+  border-bottom-left-radius: 0 !important;
+}
+
+.cashier-page-section .cashier-page-section-right .card-section-content {
+  padding: 16px !important;
+}
+
+.cashier-page-section .cashier-page-section-right .card-section-top-fixed {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: white;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px;
+}
+
+.cashier-page-section .cashier-page-section-right .card-section-bottom-fixed {
+  position: sticky;
+  bottom: 0;
+  z-index: 1000;
+  background-color: white;
+  border-top: 1px solid #f0f0f0;
+  padding: 16px;
+}

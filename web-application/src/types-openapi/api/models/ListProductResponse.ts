@@ -67,6 +67,12 @@ export interface ListProductResponse {
      * @memberof ListProductResponse
      */
     isActive?: boolean;
+    /**
+     * 
+     * @type {Array<string>}
+     * @memberof ListProductResponse
+     */
+    images?: Array<string> | null;
 }
 
 /**
@@ -96,6 +102,7 @@ export function ListProductResponseFromJSONTyped(json: any, ignoreDiscriminator:
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
         'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
+        'images': json['images'] == null ? undefined : json['images'],
     };
 }
 
@@ -118,6 +125,7 @@ export function ListProductResponseToJSONTyped(value?: ListProductResponse | nul
         'salePrice': value['salePrice'],
         'isDirectSale': value['isDirectSale'],
         'isActive': value['isActive'],
+        'images': value['images'],
     };
 }
 

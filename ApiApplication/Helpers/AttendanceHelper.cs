@@ -7,7 +7,10 @@ namespace ApiApplication.Helpers;
 
 public static class AttendanceHelper
 {
-    public static string DetermineStatusOfShift(List<AttendanceRecord> attendanceRecords, ShiftResponse shift)
+    public static string DetermineStatusOfShift(
+        List<AttendanceRecord> attendanceRecords,
+        ShiftResponse shift
+    )
     {
         // Giả sử shift có StartTime, EndTime kiểu TimeSpan hoặc DateTime
         // AttendanceRecord có CheckInTime, CheckOutTime kiểu DateTime?
@@ -30,11 +33,13 @@ public static class AttendanceHelper
             return AttendanceStatus.Absent;
         }
 
-        if (relevantRecord.CheckInTime > shiftStart || (relevantRecord.CheckOutTime.HasValue && relevantRecord.CheckOutTime < shiftEnd))
+        if (
+            relevantRecord.CheckInTime > shiftStart
+            || (relevantRecord.CheckOutTime.HasValue && relevantRecord.CheckOutTime < shiftEnd)
+        )
         {
             return AttendanceStatus.Late;
         }
-        
 
         return AttendanceStatus.Attended;
     }

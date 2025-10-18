@@ -131,9 +131,10 @@ export const useUpdateCourtPricingRuleTemplate = () => {
   const queryClient = useQueryClient();
   return useMutation<ApiResponse<CourtPricingRuleTemplateDto>, ApiError, UpdateCourtPricingRuleTemplateRequest>({
     mutationFn: (data: UpdateCourtPricingRuleTemplateRequest) => courtService.updateCourtPricingRuleTemplate(data),
-    onSuccess: () => {
+    onSuccess: ({ data }) => {
       queryClient.invalidateQueries({ queryKey: courtsKeys.listPricingRuleTemplates() });
       queryClient.invalidateQueries({ queryKey: courtsKeys.listCourtGroupByCourtArea() });
+      queryClient.invalidateQueries({ queryKey: courtsKeys.listPricingRuleByCourtIdDetail({ courtId: data?.id ?? "" }) });
     },
   });
 };

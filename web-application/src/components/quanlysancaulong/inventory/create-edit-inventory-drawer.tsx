@@ -359,7 +359,10 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
               const cp = (d as any)?.data?.costPrice ?? 0;
               if (onlyInStock && stock <= 0) continue;
               const newItem = { productId: p.id, code: p.code || String(p.id), name: p.name, systemQuantity: stock, actualQuantity: stock, costPrice: cp };
-              setItems((prev) => [...prev, newItem]);
+              setItems((prev) => {
+                if (prev.some((x) => x.productId === p.id)) return prev;
+                return [...prev, newItem];
+              });
               // Add to recent history
               setRecentItems((prev) => {
                 if (prev.some((x) => x.productId === p.id)) return prev;
@@ -368,7 +371,10 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
             } catch {
               if (onlyInStock) continue;
               const newItem = { productId: p.id, code: p.code || String(p.id), name: p.name, systemQuantity: 0, actualQuantity: 0, costPrice: 0 };
-              setItems((prev) => [...prev, newItem]);
+              setItems((prev) => {
+                if (prev.some((x) => x.productId === p.id)) return prev;
+                return [...prev, newItem];
+              });
               // Add to recent history
               setRecentItems((prev) => {
                 if (prev.some((x) => x.productId === p.id)) return prev;
@@ -381,7 +387,7 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
     };
     // Trigger only when toggles are on
     if (onlyActive || onlyInStock || selectAllCategories || selectedCategories.length > 0) run();
-  }, [onlyActive, onlyInStock, selectAllCategories, selectedCategories, query, categoriesData?.data, items]);
+  }, [onlyActive, onlyInStock, selectAllCategories, selectedCategories, query, categoriesData?.data]);
 
   return (
     <>
@@ -602,17 +608,7 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
             <Input.TextArea rows={4} placeholder="Nhập ghi chú cho phiếu kiểm kê" />
           </Form.Item>
 
-          {/* Recent items panel */}
-          {items.length > 0 && (
-            <Card size="small" title="Kiểm gần đây" className="mb-2">
-              {(items || []).slice(-5).reverse().map((i) => (
-                <div key={i.productId} className="flex items-center gap-2 py-1 text-sm">
-                  <span>{i.name}</span>
-                  <span className="text-gray-400">({i.actualQuantity})</span>
-                </div>
-              ))}
-            </Card>
-          )}
+          {/* Removed bottom recent items panel per request */}
         </Form>
 
         <Divider />

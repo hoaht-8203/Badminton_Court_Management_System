@@ -23,5 +23,3 @@ public class CashflowMappingProfile : Profile
             .ForMember(d => d.Status, opt => opt.Ignore());
     }
 }
-
-

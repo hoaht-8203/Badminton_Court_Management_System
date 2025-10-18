@@ -59,7 +59,8 @@ public class CreatePayrollService : BackgroundService
 
                     using (var scope = _scopeFactory.CreateScope())
                     {
-                        var payrollService = scope.ServiceProvider.GetRequiredService<IPayrollService>();
+                        var payrollService =
+                            scope.ServiceProvider.GetRequiredService<IPayrollService>();
                         await payrollService.CreatePayrollAsync(request);
                     }
                 }

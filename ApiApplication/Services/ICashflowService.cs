@@ -11,5 +11,3 @@ public interface ICashflowService
     Task UpdateAsync(UpdateCashflowRequest request);
     Task DeleteAsync(int id);
 }
-
-

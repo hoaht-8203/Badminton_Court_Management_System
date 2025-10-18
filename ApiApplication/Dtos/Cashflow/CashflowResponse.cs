@@ -18,6 +18,3 @@ public class CashflowResponse
     public string? ReferenceNumber { get; set; }
     public bool AccountInBusinessResults { get; set; }
 }
-
-
-

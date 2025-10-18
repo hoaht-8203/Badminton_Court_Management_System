@@ -21,10 +21,12 @@ public class CashflowsController(ICashflowService cashflowService) : ControllerB
     }
 
     [HttpGet("detail")]
-    public async Task<ApiResponse<CashflowResponse>> Detail([FromQuery] DetailCashflowRequest request)
+    public async Task<ApiResponse<CashflowResponse>> Detail(
+        [FromQuery] DetailCashflowRequest request
+    )
     {
         var item = await _cashflowService.DetailAsync(request);
-        
+
         return ApiResponse<CashflowResponse>.SuccessResponse(item!);
     }
 
@@ -55,9 +57,4 @@ public class CashflowsController(ICashflowService cashflowService) : ControllerB
         await _cashflowService.DeleteAsync(id);
         return ApiResponse<object?>.SuccessResponse(null, "Xóa phiếu quỹ thành công");
     }
-
 }
-
-
-
-

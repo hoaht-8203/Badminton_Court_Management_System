@@ -32,5 +32,3 @@ public class RelatedPerson : BaseEntity
     // Navigation properties
     public ICollection<Cashflow> Cashflows { get; set; } = [];
 }
-
-

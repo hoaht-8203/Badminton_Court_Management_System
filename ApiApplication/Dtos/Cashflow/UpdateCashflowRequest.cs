@@ -23,6 +23,3 @@ public class UpdateCashflowRequest
     public bool AccountInBusinessResults { get; set; } = true;
     public string? Status { get; set; }
 }
-
-
-

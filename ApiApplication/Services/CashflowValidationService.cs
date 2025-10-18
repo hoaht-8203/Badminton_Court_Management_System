@@ -6,7 +6,6 @@ namespace ApiApplication.Services;
 
 public class CashflowValidationService
 {
-   
     public static bool ValidatePaymentTypeConsistency(Cashflow cashflow)
     {
         if (cashflow.CashflowType is null)
@@ -16,7 +15,6 @@ public class CashflowValidationService
         }
         return cashflow.IsPayment == cashflow.CashflowType.IsPayment;
     }
-
 
     public static void NormalizeValue(Cashflow cashflow)
     {
@@ -30,7 +28,6 @@ public class CashflowValidationService
         }
     }
 
-    
     public static (bool IsValid, string? ErrorMessage) ValidateAndNormalize(Cashflow cashflow)
     {
         // 1) Check IsPayment consistency (when possible)
@@ -73,7 +70,8 @@ public class CashflowValidationService
         decimal value,
         int? relatedPersonId = null,
         string? note = null,
-        Enums.PaymentMethod paymentMethod = Enums.PaymentMethod.Cash)
+        Enums.PaymentMethod paymentMethod = Enums.PaymentMethod.Cash
+    )
     {
         var cashflow = new Cashflow
         {
@@ -84,7 +82,7 @@ public class CashflowValidationService
             Note = note,
             PaymentMethod = paymentMethod,
             Status = CashFlowStatus.Pending,
-            Time = DateTime.UtcNow
+            Time = DateTime.UtcNow,
         };
 
         // Validate and normalize
@@ -97,4 +95,3 @@ public class CashflowValidationService
         return cashflow;
     }
 }
-

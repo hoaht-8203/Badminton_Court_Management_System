@@ -320,7 +320,7 @@ public static class SalaryHelper
         }
 
         // //deduct for late and absent (chưa triển khai, có thể bổ sung sau)
-        return totalSalary;
+        return (int)totalSalary;
     }
 
     private static decimal ParsePercent(string percent)

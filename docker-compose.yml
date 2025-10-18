@@ -102,3 +102,4 @@ networks:
 
 volumes:
   postgres:
+  postgres-data:

@@ -1,81 +1,127 @@
 "use client";
-import SalaryFilter from "@/components/quanlysancaulong/salary/salary-filter";
-import SalaryList from "@/components/quanlysancaulong/salary/salary-list";
-import { useState } from "react";
-import { Card, Breadcrumb, Button, message } from "antd";
+import { Breadcrumb, Button, Form, message, Table } from "antd";
 import { PlusOutlined, ReloadOutlined, FileExcelOutlined } from "@ant-design/icons";
-
-const mockData = [
-  {
-    code: "BL000001",
-    name: "Bảng lương tháng 10/2025",
-    payPeriod: "Hàng tháng",
-    workDate: "01/10/2025 - 31/10/2025",
-    totalSalary: 0,
-    paidStaff: 0,
-    remaining: 0,
-    status: "Tạm tính",
-  },
-  {
-    code: "BL000002",
-    name: "Bảng lương tháng 9/2025",
-    payPeriod: "Hàng tháng",
-    workDate: "01/09/2025 - 30/09/2025",
-    totalSalary: 0,
-    paidStaff: 0,
-    remaining: 0,
-    status: "Tạm tính",
-  },
-];
+import { useState, useEffect } from "react";
+import SalaryFilter from "@/components/quanlysancaulong/salary/salary-filter";
+import SalaryTabs from "@/components/quanlysancaulong/salary/salary-tabs";
+import PayrollDrawer from "@/components/quanlysancaulong/salary/payroll-drawer";
+import { useListPayrolls, useRefreshPayroll } from "@/hooks/usePayroll";
 
 export default function SalaryPage() {
-  const [filter, setFilter] = useState<any>({});
-  const [loading, setLoading] = useState(false);
-  // TODO: fetch data from API
-  const data = mockData;
+  const [form] = Form.useForm();
+  const [searchParams, setSearchParams] = useState({});
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+  const {
+    data: payrolls,
+    isFetching: loadingPayrolls,
+    refetch: refetchPayrolls,
+  } = useListPayrolls({ ...searchParams, page: pagination.current, pageSize: pagination.pageSize });
+  const refreshMutation = useRefreshPayroll();
+
+  const formatPayrollCode = (id?: number, pad = 6) => {
+    if (id == null) return "";
+    return `BL${String(id).padStart(pad, "0")}`;
+  };
 
   const handleSearch = (values: any) => {
-    setFilter(values);
-    message.info("Tìm kiếm bảng lương (demo)");
+    setSearchParams(values);
+    message.info("Tìm kiếm bảng lương");
   };
   const handleReset = () => {
-    setFilter({});
-    message.info("Reset filter (demo)");
+    setSearchParams({});
+    message.info("Reset filter");
   };
   const handleAddSalary = () => {
-    message.info("Thêm bảng lương (demo)");
+    setDrawerOpen(true);
   };
-  const handleReload = () => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 800);
-    message.info("Tải lại dữ liệu (demo)");
+  const handleReload = (id?: number) => {
+    if (id) {
+      refreshMutation.mutate(id);
+    } else {
+      // refresh current listing
+      refetchPayrolls();
+      message.info("Tải lại tất cả bảng lương");
+    }
   };
   const handleExportExcel = () => {
     message.info("Xuất Excel (demo)");
   };
 
+  // Không fetch detail ở đây, SalaryTabs sẽ tự fetch khi expand
+
   return (
     <section>
-      <div style={{ marginBottom: 16 }}>
+      <div className="mb-4">
         <Breadcrumb items={[{ title: "Quản lý sân cầu lông" }, { title: "Bảng lương" }]} />
       </div>
-      <Card title={<SalaryFilter onSearch={handleSearch} onReset={handleReset} />} style={{ marginBottom: 16 }}>
-        <div style={{ marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontWeight: 600, color: "#52c41a" }}>Tổng số bảng lương: {data.length}</span>
-          <div style={{ display: "flex", gap: 8 }}>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAddSalary}>
-              + Bảng tính lương
-            </Button>
-            <Button type="primary" icon={<ReloadOutlined />} onClick={handleReload}>
-              Tải lại
-            </Button>
-            <Button icon={<FileExcelOutlined />} onClick={handleExportExcel}>
-              Xuất file
-            </Button>
-          </div>
+
+      <div className="mb-4">
+        <SalaryFilter onSearch={handleSearch} onReset={handleReset} />
+      </div>
+
+      <div className="mb-2 flex items-center justify-between">
+        <span className="font-bold text-green-500">Tổng số bảng lương: {payrolls?.data?.length ?? 0}</span>
+        <div className="flex gap-2">
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAddSalary}>
+            Thêm bảng tính lương
+          </Button>
+          <Button type="primary" icon={<ReloadOutlined />} onClick={() => handleReload()}>
+            Tải lại
+          </Button>
+          <Button icon={<FileExcelOutlined />} onClick={handleExportExcel}>
+            Xuất file
+          </Button>
         </div>
-        <SalaryList data={data} loading={loading} />
-      </Card>
+      </div>
+
+      <PayrollDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+
+      <Table
+        columns={[
+          { title: "Mã bảng lương", key: "code", render: (_: any, r: any) => formatPayrollCode(r.id) },
+          { title: "Tên bảng lương", dataIndex: "name", key: "name" },
+          {
+            title: "Thời gian làm việc",
+            render: (r: any) =>
+              `${r.startDate ? new Date(r.startDate).toLocaleDateString() : ""} - ${r.endDate ? new Date(r.endDate).toLocaleDateString() : ""}`,
+          },
+          { title: "Tổng lương", dataIndex: "totalNetSalary", key: "totalNetSalary" },
+          { title: "Đã trả nhân viên", dataIndex: "totalPaidAmount", key: "totalPaidAmount" },
+          { title: "Còn lại", render: (r: any) => (r.totalNetSalary ?? 0) - (r.totalPaidAmount ?? 0) },
+          {
+            title: "Trạng thái",
+            dataIndex: "status",
+            key: "status",
+            render: (text: string) => {
+              const s = (text || "").toLowerCase();
+              const color = s === "completed" ? "#52c41a" : s === "pending" ? "#faad14" : "#000";
+              const label = s === "completed" ? "Đã trả" : s === "pending" ? "Chưa trả xong" : text;
+              return <span style={{ color, fontWeight: 600 }}>{label}</span>;
+            },
+          },
+        ]}
+        dataSource={payrolls?.data || []}
+        loading={loadingPayrolls}
+        rowKey="id"
+        scroll={{ x: "max-content" }}
+        bordered
+        expandable={{
+          expandRowByClick: true,
+          expandedRowRender: (record) => <SalaryTabs payrollId={record.id} />,
+        }}
+        pagination={{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: payrolls?.data?.length ?? 0,
+          showSizeChanger: true,
+          onChange: (page, pageSize) => {
+            setPagination({ current: page, pageSize });
+            setSearchParams((s: any) => ({ ...s, page, pageSize }));
+          },
+        }}
+        style={{ marginTop: 8 }}
+      />
     </section>
   );
 }

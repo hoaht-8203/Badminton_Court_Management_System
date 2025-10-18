@@ -1,30 +1,39 @@
-import { Form, Input, Button, Select, DatePicker } from "antd";
-import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
-
-const payPeriods = [
-  { value: "monthly", label: "Hàng tháng" },
-  { value: "weekly", label: "Hàng tuần" },
-];
+import { Card, Form, Input, Button, Radio } from "antd";
 
 export default function SalaryFilter({ onSearch, onReset }: { onSearch: (values: any) => void; onReset: () => void }) {
   const [form] = Form.useForm();
+  const handleFinish = (values: any) => {
+    onSearch(values);
+  };
   return (
-    <Form form={form} layout="inline" onFinish={onSearch} style={{ marginBottom: 0 }}>
-      <Form.Item label="Tìm kiếm theo mã, tên bảng lương" name="keyword" style={{ marginRight: 8 }}>
-        <Input placeholder="Nhập thông tin" allowClear style={{ width: 340 }} />
-      </Form.Item>
-      <Form.Item label="Kỳ hạn trả" name="payPeriod" style={{ marginRight: 8 }}>
-        <Select options={payPeriods} allowClear placeholder="Chọn kỳ hạn" style={{ width: 160 }} />
-      </Form.Item>
-      <Form.Item label="Kỳ làm việc" name="workDate" style={{ marginRight: 8 }}>
-        <DatePicker.RangePicker format="DD/MM/YYYY" style={{ width: 240 }} />
-      </Form.Item>
-      <Button type="primary" icon={<SearchOutlined />} htmlType="submit" style={{ marginRight: 8 }}>
-        Tìm kiếm
-      </Button>
-      <Button icon={<ReloadOutlined />} onClick={onReset}>
-        Reset
-      </Button>
-    </Form>
+    <Card title={<span style={{ fontWeight: 600 }}>Lọc dữ liệu</span>} className="mb-2">
+      <Form form={form} layout="inline" onFinish={handleFinish}>
+        <Form.Item name="keyword" label="Tìm kiếm theo tên, mã bảng lương">
+          <Input placeholder="Nhập thông tin" allowClear />
+        </Form.Item>
+        <Form.Item name="status" label="Trạng thái">
+          <Radio.Group>
+            <Radio value={undefined}>Tất cả</Radio>
+            <Radio value="draft">Tạm tính</Radio>
+            <Radio value="final">Đã chốt</Radio>
+          </Radio.Group>
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">
+            Tìm kiếm
+          </Button>
+        </Form.Item>
+        <Form.Item>
+          <Button
+            onClick={() => {
+              form.resetFields();
+              onReset();
+            }}
+          >
+            Reset
+          </Button>
+        </Form.Item>
+      </Form>
+    </Card>
   );
 }

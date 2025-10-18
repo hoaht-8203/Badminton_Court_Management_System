@@ -208,7 +208,7 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
   return (
     <Drawer
       open={open}
-      title="Thêm mới nhân viên"
+      title={staff && staff.id ? "Cập nhật nhân viên" : "Thêm mới nhân viên"}
       onClose={onClose}
       width={900}
       destroyOnClose

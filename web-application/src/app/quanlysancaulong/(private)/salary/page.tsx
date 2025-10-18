@@ -4,11 +4,13 @@ import { PlusOutlined, ReloadOutlined, FileExcelOutlined } from "@ant-design/ico
 import { useState, useEffect } from "react";
 import SalaryFilter from "@/components/quanlysancaulong/salary/salary-filter";
 import SalaryTabs from "@/components/quanlysancaulong/salary/salary-tabs";
+import PayrollDrawer from "@/components/quanlysancaulong/salary/payroll-drawer";
 import { useListPayrolls, useRefreshPayroll } from "@/hooks/usePayroll";
 
 export default function SalaryPage() {
   const [form] = Form.useForm();
   const [searchParams, setSearchParams] = useState({});
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const {
     data: payrolls,
@@ -31,7 +33,7 @@ export default function SalaryPage() {
     message.info("Reset filter");
   };
   const handleAddSalary = () => {
-    message.info("Thêm bảng lương (demo)");
+    setDrawerOpen(true);
   };
   const handleReload = (id?: number) => {
     if (id) {
@@ -73,6 +75,8 @@ export default function SalaryPage() {
         </div>
       </div>
 
+      <PayrollDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+
       <Table
         columns={[
           { title: "Mã bảng lương", key: "code", render: (_: any, r: any) => formatPayrollCode(r.id) },
@@ -89,7 +93,12 @@ export default function SalaryPage() {
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
-            render: (text: string) => <span style={{ color: "#52c41a", fontWeight: 600 }}>{text}</span>,
+            render: (text: string) => {
+              const s = (text || "").toLowerCase();
+              const color = s === "completed" ? "#52c41a" : s === "pending" ? "#faad14" : "#000";
+              const label = s === "completed" ? "Đã trả" : s === "pending" ? "Chưa trả xong" : text;
+              return <span style={{ color, fontWeight: 600 }}>{label}</span>;
+            },
           },
         ]}
         dataSource={payrolls?.data || []}

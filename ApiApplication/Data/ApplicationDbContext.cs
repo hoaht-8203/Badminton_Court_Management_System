@@ -45,7 +45,6 @@ public class ApplicationDbContext(
     public DbSet<PriceTable> PriceTables { get; set; }
     public DbSet<PriceTimeRange> PriceTimeRanges { get; set; }
     public DbSet<PriceTableProduct> PriceTableProducts { get; set; }
-
     public DbSet<InventoryCheck> InventoryChecks { get; set; }
     public DbSet<InventoryCheckItem> InventoryCheckItems { get; set; }
     public DbSet<InventoryCard> InventoryCards { get; set; }
@@ -57,10 +56,10 @@ public class ApplicationDbContext(
     public DbSet<ReturnGoods> ReturnGoods { get; set; }
     public DbSet<ReturnGoodsItem> ReturnGoodsItems { get; set; }
     public DbSet<StoreBankAccount> StoreBankAccounts { get; set; }
-
     public DbSet<Service> Services { get; set; }
     public DbSet<BookingService> BookingServices { get; set; }
     public DbSet<BookingOrderItem> BookingOrderItems { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -312,6 +311,17 @@ public class ApplicationDbContext(
             entity.HasIndex(e => e.UserName);
             entity.HasIndex(e => e.Action);
             entity.HasIndex(e => e.ActivityTime);
+        });
+
+        // Notification mappings
+        builder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Message).HasMaxLength(1000);
+            entity.Property(e => e.Type).HasConversion<string>().HasMaxLength(50);
+            entity.Property(e => e.NotificationByType).HasConversion<string>().HasMaxLength(100);
+            entity.Property(e => e.UserIds).HasColumnType("uuid[]");
         });
 
         SeedAdministratorUser(builder);

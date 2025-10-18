@@ -83,6 +83,7 @@ builder.Services.AddScoped<ISupplierBankAccountService, SupplierBankAccountServi
 builder.Services.AddScoped<IReceiptService, ReceiptService>();
 builder.Services.AddScoped<IStockOutService, StockOutService>();
 builder.Services.AddScoped<IReturnGoodsService, ReturnGoodsService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -103,6 +104,7 @@ builder.Services.AddAutoMapper(config => config.AddProfile<BookingCourtMappingPr
 builder.Services.AddAutoMapper(config => config.AddProfile<AttendanceRecordMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<ServiceMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<PayrollMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<NotificationMappingProfile>());
 
 builder.Services.AddAutoMapper(config => config.AddProfile<PaymentMappingProfile>());
 builder.Services.Configure<MinioOptions>(
@@ -315,5 +317,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.UseWebSockets();
 app.MapHub<BookingHub>("/hubs/booking").RequireCors("Frontend");
+app.MapHub<NotificationHub>("/hubs/notifications").RequireCors("Frontend");
 
 app.Run();

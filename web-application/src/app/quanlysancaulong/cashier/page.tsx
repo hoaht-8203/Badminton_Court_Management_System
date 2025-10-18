@@ -140,12 +140,6 @@ const CashierPageContent = () => {
     }
   };
 
-  const handleUpdateLateFeePercentage = () => {
-    // Chỉ cần cập nhật state, không cần gọi API
-    // Logic tính toán sẽ được handle trong finalPayable
-    message.success("Cập nhật phần trăm phí muộn thành công");
-  };
-
   const itemsSubtotal = useMemo(() => {
     return Object.values(orderItems).reduce((sum, it) => sum + (it.product.salePrice || 0) * it.quantity, 0);
   }, [orderItems]);
@@ -288,9 +282,6 @@ const CashierPageContent = () => {
                     placeholder="150"
                     style={{ width: "120px" }}
                   />
-                  <Button size="small" onClick={handleUpdateLateFeePercentage}>
-                    Cập nhật
-                  </Button>
                 </div>
                 <div className="mt-1 text-xs text-gray-500">Phí muộn: {lateFeePercentage}% trên giá gốc/giờ</div>
               </div>
@@ -347,7 +338,13 @@ const CashierPageContent = () => {
               </div>
               <div className="flex justify-between">
                 <span>Muộn</span>
-                <span>{bookingDetail?.overdueMinutes} phút</span>
+                <span>
+                  {bookingDetail?.overdueMinutes && bookingDetail?.overdueMinutes > 60
+                    ? `${Math.floor(bookingDetail?.overdueMinutes / 60)} giờ ${bookingDetail?.overdueMinutes % 60} phút`
+                    : bookingDetail?.overdueMinutes
+                      ? `${bookingDetail?.overdueMinutes} phút`
+                      : "0 phút"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span>Phụ phí muộn</span>

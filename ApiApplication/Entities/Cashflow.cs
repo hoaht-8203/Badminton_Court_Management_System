@@ -1,7 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using ApiApplication.Entities.Shared;
-using ApiApplication.Enums;
 
 namespace ApiApplication.Entities;
 
@@ -16,6 +14,7 @@ public class Cashflow : BaseEntity
     public required int CashflowTypeId { get; set; }
     public CashflowType CashflowType { get; set; } = null!;
     public int? RelatedId { get; set; }
+    public string? PersonType { get; set; } = RelatedPeopleGroup.Other;
     public string? RelatedPerson { get; set; }
     public required decimal Value { get; set; }
 

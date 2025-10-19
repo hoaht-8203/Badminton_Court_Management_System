@@ -13,6 +13,7 @@ public class CreateCashflowRequest
     public bool IsPayment { get; set; }
 
     public int? RelatedId { get; set; }
+    public string? PersonType { get; set; }
     public string? RelatedPerson { get; set; }
     public string? Note { get; set; }
 

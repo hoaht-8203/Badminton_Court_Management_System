@@ -85,7 +85,7 @@ export default function SalarySlipPanel({
   const validSelectedItems = selectedRowKeys
     .map((k) => dataSource.find((r) => String(r.id ?? "") === String(k))!)
     .filter(Boolean)
-    .filter((rec) => ((rec.netSalary ?? 0) - (rec.paidAmount ?? 0)) > 0) as PayrollItemResponse[];
+    .filter((rec) => (rec.netSalary ?? 0) - (rec.paidAmount ?? 0) > 0) as PayrollItemResponse[];
 
   return (
     <>

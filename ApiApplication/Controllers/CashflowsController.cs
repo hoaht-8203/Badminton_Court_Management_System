@@ -20,12 +20,10 @@ public class CashflowsController(ICashflowService cashflowService) : ControllerB
         return ApiResponse<CashflowResponse[]>.SuccessResponse(data);
     }
 
-    [HttpGet("detail")]
-    public async Task<ApiResponse<CashflowResponse>> Detail(
-        [FromQuery] DetailCashflowRequest request
-    )
+    [HttpGet("{id}")]
+    public async Task<ApiResponse<CashflowResponse>> Detail([FromRoute] int id)
     {
-        var item = await _cashflowService.DetailAsync(request);
+        var item = await _cashflowService.DetailAsync(id);
         return ApiResponse<CashflowResponse>.SuccessResponse(item!);
     }
 
@@ -36,10 +34,13 @@ public class CashflowsController(ICashflowService cashflowService) : ControllerB
         return ApiResponse<object?>.SuccessResponse(new { id }, "Tạo phiếu thu thành công");
     }
 
-    [HttpPut]
-    public async Task<ApiResponse<object?>> Update([FromBody] UpdateCashflowRequest request)
+    [HttpPut("{id}")]
+    public async Task<ApiResponse<object?>> Update(
+        [FromRoute] int id,
+        [FromBody] UpdateCashflowRequest request
+    )
     {
-        await _cashflowService.UpdateAsync(request);
+        await _cashflowService.UpdateAsync(id, request);
         return ApiResponse<object?>.SuccessResponse(null, "Cập nhật phiếu quỹ thành công");
     }
 

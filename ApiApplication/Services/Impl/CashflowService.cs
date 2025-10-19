@@ -54,11 +54,9 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         return items;
     }
 
-    public async Task<CashflowResponse?> DetailAsync(DetailCashflowRequest request)
+    public async Task<CashflowResponse?> DetailAsync(int id)
     {
-        var query = _context
-            .Cashflows.Include(x => x.CashflowType)
-            .Where(x => x.ReferenceNumber == request.ReferenceNumber);
+        var query = _context.Cashflows.Include(x => x.CashflowType).Where(x => x.Id == id);
 
         return await query
             .ProjectTo<CashflowResponse>(_mapper.ConfigurationProvider)
@@ -103,7 +101,7 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         return entity.Id;
     }
 
-    public async Task UpdateAsync(UpdateCashflowRequest request)
+    public async Task UpdateAsync(int id, UpdateCashflowRequest request)
     {
         if (request.Value <= 0)
         {
@@ -114,7 +112,7 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
             throw new ApiException("Thời gian phiếu quỹ không được lớn hơn thời gian hiện tại");
         }
 
-        var entity = await _context.Cashflows.FirstOrDefaultAsync(x => x.Id == request.Id);
+        var entity = await _context.Cashflows.FirstOrDefaultAsync(x => x.Id == id);
         var type = await _context.CashflowTypes.FirstOrDefaultAsync(t =>
             t.Id == request.CashflowTypeId && t.IsPayment == request.IsPayment
         );

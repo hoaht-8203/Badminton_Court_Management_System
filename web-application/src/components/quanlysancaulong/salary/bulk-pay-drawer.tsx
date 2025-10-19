@@ -77,11 +77,7 @@ export default function BulkPayDrawer({
       render: (_: any, r: PayrollItemResponse) => {
         const staffIdRaw = r.staff?.id ?? r.staffId ?? "";
         const staffIdStr = String(staffIdRaw ?? "");
-        const staffIdFormatted = staffIdStr
-          ? staffIdStr.startsWith("NV")
-            ? staffIdStr
-            : `NV${staffIdStr.replace(/^NV/, "").padStart(6, "0")}`
-          : "";
+        const staffIdFormatted = staffIdStr ? (staffIdStr.startsWith("NV") ? staffIdStr : `NV${staffIdStr.replace(/^NV/, "").padStart(6, "0")}`) : "";
         return (
           <div>
             <div>{r.staff?.fullName ?? `Staff #${r.staffId ?? ""}`}</div>
@@ -124,7 +120,8 @@ export default function BulkPayDrawer({
       <div style={{ marginBottom: 16 }}>
         <Typography.Title level={4}>{payrollName ?? "Thanh toán bảng lương"}</Typography.Title>
         <div style={{ color: "#666" }}>
-          Kỳ làm việc: {fmtDate(payrollStartDate)} - {fmtDate(payrollEndDate)}{payrollStatus ? ` | Trạng thái: ${payrollStatus}` : ""}
+          Kỳ làm việc: {fmtDate(payrollStartDate)} - {fmtDate(payrollEndDate)}
+          {payrollStatus ? ` | Trạng thái: ${payrollStatus}` : ""}
         </div>
       </div>
 

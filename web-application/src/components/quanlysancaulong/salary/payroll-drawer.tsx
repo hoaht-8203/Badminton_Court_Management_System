@@ -4,13 +4,7 @@ import dayjs from "dayjs";
 import { useCreatePayroll } from "@/hooks/usePayroll";
 import type { CreatePayrollRequest } from "@/types-openapi/api";
 
-export default function PayrollDrawer({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export default function PayrollDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [form] = Form.useForm<CreatePayrollRequest>();
   const createMutation = useCreatePayroll();
 
@@ -57,15 +51,11 @@ export default function PayrollDrawer({
           <Input />
         </Form.Item>
 
-        <Form.Item
-          name="startDate"
-          label="Ngày bắt đầu"
-          rules={[{ required: true, message: "Chọn ngày bắt đầu" }]}
-        >
+        <Form.Item name="startDate" label="Ngày bắt đầu" rules={[{ required: true, message: "Chọn ngày bắt đầu" }]}>
           <DatePicker style={{ width: "100%" }} />
         </Form.Item>
 
-        <Form.Item name="endDate" label="Ngày kết thúc" rules={[{ required: true, message: "Chọn ngày kết thúc" }]}> 
+        <Form.Item name="endDate" label="Ngày kết thúc" rules={[{ required: true, message: "Chọn ngày kết thúc" }]}>
           <DatePicker style={{ width: "100%" }} />
         </Form.Item>
 

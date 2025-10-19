@@ -100,18 +100,6 @@ export interface InventoryChecksApiInterface {
 
     /**
      * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof InventoryChecksApiInterface
-     */
-    apiInventoryChecksDebugLatestGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
-
-    /**
-     */
-    apiInventoryChecksDebugLatestGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
-
-    /**
-     * 
      * @param {number} id 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -238,33 +226,6 @@ export class InventoryChecksApi extends runtime.BaseAPI implements InventoryChec
      */
     async apiInventoryChecksBulkCancelPost(requestParameters: ApiInventoryChecksBulkCancelPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Int32ListApiResponse> {
         const response = await this.apiInventoryChecksBulkCancelPostRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     */
-    async apiInventoryChecksDebugLatestGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-
-        let urlPath = `/api/InventoryChecks/debug/latest`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiInventoryChecksDebugLatestGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
-        const response = await this.apiInventoryChecksDebugLatestGetRaw(initOverrides);
         return await response.value();
     }
 

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ApiApplication.Dtos;
+namespace ApiApplication.Dtos.PriceTable;
 
 public class DetailPriceTableResponse
 {
@@ -11,4 +11,5 @@ public class DetailPriceTableResponse
     public DateTime? EffectiveFrom { get; set; }
     public DateTime? EffectiveTo { get; set; }
     public List<PriceTimeRangeDto> TimeRanges { get; set; } = new();
+    public List<PriceTableProductDto> PriceTableProducts { get; set; } = new();
 }

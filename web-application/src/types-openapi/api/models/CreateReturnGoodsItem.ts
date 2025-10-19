@@ -24,25 +24,25 @@ export interface CreateReturnGoodsItem {
      * @type {number}
      * @memberof CreateReturnGoodsItem
      */
-    productId?: number;
+    productId: number;
     /**
      * 
      * @type {number}
      * @memberof CreateReturnGoodsItem
      */
-    quantity?: number;
+    quantity: number;
     /**
      * 
      * @type {number}
      * @memberof CreateReturnGoodsItem
      */
-    importPrice?: number;
+    importPrice: number;
     /**
      * 
      * @type {number}
      * @memberof CreateReturnGoodsItem
      */
-    returnPrice?: number;
+    returnPrice: number;
     /**
      * 
      * @type {number}
@@ -61,6 +61,10 @@ export interface CreateReturnGoodsItem {
  * Check if a given object implements the CreateReturnGoodsItem interface.
  */
 export function instanceOfCreateReturnGoodsItem(value: object): value is CreateReturnGoodsItem {
+    if (!('productId' in value) || value['productId'] === undefined) return false;
+    if (!('quantity' in value) || value['quantity'] === undefined) return false;
+    if (!('importPrice' in value) || value['importPrice'] === undefined) return false;
+    if (!('returnPrice' in value) || value['returnPrice'] === undefined) return false;
     return true;
 }
 
@@ -74,10 +78,10 @@ export function CreateReturnGoodsItemFromJSONTyped(json: any, ignoreDiscriminato
     }
     return {
         
-        'productId': json['productId'] == null ? undefined : json['productId'],
-        'quantity': json['quantity'] == null ? undefined : json['quantity'],
-        'importPrice': json['importPrice'] == null ? undefined : json['importPrice'],
-        'returnPrice': json['returnPrice'] == null ? undefined : json['returnPrice'],
+        'productId': json['productId'],
+        'quantity': json['quantity'],
+        'importPrice': json['importPrice'],
+        'returnPrice': json['returnPrice'],
         'discount': json['discount'] == null ? undefined : json['discount'],
         'note': json['note'] == null ? undefined : json['note'],
     };

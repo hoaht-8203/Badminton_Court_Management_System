@@ -4,7 +4,7 @@ using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Entities;
 
-public class InventoryCard : BaseEntity, IAuditableEntity
+public class InventoryCard : BaseEntity
 {
     [Key]
     public int Id { get; set; }

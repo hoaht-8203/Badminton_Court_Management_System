@@ -108,7 +108,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
         form={form}
         layout="vertical"
         onFinish={onSubmit}
-        initialValues={{ isDirectSale: true, manageInventory: false, menuType: presetMenuType, maxStock: 999 }}
+        initialValues={{ isDirectSale: true, manageInventory: false, menuType: presetMenuType, maxStock: 999, stock: 0, minStock: 0 }}
       >
         <Row gutter={16}>
           <Col span={12}>
@@ -235,7 +235,13 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item name="costPrice" label="Giá vốn">
-              <InputNumber min={0} style={{ width: "100%" }} />
+              <InputNumber 
+                min={0} 
+                style={{ width: "100%" }} 
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                // @ts-expect-error - Ant Design InputNumber parser type issue
+                parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+              />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -252,7 +258,13 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
                 }),
               ]}
             >
-              <InputNumber min={0} style={{ width: "100%" }} />
+              <InputNumber 
+                min={0} 
+                style={{ width: "100%" }} 
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                // @ts-expect-error - Ant Design InputNumber parser type issue
+                parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+              />
             </Form.Item>
           </Col>
         </Row>
@@ -296,7 +308,13 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
                   </span>
                 }
               >
-                <InputNumber min={0} style={{ width: "100%" }} />
+                <InputNumber 
+                  min={0} 
+                  style={{ width: "100%" }} 
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                // @ts-expect-error - Ant Design InputNumber parser type issue
+                parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -311,7 +329,13 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
                   </span>
                 }
               >
-                <InputNumber min={0} style={{ width: "100%" }} />
+                <InputNumber 
+                  min={0} 
+                  style={{ width: "100%" }} 
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                // @ts-expect-error - Ant Design InputNumber parser type issue
+                parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -326,7 +350,13 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
                   </span>
                 }
               >
-                <InputNumber min={0} style={{ width: "100%" }} />
+                <InputNumber 
+                  min={0} 
+                  style={{ width: "100%" }} 
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                // @ts-expect-error - Ant Design InputNumber parser type issue
+                parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -340,7 +370,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
           </Col>
           <Col span={12}>
             <Form.Item name="noteTemplate" label="Mẫu ghi chú">
-              <Input.TextArea rows={2} />
+              <Input.TextArea rows={3} />
             </Form.Item>
           </Col>
         </Row>

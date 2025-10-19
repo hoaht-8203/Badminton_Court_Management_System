@@ -18,6 +18,7 @@ import type {
   CreateProductRequest,
   DetailProductResponseApiResponse,
   ListProductResponseListApiResponse,
+  ListProductsByPriceTableResponseListApiResponse,
   ObjectApiResponse,
   UpdateProductRequest,
 } from '../models/index';
@@ -28,15 +29,13 @@ import {
     DetailProductResponseApiResponseToJSON,
     ListProductResponseListApiResponseFromJSON,
     ListProductResponseListApiResponseToJSON,
+    ListProductsByPriceTableResponseListApiResponseFromJSON,
+    ListProductsByPriceTableResponseListApiResponseToJSON,
     ObjectApiResponseFromJSON,
     ObjectApiResponseToJSON,
     UpdateProductRequestFromJSON,
     UpdateProductRequestToJSON,
 } from '../models/index';
-
-export interface ApiProductsCheckLowStockPostRequest {
-    branch?: string;
-}
 
 export interface ApiProductsCreatePostRequest {
     createProductRequest?: CreateProductRequest;
@@ -48,6 +47,13 @@ export interface ApiProductsDeleteDeleteRequest {
 
 export interface ApiProductsDetailGetRequest {
     id: number;
+}
+
+export interface ApiProductsListByPriceTableGetRequest {
+    priceTableId: number;
+    search?: string;
+    categoryId?: number;
+    isActive?: boolean;
 }
 
 export interface ApiProductsListGetRequest {
@@ -80,19 +86,6 @@ export interface ApiProductsUpdateStatusPutRequest {
  * @interface ProductsApiInterface
  */
 export interface ProductsApiInterface {
-    /**
-     * 
-     * @param {string} [branch] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof ProductsApiInterface
-     */
-    apiProductsCheckLowStockPostRaw(requestParameters: ApiProductsCheckLowStockPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
-
-    /**
-     */
-    apiProductsCheckLowStockPost(requestParameters: ApiProductsCheckLowStockPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
-
     /**
      * 
      * @param {CreateProductRequest} [createProductRequest] 
@@ -131,6 +124,22 @@ export interface ProductsApiInterface {
     /**
      */
     apiProductsDetailGet(requestParameters: ApiProductsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailProductResponseApiResponse>;
+
+    /**
+     * 
+     * @param {number} priceTableId 
+     * @param {string} [search] 
+     * @param {number} [categoryId] 
+     * @param {boolean} [isActive] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProductsApiInterface
+     */
+    apiProductsListByPriceTableGetRaw(requestParameters: ApiProductsListByPriceTableGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListProductsByPriceTableResponseListApiResponse>>;
+
+    /**
+     */
+    apiProductsListByPriceTableGet(requestParameters: ApiProductsListByPriceTableGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListProductsByPriceTableResponseListApiResponse>;
 
     /**
      * 
@@ -197,37 +206,6 @@ export interface ProductsApiInterface {
  * 
  */
 export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface {
-
-    /**
-     */
-    async apiProductsCheckLowStockPostRaw(requestParameters: ApiProductsCheckLowStockPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
-        const queryParameters: any = {};
-
-        if (requestParameters['branch'] != null) {
-            queryParameters['branch'] = requestParameters['branch'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-
-        let urlPath = `/api/Products/check-low-stock`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiProductsCheckLowStockPost(requestParameters: ApiProductsCheckLowStockPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
-        const response = await this.apiProductsCheckLowStockPostRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
 
     /**
      */
@@ -332,6 +310,56 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
      */
     async apiProductsDetailGet(requestParameters: ApiProductsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailProductResponseApiResponse> {
         const response = await this.apiProductsDetailGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProductsListByPriceTableGetRaw(requestParameters: ApiProductsListByPriceTableGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListProductsByPriceTableResponseListApiResponse>> {
+        if (requestParameters['priceTableId'] == null) {
+            throw new runtime.RequiredError(
+                'priceTableId',
+                'Required parameter "priceTableId" was null or undefined when calling apiProductsListByPriceTableGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['priceTableId'] != null) {
+            queryParameters['PriceTableId'] = requestParameters['priceTableId'];
+        }
+
+        if (requestParameters['search'] != null) {
+            queryParameters['Search'] = requestParameters['search'];
+        }
+
+        if (requestParameters['categoryId'] != null) {
+            queryParameters['CategoryId'] = requestParameters['categoryId'];
+        }
+
+        if (requestParameters['isActive'] != null) {
+            queryParameters['IsActive'] = requestParameters['isActive'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Products/list-by-price-table`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListProductsByPriceTableResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProductsListByPriceTableGet(requestParameters: ApiProductsListByPriceTableGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListProductsByPriceTableResponseListApiResponse> {
+        const response = await this.apiProductsListByPriceTableGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

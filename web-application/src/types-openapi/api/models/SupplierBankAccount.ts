@@ -74,19 +74,19 @@ export interface SupplierBankAccount {
      * @type {string}
      * @memberof SupplierBankAccount
      */
-    accountNumber?: string | null;
+    accountNumber: string | null;
     /**
      * 
      * @type {string}
      * @memberof SupplierBankAccount
      */
-    accountName?: string | null;
+    accountName: string | null;
     /**
      * 
      * @type {string}
      * @memberof SupplierBankAccount
      */
-    bankName?: string | null;
+    bankName: string | null;
     /**
      * 
      * @type {boolean}
@@ -99,6 +99,9 @@ export interface SupplierBankAccount {
  * Check if a given object implements the SupplierBankAccount interface.
  */
 export function instanceOfSupplierBankAccount(value: object): value is SupplierBankAccount {
+    if (!('accountNumber' in value) || value['accountNumber'] === undefined) return false;
+    if (!('accountName' in value) || value['accountName'] === undefined) return false;
+    if (!('bankName' in value) || value['bankName'] === undefined) return false;
     return true;
 }
 
@@ -119,9 +122,9 @@ export function SupplierBankAccountFromJSONTyped(json: any, ignoreDiscriminator:
         'id': json['id'] == null ? undefined : json['id'],
         'supplierId': json['supplierId'] == null ? undefined : json['supplierId'],
         'supplier': json['supplier'] == null ? undefined : SupplierFromJSON(json['supplier']),
-        'accountNumber': json['accountNumber'] == null ? undefined : json['accountNumber'],
-        'accountName': json['accountName'] == null ? undefined : json['accountName'],
-        'bankName': json['bankName'] == null ? undefined : json['bankName'],
+        'accountNumber': json['accountNumber'],
+        'accountName': json['accountName'],
+        'bankName': json['bankName'],
         'isDefault': json['isDefault'] == null ? undefined : json['isDefault'],
     };
 }

@@ -3,7 +3,7 @@ using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Entities;
 
-public class InventoryCheck : BaseEntity, IAuditableEntity
+public class InventoryCheck : BaseEntity
 {
     [Key]
     public int Id { get; set; }

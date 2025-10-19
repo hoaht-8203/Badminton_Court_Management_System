@@ -10,6 +10,7 @@ import type { TableColumnsType } from "antd";
 import dayjs from "dayjs";
 import { useAuth } from "@/context/AuthContext";
 import { useListCategories } from "@/hooks/useCategories";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CreateEditInventoryDrawerProps {
   open: boolean;
@@ -22,6 +23,7 @@ interface CreateEditInventoryDrawerProps {
 const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ open, onClose, inventoryId }) => {
   const [form] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
+  const queryClient = useQueryClient();
 
   const isEdit = !!inventoryId;
   const { data: inventoryData } = useDetailInventoryCheck(inventoryId!, isEdit && !!inventoryId);
@@ -105,6 +107,13 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
       form.resetFields();
       setItems([]);
       setRecentItems([]); // Clear history when closing
+      
+      // Invalidate queries to refresh data
+      try {
+        await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });
+        await queryClient.invalidateQueries({ queryKey: ["products"] });
+      } catch {}
+      
       onClose();
     } catch {
       messageApi.error(isEdit ? "Cập nhật phiếu kiểm kê thất bại!" : "Tạo phiếu kiểm kê thất bại!");
@@ -121,7 +130,12 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
       cancelText: "Đóng",
       onOk: () => {
         deleteMutation.mutate(inventoryId, {
-          onSuccess: () => {
+          onSuccess: async () => {
+            // Invalidate queries to refresh data
+            try {
+              await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });
+              await queryClient.invalidateQueries({ queryKey: ["products"] });
+            } catch {}
             onClose();
           },
           onError: () => {
@@ -290,6 +304,8 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
           onChange={(val) => onChangeActual(r.productId, Number(val))}
           onBlur={() => onBlurActual(r.productId)}
           style={{ width: 140 }}
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
         />
       ),
     },

@@ -1,4 +1,5 @@
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.PriceTable;
 using ApiApplication.Services;
 using Microsoft.AspNetCore.Mvc;
 

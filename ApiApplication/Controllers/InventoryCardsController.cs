@@ -26,4 +26,34 @@ public class InventoryCardsController(IInventoryCardService service) : Controlle
             )
         );
     }
+
+    [HttpPost("create")]
+    public async Task<ActionResult<ApiResponse<UpdateInventoryCardResponse>>> Create(
+        [FromBody] CreateInventoryCardRequest request
+    )
+    {
+        var generatedCode = await _service.GenerateNextSaleInventoryCardCodeAsync();
+
+        var costPrice = await _service.GetProductCostPriceAsync(request.ProductId);
+
+        var updateRequest = new UpdateInventoryCardRequest
+        {
+            ProductId = request.ProductId,
+            Code = generatedCode,
+            Method = "Bán hàng",
+            OccurredAt = DateTime.UtcNow,
+            CostPrice = costPrice,
+            QuantityChange = -Math.Abs(request.QuantityChange),
+            Note = request.Note,
+            UpdateProductStock = request.UpdateProductStock,
+        };
+
+        var result = await _service.UpdateInventoryCardAsync(updateRequest);
+        return Ok(
+            ApiResponse<UpdateInventoryCardResponse>.SuccessResponse(
+                result,
+                "Tạo thẻ kho và cập nhật tồn kho thành công"
+            )
+        );
+    }
 }

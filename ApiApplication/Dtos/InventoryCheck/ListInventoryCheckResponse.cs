@@ -5,7 +5,7 @@ namespace ApiApplication.Dtos.InventoryCheck;
 public class ListInventoryCheckResponse
 {
     public int Id { get; set; }
-    public string Code { get; set; } = string.Empty;
+    public string? Code { get; set; }
     public DateTime CheckTime { get; set; }
     public InventoryCheckStatus Status { get; set; }
     public DateTime? BalancedAt { get; set; }

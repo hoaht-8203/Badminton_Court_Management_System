@@ -32,13 +32,13 @@ export interface CreateReturnGoodsRequest {
      * @type {Date}
      * @memberof CreateReturnGoodsRequest
      */
-    returnTime?: Date;
+    returnTime: Date;
     /**
      * 
      * @type {number}
      * @memberof CreateReturnGoodsRequest
      */
-    supplierId?: number;
+    supplierId: number;
     /**
      * 
      * @type {string}
@@ -65,6 +65,18 @@ export interface CreateReturnGoodsRequest {
     supplierPaid?: number;
     /**
      * 
+     * @type {number}
+     * @memberof CreateReturnGoodsRequest
+     */
+    paymentMethod?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateReturnGoodsRequest
+     */
+    storeBankAccountId?: number | null;
+    /**
+     * 
      * @type {boolean}
      * @memberof CreateReturnGoodsRequest
      */
@@ -74,13 +86,16 @@ export interface CreateReturnGoodsRequest {
      * @type {Array<CreateReturnGoodsItem>}
      * @memberof CreateReturnGoodsRequest
      */
-    items?: Array<CreateReturnGoodsItem> | null;
+    items: Array<CreateReturnGoodsItem>;
 }
 
 /**
  * Check if a given object implements the CreateReturnGoodsRequest interface.
  */
 export function instanceOfCreateReturnGoodsRequest(value: object): value is CreateReturnGoodsRequest {
+    if (!('returnTime' in value) || value['returnTime'] === undefined) return false;
+    if (!('supplierId' in value) || value['supplierId'] === undefined) return false;
+    if (!('items' in value) || value['items'] === undefined) return false;
     return true;
 }
 
@@ -94,14 +109,16 @@ export function CreateReturnGoodsRequestFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'returnTime': json['returnTime'] == null ? undefined : (new Date(json['returnTime'])),
-        'supplierId': json['supplierId'] == null ? undefined : json['supplierId'],
+        'returnTime': (new Date(json['returnTime'])),
+        'supplierId': json['supplierId'],
         'returnBy': json['returnBy'] == null ? undefined : json['returnBy'],
         'note': json['note'] == null ? undefined : json['note'],
         'discount': json['discount'] == null ? undefined : json['discount'],
         'supplierPaid': json['supplierPaid'] == null ? undefined : json['supplierPaid'],
+        'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
+        'storeBankAccountId': json['storeBankAccountId'] == null ? undefined : json['storeBankAccountId'],
         'complete': json['complete'] == null ? undefined : json['complete'],
-        'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(CreateReturnGoodsItemFromJSON)),
+        'items': ((json['items'] as Array<any>).map(CreateReturnGoodsItemFromJSON)),
     };
 }
 
@@ -116,14 +133,16 @@ export function CreateReturnGoodsRequestToJSONTyped(value?: CreateReturnGoodsReq
 
     return {
         
-        'returnTime': value['returnTime'] == null ? undefined : ((value['returnTime']).toISOString()),
+        'returnTime': ((value['returnTime']).toISOString()),
         'supplierId': value['supplierId'],
         'returnBy': value['returnBy'],
         'note': value['note'],
         'discount': value['discount'],
         'supplierPaid': value['supplierPaid'],
+        'paymentMethod': value['paymentMethod'],
+        'storeBankAccountId': value['storeBankAccountId'],
         'complete': value['complete'],
-        'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(CreateReturnGoodsItemToJSON)),
+        'items': ((value['items'] as Array<any>).map(CreateReturnGoodsItemToJSON)),
     };
 }
 

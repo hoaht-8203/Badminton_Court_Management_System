@@ -4,13 +4,13 @@ using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Entities;
 
-public class Receipt : BaseEntity, IAuditableEntity
+public class Receipt : BaseEntity
 {
     [Key]
     public int Id { get; set; }
 
     [MaxLength(20)]
-    public string Code { get; set; } = string.Empty;
+    public string? Code { get; set; }
 
     public DateTime ReceiptTime { get; set; } = DateTime.UtcNow;
 
@@ -21,9 +21,8 @@ public class Receipt : BaseEntity, IAuditableEntity
     public decimal PaymentAmount { get; set; }
 
     [MaxLength(10)]
-    public string PaymentMethod { get; set; } = "cash"; // cash | transfer
+    public string PaymentMethod { get; set; } = "cash";
 
-    // Optional transfer info snapshot
     [MaxLength(50)]
     public string? SupplierBankAccountNumber { get; set; }
 

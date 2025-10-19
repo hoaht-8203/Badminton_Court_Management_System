@@ -27,6 +27,7 @@ import { useListSuppliers } from "@/hooks/useSuppliers";
 import { useListCategories } from "@/hooks/useCategories";
 import { returnGoodsService } from "@/services/returnGoodsService";
 import { storeBankAccountsService } from "@/services/storeBankAccountsService";
+import { useQueryClient } from "@tanstack/react-query";
 
 type ItemRow = {
   productId: number;
@@ -36,6 +37,7 @@ type ItemRow = {
   importPrice: number;
   returnPrice: number;
   lineTotal: number;
+  stock: number; // Thêm thông tin tồn kho
 };
 
 type Props = {
@@ -48,6 +50,7 @@ type Props = {
 const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoodsId, onChanged }) => {
   const [form] = Form.useForm();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const isEdit = !!returnGoodsId;
 
   const { data: suppliersRes } = useListSuppliers({});
@@ -108,14 +111,28 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         setDiscount(Number(d?.discount || 0));
         setSupplierPaid(Number(d?.supplierPaid || 0));
         setCurrentStatus(d?.status || 0);
-        const loadedItems: ItemRow[] = (d?.items || []).map((i: any) => ({
-          productId: i.productId,
-          code: i.productCode || String(i.productId),
-          name: i.productName || "",
-          quantity: i.quantity,
-          importPrice: i.importPrice,
-          returnPrice: i.returnPrice,
-          lineTotal: Number(i.quantity) * Number(i.returnPrice || 0),
+        const loadedItems: ItemRow[] = await Promise.all((d?.items || []).map(async (i: any) => {
+          // Lấy thông tin stock từ productService.detail()
+          let stock = 0;
+          try {
+            const svc = await import("@/services/productService");
+            const productDetail = await svc.productService.detail({ id: i.productId } as any);
+            stock = (productDetail as any)?.data?.stock ?? 0;
+            console.log(`Load return goods item ${i.productName} (${i.productId}) stock:`, stock); // Debug log
+          } catch (error) {
+            console.log(`Error getting stock for return goods item ${i.productName} (${i.productId}):`, error); // Debug log
+          }
+          
+          return {
+            productId: i.productId,
+            code: i.productCode || String(i.productId),
+            name: i.productName || "",
+            quantity: i.quantity,
+            importPrice: i.importPrice,
+            returnPrice: i.returnPrice,
+            lineTotal: Number(i.quantity) * Number(i.returnPrice || 0),
+            stock: stock, // Sử dụng stock từ API
+          };
         }));
         setItems(loadedItems);
       } catch (e) {
@@ -161,9 +178,12 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
           list.slice(0, 6).map(async (p: any) => {
             try {
               const d = await svc.productService.detail({ id: p.id } as any);
-              return { ...p, images: (d as any)?.data?.images || [], costPrice: (d as any)?.data?.costPrice ?? 0 };
-            } catch {
-              return { ...p, images: [], costPrice: 0 };
+              const stock = (d as any)?.data?.stock ?? 0;
+              console.log(`Product ${p.name} (${p.id}) stock:`, stock); // Debug log
+              return { ...p, images: (d as any)?.data?.images || [], costPrice: (d as any)?.data?.costPrice ?? 0, stock: stock };
+            } catch (error) {
+              console.log(`Error getting stock for product ${p.name} (${p.id}):`, error); // Debug log
+              return { ...p, images: [], costPrice: 0, stock: 0 };
             }
           }),
         );
@@ -192,6 +212,8 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
             try {
               const d = await svc.productService.detail({ id: p.id } as any);
               const cost = (d as any)?.data?.costPrice ?? 0;
+              const stock = (d as any)?.data?.stock ?? 0;
+              console.log(`Auto-add product ${p.name} (${p.id}) stock:`, stock); // Debug log
               const newItem = {
                 productId: p.id,
                 code: p.code || String(p.id),
@@ -200,9 +222,11 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                 importPrice: cost,
                 returnPrice: cost,
                 lineTotal: cost,
+                stock: stock,
               } as ItemRow;
               setItems((prev) => (prev.some((x) => x.productId === p.id) ? prev : [...prev, newItem]));
-            } catch {
+            } catch (error) {
+              console.log(`Error auto-adding product ${p.name} (${p.id}):`, error); // Debug log
               const newItem = {
                 productId: p.id,
                 code: p.code || String(p.id),
@@ -211,6 +235,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                 importPrice: 0,
                 returnPrice: 0,
                 lineTotal: 0,
+                stock: 0,
               } as ItemRow;
               setItems((prev) => (prev.some((x) => x.productId === p.id) ? prev : [...prev, newItem]));
             }
@@ -258,6 +283,13 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
 
   const updateQuantity = (productId: number, q: number) => {
     const quantity = Math.max(0, Number(q) || 0);
+    const item = items.find(i => i.productId === productId);
+    
+    // Validation đơn giản: không cho nhập vượt quá tồn kho
+    if (item && quantity > item.stock) {
+      return; // Không cập nhật, không hiện message
+    }
+    
     setItems((prev) => prev.map((i) => (i.productId === productId ? { ...i, quantity, lineTotal: quantity * (i.returnPrice || 0) } : i)));
   };
 
@@ -271,26 +303,50 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
   const columns = [
     { title: "Mã hàng", dataIndex: "code", key: "code", width: 140 },
     { title: "Tên hàng", dataIndex: "name", key: "name", width: 220 },
+    { title: "Tồn kho", dataIndex: "stock", key: "stock", width: 100, render: (v: number) => (v ?? 0).toLocaleString() },
     {
       title: "SL trả",
       key: "quantity",
       width: 120,
       render: (_: any, r: ItemRow) => (
-        <InputNumber min={0} value={r.quantity} onChange={(val) => updateQuantity(r.productId, Number(val))} style={{ width: 100 }} />
+        <InputNumber 
+          min={0} 
+          value={r.quantity} 
+          onChange={(val) => updateQuantity(r.productId, Number(val))} 
+          style={{ width: 100 }} 
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+        />
       ),
     },
     {
       title: "Giá nhập",
       key: "importPrice",
       width: 120,
-      render: (_: any, r: ItemRow) => <InputNumber min={0} value={r.importPrice} disabled style={{ width: 120 }} />,
+      render: (_: any, r: ItemRow) => (
+        <InputNumber 
+          min={0} 
+          value={r.importPrice} 
+          disabled 
+          style={{ width: 120 }} 
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+        />
+      ),
     },
     {
       title: "Giá trả",
       key: "returnPrice",
       width: 120,
       render: (_: any, r: ItemRow) => (
-        <InputNumber min={0} value={r.returnPrice} onChange={(val) => updateReturnPrice(r.productId, Number(val))} style={{ width: 120 }} />
+        <InputNumber 
+          min={0} 
+          value={r.returnPrice} 
+          onChange={(val) => updateReturnPrice(r.productId, Number(val))} 
+          style={{ width: 120 }} 
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+        />
       ),
     },
     { title: "Thành tiền", dataIndex: "lineTotal", key: "lineTotal", width: 140, render: (v: number) => (v ?? 0).toLocaleString() },
@@ -313,6 +369,13 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
       // Validate supplier selection
       if (!values.supplierId) {
         message.warning("Vui lòng chọn nhà cung cấp");
+        return;
+      }
+
+      // Validate stock quantity - đơn giản
+      const invalidItems = items.filter(item => item.quantity > item.stock);
+      if (invalidItems.length > 0) {
+        message.error("Số lượng trả hàng không được vượt quá tồn kho");
         return;
       }
 
@@ -343,10 +406,22 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         }
       }
 
-      // Refresh danh sách để cập nhật trạng thái
+      // Invalidate queries to refresh data
       try {
-        onChanged?.();
+        await queryClient.invalidateQueries({ queryKey: ["return-goods"] });
+        await queryClient.invalidateQueries({ queryKey: ["products"] });
+        await queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+        // Invalidate all queries that might contain return goods data
+        await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });
       } catch {}
+      
+      // Call onChanged to refresh parent component data
+      if (onChanged) {
+        // Add longer delay to ensure API changes are committed
+        setTimeout(() => {
+          onChanged();
+        }, 500);
+      }
 
       onClose();
     } catch (e: any) {
@@ -361,9 +436,22 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
       await returnGoodsService.cancel(returnGoodsId);
       message.success("Đã hủy phiếu trả hàng");
 
+      // Invalidate queries to refresh data
       try {
-        onChanged?.();
+        await queryClient.invalidateQueries({ queryKey: ["return-goods"] });
+        await queryClient.invalidateQueries({ queryKey: ["products"] });
+        await queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+        // Invalidate all queries that might contain return goods data
+        await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });
       } catch {}
+      
+      // Call onChanged to refresh parent component data
+      if (onChanged) {
+        // Add longer delay to ensure API changes are committed
+        setTimeout(() => {
+          onChanged();
+        }, 500);
+      }
 
       onClose();
     } catch (e: any) {
@@ -542,6 +630,8 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                         const p = product;
                         if (items.some((x) => x.productId === p.id)) return;
                         const cost = p.costPrice ?? 0;
+                        const stock = p.stock ?? 0;
+                        console.log(`Click product ${p.name} (${p.id}) stock:`, stock); // Debug log
                         setItems((prev) =>
                           prev.concat([
                             {
@@ -552,6 +642,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                               importPrice: cost,
                               returnPrice: cost,
                               lineTotal: cost,
+                              stock: stock,
                             },
                           ]),
                         );
@@ -636,7 +727,14 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Giảm giá</span>
-                  <InputNumber min={0} value={discount} onChange={(v) => setDiscount(Number(v) || 0)} style={{ width: 160 }} />
+                  <InputNumber 
+                    min={0} 
+                    value={discount} 
+                    onChange={(v) => setDiscount(Number(v) || 0)} 
+                    style={{ width: 160 }} 
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Nhà cung cấp cần trả</span>
@@ -647,7 +745,14 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                     <span className="flex items-center gap-1 text-gray-600">
                       <CreditCardOutlined /> Tiền nhà cung cấp trả
                     </span>
-                    <InputNumber min={0} value={supplierPaid} onChange={(v) => setSupplierPaid(Number(v) || 0)} style={{ width: 160 }} />
+                    <InputNumber 
+                      min={0} 
+                      value={supplierPaid} 
+                      onChange={(v) => setSupplierPaid(Number(v) || 0)} 
+                      style={{ width: 160 }} 
+                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                      parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                    />
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button type={paymentMethod === "cash" ? "primary" : "default"} onClick={() => setPaymentMethod("cash")}>

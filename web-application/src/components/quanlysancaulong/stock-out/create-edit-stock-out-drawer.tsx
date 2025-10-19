@@ -10,6 +10,7 @@ import { useListCategories } from "@/hooks/useCategories";
 import { useListSuppliers } from "@/hooks/useSuppliers";
 import { stockOutService } from "@/services/stockOutService";
 import { CreateStockOutRequest } from "@/types-openapi/api";
+import { useQueryClient } from "@tanstack/react-query";
 
 type StockOutItem = {
   productId: number;
@@ -20,6 +21,7 @@ type StockOutItem = {
   lineTotal: number;
   note?: string;
   images?: string[];
+  stock: number; // Thêm thông tin tồn kho
 };
 
 
@@ -35,6 +37,7 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
   const { user } = useAuth();
   const { data: categoriesData } = useListCategories({});
   const { data: suppliersData } = useListSuppliers({});
+  const queryClient = useQueryClient();
 
   const isEdit = !!stockOutId;
   const [items, setItems] = useState<StockOutItem[]>([]);
@@ -68,14 +71,28 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
           outBy: d?.outBy,
           note: d?.note,
         });
-        const loadedItems: StockOutItem[] = (d?.items || []).map((i: any) => ({
-          productId: i.productId,
-          code: i.productCode || String(i.productId),
-          name: i.productName || "",
-          quantity: i.quantity,
-          costPrice: i.costPrice,
-          lineTotal: Number(i.quantity) * Number(i.costPrice || 0),
-          note: i.note,
+        const loadedItems: StockOutItem[] = await Promise.all((d?.items || []).map(async (i: any) => {
+          // Lấy thông tin stock từ productService.detail()
+          let stock = 0;
+          try {
+            const svc = await import("@/services/productService");
+            const productDetail = await svc.productService.detail({ id: i.productId } as any);
+            stock = (productDetail as any)?.data?.stock ?? 0;
+            console.log(`Load stock-out item ${i.productName} (${i.productId}) stock:`, stock); // Debug log
+          } catch (error) {
+            console.log(`Error getting stock for stock-out item ${i.productName} (${i.productId}):`, error); // Debug log
+          }
+          
+          return {
+            productId: i.productId,
+            code: i.productCode || String(i.productId),
+            name: i.productName || "",
+            quantity: i.quantity,
+            costPrice: i.costPrice,
+            lineTotal: Number(i.quantity) * Number(i.costPrice || 0),
+            note: i.note,
+            stock: stock, // Sử dụng stock từ API
+          };
         }));
         setItems(loadedItems);
       } catch (e: any) {
@@ -99,12 +116,15 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
         const res = await svc.productService.list({ name: debouncedQuery } as any);
         const list: any[] = (res as any)?.data || [];
         const detailWithImages = await Promise.all(list.slice(0, 6).map(async (p: any) => {
-          try {
-            const d = await svc.productService.detail({ id: p.id } as any);
-            return { ...p, images: (d as any)?.data?.images || [], costPrice: (d as any)?.data?.costPrice ?? 0 };
-          } catch {
-            return { ...p, images: [], costPrice: 0 };
-          }
+            try {
+              const d = await svc.productService.detail({ id: p.id } as any);
+              const stock = (d as any)?.data?.stock ?? 0;
+              console.log(`Stock-out search product ${p.name} (${p.id}) stock:`, stock); // Debug log
+              return { ...p, images: (d as any)?.data?.images || [], costPrice: (d as any)?.data?.costPrice ?? 0, stock: stock };
+            } catch (error) {
+              console.log(`Error getting stock for stock-out product ${p.name} (${p.id}):`, error); // Debug log
+              return { ...p, images: [], costPrice: 0, stock: 0 };
+            }
         }));
         setProductsWithImages(detailWithImages);
       } catch {
@@ -131,10 +151,13 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
             try {
               const d = await svc.productService.detail({ id: p.id } as any);
               const cost = (d as any)?.data?.costPrice ?? 0;
-              const newItem: StockOutItem = { productId: p.id, code: p.code || String(p.id), name: p.name, quantity: 1, costPrice: cost, lineTotal: cost, note: "" };
+              const stock = (d as any)?.data?.stock ?? 0;
+              console.log(`Stock-out auto-add product ${p.name} (${p.id}) stock:`, stock); // Debug log
+              const newItem: StockOutItem = { productId: p.id, code: p.code || String(p.id), name: p.name, quantity: 1, costPrice: cost, lineTotal: cost, note: "", stock: stock };
               setItems((prev) => (prev.some(x => x.productId === p.id) ? prev : [...prev, newItem]));
-            } catch {
-              const newItem: StockOutItem = { productId: p.id, code: p.code || String(p.id), name: p.name, quantity: 1, costPrice: 0, lineTotal: 0, note: "" };
+            } catch (error) {
+              console.log(`Error auto-adding stock-out product ${p.name} (${p.id}):`, error); // Debug log
+              const newItem: StockOutItem = { productId: p.id, code: p.code || String(p.id), name: p.name, quantity: 1, costPrice: 0, lineTotal: 0, note: "", stock: 0 };
               setItems((prev) => (prev.some(x => x.productId === p.id) ? prev : [...prev, newItem]));
             }
           }
@@ -147,6 +170,8 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
   const onSelectProduct = (p: any) => {
     const id = p.id as number;
     const cost = p.costPrice ?? 0;
+    const stock = p.stock ?? 0;
+    console.log(`Stock-out click product ${p.name} (${id}) stock:`, stock); // Debug log
     const newItem: StockOutItem = {
       productId: id,
       code: p.code || String(id),
@@ -156,12 +181,20 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       lineTotal: cost,
       note: "",
       images: p.images || [],
+      stock: stock,
     };
     setItems(prev => (prev.some(x => x.productId === id) ? prev : [...prev, newItem]));
   };
 
   const updateQuantity = (productId: number, q: number) => {
     const quantity = Math.max(0, Number(q) || 0);
+    const item = items.find(i => i.productId === productId);
+    
+    // Validation đơn giản: không cho nhập vượt quá tồn kho
+    if (item && quantity > item.stock) {
+      return; // Không cập nhật, không hiện message
+    }
+    
     setItems(prev => prev.map(i => i.productId === productId ? { ...i, quantity, lineTotal: quantity * (i.costPrice ?? 0) } : i));
   };
 
@@ -194,12 +227,20 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
   const columns: TableColumnsType<StockOutItem> = [
     { title: "Mã hàng", dataIndex: "code", key: "code", width: 140 },
     { title: "Tên hàng", dataIndex: "name", key: "name", width: 220 },
+    { title: "Tồn kho", dataIndex: "stock", key: "stock", width: 100, render: (v: number) => (v ?? 0).toLocaleString() },
     {
       title: "SL hủy",
       key: "quantity",
       width: 120,
       render: (_, r) => (
-        <InputNumber min={0} value={r.quantity} onChange={(val) => updateQuantity(r.productId, Number(val))} style={{ width: 100 }} />
+        <InputNumber 
+          min={0} 
+          value={r.quantity} 
+          onChange={(val) => updateQuantity(r.productId, Number(val))} 
+          style={{ width: 100 }} 
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+        />
       ),
     },
     {
@@ -207,7 +248,15 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       key: "costPrice",
       width: 120,
       render: (_, r) => (
-        <InputNumber min={0} value={r.costPrice} onChange={(val) => updateCost(r.productId, Number(val))} style={{ width: 120 }} />
+        <InputNumber 
+          min={0} 
+          value={r.costPrice} 
+          onChange={(val) => updateCost(r.productId, Number(val))} 
+          style={{ width: 120 }} 
+          disabled 
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+        />
       ),
     },
     {
@@ -249,6 +298,13 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       return;
     }
 
+    // Validate stock quantity - đơn giản
+    const invalidItems = items.filter(item => item.quantity > item.stock);
+    if (invalidItems.length > 0) {
+      message.error("Số lượng xuất hủy không được vượt quá tồn kho");
+      return;
+    }
+
     try {
       const payload: CreateStockOutRequest = {
         outTime: new Date(((values.outTime ? dayjs(values.outTime) : dayjs()).toDate()).toISOString()),
@@ -268,6 +324,7 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
         if (complete) {
           await stockOutService.complete(stockOutId!);
           message.success("Đã hoàn thành phiếu xuất hủy");
+          try { await queryClient.invalidateQueries({ queryKey: ["products"] }); } catch {}
         } else {
           await stockOutService.update(stockOutId!, payload);
           message.success("Đã lưu nháp phiếu xuất hủy");
@@ -275,6 +332,7 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       } else {
         await stockOutService.create(payload);
         message.success(complete ? "Đã hoàn thành phiếu xuất hủy" : "Đã lưu nháp phiếu xuất hủy");
+        if (complete) { try { await queryClient.invalidateQueries({ queryKey: ["products"] }); } catch {} }
       }
       
       try { onChanged?.(); } catch {}

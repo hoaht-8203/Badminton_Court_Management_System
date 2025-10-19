@@ -60,6 +60,12 @@ export interface CashflowResponse {
      * @type {string}
      * @memberof CashflowResponse
      */
+    personType?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof CashflowResponse
+     */
     relatedPerson?: string | null;
     /**
      * 
@@ -85,6 +91,18 @@ export interface CashflowResponse {
      * @memberof CashflowResponse
      */
     referenceNumber?: string | null;
+    /**
+     * 
+     * @type {Date}
+     * @memberof CashflowResponse
+     */
+    createdAt?: Date;
+    /**
+     * 
+     * @type {string}
+     * @memberof CashflowResponse
+     */
+    createdBy?: string | null;
 }
 
 /**
@@ -110,11 +128,14 @@ export function CashflowResponseFromJSONTyped(json: any, ignoreDiscriminator: bo
         'cashflowTypeId': json['cashflowTypeId'] == null ? undefined : json['cashflowTypeId'],
         'cashflowTypeName': json['cashflowTypeName'] == null ? undefined : json['cashflowTypeName'],
         'relatedId': json['relatedId'] == null ? undefined : json['relatedId'],
+        'personType': json['personType'] == null ? undefined : json['personType'],
         'relatedPerson': json['relatedPerson'] == null ? undefined : json['relatedPerson'],
         'value': json['value'] == null ? undefined : json['value'],
         'status': json['status'] == null ? undefined : json['status'],
         'note': json['note'] == null ? undefined : json['note'],
         'referenceNumber': json['referenceNumber'] == null ? undefined : json['referenceNumber'],
+        'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
+        'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
     };
 }
 
@@ -135,11 +156,14 @@ export function CashflowResponseToJSONTyped(value?: CashflowResponse | null, ign
         'cashflowTypeId': value['cashflowTypeId'],
         'cashflowTypeName': value['cashflowTypeName'],
         'relatedId': value['relatedId'],
+        'personType': value['personType'],
         'relatedPerson': value['relatedPerson'],
         'value': value['value'],
         'status': value['status'],
         'note': value['note'],
         'referenceNumber': value['referenceNumber'],
+        'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
+        'createdBy': value['createdBy'],
     };
 }
 

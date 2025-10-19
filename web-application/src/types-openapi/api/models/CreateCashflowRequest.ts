@@ -48,6 +48,12 @@ export interface CreateCashflowRequest {
      * @type {string}
      * @memberof CreateCashflowRequest
      */
+    personType?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateCashflowRequest
+     */
     relatedPerson?: string | null;
     /**
      * 
@@ -86,6 +92,7 @@ export function CreateCashflowRequestFromJSONTyped(json: any, ignoreDiscriminato
         'value': json['value'],
         'isPayment': json['isPayment'] == null ? undefined : json['isPayment'],
         'relatedId': json['relatedId'] == null ? undefined : json['relatedId'],
+        'personType': json['personType'] == null ? undefined : json['personType'],
         'relatedPerson': json['relatedPerson'] == null ? undefined : json['relatedPerson'],
         'note': json['note'] == null ? undefined : json['note'],
         'time': json['time'] == null ? undefined : (new Date(json['time'])),
@@ -107,6 +114,7 @@ export function CreateCashflowRequestToJSONTyped(value?: CreateCashflowRequest |
         'value': value['value'],
         'isPayment': value['isPayment'],
         'relatedId': value['relatedId'],
+        'personType': value['personType'],
         'relatedPerson': value['relatedPerson'],
         'note': value['note'],
         'time': value['time'] === null ? null : ((value['time'] as any)?.toISOString()),

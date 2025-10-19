@@ -24,12 +24,6 @@ export interface UpdateCashflowRequest {
      * @type {number}
      * @memberof UpdateCashflowRequest
      */
-    id: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateCashflowRequest
-     */
     cashflowTypeId: number;
     /**
      * 
@@ -60,6 +54,12 @@ export interface UpdateCashflowRequest {
      * @type {string}
      * @memberof UpdateCashflowRequest
      */
+    personType?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCashflowRequest
+     */
     relatedPerson?: string | null;
     /**
      * 
@@ -79,7 +79,6 @@ export interface UpdateCashflowRequest {
  * Check if a given object implements the UpdateCashflowRequest interface.
  */
 export function instanceOfUpdateCashflowRequest(value: object): value is UpdateCashflowRequest {
-    if (!('id' in value) || value['id'] === undefined) return false;
     if (!('cashflowTypeId' in value) || value['cashflowTypeId'] === undefined) return false;
     if (!('value' in value) || value['value'] === undefined) return false;
     return true;
@@ -95,12 +94,12 @@ export function UpdateCashflowRequestFromJSONTyped(json: any, ignoreDiscriminato
     }
     return {
         
-        'id': json['id'],
         'cashflowTypeId': json['cashflowTypeId'],
         'value': json['value'],
         'isPayment': json['isPayment'] == null ? undefined : json['isPayment'],
         'time': json['time'] == null ? undefined : (new Date(json['time'])),
         'relatedId': json['relatedId'] == null ? undefined : json['relatedId'],
+        'personType': json['personType'] == null ? undefined : json['personType'],
         'relatedPerson': json['relatedPerson'] == null ? undefined : json['relatedPerson'],
         'note': json['note'] == null ? undefined : json['note'],
         'status': json['status'] == null ? undefined : json['status'],
@@ -118,12 +117,12 @@ export function UpdateCashflowRequestToJSONTyped(value?: UpdateCashflowRequest |
 
     return {
         
-        'id': value['id'],
         'cashflowTypeId': value['cashflowTypeId'],
         'value': value['value'],
         'isPayment': value['isPayment'],
         'time': value['time'] === null ? null : ((value['time'] as any)?.toISOString()),
         'relatedId': value['relatedId'],
+        'personType': value['personType'],
         'relatedPerson': value['relatedPerson'],
         'note': value['note'],
         'status': value['status'],

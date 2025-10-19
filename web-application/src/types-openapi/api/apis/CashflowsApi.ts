@@ -34,10 +34,6 @@ import {
     UpdateCashflowRequestToJSON,
 } from '../models/index';
 
-export interface ApiCashflowsDetailGetRequest {
-    referenceNumber?: string;
-}
-
 export interface ApiCashflowsGetRequest {
     isPayment?: boolean;
     from?: Date;
@@ -50,12 +46,17 @@ export interface ApiCashflowsIdDeleteRequest {
     id: number;
 }
 
-export interface ApiCashflowsPostRequest {
-    createCashflowRequest?: CreateCashflowRequest;
+export interface ApiCashflowsIdGetRequest {
+    id: number;
 }
 
-export interface ApiCashflowsPutRequest {
+export interface ApiCashflowsIdPutRequest {
+    id: number;
     updateCashflowRequest?: UpdateCashflowRequest;
+}
+
+export interface ApiCashflowsPostRequest {
+    createCashflowRequest?: CreateCashflowRequest;
 }
 
 /**
@@ -65,19 +66,6 @@ export interface ApiCashflowsPutRequest {
  * @interface CashflowsApiInterface
  */
 export interface CashflowsApiInterface {
-    /**
-     * 
-     * @param {string} [referenceNumber] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashflowsApiInterface
-     */
-    apiCashflowsDetailGetRaw(requestParameters: ApiCashflowsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CashflowResponseApiResponse>>;
-
-    /**
-     */
-    apiCashflowsDetailGet(requestParameters: ApiCashflowsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CashflowResponseApiResponse>;
-
     /**
      * 
      * @param {boolean} [isPayment] 
@@ -110,6 +98,33 @@ export interface CashflowsApiInterface {
 
     /**
      * 
+     * @param {number} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CashflowsApiInterface
+     */
+    apiCashflowsIdGetRaw(requestParameters: ApiCashflowsIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CashflowResponseApiResponse>>;
+
+    /**
+     */
+    apiCashflowsIdGet(requestParameters: ApiCashflowsIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CashflowResponseApiResponse>;
+
+    /**
+     * 
+     * @param {number} id 
+     * @param {UpdateCashflowRequest} [updateCashflowRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CashflowsApiInterface
+     */
+    apiCashflowsIdPutRaw(requestParameters: ApiCashflowsIdPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiCashflowsIdPut(requestParameters: ApiCashflowsIdPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
      * @param {CreateCashflowRequest} [createCashflowRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -121,56 +136,12 @@ export interface CashflowsApiInterface {
      */
     apiCashflowsPost(requestParameters: ApiCashflowsPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
-    /**
-     * 
-     * @param {UpdateCashflowRequest} [updateCashflowRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof CashflowsApiInterface
-     */
-    apiCashflowsPutRaw(requestParameters: ApiCashflowsPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
-
-    /**
-     */
-    apiCashflowsPut(requestParameters: ApiCashflowsPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
-
 }
 
 /**
  * 
  */
 export class CashflowsApi extends runtime.BaseAPI implements CashflowsApiInterface {
-
-    /**
-     */
-    async apiCashflowsDetailGetRaw(requestParameters: ApiCashflowsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CashflowResponseApiResponse>> {
-        const queryParameters: any = {};
-
-        if (requestParameters['referenceNumber'] != null) {
-            queryParameters['ReferenceNumber'] = requestParameters['referenceNumber'];
-        }
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-
-        let urlPath = `/api/Cashflows/detail`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'GET',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => CashflowResponseApiResponseFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiCashflowsDetailGet(requestParameters: ApiCashflowsDetailGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CashflowResponseApiResponse> {
-        const response = await this.apiCashflowsDetailGetRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
 
     /**
      */
@@ -256,6 +227,79 @@ export class CashflowsApi extends runtime.BaseAPI implements CashflowsApiInterfa
 
     /**
      */
+    async apiCashflowsIdGetRaw(requestParameters: ApiCashflowsIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CashflowResponseApiResponse>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling apiCashflowsIdGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Cashflows/{id}`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CashflowResponseApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiCashflowsIdGet(requestParameters: ApiCashflowsIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CashflowResponseApiResponse> {
+        const response = await this.apiCashflowsIdGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiCashflowsIdPutRaw(requestParameters: ApiCashflowsIdPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling apiCashflowsIdPut().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Cashflows/{id}`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateCashflowRequestToJSON(requestParameters['updateCashflowRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiCashflowsIdPut(requestParameters: ApiCashflowsIdPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiCashflowsIdPutRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
     async apiCashflowsPostRaw(requestParameters: ApiCashflowsPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
         const queryParameters: any = {};
 
@@ -281,36 +325,6 @@ export class CashflowsApi extends runtime.BaseAPI implements CashflowsApiInterfa
      */
     async apiCashflowsPost(requestParameters: ApiCashflowsPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiCashflowsPostRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     */
-    async apiCashflowsPutRaw(requestParameters: ApiCashflowsPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-
-        let urlPath = `/api/Cashflows`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'PUT',
-            headers: headerParameters,
-            query: queryParameters,
-            body: UpdateCashflowRequestToJSON(requestParameters['updateCashflowRequest']),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiCashflowsPut(requestParameters: ApiCashflowsPutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
-        const response = await this.apiCashflowsPutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

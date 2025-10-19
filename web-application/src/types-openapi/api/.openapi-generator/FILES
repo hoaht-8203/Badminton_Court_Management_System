@@ -130,7 +130,6 @@ models/DetailAdministratorResponseApiResponse.ts
 models/DetailBookingCourtRequest.ts
 models/DetailBookingCourtResponse.ts
 models/DetailBookingCourtResponseApiResponse.ts
-models/DetailCashflowRequest.ts
 models/DetailCategoryRequest.ts
 models/DetailCategoryResponse.ts
 models/DetailCategoryResponseApiResponse.ts

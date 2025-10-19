@@ -97,7 +97,6 @@ export * from './DetailAdministratorResponseApiResponse';
 export * from './DetailBookingCourtRequest';
 export * from './DetailBookingCourtResponse';
 export * from './DetailBookingCourtResponseApiResponse';
-export * from './DetailCashflowRequest';
 export * from './DetailCategoryRequest';
 export * from './DetailCategoryResponse';
 export * from './DetailCategoryResponseApiResponse';

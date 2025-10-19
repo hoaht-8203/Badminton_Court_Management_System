@@ -18,7 +18,8 @@ public class Cashflow : BaseEntity
     public int? RelatedId { get; set; }
     public string? RelatedPerson { get; set; }
     public required decimal Value { get; set; }
-    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
+
+    // public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
 
     [Required]
     [MaxLength(50)]
@@ -29,5 +30,5 @@ public class Cashflow : BaseEntity
 
     [MaxLength(100)]
     public string? ReferenceNumber { get; set; }
-    public bool AccountInBusinessResults { get; set; } = true;
+    // public bool AccountInBusinessResults { get; set; } = true;
 }

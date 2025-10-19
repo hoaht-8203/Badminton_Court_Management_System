@@ -11,15 +11,9 @@ public class CashflowMappingProfile : Profile
         CreateMap<Cashflow, CashflowResponse>()
             .ForMember(d => d.CashflowTypeName, opt => opt.MapFrom(s => s.CashflowType.Name));
 
-        CreateMap<CreateCashflowRequest, Cashflow>()
-            .ForMember(d => d.Id, opt => opt.Ignore())
-            .ForMember(d => d.IsPayment, opt => opt.Ignore())
-            .ForMember(d => d.CashflowType, opt => opt.Ignore())
-            .ForMember(d => d.Status, opt => opt.Ignore());
+        CreateMap<CreateCashflowRequest, Cashflow>();
 
         CreateMap<UpdateCashflowRequest, Cashflow>()
-            .ForMember(d => d.IsPayment, opt => opt.Ignore())
-            .ForMember(d => d.CashflowType, opt => opt.Ignore())
-            .ForMember(d => d.Status, opt => opt.Ignore());
+            .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
     }
 }

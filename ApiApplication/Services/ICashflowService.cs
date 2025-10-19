@@ -6,8 +6,7 @@ public interface ICashflowService
 {
     Task<CashflowResponse[]> ListAsync(ListCashflowRequest request);
     Task<CashflowResponse?> DetailAsync(DetailCashflowRequest request);
-    Task<int> CreateReceiptAsync(CreateCashflowRequest request);
-    Task<int> CreatePaymentAsync(CreateCashflowRequest request);
+    Task<int> CreateCashflowAsync(CreateCashflowRequest request);
     Task UpdateAsync(UpdateCashflowRequest request);
     Task DeleteAsync(int id);
 }

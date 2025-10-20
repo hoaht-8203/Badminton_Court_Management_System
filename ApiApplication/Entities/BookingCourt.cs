@@ -36,5 +36,5 @@ public class BookingCourt : BaseEntity
     public DateTime? HoldExpiresAtUtc { get; set; }
 
     public ICollection<Payment> Payments { get; set; } = [];
-    public ICollection<BookingService> BookingServices { get; set; } = [];
+    public ICollection<BookingCourtOccurrence> BookingCourtOccurrences { get; set; } = [];
 }

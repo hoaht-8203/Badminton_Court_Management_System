@@ -6,15 +6,23 @@ public interface IBookingCourtService
 {
     Task<DetailBookingCourtResponse> CreateBookingCourtAsync(CreateBookingCourtRequest request);
     Task<List<ListBookingCourtResponse>> ListBookingCourtsAsync(ListBookingCourtRequest request);
+    Task<List<ListBookingCourtOccurrenceResponse>> ListBookingCourtOccurrencesAsync(
+        ListBookingCourtOccurrenceRequest request
+    );
     Task<DetailBookingCourtResponse> DetailBookingCourtAsync(DetailBookingCourtRequest request);
+    Task<DetailBookingCourtOccurrenceResponse> DetailBookingCourtOccurrenceAsync(
+        DetailBookingCourtOccurrenceRequest request
+    );
     Task<bool> CancelBookingCourtAsync(CancelBookingCourtRequest request);
-    Task<bool> CheckInAsync(CheckInBookingCourtRequest request);
-    Task<bool> CheckOutAsync(CheckOutBookingCourtRequest request);
-    Task<bool> MarkNoShowAsync(NoShowBookingCourtRequest request);
+
+    // Occurrence-level operations
+    Task<bool> CheckInOccurrenceAsync(CheckInBookingCourtRequest request);
+    Task<bool> CheckOutOccurrenceAsync(CheckOutBookingCourtRequest request);
+    Task<bool> MarkOccurrenceNoShowAsync(NoShowBookingCourtRequest request);
 
     // Cashier flow
     Task<CheckoutEstimateResponse> EstimateCheckoutAsync(CheckoutEstimateRequest request);
     Task<bool> AddOrderItemAsync(AddOrderItemRequest request);
-    Task<List<BookingOrderItemResponse>> ListOrderItemsAsync(Guid bookingId);
+    Task<List<BookingOrderItemResponse>> ListOrderItemsAsync(Guid occurrenceId);
     Task<bool> UpdateOrderItemAsync(UpdateOrderItemRequest request);
 }

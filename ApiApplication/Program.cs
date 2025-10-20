@@ -85,6 +85,7 @@ builder.Services.AddScoped<IStockOutService, StockOutService>();
 builder.Services.AddScoped<IReturnGoodsService, ReturnGoodsService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICashflowService, CashflowService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -119,6 +120,7 @@ builder.Services.AddAutoMapper(config => config.AddProfile<SupplierBankAccountMa
 builder.Services.AddAutoMapper(config => config.AddProfile<ReceiptMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<StockOutMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<CashflowMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<OrderMappingProfile>());
 
 // MinIO client
 builder.Services.AddSingleton<IMinioClient>(sp =>

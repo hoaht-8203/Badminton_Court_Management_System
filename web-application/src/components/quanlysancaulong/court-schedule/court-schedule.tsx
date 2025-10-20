@@ -1,6 +1,7 @@
 import { bookingCourtsKeys, useListBookingCourts } from "@/hooks/useBookingCourt";
+import { bookingCourtOccurrenceKeys, useListBookingCourtOccurrences } from "@/hooks/useBookingCourtOccurrence";
 import { apiBaseUrl } from "@/lib/axios";
-import { expandBookings, getDayOfWeekToVietnamese } from "@/lib/common";
+import { expandBookings, convertOccurrencesToEvents, getDayOfWeekToVietnamese } from "@/lib/common";
 import { ListCourtGroupByCourtAreaResponse } from "@/types-openapi/api";
 import { BookingCourtStatus } from "@/types/commons";
 import { CalendarOutlined, TableOutlined } from "@ant-design/icons";
@@ -46,19 +47,19 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   const hasStartedRef = useRef(false);
   const unmountedRef = useRef(false);
 
-  const { data: bookingCourts, isFetching: loadingBookingCourts } = useListBookingCourts({
+  const { data: bookingCourtOccurrences, isFetching: loadingBookingCourts } = useListBookingCourtOccurrences({
     fromDate: selectedDate.toDate(),
     toDate: selectedDate.toDate(),
   });
 
-  const filteredBookings = useMemo(() => {
-    const all = bookingCourts?.data ?? [];
-    return all.filter((b) => statusFilter.includes(b.status as string));
-  }, [bookingCourts, statusFilter]);
+  const filteredOccurrences = useMemo(() => {
+    const all = bookingCourtOccurrences?.data ?? [];
+    return all.filter((o) => statusFilter.includes(o.status as string));
+  }, [bookingCourtOccurrences, statusFilter]);
 
   const bookingCourtsEvent = useMemo(() => {
-    return expandBookings(filteredBookings);
-  }, [filteredBookings]);
+    return convertOccurrencesToEvents(filteredOccurrences);
+  }, [filteredOccurrences]);
 
   // Upcoming customers within the next 1 hour (unique courts that have a start within 1 hour)
   const upcomingWithinHourCount = useMemo(() => {
@@ -113,37 +114,31 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     return jsDow === 0 ? 8 : jsDow + 1; // match backend convention 2..8 (Mon..Sun)
   }, [selectedDate]);
 
-  const bookingsForSelectedDay = useMemo(() => {
-    const all = bookingCourts?.data ?? [];
+  const occurrencesForSelectedDay = useMemo(() => {
+    const all = bookingCourtOccurrences?.data ?? [];
     const sel = selectedDate.toDate();
     const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-    return all.filter((b: any) => {
-      const days: number[] | null | undefined = b.daysOfWeek;
-      if (!days || days.length === 0) {
-        // walk-in: only count if the booking date equals selected date
-        const start = new Date(b.startDate as any);
-        return sameDay(start, sel);
-      }
-      // fixed: include only if the selected DOW is one of daysOfWeek
-      return (days as number[]).includes(selectedCustomDow);
+    return all.filter((o: any) => {
+      const occurrenceDate = new Date(o.startDate as any);
+      return sameDay(occurrenceDate, sel);
     });
-  }, [bookingCourts, selectedDate, selectedCustomDow]);
+  }, [bookingCourtOccurrences, selectedDate]);
 
   const totalCancelled = useMemo(() => {
-    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Cancelled).length;
-  }, [bookingsForSelectedDay]);
+    return occurrencesForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Cancelled).length;
+  }, [occurrencesForSelectedDay]);
   const totalActive = useMemo(() => {
-    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Active).length;
-  }, [bookingsForSelectedDay]);
+    return occurrencesForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Active).length;
+  }, [occurrencesForSelectedDay]);
   const totalPendingPayment = useMemo(() => {
-    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.PendingPayment).length;
-  }, [bookingsForSelectedDay]);
+    return occurrencesForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.PendingPayment).length;
+  }, [occurrencesForSelectedDay]);
   const totalCompleted = useMemo(() => {
-    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Completed).length;
-  }, [bookingsForSelectedDay]);
+    return occurrencesForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Completed).length;
+  }, [occurrencesForSelectedDay]);
   const totalNoShow = useMemo(() => {
-    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.NoShow).length;
-  }, [bookingsForSelectedDay]);
+    return occurrencesForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.NoShow).length;
+  }, [occurrencesForSelectedDay]);
 
   // Function để setup UI cho realtime connection dot
   const setupSchedulerUI = useCallback(() => {
@@ -287,29 +282,47 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
 
     conn.on("bookingCreated", (payload: any) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       invalidateDetailIfOpen(payload?.id);
     });
     conn.on("bookingUpdated", (bookingId: string) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       message.open({ type: "info", content: "Lịch đặt sân đã được cập nhật", key: "booking-updated", duration: 3 });
       invalidateDetailIfOpen(bookingId);
     });
+    conn.on("occurrenceCheckedIn", (occurrenceId: string) => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
+      message.open({ type: "info", content: "Khách đã check-in", key: "occurrence-checked-in", duration: 3 });
+    });
+    conn.on("occurrenceCheckedOut", (occurrenceId: string) => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
+      message.open({ type: "info", content: "Khách đã check-out", key: "occurrence-checked-out", duration: 3 });
+    });
+    conn.on("occurrenceNoShow", (occurrenceId: string) => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
+      message.open({ type: "info", content: "Khách không đến", key: "occurrence-no-show", duration: 3 });
+    });
     conn.on("paymentCreated", (payload: any) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       // payload from service includes bookingId
       invalidateDetailIfOpen(payload?.bookingId);
     });
     conn.on("paymentUpdated", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       // webhook also emits bookingUpdated separately; still refresh detail just in case
       invalidateDetailIfOpen();
     });
     conn.on("bookingCancelled", (bookingId: string) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       invalidateDetailIfOpen(bookingId);
     });
     conn.on("bookingsExpired", (bookingIds: string[]) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       if (Array.isArray(bookingIds)) {
         if (bookingIds.includes(detailId as string)) {
           invalidateDetailIfOpen(detailId as string);
@@ -318,6 +331,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     });
     conn.on("paymentsCancelled", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       invalidateDetailIfOpen();
     });
 
@@ -715,7 +729,8 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
               </div>
             </>
           ) : (
-            <CourtScheduleTable data={filteredBookings} loading={loadingBookingCourts} />
+            // <CourtScheduleTable data={filteredOccurrences} loading={loadingBookingCourts} />
+            <></>
           )}
         </div>
 

@@ -347,7 +347,7 @@ const CashierPageContent = () => {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Phụ phí muộn</span>
+                <span>Phụ phí muộn (tạm tính)</span>
                 <span>
                   {(() => {
                     if (bookingDetail && (bookingDetail.overdueMinutes || 0) > 15) {

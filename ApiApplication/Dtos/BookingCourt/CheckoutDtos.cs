@@ -24,7 +24,7 @@ public class CheckoutEstimateResponse
 
 public class AddOrderItemRequest
 {
-    public required Guid BookingId { get; set; }
+    public required Guid BookingCourtOccurrenceId { get; set; } // BookingCourtOccurrence ID
     public required int ProductId { get; set; }
     public required int Quantity { get; set; }
 }
@@ -40,7 +40,7 @@ public class BookingOrderItemResponse
 
 public class UpdateOrderItemRequest
 {
-    public required Guid BookingId { get; set; }
+    public required Guid BookingCourtOccurrenceId { get; set; } // BookingCourtOccurrence ID
     public required int ProductId { get; set; }
     public required int Quantity { get; set; } // absolute desired quantity; <=0 will remove
 }

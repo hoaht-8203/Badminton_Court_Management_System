@@ -330,13 +330,59 @@ namespace ApiApplication.Migrations
                     b.ToTable("BookingCourts");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.BookingCourtOccurrence", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookingCourtId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingCourtId");
+
+                    b.ToTable("BookingCourtOccurrences");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.BookingOrderItem", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("BookingId")
+                    b.Property<Guid>("BookingCourtOccurrenceId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -365,7 +411,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BookingId");
+                    b.HasIndex("BookingCourtOccurrenceId");
 
                     b.HasIndex("ProductId");
 
@@ -378,7 +424,7 @@ namespace ApiApplication.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("BookingId")
+                    b.Property<Guid>("BookingCourtOccurrenceId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -418,7 +464,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BookingId");
+                    b.HasIndex("BookingCourtOccurrenceId");
 
                     b.HasIndex("ServiceId");
 
@@ -999,7 +1045,7 @@ namespace ApiApplication.Migrations
                             CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
                             CreatedBy = "System",
                             District = "Cầu Giấy",
-                            Email = "nguyenvanan@gmail.com",
+                            Email = "nguyenvana@example.com",
                             FullName = "Nguyễn Văn An",
                             Gender = "Nam",
                             IDCard = "123456789",
@@ -1017,7 +1063,7 @@ namespace ApiApplication.Migrations
                             CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
                             CreatedBy = "System",
                             District = "Quận 1",
-                            Email = "tranthibinh@gmail.com",
+                            Email = "tranthibinh@example.com",
                             FullName = "Trần Thị Bình",
                             Gender = "Nữ",
                             IDCard = "987654321",
@@ -1035,7 +1081,7 @@ namespace ApiApplication.Migrations
                             CreatedAt = new DateTime(2025, 9, 16, 9, 34, 1, 800, DateTimeKind.Utc).AddTicks(7670),
                             CreatedBy = "System",
                             District = "Đống Đa",
-                            Email = "levancuong@gmail.com",
+                            Email = "levancuong@example.com",
                             FullName = "Lê Văn Cường",
                             Gender = "Nam",
                             IDCard = "456789123",
@@ -1267,6 +1313,72 @@ namespace ApiApplication.Migrations
                     b.ToTable("Notifications");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.Order", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BookingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("CourtPaidAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CourtRemainingAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("CourtTotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("ItemsSubtotal")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("LateFeeAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("LateFeePercentage")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("OverdueMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("Orders");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Payment", b =>
                 {
                     b.Property<string>("Id")
@@ -1274,6 +1386,9 @@ namespace ApiApplication.Migrations
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid?>("BookingCourtOccurrenceId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("BookingId")
                         .HasColumnType("uuid");
@@ -1290,6 +1405,9 @@ namespace ApiApplication.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("PaymentCreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1305,12 +1423,16 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BookingCourtOccurrenceId");
+
                     b.HasIndex("BookingId");
 
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("Id")
                         .IsUnique();
+
+                    b.HasIndex("OrderId");
 
                     b.ToTable("Payments");
                 });
@@ -2379,22 +2501,22 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 19, 3, 24, 55, 285, DateTimeKind.Utc).AddTicks(9740),
+                            CreatedAt = new DateTime(2025, 10, 20, 6, 20, 29, 965, DateTimeKind.Utc).AddTicks(3490),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 10, 19, 3, 24, 55, 285, DateTimeKind.Utc).AddTicks(9740),
+                            UpdatedAt = new DateTime(2025, 10, 20, 6, 20, 29, 965, DateTimeKind.Utc).AddTicks(3490),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 10, 19, 3, 24, 55, 285, DateTimeKind.Utc).AddTicks(9740),
+                            CreatedAt = new DateTime(2025, 10, 20, 6, 20, 29, 965, DateTimeKind.Utc).AddTicks(3490),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 10, 19, 3, 24, 55, 285, DateTimeKind.Utc).AddTicks(9740),
+                            UpdatedAt = new DateTime(2025, 10, 20, 6, 20, 29, 965, DateTimeKind.Utc).AddTicks(3490),
                             UpdatedBy = "System",
                             Value = ""
                         });
@@ -2592,11 +2714,22 @@ namespace ApiApplication.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.BookingCourtOccurrence", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.BookingCourt", "BookingCourt")
+                        .WithMany("BookingCourtOccurrences")
+                        .HasForeignKey("BookingCourtId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BookingCourt");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.BookingOrderItem", b =>
                 {
-                    b.HasOne("ApiApplication.Entities.BookingCourt", "Booking")
-                        .WithMany()
-                        .HasForeignKey("BookingId")
+                    b.HasOne("ApiApplication.Entities.BookingCourtOccurrence", "BookingCourtOccurrence")
+                        .WithMany("BookingOrderItems")
+                        .HasForeignKey("BookingCourtOccurrenceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2606,16 +2739,16 @@ namespace ApiApplication.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Booking");
+                    b.Navigation("BookingCourtOccurrence");
 
                     b.Navigation("Product");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.BookingService", b =>
                 {
-                    b.HasOne("ApiApplication.Entities.BookingCourt", "Booking")
+                    b.HasOne("ApiApplication.Entities.BookingCourtOccurrence", "BookingCourtOccurrence")
                         .WithMany("BookingServices")
-                        .HasForeignKey("BookingId")
+                        .HasForeignKey("BookingCourtOccurrenceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2625,7 +2758,7 @@ namespace ApiApplication.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Booking");
+                    b.Navigation("BookingCourtOccurrence");
 
                     b.Navigation("Service");
                 });
@@ -2714,8 +2847,32 @@ namespace ApiApplication.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.Order", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.BookingCourt", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ApiApplication.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Payment", b =>
                 {
+                    b.HasOne("ApiApplication.Entities.BookingCourtOccurrence", "BookingCourtOccurrence")
+                        .WithMany("Payments")
+                        .HasForeignKey("BookingCourtOccurrenceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("ApiApplication.Entities.BookingCourt", "Booking")
                         .WithMany("Payments")
                         .HasForeignKey("BookingId")
@@ -2728,9 +2885,18 @@ namespace ApiApplication.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ApiApplication.Entities.Order", "Order")
+                        .WithMany("Payments")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Booking");
 
+                    b.Navigation("BookingCourtOccurrence");
+
                     b.Navigation("Customer");
+
+                    b.Navigation("Order");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PayrollItem", b =>
@@ -2996,6 +3162,15 @@ namespace ApiApplication.Migrations
 
             modelBuilder.Entity("ApiApplication.Entities.BookingCourt", b =>
                 {
+                    b.Navigation("BookingCourtOccurrences");
+
+                    b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.BookingCourtOccurrence", b =>
+                {
+                    b.Navigation("BookingOrderItems");
+
                     b.Navigation("BookingServices");
 
                     b.Navigation("Payments");
@@ -3024,6 +3199,11 @@ namespace ApiApplication.Migrations
             modelBuilder.Entity("ApiApplication.Entities.InventoryCheck", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.Order", b =>
+                {
+                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Payroll", b =>

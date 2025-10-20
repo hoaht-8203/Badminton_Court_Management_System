@@ -30,6 +30,12 @@ export interface AddBookingServiceRequest {
      * @type {string}
      * @memberof AddBookingServiceRequest
      */
+    bookingCourtOccurrenceId?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof AddBookingServiceRequest
+     */
     serviceId: string;
     /**
      * 
@@ -66,6 +72,7 @@ export function AddBookingServiceRequestFromJSONTyped(json: any, ignoreDiscrimin
     return {
         
         'bookingId': json['bookingId'],
+        'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'] == null ? undefined : json['bookingCourtOccurrenceId'],
         'serviceId': json['serviceId'],
         'quantity': json['quantity'],
         'notes': json['notes'] == null ? undefined : json['notes'],
@@ -84,6 +91,7 @@ export function AddBookingServiceRequestToJSONTyped(value?: AddBookingServiceReq
     return {
         
         'bookingId': value['bookingId'],
+        'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
         'serviceId': value['serviceId'],
         'quantity': value['quantity'],
         'notes': value['notes'],

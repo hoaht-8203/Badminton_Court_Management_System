@@ -12,6 +12,12 @@ public class Payment : BaseEntity
     public Guid BookingId { get; set; }
     public BookingCourt? Booking { get; set; }
 
+    public Guid? BookingCourtOccurrenceId { get; set; }
+    public BookingCourtOccurrence? BookingCourtOccurrence { get; set; }
+
+    public Guid? OrderId { get; set; }
+    public Order? Order { get; set; }
+
     public DateTime PaymentCreatedAt { get; set; } = DateTime.UtcNow;
 
     public required int CustomerId { get; set; }

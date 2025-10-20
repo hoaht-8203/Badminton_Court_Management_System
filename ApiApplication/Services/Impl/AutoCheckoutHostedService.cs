@@ -28,32 +28,37 @@ public class AutoCheckoutHostedService(
                 var today = DateOnly.FromDateTime(now);
                 var nowTime = TimeOnly.FromDateTime(now);
 
-                // Only today's bookings
+                // Handle today's occurrences
                 // Overdue and never checked in (still Active due to deposit) but time window fully passed -> mark NoShow
-                // Do NOT auto-complete CheckedIn bookings; checkout must be manual
+                // Do NOT auto-complete CheckedIn occurrences; checkout must be manual
                 var overdueActiveToNoShow = await db
-                    .BookingCourts.Where(b =>
-                        b.Status == BookingCourtStatus.Active
-                        && b.StartDate <= today
-                        && today <= b.EndDate
-                        && b.EndTime < nowTime
+                    .BookingCourtOccurrences.Where(o =>
+                        o.Status == BookingCourtOccurrenceStatus.Active
+                        && o.Date == today
+                        && o.EndTime < nowTime
                     )
+                    .Include(o => o.BookingCourt)
                     .ToListAsync(stoppingToken);
 
                 var noShowCount = 0;
-                var updatedIds = new List<Guid>();
-                foreach (var b in overdueActiveToNoShow)
+                var updatedBookingIds = new List<Guid>();
+                var updatedOccurrenceIds = new List<Guid>();
+
+                foreach (var occurrence in overdueActiveToNoShow)
                 {
-                    b.Status = BookingCourtStatus.NoShow;
+                    occurrence.Status = BookingCourtOccurrenceStatus.NoShow;
                     noShowCount++;
+
+                    // Free up court on no-show
                     var court = await db.Courts.FirstOrDefaultAsync(
-                        c => c.Id == b.CourtId,
+                        c => c.Id == occurrence.BookingCourt!.CourtId,
                         stoppingToken
                     );
                     if (court != null)
                         court.Status = CourtStatus.Active;
 
-                    updatedIds.Add(b.Id);
+                    updatedBookingIds.Add(occurrence.BookingCourtId);
+                    updatedOccurrenceIds.Add(occurrence.Id);
                 }
 
                 if (overdueActiveToNoShow.Count > 0)
@@ -65,14 +70,29 @@ public class AutoCheckoutHostedService(
                         noShowCount
                     );
 
-                    // Realtime notify UI for each updated booking
-                    foreach (var id in updatedIds)
+                    // Realtime notify UI for each updated booking and occurrence
+                    foreach (var bookingId in updatedBookingIds.Distinct())
                     {
                         try
                         {
                             await _hub.Clients.All.SendAsync(
                                 "bookingUpdated",
-                                id,
+                                bookingId,
+                                cancellationToken: stoppingToken
+                            );
+                        }
+                        catch
+                        { /* ignore transient signalr errors */
+                        }
+                    }
+
+                    foreach (var occurrenceId in updatedOccurrenceIds)
+                    {
+                        try
+                        {
+                            await _hub.Clients.All.SendAsync(
+                                "occurrenceNoShow",
+                                occurrenceId,
                                 cancellationToken: stoppingToken
                             );
                         }

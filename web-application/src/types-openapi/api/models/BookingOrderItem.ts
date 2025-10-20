@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { BookingCourtOccurrence } from './BookingCourtOccurrence';
+import {
+    BookingCourtOccurrenceFromJSON,
+    BookingCourtOccurrenceFromJSONTyped,
+    BookingCourtOccurrenceToJSON,
+    BookingCourtOccurrenceToJSONTyped,
+} from './BookingCourtOccurrence';
 import type { Product } from './Product';
 import {
     ProductFromJSON,
@@ -20,13 +27,6 @@ import {
     ProductToJSON,
     ProductToJSONTyped,
 } from './Product';
-import type { BookingCourt } from './BookingCourt';
-import {
-    BookingCourtFromJSON,
-    BookingCourtFromJSONTyped,
-    BookingCourtToJSON,
-    BookingCourtToJSONTyped,
-} from './BookingCourt';
 
 /**
  * 
@@ -69,13 +69,13 @@ export interface BookingOrderItem {
      * @type {string}
      * @memberof BookingOrderItem
      */
-    bookingId: string;
+    bookingCourtOccurrenceId: string;
     /**
      * 
-     * @type {BookingCourt}
+     * @type {BookingCourtOccurrence}
      * @memberof BookingOrderItem
      */
-    booking?: BookingCourt;
+    bookingCourtOccurrence?: BookingCourtOccurrence;
     /**
      * 
      * @type {number}
@@ -112,7 +112,7 @@ export interface BookingOrderItem {
  * Check if a given object implements the BookingOrderItem interface.
  */
 export function instanceOfBookingOrderItem(value: object): value is BookingOrderItem {
-    if (!('bookingId' in value) || value['bookingId'] === undefined) return false;
+    if (!('bookingCourtOccurrenceId' in value) || value['bookingCourtOccurrenceId'] === undefined) return false;
     if (!('productId' in value) || value['productId'] === undefined) return false;
     if (!('quantity' in value) || value['quantity'] === undefined) return false;
     if (!('unitPrice' in value) || value['unitPrice'] === undefined) return false;
@@ -135,8 +135,8 @@ export function BookingOrderItemFromJSONTyped(json: any, ignoreDiscriminator: bo
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
         'id': json['id'] == null ? undefined : json['id'],
-        'bookingId': json['bookingId'],
-        'booking': json['booking'] == null ? undefined : BookingCourtFromJSON(json['booking']),
+        'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'],
+        'bookingCourtOccurrence': json['bookingCourtOccurrence'] == null ? undefined : BookingCourtOccurrenceFromJSON(json['bookingCourtOccurrence']),
         'productId': json['productId'],
         'product': json['product'] == null ? undefined : ProductFromJSON(json['product']),
         'quantity': json['quantity'],
@@ -161,8 +161,8 @@ export function BookingOrderItemToJSONTyped(value?: BookingOrderItem | null, ign
         'createdBy': value['createdBy'],
         'updatedBy': value['updatedBy'],
         'id': value['id'],
-        'bookingId': value['bookingId'],
-        'booking': BookingCourtToJSON(value['booking']),
+        'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
+        'bookingCourtOccurrence': BookingCourtOccurrenceToJSON(value['bookingCourtOccurrence']),
         'productId': value['productId'],
         'product': ProductToJSON(value['product']),
         'quantity': value['quantity'],

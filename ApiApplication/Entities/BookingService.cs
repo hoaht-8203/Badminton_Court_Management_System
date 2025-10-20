@@ -11,8 +11,8 @@ public class BookingService : BaseEntity
     public required Guid Id { get; set; }
 
     [Required]
-    public required Guid BookingId { get; set; }
-    public required BookingCourt Booking { get; set; } = null!;
+    public required Guid BookingCourtOccurrenceId { get; set; }
+    public required BookingCourtOccurrence BookingCourtOccurrence { get; set; } = null!;
 
     [Required]
     public required Guid ServiceId { get; set; }

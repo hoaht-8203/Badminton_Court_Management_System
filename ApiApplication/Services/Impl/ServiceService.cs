@@ -3,6 +3,7 @@ using ApiApplication.Constants;
 using ApiApplication.Data;
 using ApiApplication.Dtos.Service;
 using ApiApplication.Entities;
+using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -76,7 +77,7 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
 
         var entity = _mapper.Map<Service>(request);
         entity.Code = serviceCode;
-        entity.Status = ServiceStatus.Active;
+        entity.Status = Constants.ServiceStatus.Active;
 
         var created = await _context.Services.AddAsync(entity);
         await _context.SaveChangesAsync();
@@ -141,7 +142,7 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
             );
         }
 
-        service.Status = ServiceStatus.Deleted;
+        service.Status = Constants.ServiceStatus.Deleted;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -178,9 +179,39 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
             await _context.Services.FirstOrDefaultAsync(s => s.Id == request.ServiceId)
             ?? throw new ApiException("Không tìm thấy dịch vụ", HttpStatusCode.BadRequest);
 
-        // Check if service already exists for this booking
+        // Resolve occurrence to attach service to
+        BookingCourtOccurrence? occurrence = null;
+        if (request.BookingCourtOccurrenceId.HasValue)
+        {
+            occurrence = await _context.BookingCourtOccurrences.FirstOrDefaultAsync(o =>
+                o.Id == request.BookingCourtOccurrenceId.Value
+                && o.BookingCourtId == request.BookingId
+            );
+            if (occurrence == null)
+            {
+                throw new ApiException("Không tìm thấy lịch sân", HttpStatusCode.BadRequest);
+            }
+        }
+        else
+        {
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            occurrence = await _context.BookingCourtOccurrences.FirstOrDefaultAsync(o =>
+                o.BookingCourtId == request.BookingId
+                && o.Date == today
+                && o.Status == ApiApplication.Entities.Shared.BookingCourtOccurrenceStatus.CheckedIn
+            );
+            if (occurrence == null)
+            {
+                throw new ApiException(
+                    "Không tìm thấy lịch sân hôm nay",
+                    HttpStatusCode.BadRequest
+                );
+            }
+        }
+
+        // Check if service already exists for this occurrence
         var existingBookingService = await _context.BookingServices.FirstOrDefaultAsync(bs =>
-            bs.BookingId == request.BookingId && bs.ServiceId == request.ServiceId
+            bs.BookingCourtOccurrenceId == occurrence.Id && bs.ServiceId == request.ServiceId
         );
 
         if (existingBookingService != null)
@@ -196,16 +227,16 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
         }
 
         // Calculate hours based on booking duration
-        var startTime = booking.StartTime;
-        var endTime = booking.EndTime;
+        var startTime = occurrence.StartTime;
+        var endTime = occurrence.EndTime;
         var hours = (decimal)(endTime.ToTimeSpan() - startTime.ToTimeSpan()).TotalHours;
 
         var bookingService = new BookingService
         {
             Id = Guid.NewGuid(),
-            BookingId = request.BookingId,
+            BookingCourtOccurrenceId = occurrence.Id,
+            BookingCourtOccurrence = occurrence,
             ServiceId = request.ServiceId,
-            Booking = booking,
             Service = service,
             Quantity = request.Quantity,
             UnitPrice = service.PricePerHour,
@@ -245,7 +276,8 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
     {
         var bookingServices = await _context
             .BookingServices.Include(bs => bs.Service)
-            .Where(bs => bs.BookingId == bookingId)
+            .Include(bs => bs.BookingCourtOccurrence)
+            .Where(bs => bs.BookingCourtOccurrence.BookingCourtId == bookingId)
             .OrderBy(bs => bs.CreatedAt)
             .ToListAsync();
 

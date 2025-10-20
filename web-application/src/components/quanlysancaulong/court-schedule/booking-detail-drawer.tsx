@@ -74,7 +74,6 @@ const vnPaymentStatus: Record<string, { color: string; text: string }> = {
 };
 
 export default function BookingDetailDrawer({ bookingId, open, onClose }: BookingDetailDrawerProps) {
-  const router = useRouter();
   const [modal, contextHolder] = Modal.useModal();
   const { data, isFetching } = useDetailBookingCourt(bookingId ?? undefined);
   const bookingDetailData: DetailBookingCourtResponse = data?.data as DetailBookingCourtResponse;
@@ -110,35 +109,6 @@ export default function BookingDetailDrawer({ bookingId, open, onClose }: Bookin
       });
     } catch (error: any) {
       message.error((error as ApiError)?.message || "Check-in thất bại");
-    }
-  };
-
-  const handleCheckOut = async () => {
-    if (!bookingId) return;
-    try {
-      let noteValue = "";
-
-      confirm({
-        title: "Xác nhận",
-        icon: <ExclamationCircleTwoTone />,
-        okText: "Check-out",
-        cancelText: "Bỏ qua",
-        okButtonProps: {
-          loading: checkOutMutation.isPending,
-        },
-        content: (
-          <div>
-            <p>Bạn có chắc chắn muốn check-out lịch đặt sân này?</p>
-            <TextArea rows={3} placeholder="Ghi chú (nếu có)..." onChange={(e) => (noteValue = e.target.value)} />
-          </div>
-        ),
-        async onOk() {
-          await checkOutMutation.mutateAsync({ id: bookingId, note: noteValue });
-          message.success("Check-out thành công");
-        },
-      });
-    } catch (error: any) {
-      message.error((error as ApiError)?.message || "Check-out thất bại");
     }
   };
 

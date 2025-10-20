@@ -28,7 +28,15 @@ public class BookingCourtMappingProfile : Profile
             .ForMember(d => d.CourtName, opt => opt.MapFrom(s => s.Court!.Name))
             .ForMember(d => d.Customer, opt => opt.MapFrom(s => s.Customer))
             .ForMember(d => d.Payments, opt => opt.MapFrom(s => s.Payments))
-            .ForMember(d => d.BookingServices, opt => opt.MapFrom(s => s.BookingServices));
+            .ForMember(
+                d => d.BookingServices,
+                opt =>
+                    opt.MapFrom(s => s.BookingCourtOccurrences.SelectMany(o => o.BookingServices))
+            )
+            .ForMember(
+                d => d.BookingCourtOccurrences,
+                opt => opt.MapFrom(s => s.BookingCourtOccurrences)
+            );
         CreateMap<BookingCourt, ListBookingCourtResponse>()
             .ForMember(
                 d => d.TotalHours,
@@ -44,5 +52,43 @@ public class BookingCourtMappingProfile : Profile
 
         CreateMap<CreateBookingCourtRequest, BookingCourt>()
             .ForMember(d => d.Id, opt => opt.MapFrom(_ => Guid.NewGuid()));
+
+        CreateMap<BookingCourtOccurrence, BookingCourtOccurrenceDto>()
+            .ForMember(d => d.Payments, opt => opt.MapFrom(s => s.Payments))
+            .ForMember(d => d.BookingServices, opt => opt.MapFrom(s => s.BookingServices))
+            .ForMember(d => d.BookingOrderItems, opt => opt.MapFrom(s => s.BookingOrderItems));
+
+        CreateMap<BookingCourtOccurrence, DetailBookingCourtOccurrenceResponse>()
+            .ForMember(
+                d => d.TotalHours,
+                opt =>
+                    opt.MapFrom(s =>
+                        (decimal)(s.EndTime.ToTimeSpan() - s.StartTime.ToTimeSpan()).TotalHours
+                    )
+            )
+            .ForMember(d => d.Customer, opt => opt.MapFrom(s => s.BookingCourt.Customer))
+            .ForMember(d => d.Payments, opt => opt.MapFrom(s => s.Payments))
+            .ForMember(d => d.BookingServices, opt => opt.MapFrom(s => s.BookingServices))
+            .ForMember(d => d.BookingOrderItems, opt => opt.MapFrom(s => s.BookingOrderItems));
+
+        CreateMap<BookingOrderItem, BookingOrderItemDto>()
+            .ForMember(d => d.ProductName, opt => opt.MapFrom(s => s.Product!.Name))
+            .ForMember(
+                d => d.Image,
+                opt =>
+                    opt.MapFrom(s =>
+                        s.Product!.Images != null ? s.Product.Images.FirstOrDefault() : null
+                    )
+            );
+
+        CreateMap<BookingOrderItem, BookingOrderItemResponse>()
+            .ForMember(d => d.ProductName, opt => opt.MapFrom(s => s.Product!.Name))
+            .ForMember(
+                d => d.Image,
+                opt =>
+                    opt.MapFrom(s =>
+                        s.Product!.Images != null ? s.Product.Images.FirstOrDefault() : null
+                    )
+            );
     }
 }

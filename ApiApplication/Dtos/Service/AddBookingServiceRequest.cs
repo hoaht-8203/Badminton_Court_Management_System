@@ -7,6 +7,9 @@ public class AddBookingServiceRequest
     [Required]
     public required Guid BookingId { get; set; }
 
+    // Optional - if not provided, backend will use today's checked-in occurrence
+    public Guid? BookingCourtOccurrenceId { get; set; }
+
     [Required]
     public required Guid ServiceId { get; set; }
 

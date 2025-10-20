@@ -42,6 +42,20 @@ public class BookingHoldExpiryHostedService(
                         stoppingToken
                     );
 
+                    // Cancel corresponding BookingCourtOccurrences
+                    var expiredOccurrencesQuery = db.BookingCourtOccurrences.Where(o =>
+                        expiredIds.Contains(o.BookingCourtId)
+                        && o.Status == BookingCourtOccurrenceStatus.PendingPayment
+                    );
+
+                    var rowsOccurrences = await expiredOccurrencesQuery.ExecuteUpdateAsync(
+                        setters =>
+                            setters
+                                .SetProperty(o => o.Status, BookingCourtOccurrenceStatus.Cancelled)
+                                .SetProperty(o => o.UpdatedAt, now),
+                        stoppingToken
+                    );
+
                     // Cancel payments tied to these bookings that are still pending
                     var pendingPaymentQuery = db.Payments.Where(i =>
                         expiredIds.Contains(i.BookingId) && i.Status == PaymentStatus.PendingPayment
@@ -60,9 +74,11 @@ public class BookingHoldExpiryHostedService(
                     );
 
                     _logger.LogInformation(
-                        "Expired {Count} pending bookings. RowsAffectedBookings={RowsB}, RowsAffectedPayments={RowsP}. Ids=[{Ids}]",
+                        "Expired {Count} pending bookings and {OccurrenceCount} occurrences. RowsAffectedBookings={RowsB}, RowsAffectedOccurrences={RowsO}, RowsAffectedPayments={RowsP}. Ids=[{Ids}]",
                         expiredIds.Count,
+                        rowsOccurrences,
                         rowsBookings,
+                        rowsOccurrences,
                         rowsPayments,
                         string.Join(",", expiredIds)
                     );

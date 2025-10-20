@@ -174,7 +174,7 @@ public class BookingCourtService(
 
         var exists = await query.AnyAsync(b =>
             // Only Active and Completed bookings block new bookings
-            (b.Status == BookingCourtStatus.Active || b.Status == BookingCourtStatus.Completed)
+            (b.Status == BookingCourtStatus.Active)
             || (
                 // PendingPayment bookings only block if they haven't expired
                 b.Status == BookingCourtStatus.PendingPayment
@@ -242,6 +242,9 @@ public class BookingCourtService(
                 PaymentMethod = paymentMethod,
             }
         );
+
+        // Create BookingCourtOccurrence records for each occurrence
+        await CreateBookingCourtOccurrencesAsync(entity, paymentMethod);
 
         // Broadcast booking created (pending payment) event
         await _hub.Clients.All.SendAsync(
@@ -381,6 +384,65 @@ public class BookingCourtService(
         return _mapper.Map<List<ListBookingCourtResponse>>(items);
     }
 
+    public async Task<List<ListBookingCourtOccurrenceResponse>> ListBookingCourtOccurrencesAsync(
+        ListBookingCourtOccurrenceRequest request
+    )
+    {
+        var query = _context
+            .BookingCourtOccurrences.Include(x => x.BookingCourt)
+            .ThenInclude(x => x.Court)
+            .Include(x => x.BookingCourt)
+            .ThenInclude(x => x.Customer)
+            .AsQueryable();
+
+        if (request.CustomerId.HasValue)
+        {
+            query = query.Where(x => x.BookingCourt!.CustomerId == request.CustomerId.Value);
+        }
+        if (request.CourtId.HasValue)
+        {
+            query = query.Where(x => x.BookingCourt!.CourtId == request.CourtId.Value);
+        }
+        if (request.FromDate.HasValue)
+        {
+            var fromDate = DateOnly.FromDateTime(request.FromDate.Value);
+            query = query.Where(x => x.Date >= fromDate);
+        }
+        if (request.ToDate.HasValue)
+        {
+            var toDate = DateOnly.FromDateTime(request.ToDate.Value);
+            query = query.Where(x => x.Date <= toDate);
+        }
+        if (!string.IsNullOrEmpty(request.Status))
+        {
+            query = query.Where(x => x.Status == request.Status);
+        }
+
+        var items = await query
+            .OrderByDescending(x => x.Date)
+            .ThenBy(x => x.StartTime)
+            .ToListAsync();
+
+        return items
+            .Select(x => new ListBookingCourtOccurrenceResponse
+            {
+                Id = x.Id,
+                BookingCourtId = x.BookingCourtId,
+                Date = x.Date,
+                StartTime = x.StartTime,
+                EndTime = x.EndTime,
+                Status = x.Status,
+                Note = x.Note,
+                CustomerName = x.BookingCourt?.Customer?.FullName ?? string.Empty,
+                CourtName = x.BookingCourt?.Court?.Name ?? string.Empty,
+                CourtId = x.BookingCourt?.CourtId ?? Guid.Empty,
+                CustomerId = x.BookingCourt?.CustomerId ?? 0,
+                StartDate = x.Date.ToString("yyyy-MM-dd"),
+                EndDate = x.Date.ToString("yyyy-MM-dd"),
+            })
+            .ToList();
+    }
+
     public async Task<DetailBookingCourtResponse> DetailBookingCourtAsync(
         DetailBookingCourtRequest request
     )
@@ -389,7 +451,13 @@ public class BookingCourtService(
             .BookingCourts.Include(x => x.Court)
             .Include(x => x.Customer)
             .Include(x => x.Payments)
-            .Include(x => x.BookingServices)
+            .Include(x => x.BookingCourtOccurrences)
+            .ThenInclude(x => x.Payments)
+            .Include(x => x.BookingCourtOccurrences)
+            .ThenInclude(x => x.BookingServices)
+            .Include(x => x.BookingCourtOccurrences)
+            .ThenInclude(x => x.BookingOrderItems)
+            .ThenInclude(x => x.Product)
             .FirstOrDefaultAsync(x => x.Id == request.Id);
 
         if (entity == null)
@@ -437,102 +505,134 @@ public class BookingCourtService(
             }
         }
 
-        // Late info for cashier: compute overdue minutes/hours if CheckedIn and now > scheduled end
-        try
-        {
-            var now = DateTime.Now;
-            // Tạo thời điểm kết thúc thực tế của booking (ngày booking + giờ kết thúc)
-            var actualEndTime = new DateTime(
-                entity.StartDate.Year,
-                entity.StartDate.Month,
-                entity.StartDate.Day,
-                entity.EndTime.Hour,
-                entity.EndTime.Minute,
-                entity.EndTime.Second
-            );
+        // Late fee calculation is now handled at the occurrence level
+        dto.OverdueMinutes = 0;
+        dto.OverdueHours = 0m;
+        dto.SurchargeAmount = 0m;
 
+        return dto;
+    }
+
+    public async Task<DetailBookingCourtOccurrenceResponse> DetailBookingCourtOccurrenceAsync(
+        DetailBookingCourtOccurrenceRequest request
+    )
+    {
+        var entity = await _context
+            .BookingCourtOccurrences.Include(x => x.BookingCourt)
+            .ThenInclude(x => x.Court)
+            .Include(x => x.BookingCourt)
+            .ThenInclude(x => x.Customer)
+            .Include(x => x.BookingCourt)
+            .ThenInclude(x => x.Payments)
+            .Include(x => x.BookingCourt)
+            .ThenInclude(x => x.BookingCourtOccurrences)
+            .Include(x => x.Payments)
+            .Include(x => x.BookingServices)
+            .Include(x => x.BookingOrderItems)
+            .ThenInclude(x => x.Product)
+            .FirstOrDefaultAsync(x => x.Id == request.Id);
+
+        if (entity == null)
+        {
+            throw new ApiException("Không tìm thấy lịch sân", HttpStatusCode.BadRequest);
+        }
+
+        var dto = _mapper.Map<DetailBookingCourtOccurrenceResponse>(entity);
+
+        // Compute totals
+        var totalAmount = await CalculateBookingAmountForOccurrenceAsync(entity);
+
+        // Calculate deposit distribution across all occurrences
+        var booking = entity.BookingCourt!;
+        var totalOccurrences = booking.BookingCourtOccurrences.Count;
+        // Only consider the initial deposit payments (not checkout payments)
+        // Deposit payments are typically the first payments made for the booking
+        var depositPayments = booking
+            .Payments.Where(p => p.Status == PaymentStatus.Paid)
+            .OrderBy(p => p.PaymentCreatedAt)
+            .Take(1) // Only the first payment (deposit)
+            .Sum(p => p.Amount);
+
+        var paidAmountPerOccurrence = totalOccurrences > 0 ? depositPayments / totalOccurrences : 0;
+
+        // Debug logging
+        Console.WriteLine($"Debug DetailBookingCourtOccurrenceAsync - totalAmount: {totalAmount}");
+        Console.WriteLine(
+            $"Debug DetailBookingCourtOccurrenceAsync - totalOccurrences: {totalOccurrences}"
+        );
+        Console.WriteLine(
+            $"Debug DetailBookingCourtOccurrenceAsync - depositPayments: {depositPayments}"
+        );
+        Console.WriteLine(
+            $"Debug DetailBookingCourtOccurrenceAsync - paidAmountPerOccurrence: {paidAmountPerOccurrence}"
+        );
+
+        dto.TotalAmount = Math.Round(totalAmount, 2);
+        dto.PaidAmount = Math.Round(paidAmountPerOccurrence, 2);
+        dto.RemainingAmount = Math.Max(0, Math.Round(totalAmount - paidAmountPerOccurrence, 2));
+
+        // Calculate total hours
+        dto.TotalHours = (decimal)
+            (entity.EndTime.ToTimeSpan() - entity.StartTime.ToTimeSpan()).TotalHours;
+
+        // Infer payment type from distributed payment amount vs total
+        if (booking.Payments.Count == 0)
+        {
+            dto.PaymentType = "None";
+        }
+        else
+        {
+            var first = booking.Payments.OrderBy(p => p.PaymentCreatedAt).First();
+            var ratio = totalAmount == 0 ? 0 : paidAmountPerOccurrence / totalAmount;
+            dto.PaymentType = ratio >= 0.99m ? "Full" : "Deposit";
+            // Inline QR info for transfer (pending) case
             if (
-                string.Equals(
-                    entity.Status,
-                    BookingCourtStatus.CheckedIn,
-                    StringComparison.OrdinalIgnoreCase
-                )
-                && now > actualEndTime
+                !string.Equals(first.Status, PaymentStatus.Paid, StringComparison.OrdinalIgnoreCase)
             )
             {
-                var minutes = (int)Math.Round((now - actualEndTime).TotalMinutes);
-                dto.OverdueMinutes = Math.Max(0, minutes);
-                dto.OverdueHours = Math.Round((decimal)minutes / 60m, 2);
-
-                // OLD LOGIC: Tính phí muộn theo pricing rule lúc đặt sân (COMMENTED OUT)
-                // var dow = GetCustomDayOfWeek(entity.StartDate);
-                // var rules = await _context
-                //     .CourtPricingRules.Where(r =>
-                //         r.CourtId == entity.CourtId && r.DaysOfWeek.Contains(dow)
-                //     )
-                //     .OrderBy(r => r.Order)
-                //     .ToListAsync();
-                // var lastRule = rules.LastOrDefault(r => entity.EndTime > r.StartTime);
-                // var pricePerMinute = (lastRule?.PricePerHour ?? 0m) / 60m;
-                // var chargeableMinutes = Math.Max(0, dto.OverdueMinutes - 15); // miễn phí 15 phút đầu
-                // dto.SurchargeAmount = Math.Round(pricePerMinute * chargeableMinutes, 2);
-
-                // NEW LOGIC: Tính phí muộn theo phần trăm trên giá lúc đặt sân (theo phút)
-                // Chỉ tính phí nếu muộn > 15 phút
-                if (dto.OverdueMinutes > 15)
-                {
-                    var chargeableMinutes = dto.OverdueMinutes - 15; // Chỉ tính phí cho phần muộn > 15 phút
-
-                    // Tính giá cơ bản từ giá lúc đặt sân (theo phút)
-                    var totalMinutes = (entity.EndTime - entity.StartTime).TotalMinutes;
-                    var bookingAmount = await CalculateBookingAmountForEntityAsync(entity);
-                    var baseMinuteRate = bookingAmount / (decimal)totalMinutes;
-
-                    // Áp dụng phần trăm phí muộn (mặc định 150%)
-                    var lateFeeRate = baseMinuteRate * (dto.LateFeePercentage / 100m);
-                    dto.SurchargeAmount = Math.Ceiling((decimal)chargeableMinutes * lateFeeRate);
-                }
-                else
-                {
-                    dto.SurchargeAmount = 0m;
-                }
-            }
-            else
-            {
-                dto.OverdueMinutes = 0;
-                dto.OverdueHours = 0m;
-                dto.SurchargeAmount = 0m;
+                dto.PaymentId = first.Id;
+                dto.PaymentAmount = paidAmountPerOccurrence;
+                var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
+                var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
+                var amount = ((long)Math.Round(paidAmountPerOccurrence, 0)).ToString();
+                var des = Uri.EscapeDataString(first.Id);
+                dto.QrUrl =
+                    $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
+                var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
+                dto.HoldMinutes = holdMins;
+                dto.ExpiresAtUtc = first.PaymentCreatedAt.AddMinutes(holdMins);
             }
         }
-        catch
-        {
-            dto.OverdueMinutes = 0;
-            dto.OverdueHours = 0m;
-            dto.SurchargeAmount = 0m;
-        }
+
+        // Late fee calculation is now handled at the occurrence level
+        dto.OverdueMinutes = 0;
+        dto.OverdueHours = 0m;
+        dto.SurchargeAmount = 0m;
 
         return dto;
     }
 
     public async Task<bool> CancelBookingCourtAsync(CancelBookingCourtRequest request)
     {
-        var entity = await _context
-            .BookingCourts.Include(x => x.Payments)
-            .FirstOrDefaultAsync(x => x.Id == request.Id);
+        // Find the specific occurrence
+        var occurrence = await _context
+            .BookingCourtOccurrences.Include(o => o.BookingCourt)
+            .FirstOrDefaultAsync(o => o.Id == request.Id);
 
-        if (entity == null)
+        if (occurrence == null)
         {
-            throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
+            throw new ApiException("Không tìm thấy lịch sân", HttpStatusCode.BadRequest);
         }
 
-        if (entity.Status == BookingCourtStatus.Cancelled)
+        if (occurrence.Status == BookingCourtOccurrenceStatus.Cancelled)
         {
             return true;
         }
 
-        entity.Status = BookingCourtStatus.Cancelled;
+        occurrence.Status = BookingCourtOccurrenceStatus.Cancelled;
 
-        foreach (var p in entity.Payments)
+        // Cancel related payments for this occurrence
+        foreach (var p in occurrence.Payments)
         {
             if (p.Status == PaymentStatus.PendingPayment || p.Status == PaymentStatus.Unpaid)
             {
@@ -542,69 +642,50 @@ public class BookingCourtService(
 
         await _context.SaveChangesAsync();
 
-        await _hub.Clients.All.SendAsync("bookingUpdated", entity.Id);
-        await _hub.Clients.All.SendAsync("bookingCancelled", entity.Id);
-        await _hub.Clients.All.SendAsync("paymentsCancelled", new { bookingId = entity.Id });
+        await _hub.Clients.All.SendAsync("bookingUpdated", occurrence.BookingCourtId);
+        await _hub.Clients.All.SendAsync("occurrenceCancelled", occurrence.Id);
+        await _hub.Clients.All.SendAsync(
+            "paymentsCancelled",
+            new { bookingId = occurrence.BookingCourtId }
+        );
 
         return true;
     }
 
-    public async Task<bool> CheckInAsync(CheckInBookingCourtRequest request)
+    public async Task<bool> CheckInOccurrenceAsync(CheckInBookingCourtRequest request)
     {
-        var entity = await _context
-            .BookingCourts.Include(x => x.Payments)
-            .FirstOrDefaultAsync(x => x.Id == request.Id);
+        // Find the specific occurrence
+        var occurrence = await _context
+            .BookingCourtOccurrences.Include(o => o.BookingCourt)
+            .FirstOrDefaultAsync(o => o.Id == request.Id);
 
-        if (entity == null)
+        if (occurrence == null)
         {
-            throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
+            throw new ApiException("Không tìm thấy lịch sân", HttpStatusCode.BadRequest);
         }
 
-        if (
-            entity.Status == BookingCourtStatus.Cancelled
-            || entity.Status == BookingCourtStatus.NoShow
-        )
+        if (occurrence.BookingCourt!.Status != BookingCourtStatus.Active)
         {
-            throw new ApiException("Đặt sân đã bị huỷ hoặc no-show", HttpStatusCode.BadRequest);
+            throw new ApiException("Đặt sân chưa được kích hoạt", HttpStatusCode.BadRequest);
         }
 
-        // Allow check-in only when payment processed (Active) and current time falls into booked time window for today
-        if (entity.Status == BookingCourtStatus.PendingPayment)
+        if (occurrence.Status == BookingCourtOccurrenceStatus.Cancelled)
         {
-            throw new ApiException(
-                "Chưa thanh toán cọc, không thể check-in",
-                HttpStatusCode.BadRequest
-            );
+            throw new ApiException("Lịch sân đã bị hủy", HttpStatusCode.BadRequest);
         }
 
-        // Validate time window: only check-in during a valid occurrence
-        var now = DateTime.Now; // server local
-        var today = DateOnly.FromDateTime(now);
+        if (occurrence.Status == BookingCourtOccurrenceStatus.CheckedIn)
+        {
+            throw new ApiException("Lịch sân đã được check-in", HttpStatusCode.BadRequest);
+        }
+
+        // Validate time window: only check-in during valid time
+        var now = DateTime.Now;
         var nowTime = TimeOnly.FromDateTime(now);
 
-        bool occursToday;
-        if (entity.DaysOfWeek == null || entity.DaysOfWeek.Length == 0)
-        {
-            occursToday = entity.StartDate == today;
-        }
-        else
-        {
-            var dow = GetCustomDayOfWeek(today);
-            occursToday =
-                entity.StartDate <= today
-                && today <= entity.EndDate
-                && entity.DaysOfWeek.Contains(dow);
-        }
-        if (!occursToday)
-        {
-            throw new ApiException(
-                "Không nằm trong ngày đặt sân để check-in",
-                HttpStatusCode.BadRequest
-            );
-        }
-        // allow 10 minutes before start time
-        var earlyStart = entity.StartTime.AddMinutes(-10);
-        if (!(earlyStart <= nowTime && nowTime <= entity.EndTime))
+        // Allow 10 minutes before start time
+        var earlyStart = occurrence.StartTime.AddMinutes(-10);
+        if (!(earlyStart <= nowTime && nowTime <= occurrence.EndTime))
         {
             throw new ApiException(
                 "Chỉ có thể check-in trong khung giờ đã đặt",
@@ -612,9 +693,13 @@ public class BookingCourtService(
             );
         }
 
-        entity.Status = BookingCourtStatus.CheckedIn;
+        // Update occurrence status
+        occurrence.Status = BookingCourtOccurrenceStatus.CheckedIn;
+
         // Update court status to InUse
-        var court = await _context.Courts.FirstOrDefaultAsync(c => c.Id == entity.CourtId);
+        var court = await _context.Courts.FirstOrDefaultAsync(c =>
+            c.Id == occurrence.BookingCourt!.CourtId
+        );
         if (court != null)
         {
             court.Status = CourtStatus.InUse;
@@ -622,97 +707,98 @@ public class BookingCourtService(
 
         if (!string.IsNullOrWhiteSpace(request.Note))
         {
-            entity.Note = string.IsNullOrWhiteSpace(entity.Note)
+            occurrence.Note = string.IsNullOrWhiteSpace(occurrence.Note)
                 ? request.Note
-                : entity.Note + "\n" + request.Note;
+                : occurrence.Note + "\n" + request.Note;
         }
 
         await _context.SaveChangesAsync();
-        await _hub.Clients.All.SendAsync("bookingUpdated", entity.Id);
+        await _hub.Clients.All.SendAsync("bookingUpdated", occurrence.BookingCourtId);
+        await _hub.Clients.All.SendAsync("occurrenceCheckedIn", occurrence.Id);
         return true;
     }
 
-    public async Task<bool> CheckOutAsync(CheckOutBookingCourtRequest request)
+    public async Task<bool> CheckOutOccurrenceAsync(CheckOutBookingCourtRequest request)
     {
-        var entity = await _context
-            .BookingCourts.Include(x => x.Payments)
-            .FirstOrDefaultAsync(x => x.Id == request.Id);
+        // Find the specific occurrence
+        var occurrence = await _context
+            .BookingCourtOccurrences.Include(o => o.BookingCourt)
+            .FirstOrDefaultAsync(o => o.Id == request.Id);
 
-        if (entity == null)
+        if (occurrence == null)
         {
-            throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
+            throw new ApiException("Không tìm thấy lịch sân", HttpStatusCode.BadRequest);
         }
 
-        if (
-            entity.Status == BookingCourtStatus.Cancelled
-            || entity.Status == BookingCourtStatus.NoShow
-        )
-        {
-            throw new ApiException("Đặt sân đã bị huỷ hoặc no-show", HttpStatusCode.BadRequest);
-        }
-
-        // Checkout allowed only if already CheckedIn
-        if (entity.Status != BookingCourtStatus.CheckedIn)
+        if (occurrence.Status != BookingCourtOccurrenceStatus.CheckedIn)
         {
             throw new ApiException("Phải check-in trước khi checkout", HttpStatusCode.BadRequest);
         }
 
-        entity.Status = BookingCourtStatus.Completed;
+        // Update occurrence status
+        occurrence.Status = BookingCourtOccurrenceStatus.Completed;
+
         // Restore court status to Active
-        var court2 = await _context.Courts.FirstOrDefaultAsync(c => c.Id == entity.CourtId);
-        if (court2 != null)
+        var court = await _context.Courts.FirstOrDefaultAsync(c =>
+            c.Id == occurrence.BookingCourt!.CourtId
+        );
+        if (court != null)
         {
-            court2.Status = CourtStatus.Active;
+            court.Status = CourtStatus.Active;
         }
+
         if (!string.IsNullOrWhiteSpace(request.Note))
         {
-            entity.Note = string.IsNullOrWhiteSpace(entity.Note)
+            occurrence.Note = string.IsNullOrWhiteSpace(occurrence.Note)
                 ? request.Note
-                : entity.Note + "\n" + request.Note;
+                : occurrence.Note + "\n" + request.Note;
         }
 
         await _context.SaveChangesAsync();
-        await _hub.Clients.All.SendAsync("bookingUpdated", entity.Id);
+        await _hub.Clients.All.SendAsync("bookingUpdated", occurrence.BookingCourtId);
+        await _hub.Clients.All.SendAsync("occurrenceCheckedOut", occurrence.Id);
         return true;
     }
 
-    public async Task<bool> MarkNoShowAsync(NoShowBookingCourtRequest request)
+    public async Task<bool> MarkOccurrenceNoShowAsync(NoShowBookingCourtRequest request)
     {
-        var entity = await _context
-            .BookingCourts.Include(x => x.Payments)
-            .FirstOrDefaultAsync(x => x.Id == request.Id);
+        // Find the specific occurrence
+        var occurrence = await _context
+            .BookingCourtOccurrences.Include(o => o.BookingCourt)
+            .FirstOrDefaultAsync(o => o.Id == request.Id);
 
-        if (entity == null)
+        if (occurrence == null)
         {
-            throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
+            throw new ApiException("Không tìm thấy lịch sân", HttpStatusCode.BadRequest);
         }
 
-        if (
-            entity.Status == BookingCourtStatus.Cancelled
-            || entity.Status == BookingCourtStatus.Completed
-        )
+        if (occurrence.Status == BookingCourtOccurrenceStatus.Completed)
         {
-            return true;
+            return true; // Already completed
         }
 
-        // Business rule: if customer doesn't show up, keep deposit (already handled in payment) and mark as NoShow
-        // Do not auto-refund any paid amounts here.
-        entity.Status = BookingCourtStatus.NoShow;
+        // Update occurrence status
+        occurrence.Status = BookingCourtOccurrenceStatus.NoShow;
+
         // Free up court on no-show
-        var court3 = await _context.Courts.FirstOrDefaultAsync(c => c.Id == entity.CourtId);
-        if (court3 != null)
+        var court = await _context.Courts.FirstOrDefaultAsync(c =>
+            c.Id == occurrence.BookingCourt!.CourtId
+        );
+        if (court != null)
         {
-            court3.Status = CourtStatus.Active;
+            court.Status = CourtStatus.Active;
         }
+
         if (!string.IsNullOrWhiteSpace(request.Note))
         {
-            entity.Note = string.IsNullOrWhiteSpace(entity.Note)
+            occurrence.Note = string.IsNullOrWhiteSpace(occurrence.Note)
                 ? request.Note
-                : entity.Note + "\n" + request.Note;
+                : occurrence.Note + "\n" + request.Note;
         }
 
         await _context.SaveChangesAsync();
-        await _hub.Clients.All.SendAsync("bookingUpdated", entity.Id);
+        await _hub.Clients.All.SendAsync("bookingUpdated", occurrence.BookingCourtId);
+        await _hub.Clients.All.SendAsync("occurrenceNoShow", occurrence.Id);
         return true;
     }
 
@@ -728,10 +814,18 @@ public class BookingCourtService(
         {
             throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
         }
-        if (entity.Status != BookingCourtStatus.CheckedIn)
+        // Check if there's a checked-in occurrence for today
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var checkedInOccurrence = await _context.BookingCourtOccurrences.FirstOrDefaultAsync(o =>
+            o.BookingCourtId == request.BookingId
+            && o.Date == today
+            && o.Status == BookingCourtOccurrenceStatus.CheckedIn
+        );
+
+        if (checkedInOccurrence == null)
         {
             throw new ApiException(
-                "Chỉ tính tiền cho lịch đang check-in",
+                "Chỉ tính tiền cho lịch đang check-in hôm nay",
                 HttpStatusCode.BadRequest
             );
         }
@@ -749,9 +843,9 @@ public class BookingCourtService(
             now.Year,
             now.Month,
             now.Day,
-            entity.EndTime.Hour,
-            entity.EndTime.Minute,
-            entity.EndTime.Second
+            checkedInOccurrence.EndTime.Hour,
+            checkedInOccurrence.EndTime.Minute,
+            checkedInOccurrence.EndTime.Second
         );
         var overdueMinutes = 0;
         decimal surcharge = 0m;
@@ -787,7 +881,7 @@ public class BookingCourtService(
                 if (currentPricing != null)
                 {
                     // Tìm time range phù hợp với thời điểm muộn
-                    var overdueTime = entity.EndTime.AddMinutes(overdueMinutes);
+                    var overdueTime = checkedInOccurrence.EndTime.AddMinutes(overdueMinutes);
                     var applicablePrice = GetApplicablePriceForTime(currentPricing, overdueTime);
 
                     if (applicablePrice != null)
@@ -824,20 +918,24 @@ public class BookingCourtService(
 
     public async Task<bool> AddOrderItemAsync(AddOrderItemRequest request)
     {
-        var booking = await _context.BookingCourts.FirstOrDefaultAsync(b =>
-            b.Id == request.BookingId
-        );
-        if (booking == null)
+        // Find the specific occurrence
+        var occurrence = await _context
+            .BookingCourtOccurrences.Include(o => o.BookingCourt)
+            .FirstOrDefaultAsync(o => o.Id == request.BookingCourtOccurrenceId);
+
+        if (occurrence == null)
         {
-            throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
+            throw new ApiException("Không tìm thấy lịch sân", HttpStatusCode.BadRequest);
         }
-        if (booking.Status != BookingCourtStatus.CheckedIn)
+
+        if (occurrence.BookingCourt!.Status != BookingCourtStatus.Active)
         {
             throw new ApiException(
-                "Chỉ thêm món cho lịch đang check-in",
+                "Chỉ thêm món cho lịch đang hoạt động",
                 HttpStatusCode.BadRequest
             );
         }
+
         var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == request.ProductId);
         if (product == null)
         {
@@ -847,7 +945,7 @@ public class BookingCourtService(
         var unit = product.SalePrice;
 
         var existing = await _context.BookingOrderItems.FirstOrDefaultAsync(x =>
-            x.BookingId == request.BookingId && x.ProductId == request.ProductId
+            x.BookingCourtOccurrenceId == occurrence.Id && x.ProductId == request.ProductId
         );
         if (existing != null)
         {
@@ -859,7 +957,7 @@ public class BookingCourtService(
             var item = new BookingOrderItem
             {
                 Id = Guid.NewGuid(),
-                BookingId = booking.Id,
+                BookingCourtOccurrenceId = occurrence.Id,
                 ProductId = product.Id,
                 Quantity = qty,
                 UnitPrice = unit,
@@ -872,11 +970,11 @@ public class BookingCourtService(
         return true;
     }
 
-    public async Task<List<BookingOrderItemResponse>> ListOrderItemsAsync(Guid bookingId)
+    public async Task<List<BookingOrderItemResponse>> ListOrderItemsAsync(Guid occurrenceId)
     {
         var items = await _context
             .BookingOrderItems.Include(x => x.Product)
-            .Where(x => x.BookingId == bookingId)
+            .Where(x => x.BookingCourtOccurrenceId == occurrenceId)
             .OrderBy(x => x.CreatedAt)
             .ToListAsync();
 
@@ -894,19 +992,26 @@ public class BookingCourtService(
 
     public async Task<bool> UpdateOrderItemAsync(UpdateOrderItemRequest request)
     {
-        var booking = await _context.BookingCourts.FirstOrDefaultAsync(b =>
-            b.Id == request.BookingId
-        );
-        if (booking == null)
-            throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
-        if (booking.Status != BookingCourtStatus.CheckedIn)
+        // Find the specific occurrence
+        var occurrence = await _context
+            .BookingCourtOccurrences.Include(o => o.BookingCourt)
+            .FirstOrDefaultAsync(o => o.Id == request.BookingCourtOccurrenceId);
+
+        if (occurrence == null)
+        {
+            throw new ApiException("Không tìm thấy lịch sân", HttpStatusCode.BadRequest);
+        }
+
+        if (occurrence.BookingCourt!.Status != BookingCourtStatus.Active)
+        {
             throw new ApiException(
-                "Chỉ cập nhật món cho lịch đang check-in",
+                "Chỉ cập nhật món cho lịch đang hoạt động",
                 HttpStatusCode.BadRequest
             );
+        }
 
         var existing = await _context.BookingOrderItems.FirstOrDefaultAsync(x =>
-            x.BookingId == request.BookingId && x.ProductId == request.ProductId
+            x.BookingCourtOccurrenceId == occurrence.Id && x.ProductId == request.ProductId
         );
         if (existing == null)
         {
@@ -920,7 +1025,7 @@ public class BookingCourtService(
             var item = new BookingOrderItem
             {
                 Id = Guid.NewGuid(),
-                BookingId = booking.Id,
+                BookingCourtOccurrenceId = occurrence.Id,
                 ProductId = product.Id,
                 Quantity = qty,
                 UnitPrice = unit,
@@ -983,6 +1088,46 @@ public class BookingCourtService(
         return Math.Round(total, 2);
     }
 
+    private async Task<decimal> CalculateBookingAmountForOccurrenceAsync(
+        BookingCourtOccurrence occurrence
+    )
+    {
+        var dow = GetCustomDayOfWeek(occurrence.Date);
+        var rules = await _context
+            .CourtPricingRules.Where(r =>
+                r.CourtId == occurrence.BookingCourt!.CourtId && r.DaysOfWeek.Contains(dow)
+            )
+            .OrderBy(r => r.Order)
+            .ToListAsync();
+
+        if (rules.Count == 0)
+        {
+            return 0m;
+        }
+
+        var total = 0m;
+        var currentTime = occurrence.StartTime;
+        var endTime = occurrence.EndTime;
+
+        while (currentTime < endTime)
+        {
+            var applicableRule = rules.FirstOrDefault(r =>
+                currentTime >= r.StartTime && currentTime < r.EndTime
+            );
+            if (applicableRule == null)
+            {
+                break;
+            }
+            var ruleEndTime = applicableRule.EndTime < endTime ? applicableRule.EndTime : endTime;
+            var hours = (decimal)(ruleEndTime.ToTimeSpan() - currentTime.ToTimeSpan()).TotalHours;
+            var priceForThisPeriod = applicableRule.PricePerHour * hours;
+            total += priceForThisPeriod;
+            currentTime = ruleEndTime;
+        }
+
+        return Math.Round(total, 2);
+    }
+
     private async Task<List<CourtPriceRule>?> GetCurrentCourtPricingAsync(
         Guid courtId,
         DateOnly date
@@ -1010,6 +1155,69 @@ public class BookingCourtService(
     private CourtPriceRule? GetApplicablePriceForTime(List<CourtPriceRule> pricing, TimeOnly time)
     {
         return pricing.FirstOrDefault(p => time >= p.StartTime && time < p.EndTime);
+    }
+
+    private async Task CreateBookingCourtOccurrencesAsync(
+        BookingCourt booking,
+        string paymentMethod
+    )
+    {
+        var occurrences = new List<BookingCourtOccurrence>();
+
+        // Determine status based on payment method
+        var occurrenceStatus = string.Equals(
+            paymentMethod,
+            "Cash",
+            StringComparison.OrdinalIgnoreCase
+        )
+            ? BookingCourtOccurrenceStatus.Active
+            : BookingCourtOccurrenceStatus.PendingPayment;
+
+        if (booking.DaysOfWeek == null || booking.DaysOfWeek.Length == 0)
+        {
+            // One-time booking - create single occurrence
+            var occurrence = new BookingCourtOccurrence
+            {
+                Id = Guid.NewGuid(),
+                BookingCourtId = booking.Id,
+                Date = booking.StartDate,
+                StartTime = booking.StartTime,
+                EndTime = booking.EndTime,
+                Status = occurrenceStatus,
+                Note = booking.Note,
+            };
+            occurrences.Add(occurrence);
+        }
+        else
+        {
+            // Recurring booking - create occurrences for each day in the range
+            var currentDate = booking.StartDate;
+            while (currentDate <= booking.EndDate)
+            {
+                var dow = GetCustomDayOfWeek(currentDate);
+                if (booking.DaysOfWeek.Contains(dow))
+                {
+                    var occurrence = new BookingCourtOccurrence
+                    {
+                        Id = Guid.NewGuid(),
+                        BookingCourtId = booking.Id,
+                        Date = currentDate,
+                        StartTime = booking.StartTime,
+                        EndTime = booking.EndTime,
+                        Status = occurrenceStatus,
+                        Note = booking.Note,
+                    };
+                    occurrences.Add(occurrence);
+                }
+                currentDate = currentDate.AddDays(1);
+            }
+        }
+
+        if (occurrences.Any())
+        {
+            await _context.BookingCourtOccurrences.AddRangeAsync(occurrences);
+            await _context.SaveChangesAsync();
+        }
     }
 
     private class CourtPriceRule

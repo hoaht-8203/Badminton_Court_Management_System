@@ -121,6 +121,20 @@ public class BookingCourtsController(
         );
     }
 
+    [HttpGet("occurrences")]
+    public async Task<
+        ActionResult<ApiResponse<List<ListBookingCourtOccurrenceResponse>>>
+    > ListOccurrences([FromQuery] ListBookingCourtOccurrenceRequest request)
+    {
+        var result = await _service.ListBookingCourtOccurrencesAsync(request);
+        return Ok(
+            ApiResponse<List<ListBookingCourtOccurrenceResponse>>.SuccessResponse(
+                result,
+                "Lấy danh sách lịch sân thành công"
+            )
+        );
+    }
+
     [HttpGet("detail")]
     public async Task<ActionResult<ApiResponse<DetailBookingCourtResponse>>> Detail(
         [FromQuery] DetailBookingCourtRequest request
@@ -131,6 +145,20 @@ public class BookingCourtsController(
             ApiResponse<DetailBookingCourtResponse>.SuccessResponse(
                 result,
                 "Lấy chi tiết booking thành công"
+            )
+        );
+    }
+
+    [HttpGet("occurrence/detail")]
+    public async Task<
+        ActionResult<ApiResponse<DetailBookingCourtOccurrenceResponse>>
+    > DetailOccurrence([FromQuery] DetailBookingCourtOccurrenceRequest request)
+    {
+        var result = await _service.DetailBookingCourtOccurrenceAsync(request);
+        return Ok(
+            ApiResponse<DetailBookingCourtOccurrenceResponse>.SuccessResponse(
+                result,
+                "Lấy chi tiết lịch sân thành công"
             )
         );
     }
@@ -151,7 +179,7 @@ public class BookingCourtsController(
         [FromBody] CheckInBookingCourtRequest request
     )
     {
-        var ok = await _service.CheckInAsync(request);
+        var ok = await _service.CheckInOccurrenceAsync(request);
         return Ok(
             ApiResponse<bool>.SuccessResponse(ok, ok ? "Check-in thành công" : "Check-in thất bại")
         );
@@ -162,7 +190,7 @@ public class BookingCourtsController(
         [FromBody] CheckOutBookingCourtRequest request
     )
     {
-        var ok = await _service.CheckOutAsync(request);
+        var ok = await _service.CheckOutOccurrenceAsync(request);
         return Ok(
             ApiResponse<bool>.SuccessResponse(
                 ok,
@@ -176,7 +204,7 @@ public class BookingCourtsController(
         [FromBody] NoShowBookingCourtRequest request
     )
     {
-        var ok = await _service.MarkNoShowAsync(request);
+        var ok = await _service.MarkOccurrenceNoShowAsync(request);
         return Ok(
             ApiResponse<bool>.SuccessResponse(
                 ok,

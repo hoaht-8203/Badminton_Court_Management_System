@@ -8,20 +8,27 @@ import { CalendarOutlined, TableOutlined } from "@ant-design/icons";
 import { HttpTransportType, HubConnection, HubConnectionBuilder, ILogger, LogLevel } from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
 import { Alert, Checkbox, message, Segmented } from "antd";
-import { DayPilot, DayPilotScheduler } from "daypilot-pro-react";
+import { DayPilot } from "daypilot-pro-react";
 import { PersonStandingIcon, UserCheckIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, memo } from "react";
+import dynamic from "next/dynamic";
 import BookingOccurrenceDetailDrawer from "./booking-occurrence-detail-drawer";
 import ModalCreateNewBooking from "./modal-create-new-booking";
 import PickCalendar from "./pick-calendar";
+
+// Lazy load heavy components to improve initial page load
+const DayPilotScheduler = dynamic(() => import("daypilot-pro-react").then((mod) => ({ default: mod.DayPilotScheduler })), {
+  ssr: false, // DayPilot requires client-side rendering
+  loading: () => <div className="h-96 animate-pulse rounded bg-gray-200" />,
+}) as any; // Type assertion to fix ref issue
 
 interface CourtSchedulerProps {
   courts: ListCourtGroupByCourtAreaResponse[];
 }
 
 const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
-  const schedulerRef = useRef<DayPilotScheduler>(null);
-  const [activeTab, setActiveTab] = useState("1");
+  const schedulerRef = useRef<any>(null);
+  // Removed unused activeTab state
   const [viewOption, setViewOption] = useState<"schedule" | "list">("schedule");
   const [open, setOpen] = useState(false);
   const [isSignalRConnected, setIsSignalRConnected] = useState<boolean | null>(null);
@@ -33,41 +40,60 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   } | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [openDetail, setOpenDetail] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string[]>([
-    BookingCourtStatus.Active,
-    BookingCourtStatus.PendingPayment,
-    BookingCourtStatus.Completed,
-    BookingCourtStatus.CheckedIn,
-    BookingCourtStatus.Cancelled,
-    BookingCourtStatus.NoShow,
-  ]);
+
+  // Memoize initial status filter to prevent unnecessary re-renders
+  const initialStatusFilter = useMemo(
+    () => [
+      BookingCourtStatus.Active,
+      BookingCourtStatus.PendingPayment,
+      BookingCourtStatus.Completed,
+      BookingCourtStatus.CheckedIn,
+      BookingCourtStatus.Cancelled,
+      BookingCourtStatus.NoShow,
+    ],
+    [],
+  );
+
+  const [statusFilter, setStatusFilter] = useState<string[]>(initialStatusFilter);
   const queryClient = useQueryClient();
   const connectionRef = useRef<HubConnection | null>(null);
   const hasStartedRef = useRef(false);
   const unmountedRef = useRef(false);
 
-  const { data: bookingCourtOccurrences, isFetching: loadingBookingCourts } = useListBookingCourtOccurrences({
-    fromDate: selectedDate.toDate(),
-    toDate: selectedDate.toDate(),
+  // Memoize date conversion to prevent unnecessary API calls
+  const selectedDateObj = useMemo(() => selectedDate.toDate(), [selectedDate]);
+
+  const { data: bookingCourtOccurrences } = useListBookingCourtOccurrences({
+    fromDate: selectedDateObj,
+    toDate: selectedDateObj,
   });
 
+  // Memoize filtered occurrences to prevent unnecessary re-computations
   const filteredOccurrences = useMemo(() => {
     const all = bookingCourtOccurrences?.data ?? [];
     return all.filter((o) => statusFilter.includes(o.status as string));
   }, [bookingCourtOccurrences, statusFilter]);
 
+  // Memoize event conversion to prevent unnecessary re-renders
   const bookingCourtsEvent = useMemo(() => {
     return convertOccurrencesToEvents(filteredOccurrences);
   }, [filteredOccurrences]);
+
+  // Memoize current time to prevent unnecessary recalculations
+  const now = useMemo(() => new Date(), []);
+  const nextHour = useMemo(() => new Date(now.getTime() + 60 * 60 * 1000), [now]);
+
+  // Memoize same day comparison function to prevent recreation
+  const sameDay = useCallback(
+    (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(),
+    [],
+  );
 
   // Upcoming customers within the next 1 hour (unique courts that have a start within 1 hour)
   const upcomingWithinHourCount = useMemo(() => {
     try {
       const events: any[] = (bookingCourtsEvent as any[]) || [];
-      const now = new Date();
-      const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
-      const sel = selectedDate.toDate();
-      const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+      const sel = selectedDateObj;
       const courts = new Set<string>();
       for (const ev of events) {
         if (!ev?.start || !ev?.resource) continue;
@@ -81,15 +107,13 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     } catch {
       return 0;
     }
-  }, [bookingCourtsEvent, selectedDate]);
+  }, [bookingCourtsEvent, selectedDateObj, now, nextHour, sameDay]);
 
   // Arrived but not checked-in yet: events whose start time has passed (and not ended) on selected date, status is Active (paid) and not CheckedIn
   const arrivedNotCheckedInCount = useMemo(() => {
     try {
       const events: any[] = (bookingCourtsEvent as any[]) || [];
-      const now = new Date();
-      const sel = selectedDate.toDate();
-      const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+      const sel = selectedDateObj;
       let count = 0;
       for (const ev of events) {
         if (!ev?.start || !ev?.end) continue;
@@ -105,23 +129,18 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     } catch {
       return 0;
     }
-  }, [bookingCourtsEvent, selectedDate]);
+  }, [bookingCourtsEvent, selectedDateObj, now, sameDay]);
 
-  // Compute totals only for bookings that actually occur on the selected date
-  const selectedCustomDow = useMemo(() => {
-    const jsDow = selectedDate.toDate().getDay(); // 0..6, Sunday=0
-    return jsDow === 0 ? 8 : jsDow + 1; // match backend convention 2..8 (Mon..Sun)
-  }, [selectedDate]);
+  // Removed unused selectedCustomDow computation
 
   const occurrencesForSelectedDay = useMemo(() => {
     const all = bookingCourtOccurrences?.data ?? [];
-    const sel = selectedDate.toDate();
-    const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    const sel = selectedDateObj;
     return all.filter((o: any) => {
       const occurrenceDate = new Date(o.startDate as any);
       return sameDay(occurrenceDate, sel);
     });
-  }, [bookingCourtOccurrences, selectedDate]);
+  }, [bookingCourtOccurrences, selectedDateObj, sameDay]);
 
   const totalCancelled = useMemo(() => {
     return occurrencesForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Cancelled).length;
@@ -139,7 +158,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     return occurrencesForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.NoShow).length;
   }, [occurrencesForSelectedDay]);
 
-  // Function để setup UI cho realtime connection dot
+  // Memoize setupSchedulerUI to prevent unnecessary re-creation
   const setupSchedulerUI = useCallback(() => {
     const corner = document.querySelector(".scheduler_default_corner") as HTMLElement | null;
     if (!corner) return;
@@ -368,20 +387,68 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     };
   }, [queryClient, openDetail, detailId]);
 
-  const handlePickDate = (date: string) => {
+  // Memoize date picker handler to prevent unnecessary re-renders
+  const handlePickDate = useCallback((date: string) => {
     setSelectedDate(new DayPilot.Date(date));
-  };
+  }, []);
 
-  const resources: DayPilot.ResourceData[] = courts.map((courtArea) => ({
-    name: courtArea.name ?? "",
-    id: courtArea.id,
-    expanded: true,
-    children:
-      courtArea.courts?.map((court) => ({
-        name: court.name ?? "",
-        id: court.id,
-      })) ?? [],
-  }));
+  // Memoize event handlers to prevent unnecessary re-renders
+  const handleTimeRangeSelected = useCallback(async (args: any) => {
+    const currentTime = new DayPilot.Date();
+    if (args.start.getTime() < currentTime.getTime()) {
+      message.warning("Lưu ý: Bạn đang đặt sân trong quá khứ");
+    }
+
+    setOpen(true);
+
+    setNewBooking({
+      start: args.start,
+      end: args.end,
+      resource: args.resource.toString(),
+    });
+  }, []);
+
+  const handleEventClick = useCallback(async (args: any) => {
+    const id = String(args.e.data.id ?? "");
+    if (!id) return;
+    if (id.includes("@")) {
+      setDetailId(id.split("@")[0]);
+    } else {
+      setDetailId(id);
+    }
+    setOpenDetail(true);
+  }, []);
+
+  const handleStatusFilterChange = useCallback((vals: any) => setStatusFilter(vals as string[]), []);
+  const handleViewOptionChange = useCallback((value: any) => {
+    setViewOption(value as "schedule" | "list");
+  }, []);
+
+  const handleModalClose = useCallback(() => {
+    setOpen(false);
+    setNewBooking(null);
+  }, []);
+
+  const handleDetailClose = useCallback(() => {
+    setOpenDetail(false);
+    setDetailId(null);
+  }, []);
+
+  // Memoize resources to prevent unnecessary re-computations
+  const resources: DayPilot.ResourceData[] = useMemo(
+    () =>
+      courts.map((courtArea) => ({
+        name: courtArea.name ?? "",
+        id: courtArea.id,
+        expanded: true,
+        children:
+          courtArea.courts?.map((court) => ({
+            name: court.name ?? "",
+            id: court.id,
+          })) ?? [],
+      })),
+    [courts],
+  );
 
   // const handleCreateBooking = () => {
   //   console.log("handleCreateBooking", newBooking);
@@ -408,26 +475,30 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-700">Lọc trạng thái:</span>
           <Checkbox.Group
-            options={[
-              { label: "Đã đặt & thanh toán", value: BookingCourtStatus.Active },
-              { label: "Đã đặt - chưa thanh toán", value: BookingCourtStatus.PendingPayment },
-              { label: "Đã check-in", value: BookingCourtStatus.CheckedIn },
-              { label: "Hoàn tất", value: BookingCourtStatus.Completed },
-              { label: "Đã hủy", value: BookingCourtStatus.Cancelled },
-              { label: "No-show", value: BookingCourtStatus.NoShow },
-            ]}
+            options={useMemo(
+              () => [
+                { label: "Đã đặt & thanh toán", value: BookingCourtStatus.Active },
+                { label: "Đã đặt - chưa thanh toán", value: BookingCourtStatus.PendingPayment },
+                { label: "Đã check-in", value: BookingCourtStatus.CheckedIn },
+                { label: "Hoàn tất", value: BookingCourtStatus.Completed },
+                { label: "Đã hủy", value: BookingCourtStatus.Cancelled },
+                { label: "No-show", value: BookingCourtStatus.NoShow },
+              ],
+              [],
+            )}
             value={statusFilter}
-            onChange={(vals) => setStatusFilter(vals as string[])}
+            onChange={handleStatusFilterChange}
           />
         </div>
         <Segmented
-          options={[
-            { label: "Xem theo lịch", value: "schedule", icon: <CalendarOutlined /> },
-            { label: "Xem theo danh sách", value: "list", icon: <TableOutlined /> },
-          ]}
-          onChange={(value) => {
-            setViewOption(value as "schedule" | "list");
-          }}
+          options={useMemo(
+            () => [
+              { label: "Xem theo lịch", value: "schedule", icon: <CalendarOutlined /> },
+              { label: "Xem theo danh sách", value: "list", icon: <TableOutlined /> },
+            ],
+            [],
+          )}
+          onChange={handleViewOptionChange}
           size="large"
         />
       </div>
@@ -454,7 +525,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                     },
                   })
                 }
-                onBeforeGroupRender={(args) => {
+                onBeforeGroupRender={(args: any) => {
                   const totalCancelled = args.group.events.filter(
                     (event: DayPilot.Event) => event.data.status === BookingCourtStatus.Cancelled,
                   ).length;
@@ -492,7 +563,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                 days={1}
                 startDate={selectedDate}
                 resources={resources}
-                onBeforeRowHeaderRender={(args) => {
+                onBeforeRowHeaderRender={(args: any) => {
                   args.row.cssClass = "resource-css";
                   const hasExpanded = args.row.groups && args.row.groups.expanded && args.row.groups.expanded().length > 0;
                   const hasCollapsed = args.row.groups && args.row.groups.collapsed && args.row.groups.collapsed().length > 0;
@@ -564,13 +635,13 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                     ];
                   }
                 }}
-                onBeforeCellRender={(args) => {
+                onBeforeCellRender={(args: any) => {
                   if (args.cell.isParent) {
                     args.cell.properties.disabled = true;
                     args.cell.properties.backColor = "#f0f0f0";
                   }
                 }}
-                onBeforeEventRender={(args) => {
+                onBeforeEventRender={(args: any) => {
                   const eventStatus = args.data.status;
 
                   if (eventStatus === BookingCourtStatus.Active) {
@@ -641,7 +712,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                   //     args.data.barColor = "orange"; // Màu cam cho sự kiện đang diễn ra
                   // }
                 }}
-                onBeforeTimeHeaderRender={(args) => {
+                onBeforeTimeHeaderRender={(args: any) => {
                   if (args.header.level === 0) {
                     const date = args.header.start;
                     const dayOfWeekText = date.toString("dddd");
@@ -663,32 +734,10 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                     setupSchedulerUI();
                   }, 0);
                 }}
-                onTimeRangeSelected={async (args) => {
-                  const currentTime = new DayPilot.Date();
-                  if (args.start.getTime() < currentTime.getTime()) {
-                    message.warning("Lưu ý: Bạn đang đặt sân trong quá khứ");
-                  }
-
-                  setOpen(true);
-
-                  setNewBooking({
-                    start: args.start,
-                    end: args.end,
-                    resource: args.resource.toString(),
-                  });
-                }}
+                onTimeRangeSelected={handleTimeRangeSelected}
                 eventMoveHandling="Disabled"
                 eventResizeHandling="Disabled"
-                onEventClick={async (args) => {
-                  const id = String(args.e.data.id ?? "");
-                  if (!id) return;
-                  if (id.includes("@")) {
-                    setDetailId(id.split("@")[0]);
-                  } else {
-                    setDetailId(id);
-                  }
-                  setOpenDetail(true);
-                }}
+                onEventClick={handleEventClick}
                 treeEnabled={true}
                 events={bookingCourtsEvent}
                 allowEventOverlap={false}
@@ -721,23 +770,9 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
           )}
         </div>
 
-        <ModalCreateNewBooking
-          open={open}
-          onClose={() => {
-            setOpen(false);
-            setNewBooking(null);
-          }}
-          newBooking={newBooking}
-        />
+        <ModalCreateNewBooking open={open} onClose={handleModalClose} newBooking={newBooking} />
 
-        <BookingOccurrenceDetailDrawer
-          occurrenceId={detailId}
-          open={openDetail}
-          onClose={() => {
-            setOpenDetail(false);
-            setDetailId(null);
-          }}
-        />
+        <BookingOccurrenceDetailDrawer occurrenceId={detailId} open={openDetail} onClose={handleDetailClose} />
 
         {/* <BookingDetailDrawer
           bookingId={detailId}
@@ -752,4 +787,5 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   );
 };
 
-export default CourtScheduler;
+// Memoize the main component to prevent unnecessary re-renders when props haven't changed
+export default memo(CourtScheduler);

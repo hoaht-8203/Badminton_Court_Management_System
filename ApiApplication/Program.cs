@@ -228,6 +228,7 @@ builder
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHostedService<BookingHoldExpiryHostedService>();
+builder.Services.AddHostedService<OrderExpiryHostedService>();
 builder.Services.AddHostedService<AutoCheckoutHostedService>();
 builder.Services.AddSignalR(options =>
 {

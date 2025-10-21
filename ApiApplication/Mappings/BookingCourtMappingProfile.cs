@@ -79,13 +79,7 @@ public class BookingCourtMappingProfile : Profile
                     )
             )
             .ForMember(d => d.Customer, opt => opt.MapFrom(s => s.BookingCourt.Customer))
-            .ForMember(
-                d => d.Payments,
-                opt =>
-                    opt.MapFrom(s =>
-                        s.BookingCourt.Payments.Where(p => p.BookingCourtOccurrenceId == null)
-                    )
-            )
+            .ForMember(d => d.Payments, opt => opt.MapFrom(s => s.BookingCourt.Payments))
             .ForMember(d => d.BookingServices, opt => opt.MapFrom(s => s.BookingServices))
             .ForMember(d => d.BookingOrderItems, opt => opt.MapFrom(s => s.BookingOrderItems))
             .ForMember(d => d.Court, opt => opt.MapFrom(s => s.BookingCourt.Court));

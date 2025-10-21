@@ -1,5 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
-import { AddOrderItemRequest } from "@/types-openapi/api";
+import { AddOrderItemRequest, CheckoutRequest, CheckoutResponse } from "@/types-openapi/api";
 
 export interface CheckoutItemInput {
   productId: number | string;
@@ -44,5 +44,10 @@ export const cashierService = {
       productId: Number(payload.productId),
       quantity: payload.quantity,
     });
+  },
+
+  async checkout(payload: CheckoutRequest): Promise<CheckoutResponse> {
+    const res = await axiosInstance.post("/api/Orders/checkout", payload);
+    return res.data?.data as CheckoutResponse;
   },
 };

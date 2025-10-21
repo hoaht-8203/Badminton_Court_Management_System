@@ -481,9 +481,9 @@ public class BookingCourtService(
                 p.Status == PaymentStatus.Paid && p.BookingCourtOccurrenceId == null
             )
             .Sum(p => p.Amount);
-        dto.TotalAmount = Math.Round(totalAmount, 2);
-        dto.PaidAmount = Math.Round(paidAmount, 2);
-        dto.RemainingAmount = Math.Max(0, Math.Round(totalAmount - paidAmount, 2));
+        dto.TotalAmount = Math.Ceiling(totalAmount);
+        dto.PaidAmount = Math.Ceiling(paidAmount);
+        dto.RemainingAmount = Math.Max(0, Math.Ceiling(totalAmount - paidAmount));
 
         // Infer payment type from first payment amount vs total
         if (entity.Payments.Count == 0)
@@ -504,7 +504,7 @@ public class BookingCourtService(
                 dto.PaymentAmount = first.Amount;
                 var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
                 var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
-                var amount = ((long)Math.Round(first.Amount, 0)).ToString();
+                var amount = ((long)Math.Ceiling(first.Amount)).ToString();
                 var des = Uri.EscapeDataString(first.Id);
                 dto.QrUrl =
                     $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
@@ -529,11 +529,14 @@ public class BookingCourtService(
         var entity = await _context
             .BookingCourtOccurrences.Include(x => x.BookingCourt)
             .ThenInclude(x => x.Court)
-            .ThenInclude(x => x.CourtArea)
             .Include(x => x.BookingCourt)
             .ThenInclude(x => x.Customer)
             .Include(x => x.BookingCourt)
             .ThenInclude(x => x.Payments)
+            .Include(x => x.BookingCourt)
+            .ThenInclude(x => x.BookingCourtOccurrences)
+            .Include(x => x.Payments)
+            .Include(x => x.BookingServices)
             .Include(x => x.BookingOrderItems)
             .ThenInclude(x => x.Product)
             .FirstOrDefaultAsync(x => x.Id == request.Id);
@@ -564,9 +567,9 @@ public class BookingCourtService(
         var paidAmountPerOccurrence =
             totalOccurrences > 0 ? totalBookingPaid / totalOccurrences : 0;
 
-        dto.TotalAmount = Math.Round(totalAmount, 2);
-        dto.PaidAmount = Math.Round(paidAmountPerOccurrence, 2);
-        dto.RemainingAmount = Math.Max(0, Math.Round(totalAmount - paidAmountPerOccurrence, 2));
+        dto.TotalAmount = Math.Ceiling(totalAmount);
+        dto.PaidAmount = Math.Ceiling(paidAmountPerOccurrence);
+        dto.RemainingAmount = Math.Max(0, Math.Ceiling(totalAmount - paidAmountPerOccurrence));
 
         // Calculate total hours
         dto.TotalHours = (decimal)
@@ -591,7 +594,7 @@ public class BookingCourtService(
                 dto.PaymentAmount = paidAmountPerOccurrence;
                 var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
                 var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
-                var amount = ((long)Math.Round(paidAmountPerOccurrence, 0)).ToString();
+                var amount = ((long)Math.Ceiling(paidAmountPerOccurrence)).ToString();
                 var des = Uri.EscapeDataString(first.Id);
                 dto.QrUrl =
                     $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
@@ -624,7 +627,7 @@ public class BookingCourtService(
                     (entity.EndTime.ToTimeSpan() - entity.StartTime.ToTimeSpan()).TotalMinutes;
                 var baseMinuteRate = totalAmount / totalMinutes;
                 var surchargeAmount = Math.Ceiling(chargeableMinutes * baseMinuteRate);
-                dto.SurchargeAmount = Math.Round(surchargeAmount, 2);
+                dto.SurchargeAmount = Math.Ceiling(surchargeAmount);
             }
             else
             {
@@ -1114,7 +1117,7 @@ public class BookingCourtService(
             currentTime = ruleEndTime;
         }
 
-        return Math.Round(total, 2);
+        return Math.Ceiling(total);
     }
 
     private async Task<decimal> CalculateBookingAmountForOccurrenceAsync(
@@ -1154,7 +1157,7 @@ public class BookingCourtService(
             currentTime = ruleEndTime;
         }
 
-        return Math.Round(total, 2);
+        return Math.Ceiling(total);
     }
 
     private async Task<List<CourtPriceRule>?> GetCurrentCourtPricingAsync(

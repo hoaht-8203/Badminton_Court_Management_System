@@ -61,7 +61,10 @@ public class OrderService(
         var totalPaidAmount = booking.Payments.Where(p => p.Status == "Paid").Sum(p => p.Amount);
         var paidAmountPerOccurrence = totalOccurrences > 0 ? totalPaidAmount / totalOccurrences : 0;
 
-        var courtRemainingAmount = Math.Max(0, courtTotalAmount - paidAmountPerOccurrence);
+        var courtRemainingAmount = Math.Max(
+            0,
+            Math.Ceiling(courtTotalAmount - paidAmountPerOccurrence)
+        );
 
         // Tính toán tổng tiền món hàng từ occurrence cụ thể
         var itemsSubtotal = occurrence.BookingOrderItems?.Sum(x => x.TotalPrice) ?? 0m;
@@ -72,7 +75,7 @@ public class OrderService(
         var lateFeeAmount = lateFeeResult.lateFeeAmount;
 
         // Tổng thanh toán
-        var totalAmount = courtRemainingAmount + itemsSubtotal + lateFeeAmount;
+        var totalAmount = Math.Ceiling(courtRemainingAmount + itemsSubtotal + lateFeeAmount);
 
         // Xác định trạng thái order và payment dựa trên phương thức thanh toán
         var isCashPayment = string.Equals(
@@ -142,7 +145,7 @@ public class OrderService(
         {
             var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
             var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
-            var amount = ((long)Math.Round(totalAmount, 0)).ToString();
+            var amount = ((long)Math.Ceiling(totalAmount)).ToString();
             var des = Uri.EscapeDataString(order.Id.ToString());
             qrUrl = $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
             holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 15;
@@ -155,12 +158,12 @@ public class OrderService(
             CustomerId = booking.CustomerId,
             CustomerName = booking.Customer?.FullName ?? string.Empty,
             CourtName = booking.Court?.Name ?? string.Empty,
-            CourtTotalAmount = courtTotalAmount,
-            CourtPaidAmount = paidAmountPerOccurrence,
-            CourtRemainingAmount = courtRemainingAmount,
-            ItemsSubtotal = itemsSubtotal,
+            CourtTotalAmount = Math.Ceiling(courtTotalAmount),
+            CourtPaidAmount = Math.Ceiling(paidAmountPerOccurrence),
+            CourtRemainingAmount = Math.Ceiling(courtRemainingAmount),
+            ItemsSubtotal = Math.Ceiling(itemsSubtotal),
             LateFeePercentage = request.LateFeePercentage,
-            LateFeeAmount = lateFeeAmount,
+            LateFeeAmount = Math.Ceiling(lateFeeAmount),
             OverdueMinutes = overdueMinutes,
             OverdueDisplay = FormatOverdueTime(overdueMinutes),
             TotalAmount = totalAmount,
@@ -292,7 +295,7 @@ public class OrderService(
             currentTime = ruleEndTime;
         }
 
-        return Math.Round(total, 2);
+        return Math.Ceiling(total);
     }
 
     private async Task<decimal> CalculateBookingAmountForOccurrenceAsync(
@@ -332,7 +335,7 @@ public class OrderService(
             currentTime = ruleEndTime;
         }
 
-        return Math.Round(total, 2);
+        return Math.Ceiling(total);
     }
 
     private async Task<(int overdueMinutes, decimal lateFeeAmount)> CalculateLateFeeAsync(

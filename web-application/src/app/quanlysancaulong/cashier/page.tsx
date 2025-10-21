@@ -4,7 +4,7 @@ import { useDetailBookingCourtOccurrence, useListBookingCourtOccurrences } from 
 import { useListCourts } from "@/hooks/useCourt";
 import { useListProducts } from "@/hooks/useProducts";
 import { cashierService } from "@/services/cashierService";
-import { DetailBookingCourtOccurrenceResponse, ListCourtResponse, ListProductResponse } from "@/types-openapi/api";
+import { DetailBookingCourtOccurrenceResponse, ListCourtResponse, ListProductResponse, CheckoutRequest, CheckoutResponse } from "@/types-openapi/api";
 import { CourtStatus } from "@/types/commons";
 import { LoadingOutlined, ReloadOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import { Image as AntdImage, Button, Card, Col, Divider, Empty, Input, List, message, Row, Select, Spin, Tabs } from "antd";
@@ -14,19 +14,30 @@ import { Grid2X2, MenuIcon, Monitor, Wrench } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
+import CheckoutQrDrawer from "@/components/quanlysancaulong/court-schedule/checkout-qr-drawer";
+import { DayPilot } from "daypilot-pro-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { bookingCourtOccurrenceKeys } from "@/hooks/useBookingCourtOccurrence";
 
 const CashierPageContent = () => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("1");
   const [selectedOccurrenceId, setSelectedOccurrenceId] = useState<string | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string | null>(null);
   const [orderItems, setOrderItems] = useState<Record<string, { product: ListProductResponse; quantity: number }>>({});
   const [lateFeePercentage, setLateFeePercentage] = useState<number>(150);
+  const [paymentMethod, setPaymentMethod] = useState<"Cash" | "Bank">("Cash");
+  const [openCheckoutQr, setOpenCheckoutQr] = useState(false);
+  const [checkoutDetail, setCheckoutDetail] = useState<CheckoutResponse | null>(null);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
   const { data: courtsData, isFetching: loadingCourts, refetch: refetchCourts } = useListCourts({});
   const { data: productsData, isFetching: loadingProducts, refetch: refetchProducts } = useListProducts({});
-  // Memoize today's date to prevent infinite re-renders
-  const today = useMemo(() => new Date(), []);
+  // Memoize today's date to prevent infinite re-renders - use same logic as court-schedule.tsx
+  const today = useMemo(() => {
+    return DayPilot.Date.today().toDate();
+  }, []);
 
   const { data: occurrencesToday } = useListBookingCourtOccurrences({
     fromDate: today,
@@ -64,6 +75,17 @@ const CashierPageContent = () => {
       default:
         break;
     }
+  };
+
+  const refreshAllData = () => {
+    // Invalidate all relevant queries
+    queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
+    queryClient.invalidateQueries({ queryKey: ["courts"] });
+    queryClient.invalidateQueries({ queryKey: ["products"] });
+
+    // Refetch current data
+    refetchCourts();
+    refetchProducts();
   };
 
   const handleAddProductToOrder = async (product: ListProductResponse) => {
@@ -196,6 +218,45 @@ const CashierPageContent = () => {
     return Math.max(0, (courtRemaining || 0) + (itemsSubtotal || 0) + surcharge);
   }, [courtRemaining, itemsSubtotal, occurrenceDetail, lateFeePercentage]);
 
+  const handleCheckout = async () => {
+    if (!selectedOccurrenceId || !occurrenceDetail) {
+      message.warning("Vui lòng chọn lịch sân trước khi thanh toán");
+      return;
+    }
+
+    setIsCheckoutLoading(true);
+    try {
+      const checkoutRequest: CheckoutRequest = {
+        bookingCourtOccurrenceId: selectedOccurrenceId,
+        paymentMethod: paymentMethod,
+        lateFeePercentage: lateFeePercentage,
+        note: `Thanh toán ${paymentMethod === "Cash" ? "tiền mặt" : "chuyển khoản"} - ${new Date().toLocaleString("vi-VN")}`,
+      };
+
+      const result = await cashierService.checkout(checkoutRequest);
+      setCheckoutDetail(result);
+
+      if (paymentMethod === "Bank") {
+        // Show QR drawer for bank transfer
+        setOpenCheckoutQr(true);
+        message.success("Đã tạo đơn hàng chờ thanh toán. Vui lòng quét QR để thanh toán.");
+      } else {
+        // Cash payment - direct success
+        message.success("Thanh toán tiền mặt thành công!");
+        // Refresh all data
+        refreshAllData();
+        // Reset form
+        setSelectedOccurrenceId(null);
+        setOrderItems({});
+        setSelectedCourtId(null);
+      }
+    } catch (error: any) {
+      message.error(error?.message || "Không thể thực hiện thanh toán");
+    } finally {
+      setIsCheckoutLoading(false);
+    }
+  };
+
   return (
     <div className="cashier-page-section h-screen p-4">
       <Row className="h-full">
@@ -307,6 +368,19 @@ const CashierPageContent = () => {
               )}
             </div>
 
+            <div className="mb-2 rounded border p-2">
+              <div className="mb-2 text-sm font-semibold">Phương thức thanh toán</div>
+              <Select
+                style={{ width: "100%" }}
+                value={paymentMethod}
+                onChange={(value: "Cash" | "Bank") => setPaymentMethod(value)}
+                options={[
+                  { value: "Cash", label: "Tiền mặt" },
+                  { value: "Bank", label: "Chuyển khoản" },
+                ]}
+              />
+            </div>
+
             {occurrenceDetail && (occurrenceDetail.overdueMinutes || 0) > 0 && (
               <div className="rounded border p-2">
                 <div className="mb-2 text-sm font-semibold">Cấu hình phí muộn</div>
@@ -412,14 +486,37 @@ const CashierPageContent = () => {
               </div>
               <Divider style={{ margin: "8px 0" }} />
               <div className="mt-2 flex gap-2">
-                <Button icon={<ShoppingCartOutlined />} type="primary" disabled={!selectedOccurrenceId || finalPayable <= 0}>
-                  Thanh toán & Checkout
+                <Button
+                  icon={<ShoppingCartOutlined />}
+                  type="primary"
+                  loading={isCheckoutLoading}
+                  disabled={!selectedOccurrenceId}
+                  onClick={handleCheckout}
+                >
+                  {paymentMethod === "Cash" ? "Thanh toán tiền mặt & Checkout" : "Thanh toán chuyển khoản & Checkout"}
                 </Button>
               </div>
             </div>
           </div>
         </Col>
       </Row>
+
+      <CheckoutQrDrawer
+        checkoutDetail={checkoutDetail}
+        open={openCheckoutQr}
+        onClose={() => {
+          setOpenCheckoutQr(false);
+          setCheckoutDetail(null);
+          // Refresh data after successful bank transfer
+          refreshAllData();
+          // Reset form after successful bank transfer
+          setSelectedOccurrenceId(null);
+          setOrderItems({});
+          setSelectedCourtId(null);
+        }}
+        title="Thanh toán chuyển khoản"
+        width={560}
+      />
     </div>
   );
 };

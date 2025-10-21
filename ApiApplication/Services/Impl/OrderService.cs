@@ -118,6 +118,7 @@ public class OrderService(
             {
                 OrderId = order.Id,
                 BookingId = booking.Id,
+                BookingOccurrenceId = occurrence.Id,
                 CustomerId = booking.CustomerId,
                 Amount = totalAmount,
                 PaymentMethod = request.PaymentMethod,

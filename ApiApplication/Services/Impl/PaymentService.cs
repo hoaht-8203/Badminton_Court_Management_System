@@ -258,6 +258,7 @@ public class PaymentService(
         {
             Id = await GenerateNextPaymentIdAsync(),
             BookingId = request.BookingId,
+            BookingCourtOccurrenceId = request.BookingOccurrenceId,
             OrderId = request.OrderId,
             CustomerId = request.CustomerId,
             Amount = request.Amount,

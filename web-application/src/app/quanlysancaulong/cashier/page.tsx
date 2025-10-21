@@ -1,10 +1,10 @@
 "use client";
 
-import { useDetailBookingCourt, useListBookingCourts } from "@/hooks/useBookingCourt";
+import { useDetailBookingCourtOccurrence, useListBookingCourtOccurrences } from "@/hooks/useBookingCourtOccurrence";
 import { useListCourts } from "@/hooks/useCourt";
 import { useListProducts } from "@/hooks/useProducts";
 import { cashierService } from "@/services/cashierService";
-import { DetailBookingCourtResponse, ListCourtResponse, ListProductResponse } from "@/types-openapi/api";
+import { DetailBookingCourtOccurrenceResponse, ListCourtResponse, ListProductResponse } from "@/types-openapi/api";
 import { CourtStatus } from "@/types/commons";
 import { LoadingOutlined, ReloadOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import { Image as AntdImage, Button, Card, Col, Divider, Empty, Input, List, message, Row, Select, Spin, Tabs } from "antd";
@@ -18,31 +18,40 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 const CashierPageContent = () => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("1");
-  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [selectedOccurrenceId, setSelectedOccurrenceId] = useState<string | null>(null);
   const [selectedCourtId, setSelectedCourtId] = useState<string | null>(null);
   const [orderItems, setOrderItems] = useState<Record<string, { product: ListProductResponse; quantity: number }>>({});
   const [lateFeePercentage, setLateFeePercentage] = useState<number>(150);
 
   const { data: courtsData, isFetching: loadingCourts, refetch: refetchCourts } = useListCourts({});
   const { data: productsData, isFetching: loadingProducts, refetch: refetchProducts } = useListProducts({});
-  const { data: bookingsToday } = useListBookingCourts({});
-  const { data: bookingDetailRes } = useDetailBookingCourt(selectedBookingId ?? undefined);
-  const bookingDetail = (bookingDetailRes?.data as DetailBookingCourtResponse) || undefined;
+  // Memoize today's date to prevent infinite re-renders
+  const today = useMemo(() => new Date(), []);
 
-  // Preselect booking from URL search params (client-safe)
+  const { data: occurrencesToday } = useListBookingCourtOccurrences({
+    fromDate: today,
+    toDate: today,
+  });
+  const { data: occurrenceDetailRes } = useDetailBookingCourtOccurrence({ id: selectedOccurrenceId ?? "" });
+
+  const occurrenceDetail = (occurrenceDetailRes?.data as DetailBookingCourtOccurrenceResponse) || undefined;
+
+  // Preselect occurrence from URL search params (client-safe)
   const sp = useSearchParams();
   useEffect(() => {
-    const id = sp.get("bookingId");
-    if (id) setSelectedBookingId(id);
+    const occurrenceId = sp.get("occurrenceId");
+
+    if (occurrenceId) {
+      setSelectedOccurrenceId(occurrenceId);
+    }
   }, [sp]);
 
-  // Derive selected court from selected booking (ensures highlight after deep-link or refresh)
+  // Derive selected court from occurrence (ensures highlight after deep-link or refresh)
   useEffect(() => {
-    if (!selectedBookingId) return;
-    const list = bookingsToday?.data || [];
-    const found = list.find((b: any) => String(b.id) === String(selectedBookingId));
-    if (found?.courtId) setSelectedCourtId(String(found.courtId));
-  }, [selectedBookingId, bookingsToday]);
+    if (occurrenceDetail?.court?.id) {
+      setSelectedCourtId(String(occurrenceDetail.court.id));
+    }
+  }, [occurrenceDetail]);
 
   const handleRefreshData = () => {
     switch (activeTab) {
@@ -59,12 +68,12 @@ const CashierPageContent = () => {
 
   const handleAddProductToOrder = async (product: ListProductResponse) => {
     if (!product?.id) return;
-    if (!selectedBookingId) {
-      message.warning("Vui lòng chọn sân/booking đang chơi trước khi thêm món");
+    if (!selectedOccurrenceId) {
+      message.warning("Vui lòng chọn lịch sân đang chơi trước khi thêm món");
       return;
     }
     try {
-      await cashierService.addOrderItem({ bookingId: selectedBookingId, productId: product.id!, quantity: 1 });
+      await cashierService.addOrderItem({ bookingCourtOccurrenceId: selectedOccurrenceId, productId: product.id!, quantity: 1 });
       setOrderItems((prev) => {
         const key = String(product.id);
         const current = prev[key];
@@ -78,32 +87,49 @@ const CashierPageContent = () => {
   };
 
   const handleSelectCourt = (courtId: string) => {
-    const todays = (bookingsToday?.data || []).filter((b) => String(b.courtId) === String(courtId) && (b.status as any) === "CheckedIn");
+    // Tìm tất cả occurrences của sân này hôm nay
+    const todays = (occurrencesToday?.data || []).filter((o) => String(o.courtId) === String(courtId));
+
     if (todays.length === 0) {
-      message.info("Sân này hiện chưa có lịch đang chơi (CheckedIn)");
+      message.info("Sân này hiện chưa có lịch hôm nay");
       return;
     }
-    // Prefer ongoing booking by time window, else first
+
+    // Ưu tiên tìm occurrence đang diễn ra (theo thời gian)
     const now = dayjs();
-    const pick =
-      todays.find((b) => {
-        const st = dayjs(`${now.format("YYYY-MM-DD")} ${String(b.startTime).substring(0, 5)}`);
-        const et = dayjs(`${now.format("YYYY-MM-DD")} ${String(b.endTime).substring(0, 5)}`);
-        return now.isAfter(st) && now.isBefore(et);
-      }) || todays[0];
-    setSelectedBookingId(String(pick.id));
-    setSelectedCourtId(courtId);
+    const ongoingOccurrence = todays.find((o) => {
+      const st = dayjs(`${now.format("YYYY-MM-DD")} ${String(o.startTime).substring(0, 5)}`);
+      const et = dayjs(`${now.format("YYYY-MM-DD")} ${String(o.endTime).substring(0, 5)}`);
+      return now.isAfter(st) && now.isBefore(et);
+    });
+
+    if (ongoingOccurrence) {
+      setSelectedOccurrenceId(String(ongoingOccurrence.id));
+      setSelectedCourtId(courtId);
+      return;
+    }
+
+    // Nếu không có occurrence đang diễn ra, tìm occurrence có thể checkout (CheckedIn)
+    const checkInOccurrences = todays.filter((o) => o.status === "CheckedIn");
+    if (checkInOccurrences.length > 0) {
+      setSelectedOccurrenceId(String(checkInOccurrences[0].id));
+      setSelectedCourtId(courtId);
+      return;
+    }
+
+    // Nếu không có CheckedIn, hiển thị tất cả occurrences để user chọn
+    message.info("Sân này chưa có lịch đang chơi (CheckedIn). Vui lòng chọn từ danh sách bên phải.");
   };
 
-  // Load existing saved order items when booking is selected
+  // Load existing saved order items when occurrence is selected
   useEffect(() => {
     const load = async () => {
-      if (!selectedBookingId) {
+      if (!selectedOccurrenceId) {
         setOrderItems({});
         return;
       }
       try {
-        const items = await cashierService.listOrderItems(selectedBookingId);
+        const items = await cashierService.listOrderItems(selectedOccurrenceId);
         setOrderItems(
           (items || []).reduce(
             (acc, it) => {
@@ -121,14 +147,14 @@ const CashierPageContent = () => {
       }
     };
     load();
-  }, [selectedBookingId]);
+  }, [selectedOccurrenceId]);
 
   const handleChangeQty = async (productId: string, delta: number) => {
     const current = orderItems[productId];
-    if (!current || !selectedBookingId) return;
+    if (!current || !selectedOccurrenceId) return;
     const nextQty = Math.max(0, current.quantity + delta);
     try {
-      await cashierService.updateOrderItem({ bookingId: selectedBookingId, productId: Number(productId), quantity: nextQty });
+      await cashierService.updateOrderItem({ bookingId: selectedOccurrenceId, productId: Number(productId), quantity: nextQty });
       setOrderItems((prev) => {
         const next = { ...prev } as typeof prev;
         if (nextQty === 0) delete next[productId];
@@ -145,30 +171,30 @@ const CashierPageContent = () => {
   }, [orderItems]);
 
   const courtRemaining = useMemo(() => {
-    if (!bookingDetail) return 0;
-    return bookingDetail.remainingAmount || 0;
-  }, [bookingDetail]);
+    return occurrenceDetail?.remainingAmount || 0;
+  }, [occurrenceDetail]);
 
   const finalPayable = useMemo(() => {
     // Tính phí muộn theo phần trăm mới nếu có muộn (theo phút)
     let surcharge = 0;
-    if (bookingDetail && (bookingDetail.overdueMinutes || 0) > 15) {
-      const overdueMinutes = bookingDetail.overdueMinutes || 0;
+
+    if (occurrenceDetail && (occurrenceDetail.overdueMinutes || 0) > 15) {
+      const overdueMinutes = occurrenceDetail.overdueMinutes || 0;
       const chargeableMinutes = overdueMinutes - 15; // Chỉ tính phí cho phần muộn > 15 phút
 
-      // Tính giá cơ bản từ booking detail (theo phút)
-      const totalMinutes = (bookingDetail.totalHours || 1) * 60;
-      const baseMinuteRate = (bookingDetail.totalAmount || 0) / totalMinutes;
+      // Tính giá cơ bản từ detail (theo phút)
+      const totalMinutes = (occurrenceDetail.totalHours || 1) * 60;
+      const baseMinuteRate = (occurrenceDetail.totalAmount || 0) / totalMinutes;
 
       // Áp dụng phần trăm phí muộn
       const lateFeeRate = baseMinuteRate * (lateFeePercentage / 100);
       surcharge = Math.ceil(chargeableMinutes * lateFeeRate);
     } else {
-      surcharge = bookingDetail?.surchargeAmount || 0;
+      surcharge = occurrenceDetail?.surchargeAmount || 0;
     }
 
     return Math.max(0, (courtRemaining || 0) + (itemsSubtotal || 0) + surcharge);
-  }, [courtRemaining, itemsSubtotal, bookingDetail, lateFeePercentage]);
+  }, [courtRemaining, itemsSubtotal, occurrenceDetail, lateFeePercentage]);
 
   return (
     <div className="cashier-page-section h-screen p-4">
@@ -241,26 +267,37 @@ const CashierPageContent = () => {
               <Select
                 style={{ width: "100%" }}
                 placeholder="Chọn lịch đặt sân"
-                value={selectedBookingId ?? undefined}
-                onChange={(val) => setSelectedBookingId(val)}
-                options={(bookingsToday?.data || [])
-                  .filter((b) => (b.status as any) === "CheckedIn")
-                  .map((b) => ({
-                    value: b.id as string,
-                    label: `${b.courtName} • ${b.customerName} • ${b.startTime?.toString()?.substring(0, 5)}-${b.endTime
+                value={selectedOccurrenceId ?? undefined}
+                onChange={(val) => setSelectedOccurrenceId(val)}
+                options={(occurrencesToday?.data || [])
+                  .filter((o) => o.status === "CheckedIn")
+                  .map((o) => ({
+                    value: o.id as string,
+                    label: `${o.courtName} • ${o.customerName} • ${o.startTime?.toString()?.substring(0, 5)}-${o.endTime
                       ?.toString()
                       ?.substring(0, 5)}`,
                   }))}
                 allowClear
               />
+
+              {selectedOccurrenceId && (
+                <div className="mt-2 rounded border bg-blue-50 p-2">
+                  <div className="text-sm font-medium">
+                    {occurrenceDetail?.court?.name} • {occurrenceDetail?.customer?.fullName}
+                  </div>
+                  <div className="text-xs text-gray-600">
+                    {String(occurrenceDetail?.date)} • {String(occurrenceDetail?.startTime)}-{String(occurrenceDetail?.endTime)}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mb-2 rounded border p-2">
               <div className="mb-2 text-sm font-semibold">Thông tin thanh toán sân</div>
-              {bookingDetail ? (
+              {occurrenceDetail ? (
                 <div className="text-sm">
-                  <div>Tổng tiền sân: {(bookingDetail.totalAmount || 0).toLocaleString("vi-VN")} đ</div>
-                  <div>Đã thanh toán: {(bookingDetail.paidAmount || 0).toLocaleString("vi-VN")} đ</div>
+                  <div>Tổng tiền sân: {(occurrenceDetail.totalAmount || 0).toLocaleString("vi-VN")} đ</div>
+                  <div>Đã thanh toán: {(occurrenceDetail.paidAmount || 0).toLocaleString("vi-VN")} đ</div>
                   <div>
                     Còn lại: <b className="text-red-500">{(courtRemaining || 0).toLocaleString("vi-VN")} đ</b>
                   </div>
@@ -270,7 +307,7 @@ const CashierPageContent = () => {
               )}
             </div>
 
-            {bookingDetail && (bookingDetail.overdueMinutes || 0) > 0 && (
+            {occurrenceDetail && (occurrenceDetail.overdueMinutes || 0) > 0 && (
               <div className="rounded border p-2">
                 <div className="mb-2 text-sm font-semibold">Cấu hình phí muộn</div>
                 <div className="flex gap-2">
@@ -330,7 +367,7 @@ const CashierPageContent = () => {
             <div className="rounded border p-2 text-sm">
               <div className="flex justify-between">
                 <span>Tiền sân còn lại</span>
-                <span>{(bookingDetail?.remainingAmount || 0).toLocaleString("vi-VN")} đ</span>
+                <span>{(occurrenceDetail?.remainingAmount || 0).toLocaleString("vi-VN")} đ</span>
               </div>
               <div className="flex justify-between">
                 <span>Tổng món</span>
@@ -339,27 +376,31 @@ const CashierPageContent = () => {
               <div className="flex justify-between">
                 <span>Muộn</span>
                 <span>
-                  {bookingDetail?.overdueMinutes && bookingDetail?.overdueMinutes > 60
-                    ? `${Math.floor(bookingDetail?.overdueMinutes / 60)} giờ ${bookingDetail?.overdueMinutes % 60} phút`
-                    : bookingDetail?.overdueMinutes
-                      ? `${bookingDetail?.overdueMinutes} phút`
-                      : "0 phút"}
+                  {(() => {
+                    const overdueMinutes = occurrenceDetail?.overdueMinutes || 0;
+                    if (overdueMinutes > 60) {
+                      return `${Math.floor(overdueMinutes / 60)} giờ ${overdueMinutes % 60} phút`;
+                    } else if (overdueMinutes > 0) {
+                      return `${overdueMinutes} phút`;
+                    }
+                    return "0 phút";
+                  })()}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Phụ phí muộn (tạm tính)</span>
                 <span>
                   {(() => {
-                    if (bookingDetail && (bookingDetail.overdueMinutes || 0) > 15) {
-                      const overdueMinutes = bookingDetail.overdueMinutes || 0;
+                    if (occurrenceDetail && (occurrenceDetail.overdueMinutes || 0) > 15) {
+                      const overdueMinutes = occurrenceDetail.overdueMinutes || 0;
                       const chargeableMinutes = overdueMinutes - 15;
-                      const totalMinutes = (bookingDetail.totalHours || 1) * 60;
-                      const baseMinuteRate = (bookingDetail.totalAmount || 0) / totalMinutes;
+                      const totalMinutes = (occurrenceDetail.totalHours || 1) * 60;
+                      const baseMinuteRate = (occurrenceDetail.totalAmount || 0) / totalMinutes;
                       const lateFeeRate = baseMinuteRate * (lateFeePercentage / 100);
                       const surcharge = Math.ceil(chargeableMinutes * lateFeeRate);
                       return surcharge.toLocaleString("vi-VN");
                     }
-                    return (bookingDetail?.surchargeAmount || 0).toLocaleString("vi-VN");
+                    return (occurrenceDetail?.surchargeAmount || 0).toLocaleString("vi-VN");
                   })()}{" "}
                   đ
                 </span>
@@ -371,7 +412,7 @@ const CashierPageContent = () => {
               </div>
               <Divider style={{ margin: "8px 0" }} />
               <div className="mt-2 flex gap-2">
-                <Button icon={<ShoppingCartOutlined />} type="primary" disabled={!selectedBookingId || finalPayable <= 0}>
+                <Button icon={<ShoppingCartOutlined />} type="primary" disabled={!selectedOccurrenceId || finalPayable <= 0}>
                   Thanh toán & Checkout
                 </Button>
               </div>

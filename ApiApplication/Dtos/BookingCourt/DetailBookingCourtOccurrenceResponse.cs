@@ -16,6 +16,7 @@ public class DetailBookingCourtOccurrenceResponse
 
     // Extra info
     public Customer.CustomerDto Customer { get; set; } = null!;
+    public Court.CourtDto Court { get; set; } = null!;
     public List<PaymentDto> Payments { get; set; } = [];
     public List<BookingServiceDto> BookingServices { get; set; } = [];
     public List<BookingOrderItemResponse> BookingOrderItems { get; set; } = [];

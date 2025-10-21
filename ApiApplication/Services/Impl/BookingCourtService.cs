@@ -467,10 +467,19 @@ public class BookingCourtService(
 
         var dto = _mapper.Map<DetailBookingCourtResponse>(entity);
 
-        // Compute totals
-        var totalAmount = await CalculateBookingAmountForEntityAsync(entity);
+        // Compute totals - calculate from all occurrences
+        var totalAmount = 0m;
+        foreach (var occurrence in entity.BookingCourtOccurrences)
+        {
+            var occurrenceAmount = await CalculateBookingAmountForOccurrenceAsync(occurrence);
+            totalAmount += occurrenceAmount;
+        }
+
+        // Only count payments directly related to this booking (not occurrence-specific payments)
         var paidAmount = entity
-            .Payments.Where(p => p.Status == PaymentStatus.Paid)
+            .Payments.Where(p =>
+                p.Status == PaymentStatus.Paid && p.BookingCourtOccurrenceId == null
+            )
             .Sum(p => p.Amount);
         dto.TotalAmount = Math.Round(totalAmount, 2);
         dto.PaidAmount = Math.Round(paidAmount, 2);
@@ -520,14 +529,11 @@ public class BookingCourtService(
         var entity = await _context
             .BookingCourtOccurrences.Include(x => x.BookingCourt)
             .ThenInclude(x => x.Court)
+            .ThenInclude(x => x.CourtArea)
             .Include(x => x.BookingCourt)
             .ThenInclude(x => x.Customer)
             .Include(x => x.BookingCourt)
             .ThenInclude(x => x.Payments)
-            .Include(x => x.BookingCourt)
-            .ThenInclude(x => x.BookingCourtOccurrences)
-            .Include(x => x.Payments)
-            .Include(x => x.BookingServices)
             .Include(x => x.BookingOrderItems)
             .ThenInclude(x => x.Product)
             .FirstOrDefaultAsync(x => x.Id == request.Id);
@@ -542,30 +548,21 @@ public class BookingCourtService(
         // Compute totals
         var totalAmount = await CalculateBookingAmountForOccurrenceAsync(entity);
 
-        // Calculate deposit distribution across all occurrences
+        // Calculate payment amounts for this specific occurrence
+        // Get booking-level payments and distribute proportionally
         var booking = entity.BookingCourt!;
+        var bookingPayments = booking.Payments.Where(p =>
+            p.Status == PaymentStatus.Paid && p.BookingCourtOccurrenceId == null
+        );
+        var totalBookingPaid = bookingPayments.Sum(p => p.Amount);
+
+        // Calculate total booking amount to determine proportion
+        var totalBookingAmount = await CalculateBookingAmountForEntityAsync(booking);
         var totalOccurrences = booking.BookingCourtOccurrences.Count;
-        // Only consider the initial deposit payments (not checkout payments)
-        // Deposit payments are typically the first payments made for the booking
-        var depositPayments = booking
-            .Payments.Where(p => p.Status == PaymentStatus.Paid)
-            .OrderBy(p => p.PaymentCreatedAt)
-            .Take(1) // Only the first payment (deposit)
-            .Sum(p => p.Amount);
 
-        var paidAmountPerOccurrence = totalOccurrences > 0 ? depositPayments / totalOccurrences : 0;
-
-        // Debug logging
-        Console.WriteLine($"Debug DetailBookingCourtOccurrenceAsync - totalAmount: {totalAmount}");
-        Console.WriteLine(
-            $"Debug DetailBookingCourtOccurrenceAsync - totalOccurrences: {totalOccurrences}"
-        );
-        Console.WriteLine(
-            $"Debug DetailBookingCourtOccurrenceAsync - depositPayments: {depositPayments}"
-        );
-        Console.WriteLine(
-            $"Debug DetailBookingCourtOccurrenceAsync - paidAmountPerOccurrence: {paidAmountPerOccurrence}"
-        );
+        // Distribute booking payment proportionally across occurrences
+        var paidAmountPerOccurrence =
+            totalOccurrences > 0 ? totalBookingPaid / totalOccurrences : 0;
 
         dto.TotalAmount = Math.Round(totalAmount, 2);
         dto.PaidAmount = Math.Round(paidAmountPerOccurrence, 2);
@@ -575,15 +572,15 @@ public class BookingCourtService(
         dto.TotalHours = (decimal)
             (entity.EndTime.ToTimeSpan() - entity.StartTime.ToTimeSpan()).TotalHours;
 
-        // Infer payment type from distributed payment amount vs total
-        if (booking.Payments.Count == 0)
+        // Infer payment type from booking payment amount vs total booking amount
+        if (bookingPayments.Count() == 0)
         {
             dto.PaymentType = "None";
         }
         else
         {
-            var first = booking.Payments.OrderBy(p => p.PaymentCreatedAt).First();
-            var ratio = totalAmount == 0 ? 0 : paidAmountPerOccurrence / totalAmount;
+            var first = bookingPayments.OrderBy(p => p.PaymentCreatedAt).First();
+            var ratio = totalBookingAmount == 0 ? 0 : totalBookingPaid / totalBookingAmount;
             dto.PaymentType = ratio >= 0.99m ? "Full" : "Deposit";
             // Inline QR info for transfer (pending) case
             if (
@@ -604,10 +601,42 @@ public class BookingCourtService(
             }
         }
 
-        // Late fee calculation is now handled at the occurrence level
-        dto.OverdueMinutes = 0;
-        dto.OverdueHours = 0m;
-        dto.SurchargeAmount = 0m;
+        // Calculate late fee for this specific occurrence
+        var now = DateTime.Now;
+        var occurrenceDate = entity.Date.ToDateTime(TimeOnly.MinValue);
+        var startDateTime = occurrenceDate.Add(entity.StartTime.ToTimeSpan());
+        var endDateTime = occurrenceDate.Add(entity.EndTime.ToTimeSpan());
+
+        // Only calculate late fee if occurrence is CheckedIn and current time is past end time
+        if (entity.Status == BookingCourtOccurrenceStatus.CheckedIn && now > endDateTime)
+        {
+            var overdueMinutes = (int)(now - endDateTime).TotalMinutes;
+            var overdueHours = (decimal)(now - endDateTime).TotalHours;
+
+            dto.OverdueMinutes = overdueMinutes;
+            dto.OverdueHours = Math.Round(overdueHours, 2);
+
+            // Calculate surcharge: only charge for minutes beyond 15 minutes
+            if (overdueMinutes > 15)
+            {
+                var chargeableMinutes = overdueMinutes - 15;
+                var totalMinutes = (decimal)
+                    (entity.EndTime.ToTimeSpan() - entity.StartTime.ToTimeSpan()).TotalMinutes;
+                var baseMinuteRate = totalAmount / totalMinutes;
+                var surchargeAmount = Math.Ceiling(chargeableMinutes * baseMinuteRate);
+                dto.SurchargeAmount = Math.Round(surchargeAmount, 2);
+            }
+            else
+            {
+                dto.SurchargeAmount = 0m;
+            }
+        }
+        else
+        {
+            dto.OverdueMinutes = 0;
+            dto.OverdueHours = 0m;
+            dto.SurchargeAmount = 0m;
+        }
 
         return dto;
     }

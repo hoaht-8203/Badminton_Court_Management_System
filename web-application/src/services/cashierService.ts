@@ -1,4 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
+import { AddOrderItemRequest } from "@/types-openapi/api";
 
 export interface CheckoutItemInput {
   productId: number | string;
@@ -26,12 +27,8 @@ export const cashierService = {
     return res.data?.data as { paymentId: string; finalPayable: number };
   },
 
-  async addOrderItem(payload: { bookingId: string; productId: number | string; quantity: number }): Promise<void> {
-    await axiosInstance.post("/api/BookingCourts/order/add-item", {
-      bookingId: payload.bookingId,
-      productId: Number(payload.productId),
-      quantity: payload.quantity,
-    });
+  async addOrderItem(payload: AddOrderItemRequest): Promise<void> {
+    await axiosInstance.post("/api/BookingCourts/order/add-item", payload);
   },
 
   async listOrderItems(

@@ -11,6 +11,9 @@ public class CreatePaymentForOrderRequest
     public Guid BookingId { get; set; }
 
     [Required]
+    public Guid BookingOccurrenceId { get; set; }
+
+    [Required]
     public int CustomerId { get; set; }
 
     [Required]

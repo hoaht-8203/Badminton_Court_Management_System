@@ -1,6 +1,16 @@
-import { apiBaseUrl } from "@/lib/axios";
-import { ListBookingCourtOccurrenceRequest, ListBookingCourtOccurrenceResponse } from "@/types-openapi/api";
-import { useQuery } from "@tanstack/react-query";
+import { ApiError } from "@/lib/axios";
+import { courtScheduleService } from "@/services/courtScheduleService";
+import {
+  CheckInBookingCourtRequest,
+  CheckOutBookingCourtRequest,
+  DetailBookingCourtOccurrenceRequest,
+  DetailBookingCourtOccurrenceResponse,
+  ListBookingCourtOccurrenceRequest,
+  ListBookingCourtOccurrenceResponse,
+  NoShowBookingCourtRequest,
+} from "@/types-openapi/api";
+import { ApiResponse } from "@/types/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const bookingCourtOccurrenceKeys = {
   lists: () => ["bookingCourtOccurrences", "list"] as const,
@@ -10,21 +20,51 @@ export const bookingCourtOccurrenceKeys = {
 };
 
 export function useListBookingCourtOccurrences(params: ListBookingCourtOccurrenceRequest) {
-  return useQuery({
+  return useQuery<ApiResponse<ListBookingCourtOccurrenceResponse[]>, ApiError>({
     queryKey: bookingCourtOccurrenceKeys.list(params),
-    queryFn: async () => {
-      const searchParams = new URLSearchParams();
-      if (params.customerId) searchParams.append("customerId", params.customerId.toString());
-      if (params.courtId) searchParams.append("courtId", params.courtId);
-      if (params.fromDate) searchParams.append("fromDate", params.fromDate.toISOString());
-      if (params.toDate) searchParams.append("toDate", params.toDate.toISOString());
-      if (params.status) searchParams.append("status", params.status);
+    queryFn: () => courtScheduleService.listBookingOccurrences(params),
+  });
+}
 
-      const response = await fetch(`${apiBaseUrl}/api/BookingCourts/occurrences?${searchParams}`, {
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch booking court occurrences");
-      return response.json() as Promise<{ data: ListBookingCourtOccurrenceResponse[] }>;
+export function useDetailBookingCourtOccurrence(params: DetailBookingCourtOccurrenceRequest) {
+  return useQuery<ApiResponse<DetailBookingCourtOccurrenceResponse>, ApiError>({
+    queryKey: bookingCourtOccurrenceKeys.detail(params.id),
+    queryFn: () => courtScheduleService.detailBookingOccurrence({ id: params.id }),
+    enabled: !!params.id,
+  });
+}
+
+export function useCheckInBookingCourtOccurrence() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResponse<boolean>, ApiError, CheckInBookingCourtRequest>({
+    mutationFn: (params) => courtScheduleService.checkInBookingOccurrence(params),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.detail(variables.id) });
+    },
+  });
+}
+
+export function useCheckOutBookingCourtOccurrence() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResponse<boolean>, ApiError, CheckOutBookingCourtRequest>({
+    mutationFn: (params) => courtScheduleService.checkOutBookingOccurrence(params),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
+    },
+  });
+}
+
+export function useNoShowBookingCourtOccurrence() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResponse<boolean>, ApiError, NoShowBookingCourtRequest>({
+    mutationFn: (params) => courtScheduleService.noShowBookingOccurrence(params),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.detail(variables.id) });
     },
   });
 }

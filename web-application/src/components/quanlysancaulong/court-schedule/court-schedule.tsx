@@ -1,7 +1,7 @@
-import { bookingCourtsKeys, useListBookingCourts } from "@/hooks/useBookingCourt";
+import { bookingCourtsKeys } from "@/hooks/useBookingCourt";
 import { bookingCourtOccurrenceKeys, useListBookingCourtOccurrences } from "@/hooks/useBookingCourtOccurrence";
 import { apiBaseUrl } from "@/lib/axios";
-import { expandBookings, convertOccurrencesToEvents, getDayOfWeekToVietnamese } from "@/lib/common";
+import { convertOccurrencesToEvents, getDayOfWeekToVietnamese } from "@/lib/common";
 import { ListCourtGroupByCourtAreaResponse } from "@/types-openapi/api";
 import { BookingCourtStatus } from "@/types/commons";
 import { CalendarOutlined, TableOutlined } from "@ant-design/icons";
@@ -11,8 +11,7 @@ import { Alert, Checkbox, message, Segmented } from "antd";
 import { DayPilot, DayPilotScheduler } from "daypilot-pro-react";
 import { PersonStandingIcon, UserCheckIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import BookingDetailDrawer from "./booking-detail-drawer";
-import CourtScheduleTable from "./court-schedule-table";
+import BookingOccurrenceDetailDrawer from "./booking-occurrence-detail-drawer";
 import ModalCreateNewBooking from "./modal-create-new-booking";
 import PickCalendar from "./pick-calendar";
 
@@ -290,18 +289,6 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       message.open({ type: "info", content: "Lịch đặt sân đã được cập nhật", key: "booking-updated", duration: 3 });
       invalidateDetailIfOpen(bookingId);
-    });
-    conn.on("occurrenceCheckedIn", (occurrenceId: string) => {
-      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
-      message.open({ type: "info", content: "Khách đã check-in", key: "occurrence-checked-in", duration: 3 });
-    });
-    conn.on("occurrenceCheckedOut", (occurrenceId: string) => {
-      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
-      message.open({ type: "info", content: "Khách đã check-out", key: "occurrence-checked-out", duration: 3 });
-    });
-    conn.on("occurrenceNoShow", (occurrenceId: string) => {
-      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
-      message.open({ type: "info", content: "Khách không đến", key: "occurrence-no-show", duration: 3 });
     });
     conn.on("paymentCreated", (payload: any) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
@@ -743,14 +730,23 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
           newBooking={newBooking}
         />
 
-        <BookingDetailDrawer
-          bookingId={detailId}
+        <BookingOccurrenceDetailDrawer
+          occurrenceId={detailId}
           open={openDetail}
           onClose={() => {
             setOpenDetail(false);
             setDetailId(null);
           }}
         />
+
+        {/* <BookingDetailDrawer
+          bookingId={detailId}
+          open={openDetail}
+          onClose={() => {
+            setOpenDetail(false);
+            setDetailId(null);
+          }}
+        /> */}
       </div>
     </>
   );

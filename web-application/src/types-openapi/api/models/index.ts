@@ -48,6 +48,7 @@ export * from './CheckoutResponse';
 export * from './CheckoutResponseApiResponse';
 export * from './Court';
 export * from './CourtArea';
+export * from './CourtDto';
 export * from './CourtPricingRuleDto';
 export * from './CourtPricingRuleTemplate';
 export * from './CourtPricingRuleTemplateDto';

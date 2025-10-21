@@ -82,6 +82,7 @@ models/CheckoutResponse.ts
 models/CheckoutResponseApiResponse.ts
 models/Court.ts
 models/CourtArea.ts
+models/CourtDto.ts
 models/CourtPricingRuleDto.ts
 models/CourtPricingRuleTemplate.ts
 models/CourtPricingRuleTemplateDto.ts

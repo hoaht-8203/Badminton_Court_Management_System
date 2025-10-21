@@ -18,7 +18,7 @@ public class BookingCourt : BaseEntity
     public required Guid CourtId { get; set; }
 
     [ForeignKey(nameof(CourtId))]
-    public Court? Court { get; set; }
+    public Court Court { get; set; } = null!;
 
     public required DateOnly StartDate { get; set; }
     public required DateOnly EndDate { get; set; }

@@ -22,7 +22,7 @@ public class Cashflow : BaseEntity
 
     [Required]
     [MaxLength(50)]
-    public string Status { get; set; } = CashFlowStatus.Pending;
+    public string Status { get; set; } = CashFlowStatus.Paid;
 
     [MaxLength(1000)]
     public string? Note { get; set; }

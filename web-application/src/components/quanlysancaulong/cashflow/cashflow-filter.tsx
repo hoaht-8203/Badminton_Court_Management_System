@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { ListCashflowRequest } from "@/types-openapi/api";
 import { Button, Card, Col, DatePicker, Form, Row, Select } from "antd";
 import { ReloadOutlined, SearchOutlined } from "@ant-design/icons";
+import { useCashflowTypes } from "@/hooks/useCashflow";
 
 const { RangePicker } = DatePicker;
 
@@ -11,11 +12,21 @@ export default function CashflowFilter({ onSearch, onReset }: { onSearch: (param
   const [form] = Form.useForm();
 
   // TODO: replace with real hook to fetch cashflow types when available
-  const cashflowTypeOptions: { value: number; label: string }[] = [];
+  const typeValue = Form.useWatch("type", form);
 
+  // fetch cashflow types for selected type (receipt/payment). Map to Select options.
+  const { data: typesData, isLoading: typesLoading } = useCashflowTypes(typeValue === "payment" ? true : typeValue === "receipt" ? false : undefined);
+
+  const cashflowTypeOptions = useMemo(() => {
+    if (!typesData?.data) return [];
+    return typesData.data.map((t: any) => ({ value: t.id, label: t.name }));
+  }, [typesData]);
+
+  // clear cashflowTypeId when 'type' changes
   useEffect(() => {
-    // placeholder: if you add a hook like useListCashflowTypes, call it here and set options
-  }, []);
+    form.setFieldsValue({ cashflowTypeId: undefined });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typeValue]);
 
   const handleSearch = (values: any) => {
     const params: ListCashflowRequest = {

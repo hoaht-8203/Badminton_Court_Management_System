@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
-import { Row, Col, Divider, Button } from "antd";
 import type { CashflowResponse } from "@/types-openapi/api";
+import { FolderOpenOutlined, PrinterOutlined } from "@ant-design/icons";
+import { Button, Col, Row } from "antd";
 import dayjs from "dayjs";
-import { PrinterOutlined, FolderOpenOutlined } from "@ant-design/icons";
 
 export default function CashflowExpanded({
   record,

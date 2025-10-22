@@ -148,4 +148,34 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         _context.Cashflows.Remove(entity);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<List<string>> GetRelatedPersonsAsync(string personType)
+    {
+        switch (personType.ToLower())
+        {
+            case "customer":
+                return await _context
+                    .Customers.Where(c => c.Status == CustomerStatus.Active)
+                    .Select(c => c.FullName)
+                    .Distinct()
+                    .ToListAsync();
+            case "supplier":
+                return await _context
+                    .Suppliers.Where(s => s.Status == SupplierStatus.Active)
+                    .Select(s => s.Name)
+                    .Distinct()
+                    .ToListAsync();
+            case "staff":
+                return await _context
+                    .Staffs.Where(e => e.IsActive)
+                    .Select(e => e.FullName)
+                    .Distinct()
+                    .ToListAsync();
+            case "other":
+                //TODO: implement other related persons
+                return [];
+            default:
+                throw new ApiException("Loại đối tượng liên quan không hợp lệ");
+        }
+    }
 }

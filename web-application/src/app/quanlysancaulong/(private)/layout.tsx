@@ -125,7 +125,7 @@ const sideBarItems: MenuProps["items"] = [
       },
       {
         key: "/quanlysancaulong/salary",
-        label: "Quản lý lương",
+        label: "Bảng lương",
       },
       {
         key: "/quanlysancaulong/employee-configuration",
@@ -147,6 +147,11 @@ const sideBarItems: MenuProps["items"] = [
         label: "Quản lý vai trò",
       },
     ],
+  },
+  {
+    key: "cashflow",
+    label: "Sổ quỹ",
+    icon: <IdCardLanyard className="h-4 w-4" />,
   },
 ];
 

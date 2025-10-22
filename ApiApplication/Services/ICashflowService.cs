@@ -9,4 +9,5 @@ public interface ICashflowService
     Task<int> CreateCashflowAsync(CreateCashflowRequest request);
     Task UpdateAsync(int id, UpdateCashflowRequest request);
     Task DeleteAsync(int id);
+    Task<List<string>> GetRelatedPersonsAsync(string personType);
 }

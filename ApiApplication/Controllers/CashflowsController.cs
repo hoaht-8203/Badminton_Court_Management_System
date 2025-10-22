@@ -1,5 +1,6 @@
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Cashflow;
+using ApiApplication.Entities;
 using ApiApplication.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +10,13 @@ namespace ApiApplication.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 // [Authorize]
-public class CashflowsController(ICashflowService cashflowService) : ControllerBase
+public class CashflowsController(
+    ICashflowService cashflowService,
+    ICashflowTypeService cashflowTypeService
+) : ControllerBase
 {
     private readonly ICashflowService _cashflowService = cashflowService;
+    private readonly ICashflowTypeService _cashflowTypeService = cashflowTypeService;
 
     [HttpGet]
     public async Task<ApiResponse<CashflowResponse[]>> List([FromQuery] ListCashflowRequest request)
@@ -49,5 +54,20 @@ public class CashflowsController(ICashflowService cashflowService) : ControllerB
     {
         await _cashflowService.DeleteAsync(id);
         return ApiResponse<object?>.SuccessResponse(null, "Xóa phiếu quỹ thành công");
+    }
+
+    //types?isPayment=true
+    [HttpGet("types")]
+    public async Task<ApiResponse<List<CashflowType>>> GetTypes([FromQuery] bool isPayment)
+    {
+        var types = await _cashflowTypeService.GetAllCashflowTypesAsync(isPayment);
+        return ApiResponse<List<CashflowType>>.SuccessResponse(types);
+    }
+
+    [HttpGet("related-persons")]
+    public async Task<ApiResponse<List<string>>> GetRelatedPersons([FromQuery] string personType)
+    {
+        var relatedPersons = await _cashflowService.GetRelatedPersonsAsync(personType);
+        return ApiResponse<List<string>>.SuccessResponse(relatedPersons);
     }
 }

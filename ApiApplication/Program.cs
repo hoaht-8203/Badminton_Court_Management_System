@@ -85,6 +85,7 @@ builder.Services.AddScoped<IStockOutService, StockOutService>();
 builder.Services.AddScoped<IReturnGoodsService, ReturnGoodsService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ICashflowService, CashflowService>();
+builder.Services.AddScoped<ICashflowTypeService, CashFlowTypeService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());

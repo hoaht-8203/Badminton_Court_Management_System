@@ -24,4 +24,14 @@ export const cashflowService = {
     const response = await axiosInstance.delete(`/api/cashflows/${id}`);
     return response.data;
   },
+
+  async getTypes(isPayment: boolean): Promise<ApiResponse<any>> {
+    const response = await axiosInstance.get(`/api/cashflows/types`, { params: { isPayment } });
+    return response.data;
+  },
+
+  async getRelatedPersons(personType: string): Promise<ApiResponse<string[]>> {
+    const response = await axiosInstance.get(`/api/cashflows/related-persons`, { params: { personType } });
+    return response.data;
+  },
 };

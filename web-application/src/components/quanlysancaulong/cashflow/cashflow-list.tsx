@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
-import { Table, TableProps, Row, Col, Divider } from "antd";
 import type { CashflowResponse } from "@/types-openapi/api";
+import { Table, TableProps } from "antd";
 import dayjs from "dayjs";
 import CashflowExpanded from "./cashflow-expanded";
 
@@ -20,12 +19,14 @@ export default function CashflowList({
   onRefresh,
   modal,
   contextHolder,
+  onOpenDrawer,
 }: {
   data: CashflowResponse[];
   loading: boolean;
   onRefresh: () => void;
   modal?: any;
   contextHolder?: any;
+  onOpenDrawer?: (record: CashflowResponse) => void;
 }) {
   const columns = [
     {
@@ -75,7 +76,7 @@ export default function CashflowList({
         loading={loading}
         expandable={{
           expandRowByClick: true,
-          expandedRowRender: (record: CashflowResponse) => <CashflowExpanded record={record} onOpen={() => {}} onPrint={() => {}} />,
+          expandedRowRender: (record: CashflowResponse) => <CashflowExpanded record={record} onOpen={(r) => onOpenDrawer?.(r)} onPrint={() => {}} />,
         }}
       />
     </div>

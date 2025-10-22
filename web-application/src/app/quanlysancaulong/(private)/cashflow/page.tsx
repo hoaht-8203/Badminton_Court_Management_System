@@ -2,7 +2,8 @@
 
 import CashflowFilter from "@/components/quanlysancaulong/cashflow/cashflow-filter";
 import CashflowList from "@/components/quanlysancaulong/cashflow/cashflow-list";
-import { useListCashflow } from "@/hooks/useCashflow";
+import CashflowDrawer from "@/components/quanlysancaulong/cashflow/cashflow-drawer";
+import { useListCashflow, useCreateCashflow, useUpdateCashflowFn } from "@/hooks/useCashflow";
 import { ListCashflowRequest } from "@/types-openapi/api";
 import { Breadcrumb, Button, Modal, message } from "antd";
 import { PlusOutlined, ReloadOutlined } from "@ant-design/icons";
@@ -18,6 +19,14 @@ const CashflowPage = () => {
   });
 
   const [modal, contextHolder] = Modal.useModal();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<"create" | "update">("create");
+  const [editing, setEditing] = useState<null | any>(null);
+
+  const createMutation = useCreateCashflow();
+  const updateFn = useUpdateCashflowFn();
+  // we'll call useUpdateCashflow when needed with the right id in the submit handler
+  const [submitting, setSubmitting] = useState(false);
 
   const { data: cashflowData, isFetching: loadingCashflowData, refetch: refetchCashflow } = useListCashflow(searchParams);
 
@@ -31,17 +40,19 @@ const CashflowPage = () => {
 
   return (
     <section>
-      <div className="mb-4">
-        <Breadcrumb
-          items={[
-            {
-              title: "Quản lý sàn cầu lông",
-            },
-            {
-              title: "Sổ quỹ tiền mặt",
-            },
-          ]}
-        />
+      <div className="mb-2">
+        <div className="mb-2">
+          <Breadcrumb
+            items={[
+              {
+                title: "Quản lý sàn cầu lông",
+              },
+              {
+                title: "Sổ quỹ tiền mặt",
+              },
+            ]}
+          />
+        </div>
         <div className="mb-2">
           <CashflowFilter
             onSearch={setSearchParams}
@@ -76,10 +87,18 @@ const CashflowPage = () => {
             <span className="font-bold text-green-500">Tổng số phiếu: {cashflowData?.data?.length ?? 0}</span>
           </div>
           <div className="flex gap-2">
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => message.info("Tạo phiếu (chưa triển khai)")}>
-              Lập phiếu thu
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setDrawerMode("create");
+                setEditing(null);
+                setDrawerOpen(true);
+              }}
+            >
+              Lập phiếu mới
             </Button>
-            <Button type="primary" icon={<ReloadOutlined />} onClick={() => refetchCashflow()}>
+            <Button icon={<ReloadOutlined />} onClick={() => refetchCashflow()}>
               Tải lại
             </Button>
           </div>
@@ -91,6 +110,36 @@ const CashflowPage = () => {
           onRefresh={() => refetchCashflow()}
           modal={modal}
           contextHolder={contextHolder}
+          // allow list/expanded to open drawer for edit
+          onOpenDrawer={(record: any) => {
+            setEditing(record);
+            setDrawerMode("update");
+            setDrawerOpen(true);
+          }}
+        />
+
+        <CashflowDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          mode={drawerMode}
+          initialValues={editing}
+          submitting={submitting}
+          onSubmit={async (payload: any) => {
+            try {
+              setSubmitting(true);
+              if (drawerMode === "create") {
+                await createMutation.mutateAsync(payload);
+                message.success("Tạo phiếu thành công");
+              } else if (drawerMode === "update" && editing?.id) {
+                await updateFn(editing.id, payload);
+                message.success("Cập nhật phiếu thành công");
+              }
+              setDrawerOpen(false);
+              refetchCashflow();
+            } finally {
+              setSubmitting(false);
+            }
+          }}
         />
       </div>
     </section>

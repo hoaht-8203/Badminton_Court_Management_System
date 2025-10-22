@@ -167,7 +167,7 @@ const ProductInformation = ({
                 <Divider size="small" style={{ margin: "4px 0" }} />
 
                 <div className="flex">
-                  <div className="w-32 font-medium">Mã code:</div>
+                  <div className="w-32 font-medium">Mã hàng:</div>
                   <div>{record.code || "-"}</div>
                 </div>
                 <Divider size="small" style={{ margin: "4px 0" }} />

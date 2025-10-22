@@ -3,7 +3,7 @@ namespace ApiApplication.Dtos.Receipt;
 public class DetailReceiptResponse
 {
     public int Id { get; set; }
-    public string Code { get; set; } = string.Empty;
+    public string? Code { get; set; }
     public DateTime ReceiptTime { get; set; }
     public int SupplierId { get; set; }
     public string PaymentMethod { get; set; } = "cash";

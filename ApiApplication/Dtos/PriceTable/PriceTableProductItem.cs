@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ApiApplication.Dtos;
+namespace ApiApplication.Dtos.PriceTable;
 
 public class PriceTableProductItem
 {
-    public required int ProductId { get; set; }
+    [Required]
+    public int ProductId { get; set; }
+
     public decimal? OverrideSalePrice { get; set; }
 }

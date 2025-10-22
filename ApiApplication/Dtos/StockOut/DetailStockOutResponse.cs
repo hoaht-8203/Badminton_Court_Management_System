@@ -3,7 +3,7 @@ namespace ApiApplication.Dtos.StockOut
     public class DetailStockOutResponse
     {
         public int Id { get; set; }
-        public string Code { get; set; } = string.Empty;
+        public string? Code { get; set; }
         public DateTime OutTime { get; set; }
         public int SupplierId { get; set; }
         public string? SupplierName { get; set; }

@@ -1,4 +1,5 @@
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.Product;
 using ApiApplication.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -93,19 +94,21 @@ namespace ApiApplication.Controllers
             );
         }
 
-        [HttpPost("check-low-stock")]
-        public async Task<ActionResult<ApiResponse<object>>> CheckLowStock(
-            [FromQuery] string? branch = null
-        )
+        /// <summary>
+        /// Lấy danh sách sản phẩm theo bảng giá
+        /// </summary>
+        /// <param name="request">Tham số yêu cầu (CheckTime là optional)</param>
+        /// <returns>Danh sách sản phẩm theo bảng giá</returns>
+        [HttpGet("list-by-price-table")]
+        public async Task<
+            ActionResult<ApiResponse<List<ListProductsByPriceTableResponse>>>
+        > ListByPriceTable([FromQuery] ListProductsByPriceTableRequest request)
         {
-            var count = await _productService.CheckLowStockAndCreateInventoryChecksAsync(branch);
-            if (count > 0) { }
+            var result = await _productService.ListByPriceTableAsync(request);
             return Ok(
-                ApiResponse<object>.SuccessResponse(
-                    new { count },
-                    count > 0
-                        ? $"Đã tạo {count} phiếu kiểm kho cho sản phẩm có tồn kho thấp"
-                        : "Không có sản phẩm nào cần tạo phiếu kiểm kho"
+                ApiResponse<List<ListProductsByPriceTableResponse>>.SuccessResponse(
+                    result,
+                    "Lấy danh sách sản phẩm theo bảng giá thành công"
                 )
             );
         }

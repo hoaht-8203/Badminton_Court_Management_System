@@ -3,7 +3,7 @@ using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Entities;
 
-public class SupplierBankAccount : BaseEntity, IAuditableEntity
+public class SupplierBankAccount : BaseEntity
 {
     [Key]
     public int Id { get; set; }
@@ -12,13 +12,13 @@ public class SupplierBankAccount : BaseEntity, IAuditableEntity
     public virtual Supplier Supplier { get; set; } = null!;
 
     [MaxLength(50)]
-    public string AccountNumber { get; set; } = string.Empty;
+    public required string AccountNumber { get; set; }
 
     [MaxLength(100)]
-    public string AccountName { get; set; } = string.Empty;
+    public required string AccountName { get; set; }
 
     [MaxLength(120)]
-    public string BankName { get; set; } = string.Empty;
+    public required string BankName { get; set; }
 
     public bool IsDefault { get; set; }
 }

@@ -91,13 +91,4 @@ public class InventoryChecksController(IInventoryCheckService inventoryCheckServ
         var result = await _inventoryCheckService.MergeAsync(request.InventoryCheckIds);
         return Ok(ApiResponse<int>.SuccessResponse(result, "Gộp phiếu kiểm kê kho thành công"));
     }
-
-    [HttpGet("debug/latest")]
-    public async Task<ActionResult<ApiResponse<object?>>> GetLatestInventoryChecks()
-    {
-        var result = await _inventoryCheckService.ListAsync(new ListInventoryCheckRequest());
-        return Ok(
-            ApiResponse<object?>.SuccessResponse(result, "Lấy danh sách phiếu kiểm kê gần nhất")
-        );
-    }
 }

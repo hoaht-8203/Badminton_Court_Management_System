@@ -1575,7 +1575,6 @@ namespace ApiApplication.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Code")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
@@ -2377,11 +2376,11 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 21, 16, 2, 1, 614, DateTimeKind.Utc).AddTicks(224),
+                            CreatedAt = new DateTime(2025, 10, 19, 3, 24, 55, 285, DateTimeKind.Utc).AddTicks(9740),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 10, 21, 16, 2, 1, 614, DateTimeKind.Utc).AddTicks(225),
+                            UpdatedAt = new DateTime(2025, 10, 19, 3, 24, 55, 285, DateTimeKind.Utc).AddTicks(9740),
                             UpdatedBy = "System",
                             Value = "1"
                         },

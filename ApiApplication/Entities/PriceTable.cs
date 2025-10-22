@@ -3,14 +3,14 @@ using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Entities;
 
-public class PriceTable : BaseEntity, IAuditableEntity
+public class PriceTable : BaseEntity
 {
     [Key]
     public int Id { get; set; }
 
     [Required]
     [MaxLength(200)]
-    public string Name { get; set; } = string.Empty;
+    public string? Name { get; set; }
 
     public DateTime? EffectiveFrom { get; set; }
     public DateTime? EffectiveTo { get; set; }

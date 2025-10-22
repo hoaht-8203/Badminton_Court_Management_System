@@ -244,7 +244,14 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
       key: "quantity",
       width: 120,
       render: (_, r) => (
-        <InputNumber min={0} value={r.quantity} onChange={(val) => updateQuantity(r.productId, Number(val))} style={{ width: 100 }} />
+        <InputNumber 
+          min={0} 
+          value={r.quantity} 
+          onChange={(val) => updateQuantity(r.productId, Number(val))} 
+          style={{ width: 100 }} 
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+        />
       ),
     },
     {
@@ -252,7 +259,14 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
       key: "costPrice",
       width: 120,
       render: (_, r) => (
-        <InputNumber min={0} value={r.costPrice} onChange={(val) => updateCost(r.productId, Number(val))} style={{ width: 120 }} />
+        <InputNumber 
+          min={0} 
+          value={r.costPrice} 
+          onChange={(val) => updateCost(r.productId, Number(val))} 
+          style={{ width: 120 }} 
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+        />
       ),
     },
     { title: "Thành tiền", dataIndex: "lineTotal", key: "lineTotal", width: 140, render: (v) => (v ?? 0).toLocaleString() },
@@ -427,7 +441,7 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
         <Row gutter={16}>
           <Col span={8}>
             <Form.Item name="date" label="Ngày nhập" rules={[{ required: true, message: "Vui lòng chọn ngày" }]}> 
-              <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" allowClear={false} />
+              <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" allowClear={false} disabled />
             </Form.Item>
           </Col>
           <Col span={8}>
@@ -521,7 +535,14 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                 <div className="flex justify-between"><span className="text-gray-600">Tổng tiền hàng</span><span className="font-semibold">{totals.totalAmount.toLocaleString()}</span></div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Giảm giá</span>
-                  <InputNumber min={0} value={discount} onChange={(v) => setDiscount(Number(v) || 0)} style={{ width: 160 }} />
+                  <InputNumber 
+                    min={0} 
+                    value={discount} 
+                    onChange={(v) => setDiscount(Number(v) || 0)} 
+                    style={{ width: 160 }} 
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Cần trả NCC</span>
@@ -530,7 +551,14 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600 flex items-center gap-1"><CreditCardOutlined /> Tiền trả nhà cung cấp</span>
-                    <InputNumber min={0} value={paymentAmount} onChange={(v) => setPaymentAmount(Number(v) || 0)} style={{ width: 160 }} />
+                    <InputNumber 
+                      min={0} 
+                      value={paymentAmount} 
+                      onChange={(v) => setPaymentAmount(Number(v) || 0)} 
+                      style={{ width: 160 }} 
+                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                      parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                    />
                   </div>
                   <div className="flex gap-2 justify-end">
                     <Button type={paymentMethod === "cash" ? "primary" : "default"} onClick={() => setPaymentMethod("cash")}>Tiền mặt</Button>

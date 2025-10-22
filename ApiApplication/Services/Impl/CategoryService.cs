@@ -61,7 +61,7 @@ public class CategoryService(ApplicationDbContext context, IMapper mapper) : ICa
             );
         }
 
-        category.Name = request.Name;
+        category.Name = request.Name ?? string.Empty;
         await _context.SaveChangesAsync();
     }
 

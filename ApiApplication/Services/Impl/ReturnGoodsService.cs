@@ -1,3 +1,4 @@
+using System.Net;
 using ApiApplication.Constants;
 using ApiApplication.Data;
 using ApiApplication.Dtos.ReturnGoods;
@@ -14,11 +15,17 @@ namespace ApiApplication.Services.Impl
     {
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUser _currentUser;
+        private readonly IInventoryCardService _inventoryCardService;
 
-        public ReturnGoodsService(ApplicationDbContext context, ICurrentUser currentUser)
+        public ReturnGoodsService(
+            ApplicationDbContext context,
+            ICurrentUser currentUser,
+            IInventoryCardService inventoryCardService
+        )
         {
             _context = context;
             _currentUser = currentUser;
+            _inventoryCardService = inventoryCardService;
         }
 
         public async Task<List<ListReturnGoodsResponse>> ListAsync(
@@ -87,7 +94,7 @@ namespace ApiApplication.Services.Impl
                 SupplierId = returnGoods.SupplierId,
                 SupplierName = returnGoods.Supplier.Name,
                 ReturnBy = returnGoods.ReturnBy,
-                CreatedBy = returnGoods.CreatedBy,
+                CreatedBy = returnGoods.CreatedBy ?? string.Empty,
                 TotalValue = returnGoods.TotalValue,
                 Discount = returnGoods.Discount,
                 SupplierNeedToPay = returnGoods.SupplierNeedToPay,
@@ -114,61 +121,125 @@ namespace ApiApplication.Services.Impl
 
         public async Task<int> CreateAsync(CreateReturnGoodsRequest request)
         {
-            var code = await GenerateCodeAsync();
-
-            var returnGoods = new ReturnGoods
+            try
             {
-                Code = code,
-                ReturnTime =
-                    request.ReturnTime.Kind == DateTimeKind.Utc
-                        ? request.ReturnTime
-                        : request.ReturnTime.ToUniversalTime(),
-                SupplierId = request.SupplierId,
-                ReturnBy = request.ReturnBy,
-                Note = request.Note,
-                Discount = request.Discount,
-                SupplierPaid = request.SupplierPaid,
-                Status = request.Complete ? ReturnGoodsStatus.Completed : ReturnGoodsStatus.Draft,
-                CreatedBy = _currentUser.Username,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-            };
+                var code = await GenerateCodeAsync();
 
-            // Calculate totals
-            decimal totalValue = 0;
-            foreach (var item in request.Items)
-            {
-                var lineTotal = (item.Quantity * item.ReturnPrice) - item.Discount;
-                totalValue += lineTotal;
+                if (request.Items.Count == 0)
+                {
+                    throw new ApiException(
+                        "Phiếu trả hàng phải có ít nhất một sản phẩm",
+                        HttpStatusCode.BadRequest
+                    );
+                }
 
-                returnGoods.Items.Add(
-                    new ReturnGoodsItem
-                    {
-                        ProductId = item.ProductId,
-                        Quantity = item.Quantity,
-                        ImportPrice = item.ImportPrice,
-                        ReturnPrice = item.ReturnPrice,
-                        Discount = item.Discount,
-                        LineTotal = lineTotal,
-                        Note = item.Note,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
-                    }
+                // Kiểm tra supplier có tồn tại không
+                var supplier = await _context.Suppliers.FirstOrDefaultAsync(s =>
+                    s.Id == request.SupplierId
                 );
+
+                if (supplier == null)
+                {
+                    throw new ApiException(
+                        $"Nhà cung cấp không tồn tại: {request.SupplierId}",
+                        HttpStatusCode.NotFound
+                    );
+                }
+
+                // Kiểm tra StoreBankAccount nếu PaymentMethod là transfer
+                if (request.PaymentMethod == 1 && request.StoreBankAccountId.HasValue)
+                {
+                    var storeBankAccount = await _context.StoreBankAccounts.FirstOrDefaultAsync(s =>
+                        s.Id == request.StoreBankAccountId.Value
+                    );
+
+                    if (storeBankAccount == null)
+                    {
+                        throw new ApiException(
+                            $"Tài khoản ngân hàng không tồn tại: {request.StoreBankAccountId}",
+                            HttpStatusCode.NotFound
+                        );
+                    }
+                }
+
+                var returnGoods = new ReturnGoods
+                {
+                    Code = code,
+                    ReturnTime =
+                        request.ReturnTime.Kind == DateTimeKind.Utc
+                            ? request.ReturnTime
+                            : request.ReturnTime.ToUniversalTime(),
+                    SupplierId = request.SupplierId,
+                    ReturnBy = request.ReturnBy ?? string.Empty,
+                    Note = request.Note ?? string.Empty,
+                    Discount = request.Discount,
+                    SupplierPaid = request.SupplierPaid,
+                    PaymentMethod = request.PaymentMethod,
+                    StoreBankAccountId = request.StoreBankAccountId,
+                    Status = request.Complete
+                        ? ReturnGoodsStatus.Completed
+                        : ReturnGoodsStatus.Draft,
+                    CreatedBy = _currentUser.Username,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
+
+                // Calculate totals
+                decimal totalValue = 0;
+                foreach (var item in request.Items)
+                {
+                    // Kiểm tra sản phẩm có tồn tại không
+                    var product = await _context.Products.FirstOrDefaultAsync(p =>
+                        p.Id == item.ProductId
+                    );
+
+                    if (product == null)
+                    {
+                        throw new ApiException(
+                            $"Sản phẩm không tồn tại: {item.ProductId}",
+                            HttpStatusCode.NotFound
+                        );
+                    }
+
+                    var lineTotal = (item.Quantity * item.ReturnPrice) - item.Discount;
+                    totalValue += lineTotal;
+
+                    returnGoods.Items.Add(
+                        new ReturnGoodsItem
+                        {
+                            ProductId = item.ProductId,
+                            Quantity = item.Quantity,
+                            ImportPrice = item.ImportPrice,
+                            ReturnPrice = item.ReturnPrice,
+                            Discount = item.Discount,
+                            LineTotal = lineTotal,
+                            Note = item.Note ?? string.Empty,
+                        }
+                    );
+                }
+
+                returnGoods.TotalValue = totalValue;
+                returnGoods.SupplierNeedToPay = totalValue - request.Discount;
+
+                _context.ReturnGoods.Add(returnGoods);
+
+                if (request.Complete)
+                {
+                    await ProcessReturnGoodsAsync(returnGoods);
+                }
+
+                await _context.SaveChangesAsync();
+                return returnGoods.Id;
             }
-
-            returnGoods.TotalValue = totalValue;
-            returnGoods.SupplierNeedToPay = totalValue - request.Discount;
-
-            _context.ReturnGoods.Add(returnGoods);
-
-            if (request.Complete)
+            catch (ApiException)
             {
-                await ProcessReturnGoodsAsync(returnGoods);
+                // Rethrow ApiExceptions as they are already properly formatted
+                throw;
             }
-
-            await _context.SaveChangesAsync();
-            return returnGoods.Id;
+            catch (Exception ex)
+            {
+                throw new ApiException($"Lỗi khi tạo phiếu trả hàng: {ex.Message}");
+            }
         }
 
         public async Task UpdateAsync(int id, CreateReturnGoodsRequest request)
@@ -192,8 +263,8 @@ namespace ApiApplication.Services.Impl
                     ? request.ReturnTime
                     : request.ReturnTime.ToUniversalTime();
             returnGoods.SupplierId = request.SupplierId;
-            returnGoods.ReturnBy = request.ReturnBy;
-            returnGoods.Note = request.Note;
+            returnGoods.ReturnBy = request.ReturnBy ?? string.Empty;
+            returnGoods.Note = request.Note ?? string.Empty;
             returnGoods.Discount = request.Discount;
             returnGoods.SupplierPaid = request.SupplierPaid;
             returnGoods.UpdatedAt = DateTime.UtcNow;
@@ -218,9 +289,7 @@ namespace ApiApplication.Services.Impl
                         ReturnPrice = item.ReturnPrice,
                         Discount = item.Discount,
                         LineTotal = lineTotal,
-                        Note = item.Note,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
+                        Note = item.Note ?? string.Empty,
                     }
                 );
             }
@@ -286,18 +355,18 @@ namespace ApiApplication.Services.Impl
         {
             foreach (var item in returnGoods.Items)
             {
-                // Create inventory card for return goods
+                var inventoryCode =
+                    await _inventoryCardService.GenerateNextInventoryCardCodeAsync();
+
                 var inventoryCard = new InventoryCard
                 {
                     ProductId = item.ProductId,
-                    Code = returnGoods.Code,
+                    Code = inventoryCode,
                     Method = "Trả hàng nhà cung cấp",
                     OccurredAt = returnGoods.ReturnTime,
                     CostPrice = item.ReturnPrice,
-                    QuantityChange = -item.Quantity, // Negative quantity for return
-                    EndingStock = 0, // Will be calculated
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
+                    QuantityChange = -item.Quantity,
+                    EndingStock = 0,
                 };
 
                 // Calculate final inventory

@@ -1,6 +1,8 @@
+using System.Net;
 using ApiApplication.Data;
 using ApiApplication.Dtos.SupplierBankAccount;
 using ApiApplication.Entities;
+using ApiApplication.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
@@ -20,12 +22,25 @@ public class SupplierBankAccountService(ApplicationDbContext context) : ISupplie
 
     public async Task<int> CreateAsync(UpsertBankAccountRequest req)
     {
+        // Check for required fields
+        if (
+            string.IsNullOrEmpty(req.AccountNumber)
+            || string.IsNullOrEmpty(req.AccountName)
+            || string.IsNullOrEmpty(req.BankName)
+        )
+        {
+            throw new ApiException(
+                "Số tài khoản, tên tài khoản và tên ngân hàng là các trường bắt buộc",
+                HttpStatusCode.BadRequest
+            );
+        }
+
         var entity = new SupplierBankAccount
         {
             SupplierId = req.SupplierId,
-            AccountNumber = req.AccountNumber,
-            AccountName = req.AccountName,
-            BankName = req.BankName,
+            AccountNumber = req.AccountNumber.Trim(),
+            AccountName = req.AccountName.Trim(),
+            BankName = req.BankName.Trim(),
             IsDefault = req.IsDefault,
         };
         _context.SupplierBankAccounts.Add(entity);
@@ -35,12 +50,29 @@ public class SupplierBankAccountService(ApplicationDbContext context) : ISupplie
 
     public async Task UpdateAsync(int id, UpsertBankAccountRequest req)
     {
+        // Check for required fields
+        if (
+            string.IsNullOrEmpty(req.AccountNumber)
+            || string.IsNullOrEmpty(req.AccountName)
+            || string.IsNullOrEmpty(req.BankName)
+        )
+        {
+            throw new ApiException(
+                "Số tài khoản, tên tài khoản và tên ngân hàng là các trường bắt buộc",
+                HttpStatusCode.BadRequest
+            );
+        }
+
         var entity =
             await _context.SupplierBankAccounts.FirstOrDefaultAsync(x => x.Id == id)
-            ?? throw new KeyNotFoundException("Supplier bank account not found");
-        entity.AccountNumber = req.AccountNumber;
-        entity.AccountName = req.AccountName;
-        entity.BankName = req.BankName;
+            ?? throw new ApiException(
+                "Không tìm thấy tài khoản ngân hàng nhà cung cấp",
+                HttpStatusCode.NotFound
+            );
+
+        entity.AccountNumber = req.AccountNumber.Trim();
+        entity.AccountName = req.AccountName.Trim();
+        entity.BankName = req.BankName.Trim();
         entity.IsDefault = req.IsDefault;
         await _context.SaveChangesAsync();
     }
@@ -49,7 +81,10 @@ public class SupplierBankAccountService(ApplicationDbContext context) : ISupplie
     {
         var entity =
             await _context.SupplierBankAccounts.FirstOrDefaultAsync(x => x.Id == id)
-            ?? throw new KeyNotFoundException("Supplier bank account not found");
+            ?? throw new ApiException(
+                "Không tìm thấy tài khoản ngân hàng nhà cung cấp",
+                HttpStatusCode.NotFound
+            );
         _context.SupplierBankAccounts.Remove(entity);
         await _context.SaveChangesAsync();
     }

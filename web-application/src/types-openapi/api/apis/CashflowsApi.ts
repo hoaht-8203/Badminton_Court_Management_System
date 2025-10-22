@@ -17,8 +17,10 @@ import * as runtime from '../runtime';
 import type {
   CashflowResponseApiResponse,
   CashflowResponseArrayApiResponse,
+  CashflowTypeListApiResponse,
   CreateCashflowRequest,
   ObjectApiResponse,
+  StringListApiResponse,
   UpdateCashflowRequest,
 } from '../models/index';
 import {
@@ -26,10 +28,14 @@ import {
     CashflowResponseApiResponseToJSON,
     CashflowResponseArrayApiResponseFromJSON,
     CashflowResponseArrayApiResponseToJSON,
+    CashflowTypeListApiResponseFromJSON,
+    CashflowTypeListApiResponseToJSON,
     CreateCashflowRequestFromJSON,
     CreateCashflowRequestToJSON,
     ObjectApiResponseFromJSON,
     ObjectApiResponseToJSON,
+    StringListApiResponseFromJSON,
+    StringListApiResponseToJSON,
     UpdateCashflowRequestFromJSON,
     UpdateCashflowRequestToJSON,
 } from '../models/index';
@@ -57,6 +63,14 @@ export interface ApiCashflowsIdPutRequest {
 
 export interface ApiCashflowsPostRequest {
     createCashflowRequest?: CreateCashflowRequest;
+}
+
+export interface ApiCashflowsRelatedPersonsGetRequest {
+    personType?: string;
+}
+
+export interface ApiCashflowsTypesGetRequest {
+    isPayment?: boolean;
 }
 
 /**
@@ -135,6 +149,32 @@ export interface CashflowsApiInterface {
     /**
      */
     apiCashflowsPost(requestParameters: ApiCashflowsPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
+     * @param {string} [personType] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CashflowsApiInterface
+     */
+    apiCashflowsRelatedPersonsGetRaw(requestParameters: ApiCashflowsRelatedPersonsGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StringListApiResponse>>;
+
+    /**
+     */
+    apiCashflowsRelatedPersonsGet(requestParameters: ApiCashflowsRelatedPersonsGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StringListApiResponse>;
+
+    /**
+     * 
+     * @param {boolean} [isPayment] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof CashflowsApiInterface
+     */
+    apiCashflowsTypesGetRaw(requestParameters: ApiCashflowsTypesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CashflowTypeListApiResponse>>;
+
+    /**
+     */
+    apiCashflowsTypesGet(requestParameters: ApiCashflowsTypesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CashflowTypeListApiResponse>;
 
 }
 
@@ -325,6 +365,68 @@ export class CashflowsApi extends runtime.BaseAPI implements CashflowsApiInterfa
      */
     async apiCashflowsPost(requestParameters: ApiCashflowsPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiCashflowsPostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiCashflowsRelatedPersonsGetRaw(requestParameters: ApiCashflowsRelatedPersonsGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<StringListApiResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['personType'] != null) {
+            queryParameters['personType'] = requestParameters['personType'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Cashflows/related-persons`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => StringListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiCashflowsRelatedPersonsGet(requestParameters: ApiCashflowsRelatedPersonsGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<StringListApiResponse> {
+        const response = await this.apiCashflowsRelatedPersonsGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiCashflowsTypesGetRaw(requestParameters: ApiCashflowsTypesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CashflowTypeListApiResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['isPayment'] != null) {
+            queryParameters['isPayment'] = requestParameters['isPayment'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Cashflows/types`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CashflowTypeListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiCashflowsTypesGet(requestParameters: ApiCashflowsTypesGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CashflowTypeListApiResponse> {
+        const response = await this.apiCashflowsTypesGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

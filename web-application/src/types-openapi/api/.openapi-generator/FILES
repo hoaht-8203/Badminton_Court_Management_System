@@ -60,6 +60,7 @@ models/CashflowResponse.ts
 models/CashflowResponseApiResponse.ts
 models/CashflowResponseArrayApiResponse.ts
 models/CashflowType.ts
+models/CashflowTypeListApiResponse.ts
 models/Category.ts
 models/ChangeCourtStatusRequest.ts
 models/ChangeCustomerStatusRequest.ts
@@ -329,6 +330,7 @@ models/StoreBankAccountResponse.ts
 models/StoreBankAccountResponseApiResponse.ts
 models/StoreBankAccountResponseIEnumerableApiResponse.ts
 models/StringApiResponse.ts
+models/StringListApiResponse.ts
 models/Supplier.ts
 models/SupplierBankAccount.ts
 models/SupplierBankAccountListApiResponse.ts

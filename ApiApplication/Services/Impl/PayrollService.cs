@@ -243,13 +243,14 @@ public class PayrollService : IPayrollService
 
         if (payroll == null)
             return null;
-
+        var payrollItemIds = payroll.PayrollItems.Select(pi => pi.Id).ToList();
         var response = _mapper.Map<PayrollDetailResponse>(payroll);
         response.Cashflows = await _context
             .Cashflows.Where(c =>
-                c.RelatedId == payroll.Id
+                c.RelatedId != null
+                && payrollItemIds.Contains(c.RelatedId.Value)
                 && c.PersonType == RelatedPeopleGroup.Staff
-                && c.CashflowType.Id == CashflowTypeIdMapping.PayStaff
+                && c.CashflowTypeId == CashflowTypeIdMapping.PayStaff
             )
             .Select(c => _mapper.Map<CashflowResponse>(c))
             .ToListAsync();
@@ -267,7 +268,10 @@ public class PayrollService : IPayrollService
 
     public async Task<bool> PayPayrollItemAsync(int payrollItemId, decimal amount)
     {
-        var payrollItem = await _context.PayrollItems.FindAsync(payrollItemId);
+        var payrollItem = await _context
+            .PayrollItems.Where(p => p.Id == payrollItemId)
+            .Include(pi => pi.Staff)
+            .FirstOrDefaultAsync();
         if (payrollItem == null)
             throw new ApiException("Phiếu lương không tồn tại", HttpStatusCode.NotFound);
         // if (amount <= 0)

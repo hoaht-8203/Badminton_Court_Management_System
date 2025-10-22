@@ -1,11 +1,10 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { Tabs, Spin } from "antd";
+import { useGetPayrollById, usePayPayrollItem, useRefreshPayroll } from "@/hooks/usePayroll";
+import { PayrollItemResponse } from "@/types-openapi/api";
+import { Spin, Tabs } from "antd";
+import SalaryHistoryPanel from "./salary-history-panel";
 import SalaryInfoPanel from "./salary-info-panel";
 import SalarySlipPanel from "./salary-slip-panel";
-import SalaryHistoryPanel from "./salary-history-panel";
-import { useGetPayrollById, useRefreshPayroll, usePayPayrollItem } from "@/hooks/usePayroll";
-import { PayrollDetailResponse, PayrollItemResponse } from "@/types-openapi/api";
 
 export default function SalaryTabs({ payrollId }: { payrollId: number }) {
   // unwrapped payroll detail or null
@@ -87,7 +86,7 @@ export default function SalaryTabs({ payrollId }: { payrollId: number }) {
         {
           key: "history",
           label: "Lịch sử thanh toán",
-          children: <SalaryHistoryPanel history={[]} />,
+          children: <SalaryHistoryPanel history={payrollDetail?.cashflows ?? []} />,
         },
       ]}
     />

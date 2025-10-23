@@ -15,6 +15,11 @@ public class Order : BaseEntity
     [ForeignKey(nameof(BookingId))]
     public BookingCourt Booking { get; set; } = null!;
 
+    public Guid? BookingCourtOccurrenceId { get; set; }
+
+    [ForeignKey(nameof(BookingCourtOccurrenceId))]
+    public BookingCourtOccurrence? BookingCourtOccurrence { get; set; }
+
     public required int CustomerId { get; set; }
 
     [ForeignKey(nameof(CustomerId))]
@@ -28,6 +33,9 @@ public class Order : BaseEntity
     // Thông tin món hàng
     public decimal ItemsSubtotal { get; set; }
 
+    // Thông tin dịch vụ
+    public decimal ServicesSubtotal { get; set; }
+
     // Thông tin phí muộn
     public decimal LateFeePercentage { get; set; } = 150m; // Default 150%
     public decimal LateFeeAmount { get; set; }
@@ -38,6 +46,9 @@ public class Order : BaseEntity
 
     // Trạng thái đơn hàng
     public string Status { get; set; } = OrderStatus.Pending;
+
+    // Phương thức thanh toán
+    public string PaymentMethod { get; set; } = string.Empty;
 
     // Ghi chú
     public string? Note { get; set; }

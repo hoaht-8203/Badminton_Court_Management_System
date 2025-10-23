@@ -22,6 +22,71 @@ public class OrderService(
     private readonly IPaymentService _paymentService = paymentService;
     private readonly IConfiguration _configuration = configuration;
 
+    public async Task<CheckoutResponse> GetCheckoutInfoAsync(Guid orderId)
+    {
+        var order = await _context
+            .Orders.Include(x => x.Booking)
+            .ThenInclude(x => x!.Court)
+            .Include(x => x.Booking)
+            .ThenInclude(x => x!.Customer)
+            .Include(x => x.Payments)
+            .FirstOrDefaultAsync(x => x.Id == orderId);
+
+        if (order == null)
+        {
+            throw new ApiException("Không tìm thấy đơn hàng", HttpStatusCode.BadRequest);
+        }
+
+        // Tạo QR URL cho thanh toán (chỉ khi thanh toán chuyển khoản)
+        string qrUrl = string.Empty;
+        var holdMins = 0;
+
+        var isCashPayment = string.Equals(
+            order.PaymentMethod,
+            "Cash",
+            StringComparison.OrdinalIgnoreCase
+        );
+
+        if (!isCashPayment && order.TotalAmount > 0)
+        {
+            var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
+            var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
+            var amount = ((long)Math.Ceiling(order.TotalAmount)).ToString();
+            var des = Uri.EscapeDataString(order.Id.ToString());
+            qrUrl = $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
+            holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 15;
+        }
+
+        return new CheckoutResponse
+        {
+            OrderId = order.Id,
+            BookingId = order.BookingId,
+            BookingCourtOccurrenceId = order.BookingCourtOccurrenceId ?? Guid.Empty,
+            CustomerId = order.CustomerId,
+            CustomerName = order.Booking?.Customer?.FullName ?? string.Empty,
+            CourtName = order.Booking?.Court?.Name ?? string.Empty,
+            CourtTotalAmount = order.CourtTotalAmount,
+            CourtPaidAmount = order.CourtPaidAmount,
+            CourtRemainingAmount = order.CourtRemainingAmount,
+            ItemsSubtotal = order.ItemsSubtotal,
+            ServicesSubtotal = order.ServicesSubtotal,
+            LateFeePercentage = order.LateFeePercentage,
+            LateFeeAmount = order.LateFeeAmount,
+            OverdueMinutes = order.OverdueMinutes,
+            OverdueDisplay = FormatOverdueTime(order.OverdueMinutes),
+            TotalAmount = order.TotalAmount,
+            PaymentId = order.Payments.FirstOrDefault()?.Id ?? string.Empty,
+            PaymentAmount = order.TotalAmount,
+            PaymentMethod = order.PaymentMethod,
+            QrUrl = qrUrl,
+            HoldMinutes = holdMins,
+            ExpiresAtUtc =
+                order.Payments.FirstOrDefault()?.PaymentCreatedAt.AddMinutes(holdMins)
+                ?? DateTime.UtcNow,
+            CreatedAt = order.CreatedAt,
+        };
+    }
+
     public async Task<CheckoutResponse> CheckoutAsync(CheckoutRequest request)
     {
         // Lấy thông tin occurrence
@@ -69,13 +134,18 @@ public class OrderService(
         // Tính toán tổng tiền món hàng từ occurrence cụ thể
         var itemsSubtotal = occurrence.BookingOrderItems?.Sum(x => x.TotalPrice) ?? 0m;
 
+        // Tính toán tổng tiền dịch vụ từ occurrence cụ thể
+        var servicesSubtotal = await CalculateServicesSubtotalAsync(occurrence);
+
         // Tính toán phí muộn
         var lateFeeResult = await CalculateLateFeeAsync(occurrence, request.LateFeePercentage);
         var overdueMinutes = lateFeeResult.overdueMinutes;
         var lateFeeAmount = lateFeeResult.lateFeeAmount;
 
         // Tổng thanh toán
-        var totalAmount = Math.Ceiling(courtRemainingAmount + itemsSubtotal + lateFeeAmount);
+        var totalAmount = Math.Ceiling(
+            courtRemainingAmount + itemsSubtotal + servicesSubtotal + lateFeeAmount
+        );
 
         // Xác định trạng thái order và payment dựa trên phương thức thanh toán
         var isCashPayment = string.Equals(
@@ -91,21 +161,27 @@ public class OrderService(
         {
             Id = Guid.NewGuid(),
             BookingId = booking.Id,
+            BookingCourtOccurrenceId = occurrence.Id,
             CustomerId = booking.CustomerId,
             CourtTotalAmount = courtTotalAmount,
             CourtPaidAmount = paidAmountPerOccurrence,
             CourtRemainingAmount = courtRemainingAmount,
             ItemsSubtotal = itemsSubtotal,
+            ServicesSubtotal = servicesSubtotal,
             LateFeePercentage = request.LateFeePercentage,
             LateFeeAmount = lateFeeAmount,
             OverdueMinutes = overdueMinutes,
             TotalAmount = totalAmount,
             Status = orderStatus,
+            PaymentMethod = request.PaymentMethod,
             Note = request.Note,
         };
 
         await _context.Orders.AddAsync(order);
         await _context.SaveChangesAsync();
+
+        // Calculate and update service costs based on actual usage time
+        await CalculateAndUpdateServiceCostsAsync(occurrence);
 
         // Cập nhật trạng thái occurrence và court sau khi checkout thành công
         occurrence.Status = "Completed";
@@ -141,7 +217,12 @@ public class OrderService(
         // Tạo QR URL cho thanh toán (chỉ khi thanh toán chuyển khoản)
         string qrUrl = string.Empty;
         var holdMins = 0;
-        if (!isCashPayment)
+
+        System.Console.WriteLine($"PaymentMethod: {request.PaymentMethod}");
+        System.Console.WriteLine($"isCashPayment: {isCashPayment}");
+        System.Console.WriteLine($"totalAmount: {totalAmount}");
+
+        if (!isCashPayment && totalAmount > 0)
         {
             var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
             var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
@@ -149,12 +230,21 @@ public class OrderService(
             var des = Uri.EscapeDataString(order.Id.ToString());
             qrUrl = $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
             holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 15;
+
+            System.Console.WriteLine($"QR URL created: {qrUrl}");
+        }
+        else
+        {
+            System.Console.WriteLine(
+                $"No QR URL - isCashPayment: {isCashPayment}, totalAmount: {totalAmount}"
+            );
         }
 
         return new CheckoutResponse
         {
             OrderId = order.Id,
             BookingId = booking.Id,
+            BookingCourtOccurrenceId = occurrence.Id,
             CustomerId = booking.CustomerId,
             CustomerName = booking.Customer?.FullName ?? string.Empty,
             CourtName = booking.Court?.Name ?? string.Empty,
@@ -162,6 +252,7 @@ public class OrderService(
             CourtPaidAmount = Math.Ceiling(paidAmountPerOccurrence),
             CourtRemainingAmount = Math.Ceiling(courtRemainingAmount),
             ItemsSubtotal = Math.Ceiling(itemsSubtotal),
+            ServicesSubtotal = Math.Ceiling(servicesSubtotal),
             LateFeePercentage = request.LateFeePercentage,
             LateFeeAmount = Math.Ceiling(lateFeeAmount),
             OverdueMinutes = overdueMinutes,
@@ -183,11 +274,13 @@ public class OrderService(
     {
         var order = await _context
             .Orders.Include(x => x.Booking)
-            .ThenInclude(x => x.Court)
+            .ThenInclude(x => x!.Court)
+            .Include(x => x.Booking)
+            .ThenInclude(x => x!.Customer)
             .Include(x => x.Customer)
             .Include(x => x.Payments)
             .Include(x => x.Booking)
-            .ThenInclude(x => x.BookingCourtOccurrences)
+            .ThenInclude(x => x!.BookingCourtOccurrences)
             .ThenInclude(x => x.BookingOrderItems)
             .ThenInclude(x => x.Product)
             .FirstOrDefaultAsync(x => x.Id == orderId);
@@ -204,16 +297,51 @@ public class OrderService(
     {
         var orders = await _context
             .Orders.Include(x => x.Booking)
-            .ThenInclude(x => x.Court)
+            .ThenInclude(x => x!.Court)
+            .Include(x => x.Booking)
+            .ThenInclude(x => x!.Customer)
             .Include(x => x.Customer)
             .Include(x => x.Payments)
             .Include(x => x.Booking)
-            .ThenInclude(x => x.BookingCourtOccurrences)
+            .ThenInclude(x => x!.BookingCourtOccurrences)
             .ThenInclude(x => x.BookingOrderItems)
             .ThenInclude(x => x.Product)
             .Where(x => x.BookingId == bookingId)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
+
+        return _mapper.Map<List<OrderResponse>>(orders);
+    }
+
+    public async Task<List<OrderResponse>> GetPendingPaymentOrdersAsync(
+        string? status = null,
+        string? paymentMethod = null
+    )
+    {
+        var query = _context
+            .Orders.Include(x => x.Booking)
+            .ThenInclude(x => x!.Court)
+            .Include(x => x.Booking)
+            .ThenInclude(x => x!.Customer)
+            .Include(x => x.Customer)
+            .Include(x => x.Payments)
+            .Include(x => x.BookingCourtOccurrence)
+            .AsQueryable();
+
+        // Filter by status if provided
+        if (!string.IsNullOrEmpty(status))
+        {
+            query = query.Where(x => x.Status == status);
+        }
+
+        // Filter by payment method if provided
+        if (!string.IsNullOrEmpty(paymentMethod))
+        {
+            query = query.Where(x => x.PaymentMethod == paymentMethod);
+        }
+
+        // Order by creation time (newest first)
+        var orders = await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
 
         return _mapper.Map<List<OrderResponse>>(orders);
     }
@@ -350,7 +478,8 @@ public class OrderService(
             occurrence.Date.Day,
             occurrence.EndTime.Hour,
             occurrence.EndTime.Minute,
-            occurrence.EndTime.Second
+            occurrence.EndTime.Second,
+            DateTimeKind.Local
         );
 
         var overdueMinutes = 0;
@@ -370,16 +499,17 @@ public class OrderService(
             {
                 var chargeableMinutes = overdueMinutes - 15; // Chỉ tính phí cho phần muộn > 15 phút
 
-                // Tính giá cơ bản từ giá lúc đặt sân (theo phút)
+                // Tính giá cơ bản từ occurrence cụ thể (giống BookingCourtService)
                 var totalMinutes = (occurrence.EndTime - occurrence.StartTime).TotalMinutes;
-                var bookingAmount = await CalculateBookingAmountForEntityAsync(
-                    occurrence.BookingCourt!
-                );
-                var baseMinuteRate = bookingAmount / (decimal)totalMinutes;
+                var occurrenceAmount = await CalculateBookingAmountForOccurrenceAsync(occurrence);
+                var baseMinuteRate = occurrenceAmount / (decimal)totalMinutes;
 
-                // Áp dụng phần trăm phí muộn (mặc định 150%)
+                // Apply late fee percentage (giống BookingCourtService)
                 var lateFeeRate = baseMinuteRate * (lateFeePercentage / 100m);
-                lateFeeAmount = Math.Ceiling((decimal)chargeableMinutes * lateFeeRate);
+                var surchargeAmount = Math.Ceiling(chargeableMinutes * lateFeeRate);
+
+                // Làm tròn lên hàng nghìn (giống BookingCourtService)
+                lateFeeAmount = Math.Ceiling(surchargeAmount / 1000m) * 1000m;
             }
             else
             {
@@ -414,5 +544,65 @@ public class OrderService(
         }
 
         return $"{overdueMinutes} phút";
+    }
+
+    private async Task CalculateAndUpdateServiceCostsAsync(BookingCourtOccurrence occurrence)
+    {
+        var now = DateTime.UtcNow;
+        var bookingServices = await _context
+            .BookingServices.Include(bs => bs.Service)
+            .Where(bs => bs.BookingCourtOccurrenceId == occurrence.Id)
+            .ToListAsync();
+
+        foreach (var bookingService in bookingServices)
+        {
+            // Calculate actual usage time in hours
+            var usageTime = now - bookingService.ServiceStartTime;
+            var usageHours = (decimal)usageTime.TotalHours;
+
+            // Update service end time
+            bookingService.ServiceEndTime = now;
+
+            // Calculate raw cost based on actual usage time
+            var rawCost = bookingService.Quantity * bookingService.UnitPrice * usageHours;
+
+            // Round up to nearest 1000 for billing (same logic as frontend)
+            bookingService.Hours = Math.Ceiling(usageHours); // Keep for reference
+            bookingService.TotalPrice = Math.Ceiling(rawCost / 1000m) * 1000m;
+
+            // Return stock to service
+            if (bookingService.Service.StockQuantity.HasValue)
+            {
+                bookingService.Service.StockQuantity += bookingService.Quantity;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task<decimal> CalculateServicesSubtotalAsync(BookingCourtOccurrence occurrence)
+    {
+        var now = DateTime.UtcNow;
+        var bookingServices = await _context
+            .BookingServices.Where(bs => bs.BookingCourtOccurrenceId == occurrence.Id)
+            .ToListAsync();
+
+        var totalServicesCost = 0m;
+
+        foreach (var bookingService in bookingServices)
+        {
+            // Calculate actual usage time in hours
+            var usageTime = now - bookingService.ServiceStartTime;
+            var usageHours = (decimal)usageTime.TotalHours;
+
+            // Calculate raw cost based on actual usage time
+            var rawCost = bookingService.Quantity * bookingService.UnitPrice * usageHours;
+
+            // Round up to nearest 1000 (same logic as frontend)
+            var serviceCost = Math.Ceiling(rawCost / 1000m) * 1000m;
+            totalServicesCost += serviceCost;
+        }
+
+        return totalServicesCost;
     }
 }

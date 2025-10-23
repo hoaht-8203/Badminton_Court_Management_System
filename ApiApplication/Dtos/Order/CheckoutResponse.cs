@@ -4,6 +4,7 @@ public class CheckoutResponse
 {
     public Guid OrderId { get; set; }
     public Guid BookingId { get; set; }
+    public Guid BookingCourtOccurrenceId { get; set; }
     public int CustomerId { get; set; }
     public string CustomerName { get; set; } = string.Empty;
     public string CourtName { get; set; } = string.Empty;
@@ -15,6 +16,9 @@ public class CheckoutResponse
 
     // Thông tin món hàng
     public decimal ItemsSubtotal { get; set; }
+
+    // Thông tin dịch vụ
+    public decimal ServicesSubtotal { get; set; }
 
     // Thông tin phí muộn
     public decimal LateFeePercentage { get; set; }

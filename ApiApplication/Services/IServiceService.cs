@@ -14,5 +14,5 @@ public interface IServiceService
     // BookingService methods
     Task<BookingServiceDto> AddBookingServiceAsync(AddBookingServiceRequest request);
     Task<bool> RemoveBookingServiceAsync(RemoveBookingServiceRequest request);
-    Task<List<BookingServiceDto>> GetBookingServicesAsync(Guid bookingId);
+    Task<List<BookingServiceDto>> GetBookingServicesAsync(Guid bookingCourtOccurrenceId);
 }

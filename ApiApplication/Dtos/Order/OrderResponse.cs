@@ -6,9 +6,11 @@ public class OrderResponse
 {
     public Guid Id { get; set; }
     public Guid BookingId { get; set; }
+    public Guid? BookingCourtOccurrenceId { get; set; }
     public int CustomerId { get; set; }
     public string CustomerName { get; set; } = string.Empty;
     public string CourtName { get; set; } = string.Empty;
+    public string PaymentMethod { get; set; } = string.Empty;
 
     // Thông tin thanh toán sân
     public decimal CourtTotalAmount { get; set; }

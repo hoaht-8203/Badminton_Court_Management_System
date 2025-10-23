@@ -33,6 +33,12 @@ export interface CheckoutResponse {
     bookingId?: string;
     /**
      * 
+     * @type {string}
+     * @memberof CheckoutResponse
+     */
+    bookingCourtOccurrenceId?: string;
+    /**
+     * 
      * @type {number}
      * @memberof CheckoutResponse
      */
@@ -73,6 +79,12 @@ export interface CheckoutResponse {
      * @memberof CheckoutResponse
      */
     itemsSubtotal?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof CheckoutResponse
+     */
+    servicesSubtotal?: number;
     /**
      * 
      * @type {number}
@@ -166,6 +178,7 @@ export function CheckoutResponseFromJSONTyped(json: any, ignoreDiscriminator: bo
         
         'orderId': json['orderId'] == null ? undefined : json['orderId'],
         'bookingId': json['bookingId'] == null ? undefined : json['bookingId'],
+        'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'] == null ? undefined : json['bookingCourtOccurrenceId'],
         'customerId': json['customerId'] == null ? undefined : json['customerId'],
         'customerName': json['customerName'] == null ? undefined : json['customerName'],
         'courtName': json['courtName'] == null ? undefined : json['courtName'],
@@ -173,6 +186,7 @@ export function CheckoutResponseFromJSONTyped(json: any, ignoreDiscriminator: bo
         'courtPaidAmount': json['courtPaidAmount'] == null ? undefined : json['courtPaidAmount'],
         'courtRemainingAmount': json['courtRemainingAmount'] == null ? undefined : json['courtRemainingAmount'],
         'itemsSubtotal': json['itemsSubtotal'] == null ? undefined : json['itemsSubtotal'],
+        'servicesSubtotal': json['servicesSubtotal'] == null ? undefined : json['servicesSubtotal'],
         'lateFeePercentage': json['lateFeePercentage'] == null ? undefined : json['lateFeePercentage'],
         'lateFeeAmount': json['lateFeeAmount'] == null ? undefined : json['lateFeeAmount'],
         'overdueMinutes': json['overdueMinutes'] == null ? undefined : json['overdueMinutes'],
@@ -201,6 +215,7 @@ export function CheckoutResponseToJSONTyped(value?: CheckoutResponse | null, ign
         
         'orderId': value['orderId'],
         'bookingId': value['bookingId'],
+        'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
         'customerId': value['customerId'],
         'customerName': value['customerName'],
         'courtName': value['courtName'],
@@ -208,6 +223,7 @@ export function CheckoutResponseToJSONTyped(value?: CheckoutResponse | null, ign
         'courtPaidAmount': value['courtPaidAmount'],
         'courtRemainingAmount': value['courtRemainingAmount'],
         'itemsSubtotal': value['itemsSubtotal'],
+        'servicesSubtotal': value['servicesSubtotal'],
         'lateFeePercentage': value['lateFeePercentage'],
         'lateFeeAmount': value['lateFeeAmount'],
         'overdueMinutes': value['overdueMinutes'],

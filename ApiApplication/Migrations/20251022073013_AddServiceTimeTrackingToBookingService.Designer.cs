@@ -3,6 +3,7 @@ using System;
 using ApiApplication.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251022073013_AddServiceTimeTrackingToBookingService")]
+    partial class AddServiceTimeTrackingToBookingService
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1325,9 +1328,6 @@ namespace ApiApplication.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("BookingCourtOccurrenceId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("BookingId")
                         .HasColumnType("uuid");
 
@@ -1365,13 +1365,6 @@ namespace ApiApplication.Migrations
                     b.Property<int>("OverdueMinutes")
                         .HasColumnType("integer");
 
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("ServicesSubtotal")
-                        .HasColumnType("numeric");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -1387,8 +1380,6 @@ namespace ApiApplication.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("BookingCourtOccurrenceId");
 
                     b.HasIndex("BookingId");
 
@@ -2519,22 +2510,22 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 23, 4, 32, 52, 160, DateTimeKind.Utc).AddTicks(7830),
+                            CreatedAt = new DateTime(2025, 10, 22, 7, 30, 13, 155, DateTimeKind.Utc).AddTicks(7010),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 10, 23, 4, 32, 52, 160, DateTimeKind.Utc).AddTicks(7830),
+                            UpdatedAt = new DateTime(2025, 10, 22, 7, 30, 13, 155, DateTimeKind.Utc).AddTicks(7010),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 10, 23, 4, 32, 52, 160, DateTimeKind.Utc).AddTicks(7830),
+                            CreatedAt = new DateTime(2025, 10, 22, 7, 30, 13, 155, DateTimeKind.Utc).AddTicks(7010),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 10, 23, 4, 32, 52, 160, DateTimeKind.Utc).AddTicks(7830),
+                            UpdatedAt = new DateTime(2025, 10, 22, 7, 30, 13, 155, DateTimeKind.Utc).AddTicks(7010),
                             UpdatedBy = "System",
                             Value = ""
                         });
@@ -2867,10 +2858,6 @@ namespace ApiApplication.Migrations
 
             modelBuilder.Entity("ApiApplication.Entities.Order", b =>
                 {
-                    b.HasOne("ApiApplication.Entities.BookingCourtOccurrence", "BookingCourtOccurrence")
-                        .WithMany()
-                        .HasForeignKey("BookingCourtOccurrenceId");
-
                     b.HasOne("ApiApplication.Entities.BookingCourt", "Booking")
                         .WithMany()
                         .HasForeignKey("BookingId")
@@ -2884,8 +2871,6 @@ namespace ApiApplication.Migrations
                         .IsRequired();
 
                     b.Navigation("Booking");
-
-                    b.Navigation("BookingCourtOccurrence");
 
                     b.Navigation("Customer");
                 });

@@ -33,6 +33,12 @@ export interface CreatePaymentForOrderRequest {
     bookingId: string;
     /**
      * 
+     * @type {string}
+     * @memberof CreatePaymentForOrderRequest
+     */
+    bookingOccurrenceId: string;
+    /**
+     * 
      * @type {number}
      * @memberof CreatePaymentForOrderRequest
      */
@@ -63,6 +69,7 @@ export interface CreatePaymentForOrderRequest {
 export function instanceOfCreatePaymentForOrderRequest(value: object): value is CreatePaymentForOrderRequest {
     if (!('orderId' in value) || value['orderId'] === undefined) return false;
     if (!('bookingId' in value) || value['bookingId'] === undefined) return false;
+    if (!('bookingOccurrenceId' in value) || value['bookingOccurrenceId'] === undefined) return false;
     if (!('customerId' in value) || value['customerId'] === undefined) return false;
     if (!('amount' in value) || value['amount'] === undefined) return false;
     if (!('paymentMethod' in value) || value['paymentMethod'] === undefined) return false;
@@ -81,6 +88,7 @@ export function CreatePaymentForOrderRequestFromJSONTyped(json: any, ignoreDiscr
         
         'orderId': json['orderId'],
         'bookingId': json['bookingId'],
+        'bookingOccurrenceId': json['bookingOccurrenceId'],
         'customerId': json['customerId'],
         'amount': json['amount'],
         'paymentMethod': json['paymentMethod'],
@@ -101,6 +109,7 @@ export function CreatePaymentForOrderRequestToJSONTyped(value?: CreatePaymentFor
         
         'orderId': value['orderId'],
         'bookingId': value['bookingId'],
+        'bookingOccurrenceId': value['bookingOccurrenceId'],
         'customerId': value['customerId'],
         'amount': value['amount'],
         'paymentMethod': value['paymentMethod'],

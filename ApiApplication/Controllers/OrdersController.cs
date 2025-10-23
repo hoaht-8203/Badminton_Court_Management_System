@@ -53,6 +53,41 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     }
 
     /// <summary>
+    /// Lấy danh sách đơn hàng chờ thanh toán
+    /// </summary>
+    [HttpGet("pending-payments")]
+    public async Task<ActionResult<ApiResponse<List<OrderResponse>>>> GetPendingPaymentOrdersAsync(
+        [FromQuery] string? status = null,
+        [FromQuery] string? paymentMethod = null
+    )
+    {
+        var result = await _orderService.GetPendingPaymentOrdersAsync(status, paymentMethod);
+        return Ok(
+            ApiResponse<List<OrderResponse>>.SuccessResponse(
+                result,
+                "Lấy danh sách đơn hàng chờ thanh toán thành công"
+            )
+        );
+    }
+
+    /// <summary>
+    /// Lấy thông tin checkout từ OrderId
+    /// </summary>
+    [HttpGet("checkout/{orderId}")]
+    public async Task<ActionResult<ApiResponse<CheckoutResponse>>> GetCheckoutInfoAsync(
+        Guid orderId
+    )
+    {
+        var result = await _orderService.GetCheckoutInfoAsync(orderId);
+        return Ok(
+            ApiResponse<CheckoutResponse>.SuccessResponse(
+                result,
+                "Lấy thông tin checkout thành công"
+            )
+        );
+    }
+
+    /// <summary>
     /// Xác nhận thanh toán cho đơn hàng (dành cho thanh toán chuyển khoản)
     /// </summary>
     [HttpPost("{orderId}/confirm-payment")]

@@ -537,6 +537,7 @@ public class BookingCourtService(
             .ThenInclude(x => x.BookingCourtOccurrences)
             .Include(x => x.Payments)
             .Include(x => x.BookingServices)
+            .ThenInclude(x => x.Service)
             .Include(x => x.BookingOrderItems)
             .ThenInclude(x => x.Product)
             .FirstOrDefaultAsync(x => x.Id == request.Id);
@@ -604,11 +605,17 @@ public class BookingCourtService(
             }
         }
 
-        // Calculate late fee for this specific occurrence
+        // Calculate late fee for this specific occurrence (use local time for business hours)
         var now = DateTime.Now;
         var occurrenceDate = entity.Date.ToDateTime(TimeOnly.MinValue);
-        var startDateTime = occurrenceDate.Add(entity.StartTime.ToTimeSpan());
-        var endDateTime = occurrenceDate.Add(entity.EndTime.ToTimeSpan());
+        var startDateTime = DateTime.SpecifyKind(
+            occurrenceDate.Add(entity.StartTime.ToTimeSpan()),
+            DateTimeKind.Local
+        );
+        var endDateTime = DateTime.SpecifyKind(
+            occurrenceDate.Add(entity.EndTime.ToTimeSpan()),
+            DateTimeKind.Local
+        );
 
         // Only calculate late fee if occurrence is CheckedIn and current time is past end time
         if (entity.Status == BookingCourtOccurrenceStatus.CheckedIn && now > endDateTime)
@@ -626,8 +633,11 @@ public class BookingCourtService(
                 var totalMinutes = (decimal)
                     (entity.EndTime.ToTimeSpan() - entity.StartTime.ToTimeSpan()).TotalMinutes;
                 var baseMinuteRate = totalAmount / totalMinutes;
-                var surchargeAmount = Math.Ceiling(chargeableMinutes * baseMinuteRate);
-                dto.SurchargeAmount = Math.Ceiling(surchargeAmount);
+
+                // Apply late fee percentage (default 150%)
+                var lateFeeRate = baseMinuteRate * (dto.LateFeePercentage / 100m);
+                var surchargeAmount = Math.Ceiling(chargeableMinutes * lateFeeRate);
+                dto.SurchargeAmount = Math.Ceiling(surchargeAmount / 1000) * 1000;
             }
             else
             {
@@ -640,6 +650,9 @@ public class BookingCourtService(
             dto.OverdueHours = 0m;
             dto.SurchargeAmount = 0m;
         }
+
+        // Calculate service usage information
+        await CalculateServiceUsageInfoAsync(entity, dto, now);
 
         return dto;
     }
@@ -713,11 +726,17 @@ public class BookingCourtService(
 
         // Validate time window: only check-in during valid time
         var now = DateTime.Now;
-        var nowTime = TimeOnly.FromDateTime(now);
+        var occurrenceDate = occurrence.Date.ToDateTime(TimeOnly.MinValue);
+
+        // Create full DateTime objects for comparison
+        var startDateTime = occurrenceDate.Add(occurrence.StartTime.ToTimeSpan());
+        var endDateTime = occurrenceDate.Add(occurrence.EndTime.ToTimeSpan());
 
         // Allow 10 minutes before start time
-        var earlyStart = occurrence.StartTime.AddMinutes(-10);
-        if (!(earlyStart <= nowTime && nowTime <= occurrence.EndTime))
+        var earlyStartDateTime = startDateTime.AddMinutes(-10);
+
+        // Check if current time is within the valid check-in window
+        if (!(earlyStartDateTime <= now && now <= endDateTime))
         {
             throw new ApiException(
                 "Chỉ có thể check-in trong khung giờ đã đặt",
@@ -847,7 +866,7 @@ public class BookingCourtService(
             throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
         }
         // Check if there's a checked-in occurrence for today
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var checkedInOccurrence = await _context.BookingCourtOccurrences.FirstOrDefaultAsync(o =>
             o.BookingCourtId == request.BookingId
             && o.Date == today
@@ -870,7 +889,7 @@ public class BookingCourtService(
         var courtRemaining = Math.Max(0, Math.Round(totalAmount - paidAmount, 2));
 
         // Overtime surcharge: compute minutes beyond scheduled EndTime until now
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var endToday = new DateTime(
             now.Year,
             now.Month,
@@ -1252,10 +1271,68 @@ public class BookingCourtService(
         }
     }
 
+    private async Task CalculateServiceUsageInfoAsync(
+        BookingCourtOccurrence occurrence,
+        DetailBookingCourtOccurrenceResponse dto,
+        DateTime now
+    )
+    {
+        var bookingServices = await _context
+            .BookingServices.Include(bs => bs.Service)
+            .Where(bs => bs.BookingCourtOccurrenceId == occurrence.Id)
+            .ToListAsync();
+
+        var serviceUsageInfo = new List<ServiceUsageInfo>();
+
+        foreach (var bookingService in bookingServices)
+        {
+            var usageTime = bookingService.ServiceEndTime.HasValue
+                ? bookingService.ServiceEndTime.Value - bookingService.ServiceStartTime
+                : now - bookingService.ServiceStartTime;
+
+            var usageHours = (decimal)usageTime.TotalHours;
+            var usageMinutes = (int)usageTime.TotalMinutes;
+
+            // Calculate current cost (if still in use) or final cost (if completed)
+            var currentCost = bookingService.ServiceEndTime.HasValue
+                ? bookingService.TotalPrice
+                : Math.Ceiling(
+                    bookingService.Quantity * bookingService.UnitPrice * Math.Ceiling(usageHours)
+                );
+
+            serviceUsageInfo.Add(
+                new ServiceUsageInfo
+                {
+                    ServiceName = bookingService.Service.Name ?? "Unknown Service",
+                    Quantity = bookingService.Quantity,
+                    UsageHours = Math.Ceiling(usageHours),
+                    UsageMinutes = usageMinutes,
+                    UnitPrice = bookingService.UnitPrice,
+                    TotalCost = currentCost,
+                    IsCompleted = bookingService.ServiceEndTime.HasValue,
+                }
+            );
+        }
+
+        // Add service usage info to DTO (you'll need to add this property to DetailBookingCourtOccurrenceResponse)
+        // dto.ServiceUsageInfo = serviceUsageInfo;
+    }
+
     private class CourtPriceRule
     {
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
         public decimal PricePerHour { get; set; }
+    }
+
+    private class ServiceUsageInfo
+    {
+        public string ServiceName { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        public decimal UsageHours { get; set; }
+        public int UsageMinutes { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal TotalCost { get; set; }
+        public bool IsCompleted { get; set; }
     }
 }

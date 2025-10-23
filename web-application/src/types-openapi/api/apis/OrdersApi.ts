@@ -38,6 +38,10 @@ export interface ApiOrdersBookingBookingIdGetRequest {
     bookingId: string;
 }
 
+export interface ApiOrdersCheckoutOrderIdGetRequest {
+    orderId: string;
+}
+
 export interface ApiOrdersCheckoutPostRequest {
     checkoutRequest?: CheckoutRequest;
 }
@@ -48,6 +52,11 @@ export interface ApiOrdersOrderIdConfirmPaymentPostRequest {
 
 export interface ApiOrdersOrderIdGetRequest {
     orderId: string;
+}
+
+export interface ApiOrdersPendingPaymentsGetRequest {
+    status?: string;
+    paymentMethod?: string;
 }
 
 /**
@@ -69,6 +78,19 @@ export interface OrdersApiInterface {
     /**
      */
     apiOrdersBookingBookingIdGet(requestParameters: ApiOrdersBookingBookingIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<OrderResponseListApiResponse>;
+
+    /**
+     * 
+     * @param {string} orderId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OrdersApiInterface
+     */
+    apiOrdersCheckoutOrderIdGetRaw(requestParameters: ApiOrdersCheckoutOrderIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CheckoutResponseApiResponse>>;
+
+    /**
+     */
+    apiOrdersCheckoutOrderIdGet(requestParameters: ApiOrdersCheckoutOrderIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CheckoutResponseApiResponse>;
 
     /**
      * 
@@ -109,6 +131,20 @@ export interface OrdersApiInterface {
      */
     apiOrdersOrderIdGet(requestParameters: ApiOrdersOrderIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<OrderResponseApiResponse>;
 
+    /**
+     * 
+     * @param {string} [status] 
+     * @param {string} [paymentMethod] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OrdersApiInterface
+     */
+    apiOrdersPendingPaymentsGetRaw(requestParameters: ApiOrdersPendingPaymentsGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<OrderResponseListApiResponse>>;
+
+    /**
+     */
+    apiOrdersPendingPaymentsGet(requestParameters: ApiOrdersPendingPaymentsGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<OrderResponseListApiResponse>;
+
 }
 
 /**
@@ -148,6 +184,41 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
      */
     async apiOrdersBookingBookingIdGet(requestParameters: ApiOrdersBookingBookingIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<OrderResponseListApiResponse> {
         const response = await this.apiOrdersBookingBookingIdGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiOrdersCheckoutOrderIdGetRaw(requestParameters: ApiOrdersCheckoutOrderIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CheckoutResponseApiResponse>> {
+        if (requestParameters['orderId'] == null) {
+            throw new runtime.RequiredError(
+                'orderId',
+                'Required parameter "orderId" was null or undefined when calling apiOrdersCheckoutOrderIdGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Orders/checkout/{orderId}`;
+        urlPath = urlPath.replace(`{${"orderId"}}`, encodeURIComponent(String(requestParameters['orderId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CheckoutResponseApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiOrdersCheckoutOrderIdGet(requestParameters: ApiOrdersCheckoutOrderIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CheckoutResponseApiResponse> {
+        const response = await this.apiOrdersCheckoutOrderIdGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -248,6 +319,41 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
      */
     async apiOrdersOrderIdGet(requestParameters: ApiOrdersOrderIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<OrderResponseApiResponse> {
         const response = await this.apiOrdersOrderIdGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiOrdersPendingPaymentsGetRaw(requestParameters: ApiOrdersPendingPaymentsGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<OrderResponseListApiResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['status'] != null) {
+            queryParameters['status'] = requestParameters['status'];
+        }
+
+        if (requestParameters['paymentMethod'] != null) {
+            queryParameters['paymentMethod'] = requestParameters['paymentMethod'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Orders/pending-payments`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => OrderResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiOrdersPendingPaymentsGet(requestParameters: ApiOrdersPendingPaymentsGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<OrderResponseListApiResponse> {
+        const response = await this.apiOrdersPendingPaymentsGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

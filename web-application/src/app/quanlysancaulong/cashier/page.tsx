@@ -1,25 +1,45 @@
 "use client";
 
-import { useDetailBookingCourtOccurrence, useListBookingCourtOccurrences } from "@/hooks/useBookingCourtOccurrence";
+// Dynamic imports for better code splitting and initial load performance
+import dynamic from "next/dynamic";
+import { Suspense, useEffect, useMemo, useState, useCallback, memo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { DayPilot } from "daypilot-pro-react";
+import dayjs from "dayjs";
+
+// Lazy load heavy components to reduce initial bundle size
+const CheckoutQrDrawer = dynamic(() => import("@/components/quanlysancaulong/court-schedule/checkout-qr-drawer"), {
+  ssr: false, // Client-side only component
+  loading: () => <div>Loading checkout...</div>,
+});
+
+// Import hooks and services
+import { bookingCourtOccurrenceKeys, useDetailBookingCourtOccurrence, useListBookingCourtOccurrences } from "@/hooks/useBookingCourtOccurrence";
 import { useListCourts } from "@/hooks/useCourt";
 import { useListProducts } from "@/hooks/useProducts";
+import { useListServices } from "@/hooks/useServices";
+import { usePendingPaymentOrders } from "@/hooks/useOrders";
 import { cashierService } from "@/services/cashierService";
-import { DetailBookingCourtOccurrenceResponse, ListCourtResponse, ListProductResponse, CheckoutRequest, CheckoutResponse } from "@/types-openapi/api";
+import {
+  CheckoutRequest,
+  CheckoutResponse,
+  DetailBookingCourtOccurrenceResponse,
+  ListCourtResponse,
+  ListProductResponse,
+  ListServiceResponse,
+  OrderResponse,
+} from "@/types-openapi/api";
 import { CourtStatus } from "@/types/commons";
+
+// Import Antd components (these are relatively lightweight)
 import { LoadingOutlined, ReloadOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import { Image as AntdImage, Button, Card, Col, Divider, Empty, Input, List, message, Row, Select, Spin, Tabs } from "antd";
 import { Meta } from "antd/es/list/Item";
-import dayjs from "dayjs";
-import { Grid2X2, MenuIcon, Monitor, Wrench } from "lucide-react";
+import { Grid2X2, MenuIcon, Monitor, Wrench, Clock } from "lucide-react";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
-import CheckoutQrDrawer from "@/components/quanlysancaulong/court-schedule/checkout-qr-drawer";
-import { DayPilot } from "daypilot-pro-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { bookingCourtOccurrenceKeys } from "@/hooks/useBookingCourtOccurrence";
 
-const CashierPageContent = () => {
+const CashierPageContent = memo(function CashierPageContent() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("1");
@@ -31,9 +51,12 @@ const CashierPageContent = () => {
   const [openCheckoutQr, setOpenCheckoutQr] = useState(false);
   const [checkoutDetail, setCheckoutDetail] = useState<CheckoutResponse | null>(null);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+  const [pendingOrdersFilter, setPendingOrdersFilter] = useState<{ status?: string; paymentMethod?: string }>({});
 
   const { data: courtsData, isFetching: loadingCourts, refetch: refetchCourts } = useListCourts({});
   const { data: productsData, isFetching: loadingProducts, refetch: refetchProducts } = useListProducts({});
+  const { data: servicesData, isFetching: loadingServices, refetch: refetchServices } = useListServices({});
+  const { data: pendingOrdersData, isFetching: loadingPendingOrders, refetch: refetchPendingOrders } = usePendingPaymentOrders(pendingOrdersFilter);
   // Memoize today's date to prevent infinite re-renders - use same logic as court-schedule.tsx
   const today = useMemo(() => {
     return DayPilot.Date.today().toDate();
@@ -64,7 +87,8 @@ const CashierPageContent = () => {
     }
   }, [occurrenceDetail]);
 
-  const handleRefreshData = () => {
+  // Memoize callback functions to prevent unnecessary re-renders
+  const handleRefreshData = useCallback(() => {
     switch (activeTab) {
       case "1":
         refetchCourts();
@@ -72,76 +96,119 @@ const CashierPageContent = () => {
       case "2":
         refetchProducts();
         break;
+      case "3":
+        refetchServices();
+        break;
+      case "4":
+        refetchPendingOrders();
+        break;
       default:
         break;
     }
-  };
+  }, [activeTab, refetchCourts, refetchProducts, refetchServices, refetchPendingOrders]);
 
-  const refreshAllData = () => {
+  const refreshAllData = useCallback(() => {
     // Invalidate all relevant queries
     queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
     queryClient.invalidateQueries({ queryKey: ["courts"] });
     queryClient.invalidateQueries({ queryKey: ["products"] });
+    queryClient.invalidateQueries({ queryKey: ["services"] });
+    queryClient.invalidateQueries({ queryKey: ["orders", "pending-payments"] });
 
     // Refetch current data
     refetchCourts();
     refetchProducts();
-  };
+    refetchServices();
+    refetchPendingOrders();
+  }, [queryClient, refetchCourts, refetchProducts, refetchServices, refetchPendingOrders]);
 
-  const handleAddProductToOrder = async (product: ListProductResponse) => {
-    if (!product?.id) return;
-    if (!selectedOccurrenceId) {
-      message.warning("Vui lòng chọn lịch sân đang chơi trước khi thêm món");
-      return;
-    }
-    try {
-      await cashierService.addOrderItem({ bookingCourtOccurrenceId: selectedOccurrenceId, productId: product.id!, quantity: 1 });
-      setOrderItems((prev) => {
-        const key = String(product.id);
-        const current = prev[key];
-        const nextQty = (current?.quantity || 0) + 1;
-        return { ...prev, [key]: { product, quantity: nextQty } };
+  // Memoize async handlers to prevent unnecessary re-renders
+  const handleAddProductToOrder = useCallback(
+    async (product: ListProductResponse) => {
+      if (!product?.id) return;
+      if (!selectedOccurrenceId) {
+        message.warning("Vui lòng chọn lịch sân đang chơi trước khi thêm món");
+        return;
+      }
+      try {
+        await cashierService.addOrderItem({ bookingCourtOccurrenceId: selectedOccurrenceId, productId: product.id!, quantity: 1 });
+        setOrderItems((prev) => {
+          const key = String(product.id);
+          const current = prev[key];
+          const nextQty = (current?.quantity || 0) + 1;
+          return { ...prev, [key]: { product, quantity: nextQty } };
+        });
+        message.success("Đã lưu tạm món vào đơn");
+      } catch (e: any) {
+        message.error(e?.message || "Không thể lưu tạm món");
+      }
+    },
+    [selectedOccurrenceId],
+  );
+
+  const handleAddServiceToOrder = useCallback(
+    async (service: ListServiceResponse) => {
+      if (!service?.id) return;
+      if (!selectedOccurrenceId) {
+        message.warning("Vui lòng chọn lịch sân đang chơi trước khi thêm dịch vụ");
+        return;
+      }
+      try {
+        // Call service API to add service (not order item)
+        await cashierService.addService({
+          bookingCourtOccurrenceId: selectedOccurrenceId,
+          serviceId: service.id!,
+          quantity: 1,
+          notes: `Thêm dịch vụ ${service.name}`,
+        });
+        message.success("Đã thêm dịch vụ thành công");
+        // Refresh occurrence detail to show updated service usage
+        queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.detail(selectedOccurrenceId) });
+      } catch (e: any) {
+        message.error(e?.message || "Không thể thêm dịch vụ");
+      }
+    },
+    [selectedOccurrenceId, queryClient],
+  );
+
+  // Memoize court selection handler to prevent unnecessary re-renders
+  const handleSelectCourt = useCallback(
+    (courtId: string) => {
+      // Tìm tất cả occurrences của sân này hôm nay
+      const todays = (occurrencesToday?.data || []).filter((o) => String(o.courtId) === String(courtId) && o.status === "CheckedIn");
+
+      if (todays.length === 0) {
+        message.info("Sân này hiện chưa có lịch hôm nay");
+        return;
+      }
+
+      // Ưu tiên tìm occurrence đang diễn ra (theo thời gian)
+      const now = dayjs();
+      const ongoingOccurrence = todays.find((o) => {
+        const st = dayjs(`${now.format("YYYY-MM-DD")} ${String(o.startTime).substring(0, 5)}`);
+        const et = dayjs(`${now.format("YYYY-MM-DD")} ${String(o.endTime).substring(0, 5)}`);
+        return now.isAfter(st) && now.isBefore(et);
       });
-      message.success("Đã lưu tạm món vào đơn");
-    } catch (e: any) {
-      message.error(e?.message || "Không thể lưu tạm món");
-    }
-  };
 
-  const handleSelectCourt = (courtId: string) => {
-    // Tìm tất cả occurrences của sân này hôm nay
-    const todays = (occurrencesToday?.data || []).filter((o) => String(o.courtId) === String(courtId));
+      if (ongoingOccurrence) {
+        setSelectedOccurrenceId(String(ongoingOccurrence.id));
+        setSelectedCourtId(courtId);
+        return;
+      }
 
-    if (todays.length === 0) {
-      message.info("Sân này hiện chưa có lịch hôm nay");
-      return;
-    }
+      // Nếu không có occurrence đang diễn ra, tìm occurrence có thể checkout (CheckedIn)
+      const checkInOccurrences = todays.filter((o) => o.status === "CheckedIn");
+      if (checkInOccurrences.length > 0) {
+        setSelectedOccurrenceId(String(checkInOccurrences[0].id));
+        setSelectedCourtId(courtId);
+        return;
+      }
 
-    // Ưu tiên tìm occurrence đang diễn ra (theo thời gian)
-    const now = dayjs();
-    const ongoingOccurrence = todays.find((o) => {
-      const st = dayjs(`${now.format("YYYY-MM-DD")} ${String(o.startTime).substring(0, 5)}`);
-      const et = dayjs(`${now.format("YYYY-MM-DD")} ${String(o.endTime).substring(0, 5)}`);
-      return now.isAfter(st) && now.isBefore(et);
-    });
-
-    if (ongoingOccurrence) {
-      setSelectedOccurrenceId(String(ongoingOccurrence.id));
-      setSelectedCourtId(courtId);
-      return;
-    }
-
-    // Nếu không có occurrence đang diễn ra, tìm occurrence có thể checkout (CheckedIn)
-    const checkInOccurrences = todays.filter((o) => o.status === "CheckedIn");
-    if (checkInOccurrences.length > 0) {
-      setSelectedOccurrenceId(String(checkInOccurrences[0].id));
-      setSelectedCourtId(courtId);
-      return;
-    }
-
-    // Nếu không có CheckedIn, hiển thị tất cả occurrences để user chọn
-    message.info("Sân này chưa có lịch đang chơi (CheckedIn). Vui lòng chọn từ danh sách bên phải.");
-  };
+      // Nếu không có CheckedIn, hiển thị tất cả occurrences để user chọn
+      message.info("Sân này chưa có lịch đang chơi (CheckedIn). Vui lòng chọn từ danh sách bên phải.");
+    },
+    [occurrencesToday],
+  );
 
   // Load existing saved order items when occurrence is selected
   useEffect(() => {
@@ -171,26 +238,33 @@ const CashierPageContent = () => {
     load();
   }, [selectedOccurrenceId]);
 
-  const handleChangeQty = async (productId: string, delta: number) => {
-    const current = orderItems[productId];
-    if (!current || !selectedOccurrenceId) return;
-    const nextQty = Math.max(0, current.quantity + delta);
-    try {
-      await cashierService.updateOrderItem({ bookingId: selectedOccurrenceId, productId: Number(productId), quantity: nextQty });
-      setOrderItems((prev) => {
-        const next = { ...prev } as typeof prev;
-        if (nextQty === 0) delete next[productId];
-        else next[productId] = { ...current, quantity: nextQty };
-        return next;
-      });
-    } catch (e: any) {
-      message.error(e?.message || "Không thể cập nhật số lượng");
-    }
-  };
+  // Memoize quantity change handler to prevent unnecessary re-renders
+  const handleChangeQty = useCallback(
+    async (productId: string, delta: number) => {
+      const current = orderItems[productId];
+      if (!current || !selectedOccurrenceId) return;
+      const nextQty = Math.max(0, current.quantity + delta);
+      try {
+        await cashierService.updateOrderItem({ BookingCourtOccurrenceId: selectedOccurrenceId, productId: Number(productId), quantity: nextQty });
+        setOrderItems((prev) => {
+          const next = { ...prev } as typeof prev;
+          if (nextQty === 0) delete next[productId];
+          else next[productId] = { ...current, quantity: nextQty };
+          return next;
+        });
+        message.success("Đã cập nhật số lượng");
+      } catch (e: any) {
+        message.error(e?.message || "Không thể cập nhật số lượng");
+      }
+    },
+    [orderItems, selectedOccurrenceId],
+  );
 
   const itemsSubtotal = useMemo(() => {
     return Object.values(orderItems).reduce((sum, it) => sum + (it.product.salePrice || 0) * it.quantity, 0);
   }, [orderItems]);
+
+  // Removed servicesSubtotal as it's now handled by real-time components
 
   const courtRemaining = useMemo(() => {
     return occurrenceDetail?.remainingAmount || 0;
@@ -202,9 +276,9 @@ const CashierPageContent = () => {
 
     if (occurrenceDetail && (occurrenceDetail.overdueMinutes || 0) > 15) {
       const overdueMinutes = occurrenceDetail.overdueMinutes || 0;
-      const chargeableMinutes = overdueMinutes - 15; // Chỉ tính phí cho phần muộn > 15 phút
+      const chargeableMinutes = overdueMinutes - 15; // chỉ tính phần >15 phút
 
-      // Tính giá cơ bản từ detail (theo phút)
+      // Tính giá cơ bản theo phút
       const totalMinutes = (occurrenceDetail.totalHours || 1) * 60;
       const baseMinuteRate = (occurrenceDetail.totalAmount || 0) / totalMinutes;
 
@@ -215,10 +289,16 @@ const CashierPageContent = () => {
       surcharge = occurrenceDetail?.surchargeAmount || 0;
     }
 
-    return Math.max(0, (courtRemaining || 0) + (itemsSubtotal || 0) + surcharge);
+    // Tính tổng tiền gốc
+    const rawTotal = (courtRemaining || 0) + (itemsSubtotal || 0) + surcharge;
+
+    const roundedTotal = Math.ceil(rawTotal / 1000) * 1000;
+
+    return Math.max(0, roundedTotal);
   }, [courtRemaining, itemsSubtotal, occurrenceDetail, lateFeePercentage]);
 
-  const handleCheckout = async () => {
+  // Memoize checkout handler to prevent unnecessary re-renders
+  const handleCheckout = useCallback(async () => {
     if (!selectedOccurrenceId || !occurrenceDetail) {
       message.warning("Vui lòng chọn lịch sân trước khi thanh toán");
       return;
@@ -255,7 +335,7 @@ const CashierPageContent = () => {
     } finally {
       setIsCheckoutLoading(false);
     }
-  };
+  }, [selectedOccurrenceId, occurrenceDetail, paymentMethod, lateFeePercentage, refreshAllData]);
 
   return (
     <div className="cashier-page-section h-screen p-4">
@@ -315,7 +395,23 @@ const CashierPageContent = () => {
                   </div>
                 ),
                 key: "3",
-                children: <ServiceTab />,
+                children: <ServiceTab data={servicesData?.data || []} loading={loadingServices} onAdd={handleAddServiceToOrder} />,
+              },
+              {
+                label: (
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" /> Danh sách chờ thanh toán
+                  </div>
+                ),
+                key: "4",
+                children: (
+                  <PendingPaymentsTab
+                    data={pendingOrdersData || []}
+                    loading={loadingPendingOrders}
+                    filter={pendingOrdersFilter}
+                    onFilterChange={setPendingOrdersFilter}
+                  />
+                ),
               },
             ]}
           />
@@ -367,6 +463,23 @@ const CashierPageContent = () => {
                 <Empty description="Chưa chọn lịch đang chơi" image={Empty.PRESENTED_IMAGE_SIMPLE} />
               )}
             </div>
+
+            {/* Service Usage Information */}
+            {occurrenceDetail && occurrenceDetail.status === "CheckedIn" && (
+              <div className="mb-2 rounded border p-2">
+                <div className="mb-2 text-sm font-semibold">Dịch vụ đang sử dụng</div>
+                <div className="text-xs text-gray-600">Dịch vụ được tính theo thời gian thực tế từ lúc thêm đến checkout</div>
+                {occurrenceDetail.bookingServices && occurrenceDetail.bookingServices.length > 0 ? (
+                  <div className="mt-2 space-y-2">
+                    {occurrenceDetail.bookingServices.map((service, index) => (
+                      <ServiceUsageItem key={index} service={service} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="mt-2 text-sm text-gray-500">Chưa có dịch vụ nào được thêm</div>
+                )}
+              </div>
+            )}
 
             <div className="mb-2 rounded border p-2">
               <div className="mb-2 text-sm font-semibold">Phương thức thanh toán</div>
@@ -448,6 +561,16 @@ const CashierPageContent = () => {
                 <span>{(itemsSubtotal || 0).toLocaleString("vi-VN")} đ</span>
               </div>
               <div className="flex justify-between">
+                <span>Tổng dịch vụ</span>
+                <span>
+                  {occurrenceDetail?.bookingServices && occurrenceDetail.bookingServices.length > 0 ? (
+                    <ServicesTotalCost services={occurrenceDetail.bookingServices} />
+                  ) : (
+                    "0 đ"
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-between">
                 <span>Muộn</span>
                 <span>
                   {(() => {
@@ -463,26 +586,23 @@ const CashierPageContent = () => {
               </div>
               <div className="flex justify-between">
                 <span>Phụ phí muộn (tạm tính)</span>
-                <span>
-                  {(() => {
-                    if (occurrenceDetail && (occurrenceDetail.overdueMinutes || 0) > 15) {
-                      const overdueMinutes = occurrenceDetail.overdueMinutes || 0;
-                      const chargeableMinutes = overdueMinutes - 15;
-                      const totalMinutes = (occurrenceDetail.totalHours || 1) * 60;
-                      const baseMinuteRate = (occurrenceDetail.totalAmount || 0) / totalMinutes;
-                      const lateFeeRate = baseMinuteRate * (lateFeePercentage / 100);
-                      const surcharge = Math.ceil(chargeableMinutes * lateFeeRate);
-                      return surcharge.toLocaleString("vi-VN");
-                    }
-                    return (occurrenceDetail?.surchargeAmount || 0).toLocaleString("vi-VN");
-                  })()}{" "}
-                  đ
-                </span>
+                <span>{occurrenceDetail?.surchargeAmount?.toLocaleString("vi-VN")}đ</span>
               </div>
               <Divider style={{ margin: "8px 0" }} />
               <div className="flex justify-between text-lg font-semibold text-green-600">
                 <span>Cần thanh toán</span>
-                <span>{(finalPayable || 0).toLocaleString("vi-VN")} đ</span>
+                <span>
+                  {occurrenceDetail?.bookingServices && occurrenceDetail.bookingServices.length > 0 ? (
+                    <FinalPayableAmount
+                      courtRemaining={courtRemaining}
+                      itemsSubtotal={itemsSubtotal}
+                      services={occurrenceDetail.bookingServices}
+                      surchargeAmount={occurrenceDetail?.surchargeAmount || 0}
+                    />
+                  ) : (
+                    (finalPayable || 0).toLocaleString("vi-VN") + " đ"
+                  )}
+                </span>
               </div>
               <Divider style={{ margin: "8px 0" }} />
               <div className="mt-2 flex gap-2">
@@ -519,7 +639,115 @@ const CashierPageContent = () => {
       />
     </div>
   );
-};
+});
+
+// Memoize ServiceUsageItem to prevent unnecessary re-renders when parent updates
+const ServiceUsageItem = memo(function ServiceUsageItem({ service }: { service: any }) {
+  const [nowTs, setNowTs] = useState<number>(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNowTs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Memoize expensive calculations to prevent recalculation on every render
+  const { displayHours, displayMinutes, displaySeconds, currentCost } = useMemo(() => {
+    const startTime = new Date(service.serviceStartTime || new Date());
+    const usageMs = Math.max(0, nowTs - startTime.getTime());
+    const totalSeconds = Math.floor(usageMs / 1000);
+    const displayHours = Math.floor(totalSeconds / 3600);
+    const displayMinutes = Math.floor((totalSeconds % 3600) / 60);
+    const displaySeconds = totalSeconds % 60;
+
+    // For display, use actual usage time but round up the cost to nearest 1000
+    const actualUsageHours = usageMs / (1000 * 60 * 60);
+    const rawCost = (service.quantity || 0) * (service.unitPrice || 0) * actualUsageHours;
+    const currentCost = service.totalPrice || Math.ceil(rawCost / 1000) * 1000;
+
+    return { displayHours, displayMinutes, displaySeconds, currentCost };
+  }, [nowTs, service.serviceStartTime, service.quantity, service.unitPrice, service.totalPrice]);
+
+  return (
+    <div className="rounded bg-blue-50 p-2 text-sm">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="font-medium">{service.serviceName || "Unknown Service"}</div>
+          <div className="text-xs text-gray-600">
+            Số lượng: {service.quantity} • Giá: {service.unitPrice?.toLocaleString("vi-VN")} đ/giờ
+          </div>
+          <div className="text-xs text-gray-600">
+            Đã sử dụng: {displayHours} giờ {displayMinutes} phút {String(displaySeconds).padStart(2, "0")} giây
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="font-semibold text-blue-600">{currentCost.toLocaleString("vi-VN")} đ</div>
+          <div className="text-xs text-gray-500">{service.status === "Completed" ? "Đã hoàn thành" : "Đang sử dụng"}</div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+// Memoize ServicesTotalCost to prevent unnecessary re-renders
+const ServicesTotalCost = memo(function ServicesTotalCost({ services }: { services: any[] }) {
+  const [nowTs, setNowTs] = useState<number>(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNowTs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Memoize expensive calculation to prevent recalculation on every render
+  const totalCost = useMemo(() => {
+    return services.reduce((sum, service) => {
+      const startTime = new Date(service.serviceStartTime || new Date());
+      const usageMs = Math.max(0, nowTs - startTime.getTime());
+      const actualUsageHours = usageMs / (1000 * 60 * 60);
+      const rawCost = (service.quantity || 0) * (service.unitPrice || 0) * actualUsageHours;
+      const serviceCost = service.totalPrice || Math.ceil(rawCost / 1000) * 1000;
+      return sum + serviceCost;
+    }, 0);
+  }, [services, nowTs]);
+
+  return <span>{totalCost.toLocaleString("vi-VN")} đ</span>;
+});
+
+// Memoize FinalPayableAmount to prevent unnecessary re-renders
+const FinalPayableAmount = memo(function FinalPayableAmount({
+  courtRemaining,
+  itemsSubtotal,
+  services,
+  surchargeAmount,
+}: {
+  courtRemaining: number;
+  itemsSubtotal: number;
+  services: any[];
+  surchargeAmount: number;
+}) {
+  const [nowTs, setNowTs] = useState<number>(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNowTs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Memoize expensive calculations to prevent recalculation on every render
+  const totalPayable = useMemo(() => {
+    // Calculate services cost in real-time
+    const servicesCost = services.reduce((sum, service) => {
+      const startTime = new Date(service.serviceStartTime || new Date());
+      const usageMs = Math.max(0, nowTs - startTime.getTime());
+      const actualUsageHours = usageMs / (1000 * 60 * 60);
+      const rawCost = (service.quantity || 0) * (service.unitPrice || 0) * actualUsageHours;
+      const serviceCost = service.totalPrice || Math.ceil(rawCost / 1000) * 1000;
+      return sum + serviceCost;
+    }, 0);
+
+    return Math.max(0, courtRemaining + itemsSubtotal + servicesCost + surchargeAmount);
+  }, [services, nowTs, surchargeAmount, courtRemaining, itemsSubtotal]);
+
+  return <span>{totalPayable.toLocaleString("vi-VN")} đ</span>;
+});
 
 interface CourtTabProps {
   data: ListCourtResponse[];
@@ -528,8 +756,10 @@ interface CourtTabProps {
   selectedCourtId: string | null;
 }
 
-const CourtTab = ({ data, loading, onSelectCourt, selectedCourtId }: CourtTabProps) => {
-  const getStatusColor = (status?: string) => {
+// Memoize CourtTab to prevent unnecessary re-renders
+const CourtTab = memo(function CourtTab({ data, loading, onSelectCourt, selectedCourtId }: CourtTabProps) {
+  // Memoize status color function to prevent recreation on every render
+  const getStatusColor = useCallback((status?: string) => {
     switch (status) {
       case CourtStatus.InUse:
         return { dot: "bg-blue-500", text: "text-blue-600", badge: "bg-blue-50 border-blue-200" };
@@ -544,9 +774,9 @@ const CourtTab = ({ data, loading, onSelectCourt, selectedCourtId }: CourtTabPro
       default:
         return { dot: "bg-gray-300", text: "text-gray-600", badge: "bg-gray-50 border-gray-200" };
     }
-  };
+  }, []);
   return (
-    <div className="h-full p-3" style={{ borderLeft: "1px solid #f0f0f0" }}>
+    <div className="h-full p-3">
       <Row gutter={[8, 8]} className="h-full">
         {loading ? (
           <div className="justify-cente flex h-full w-full flex-col items-center">
@@ -602,7 +832,7 @@ const CourtTab = ({ data, loading, onSelectCourt, selectedCourtId }: CourtTabPro
       </Row>
     </div>
   );
-};
+});
 
 interface MenuTabProps {
   data: ListProductResponse[];
@@ -610,9 +840,10 @@ interface MenuTabProps {
   onAdd: (product: ListProductResponse) => void;
 }
 
-const MenuTab = ({ data, loading, onAdd }: MenuTabProps) => {
+// Memoize MenuTab to prevent unnecessary re-renders
+const MenuTab = memo(function MenuTab({ data, loading, onAdd }: MenuTabProps) {
   return (
-    <div className="h-full p-3" style={{ borderLeft: "1px solid #f0f0f0" }}>
+    <div className="h-full p-3">
       <Row gutter={[8, 8]}>
         {loading ? (
           <div className="justify-cente flex h-full w-full flex-col items-center">
@@ -629,10 +860,10 @@ const MenuTab = ({ data, loading, onAdd }: MenuTabProps) => {
                 cover={
                   <div className="relative">
                     <Image
-                      style={{ width: "100%", height: "150px", objectFit: "contain" }}
+                      style={{ width: "100%", height: "150px", objectFit: "cover" }}
                       draggable={false}
                       alt={`Thực đơn ${index + 1}`}
-                      src={product.images?.[0] || "/placeholder/product-images-placeholder.jpg"}
+                      src={product.images?.[0] || "/placeholder/product-image-placeholder.jpg"}
                       width={100}
                       height={100}
                     />
@@ -653,11 +884,222 @@ const MenuTab = ({ data, loading, onAdd }: MenuTabProps) => {
       </Row>
     </div>
   );
-};
+});
 
-const ServiceTab = () => {
-  return <div>Dịch vụ</div>;
-};
+interface ServiceTabProps {
+  data: ListServiceResponse[];
+  loading: boolean;
+  onAdd: (service: ListServiceResponse) => void;
+}
+
+interface PendingPaymentsTabProps {
+  data: OrderResponse[];
+  loading: boolean;
+  filter: { status?: string; paymentMethod?: string };
+  onFilterChange: (filter: { status?: string; paymentMethod?: string }) => void;
+}
+
+// Memoize PendingPaymentsTab to prevent unnecessary re-renders
+const PendingPaymentsTab = memo(function PendingPaymentsTab({ data, loading, filter, onFilterChange }: PendingPaymentsTabProps) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "Paid":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "Cancelled":
+        return "bg-red-100 text-red-800 border-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  const getPaymentMethodColor = (method: string) => {
+    switch (method) {
+      case "Cash":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "Bank":
+        return "bg-purple-100 text-purple-800 border-purple-200";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200";
+    }
+  };
+
+  return (
+    <div className="h-full p-3">
+      {/* Filter Section */}
+      <div className="mb-4 rounded border bg-gray-50 p-3">
+        <div className="mb-2 text-sm font-semibold">Bộ lọc</div>
+        <Row gutter={[8, 8]}>
+          <Col span={12}>
+            <div className="mb-1 text-xs text-gray-600">Trạng thái</div>
+            <Select
+              style={{ width: "100%" }}
+              placeholder="Tất cả trạng thái"
+              value={filter.status || undefined}
+              onChange={(value) => onFilterChange({ ...filter, status: value || undefined })}
+              allowClear
+              options={[
+                { value: "Pending", label: "Chờ thanh toán" },
+                { value: "Paid", label: "Đã thanh toán" },
+                { value: "Cancelled", label: "Đã hủy" },
+              ]}
+            />
+          </Col>
+          <Col span={12}>
+            <div className="mb-1 text-xs text-gray-600">Phương thức thanh toán</div>
+            <Select
+              style={{ width: "100%" }}
+              placeholder="Tất cả phương thức"
+              value={filter.paymentMethod || undefined}
+              onChange={(value) => onFilterChange({ ...filter, paymentMethod: value || undefined })}
+              allowClear
+              options={[
+                { value: "Cash", label: "Tiền mặt" },
+                { value: "Bank", label: "Chuyển khoản" },
+              ]}
+            />
+          </Col>
+        </Row>
+      </div>
+
+      {/* Orders List */}
+      <div className="h-full overflow-auto">
+        {loading ? (
+          <div className="flex h-full w-full flex-col items-center justify-center">
+            <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} />
+            <div className="text-lg font-bold">Đang tải dữ liệu...</div>
+          </div>
+        ) : data.length === 0 ? (
+          <Empty description="Không có đơn hàng nào" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        ) : (
+          <div className="space-y-3">
+            {data.map((order, index) => (
+              <Card key={order.id || index} size="small" className="transition-shadow hover:shadow-md">
+                <div className="space-y-2">
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium">Đơn hàng #{order.id?.substring(0, 8) || "N/A"}</div>
+                    <div className="flex gap-2">
+                      <span className={`rounded border px-2 py-1 text-xs ${getStatusColor(order.status || "")}`}>
+                        Trạng thái:{" "}
+                        {order.status === "Pending"
+                          ? "Chờ thanh toán"
+                          : order.status === "Paid"
+                            ? "Đã thanh toán"
+                            : order.status === "Cancelled"
+                              ? "Đã hủy"
+                              : order.status || "N/A"}
+                      </span>
+                      <span className={`rounded border px-2 py-1 text-xs ${getPaymentMethodColor(order.paymentMethod || "")}`}>
+                        Phương thức thanh toán:{" "}
+                        {order.paymentMethod === "Cash" ? "Tiền mặt" : order.paymentMethod === "Bank" ? "Chuyển khoản" : order.paymentMethod || "N/A"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Customer Info */}
+                  <div className="text-sm text-gray-600">
+                    <div>Khách hàng: {order.customerName || "N/A"}</div>
+                    <div>Sân: {order.courtName || "N/A"}</div>
+                    <div>Ngày tạo: {order.createdAt ? new Date(order.createdAt).toLocaleString("vi-VN") : "N/A"}</div>
+                  </div>
+
+                  {/* Amount Info */}
+                  <div className="flex items-center justify-between border-t pt-2">
+                    <div className="text-sm text-gray-600">
+                      Tổng tiền: <span className="text-lg font-semibold text-red-600">{(order.totalAmount || 0).toLocaleString("vi-VN")} đ</span>
+                    </div>
+                    {order.status === "Pending" && order.paymentMethod === "Bank" && (
+                      <Button
+                        type="primary"
+                        size="small"
+                        onClick={() => {
+                          const checkoutUrl = `/checkout/${order.id}`;
+                          window.open(checkoutUrl, "_blank");
+                        }}
+                      >
+                        Xem QR
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+
+// Memoize ServiceTab to prevent unnecessary re-renders
+const ServiceTab = memo(function ServiceTab({ data, loading, onAdd }: ServiceTabProps) {
+  return (
+    <div className="h-full p-3">
+      <Row gutter={[8, 8]}>
+        {loading ? (
+          <div className="justify-cente flex h-full w-full flex-col items-center">
+            <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} />
+            <div className="text-lg font-bold">Đang tải dữ liệu...</div>
+          </div>
+        ) : (
+          data?.map((service, index) => {
+            const isOutOfStock = service.stockQuantity !== null && service.stockQuantity !== undefined && service.stockQuantity <= 0;
+            return (
+              <Col span={24} md={12} lg={8} xl={4} key={index}>
+                <Card
+                  hoverable={!isOutOfStock}
+                  styles={{
+                    cover: {
+                      border: "1px solid #f0f0f0",
+                      borderTopLeftRadius: 8,
+                      borderTopRightRadius: 8,
+                    },
+                    body: isOutOfStock ? { opacity: 0.5 } : {},
+                  }}
+                  onClick={() => !isOutOfStock && onAdd(service)}
+                  cover={
+                    <div className="relative">
+                      <Image
+                        style={{ width: "100%", height: "150px", objectFit: "cover" }}
+                        draggable={false}
+                        alt={`Dịch vụ ${index + 1}`}
+                        src={service.imageUrl || "/placeholder/product-image-placeholder.jpg"}
+                        width={100}
+                        height={100}
+                      />
+
+                      <div className="absolute bottom-0 left-0 flex w-full justify-center">
+                        {isOutOfStock ? (
+                          <span className="rounded-t-lg bg-red-500 px-2 py-1 text-xs text-white">Hết hàng</span>
+                        ) : (
+                          <span className="rounded-t-lg bg-blue-500 px-2 py-1 text-xs text-white">
+                            {service.pricePerHour?.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  }
+                >
+                  <Meta
+                    title={<span className="font-medium">{service.name}</span>}
+                    description={
+                      <div className="text-xs text-gray-500">
+                        <div>Giá: {service.pricePerHour?.toLocaleString("vi-VN")} đ/giờ</div>
+                        {service.stockQuantity !== null && <div className="text-blue-600">Còn lại: {service.stockQuantity} sản phẩm</div>}
+                      </div>
+                    }
+                  />
+                </Card>
+              </Col>
+            );
+          })
+        )}
+      </Row>
+    </div>
+  );
+});
 
 const CashierPage = () => {
   return (

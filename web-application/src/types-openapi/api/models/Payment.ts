@@ -83,7 +83,7 @@ export interface Payment {
      * @type {string}
      * @memberof Payment
      */
-    bookingId?: string;
+    bookingId: string;
     /**
      * 
      * @type {BookingCourt}
@@ -157,6 +157,7 @@ export interface Payment {
  */
 export function instanceOfPayment(value: object): value is Payment {
     if (!('id' in value) || value['id'] === undefined) return false;
+    if (!('bookingId' in value) || value['bookingId'] === undefined) return false;
     if (!('customerId' in value) || value['customerId'] === undefined) return false;
     return true;
 }
@@ -176,7 +177,7 @@ export function PaymentFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
         'id': json['id'],
-        'bookingId': json['bookingId'] == null ? undefined : json['bookingId'],
+        'bookingId': json['bookingId'],
         'booking': json['booking'] == null ? undefined : BookingCourtFromJSON(json['booking']),
         'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'] == null ? undefined : json['bookingCourtOccurrenceId'],
         'bookingCourtOccurrence': json['bookingCourtOccurrence'] == null ? undefined : BookingCourtOccurrenceFromJSON(json['bookingCourtOccurrence']),

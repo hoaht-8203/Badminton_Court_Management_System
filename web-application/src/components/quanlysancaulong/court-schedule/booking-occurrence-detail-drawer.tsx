@@ -47,7 +47,7 @@ const vnOccurrenceStatus: Record<string, { color: string; text: string }> = {
   },
   NoShow: {
     color: "volcano",
-    text: "No-show",
+    text: "Không đến",
   },
 };
 
@@ -81,28 +81,33 @@ export default function BookingOccurrenceDetailDrawer({ occurrenceId, open, onCl
 
   const handleCheckIn = async () => {
     if (!occurrenceId) return;
-    try {
-      let noteValue = "";
+    let noteValue = "";
 
-      confirm({
-        title: "Xác nhận",
-        icon: <ExclamationCircleTwoTone />,
-        okText: "Check-in",
-        cancelText: "Bỏ qua",
-        content: (
-          <div>
-            <p>Bạn có chắc chắn muốn check-in lịch sân này?</p>
-            <TextArea rows={3} placeholder="Ghi chú (nếu có)..." onChange={(e) => (noteValue = e.target.value)} />
-          </div>
-        ),
-        async onOk() {
-          await checkInMutation.mutateAsync({ id: occurrenceId, note: noteValue });
-          message.success("Check-in thành công");
-        },
-      });
-    } catch (error: any) {
-      message.error((error as ApiError)?.message || "Check-in thất bại");
-    }
+    confirm({
+      title: "Xác nhận",
+      icon: <ExclamationCircleTwoTone />,
+      okText: "Check-in",
+      cancelText: "Bỏ qua",
+      content: (
+        <div>
+          <p>Bạn có chắc chắn muốn check-in lịch sân này?</p>
+          <TextArea rows={3} placeholder="Ghi chú (nếu có)..." onChange={(e) => (noteValue = e.target.value)} />
+        </div>
+      ),
+      async onOk() {
+        await checkInMutation.mutateAsync(
+          { id: occurrenceId, note: noteValue },
+          {
+            onError: (error: ApiError) => {
+              message.error(error.message || "Check-in thất bại");
+            },
+            onSuccess: () => {
+              message.success("Check-in thành công");
+            },
+          },
+        );
+      },
+    });
   };
 
   const handleNoShow = async () => {
@@ -180,7 +185,7 @@ export default function BookingOccurrenceDetailDrawer({ occurrenceId, open, onCl
 
   const handleCallOrderOrCheckout = async () => {
     if (!occurrenceId) return;
-    window.open(`/quanlysancaulong/cashier?occurrenceId=${occurrenceId}`, "_blank");
+    window.open(`/quanlysancaulong/cashier`, "_blank");
   };
 
   const handleViewBookingDetail = () => {
@@ -326,18 +331,6 @@ export default function BookingOccurrenceDetailDrawer({ occurrenceId, open, onCl
                         { key: "customerName2", label: "Tên khách hàng", children: occurrenceDetailData.customer?.fullName ?? "-", span: 1 },
                         { key: "phone", label: "Số điện thoại", children: occurrenceDetailData.customer?.phoneNumber ?? "-", span: 1 },
                         { key: "email", label: "Email", children: occurrenceDetailData.customer?.email ?? "-", span: 1 },
-                      ]}
-                    />
-
-                    <Descriptions
-                      bordered
-                      size="small"
-                      title="Thông tin sân"
-                      column={2}
-                      items={[
-                        { key: "courtId", label: "Mã sân", children: occurrenceDetailData.court?.id ?? "-", span: 1 },
-                        { key: "courtName2", label: "Tên sân", children: occurrenceDetailData.court?.name ?? "-", span: 1 },
-                        { key: "courtArea", label: "Khu vực sân", children: occurrenceDetailData.court?.courtAreaName ?? "-", span: 1 },
                       ]}
                     />
 

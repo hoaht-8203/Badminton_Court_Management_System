@@ -52,15 +52,15 @@ import {
     UpdateServiceRequestToJSON,
 } from '../models/index';
 
-export interface ApiServicesBookingAddServicePostRequest {
+export interface ApiServicesBookingOccurrenceAddServicePostRequest {
     addBookingServiceRequest?: AddBookingServiceRequest;
 }
 
-export interface ApiServicesBookingBookingIdServicesGetRequest {
-    bookingId: string;
+export interface ApiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGetRequest {
+    bookingCourtOccurrenceId: string;
 }
 
-export interface ApiServicesBookingRemoveServiceDeleteRequest {
+export interface ApiServicesBookingOccurrenceRemoveServiceDeleteRequest {
     removeBookingServiceRequest?: RemoveBookingServiceRequest;
 }
 
@@ -104,24 +104,24 @@ export interface ServicesApiInterface {
      * @throws {RequiredError}
      * @memberof ServicesApiInterface
      */
-    apiServicesBookingAddServicePostRaw(requestParameters: ApiServicesBookingAddServicePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BookingServiceDtoApiResponse>>;
+    apiServicesBookingOccurrenceAddServicePostRaw(requestParameters: ApiServicesBookingOccurrenceAddServicePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BookingServiceDtoApiResponse>>;
 
     /**
      */
-    apiServicesBookingAddServicePost(requestParameters: ApiServicesBookingAddServicePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BookingServiceDtoApiResponse>;
+    apiServicesBookingOccurrenceAddServicePost(requestParameters: ApiServicesBookingOccurrenceAddServicePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BookingServiceDtoApiResponse>;
 
     /**
      * 
-     * @param {string} bookingId 
+     * @param {string} bookingCourtOccurrenceId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ServicesApiInterface
      */
-    apiServicesBookingBookingIdServicesGetRaw(requestParameters: ApiServicesBookingBookingIdServicesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BookingServiceDtoListApiResponse>>;
+    apiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGetRaw(requestParameters: ApiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BookingServiceDtoListApiResponse>>;
 
     /**
      */
-    apiServicesBookingBookingIdServicesGet(requestParameters: ApiServicesBookingBookingIdServicesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BookingServiceDtoListApiResponse>;
+    apiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGet(requestParameters: ApiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BookingServiceDtoListApiResponse>;
 
     /**
      * 
@@ -130,11 +130,11 @@ export interface ServicesApiInterface {
      * @throws {RequiredError}
      * @memberof ServicesApiInterface
      */
-    apiServicesBookingRemoveServiceDeleteRaw(requestParameters: ApiServicesBookingRemoveServiceDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>>;
+    apiServicesBookingOccurrenceRemoveServiceDeleteRaw(requestParameters: ApiServicesBookingOccurrenceRemoveServiceDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>>;
 
     /**
      */
-    apiServicesBookingRemoveServiceDelete(requestParameters: ApiServicesBookingRemoveServiceDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse>;
+    apiServicesBookingOccurrenceRemoveServiceDelete(requestParameters: ApiServicesBookingOccurrenceRemoveServiceDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse>;
 
     /**
      * 
@@ -225,7 +225,7 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
 
     /**
      */
-    async apiServicesBookingAddServicePostRaw(requestParameters: ApiServicesBookingAddServicePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BookingServiceDtoApiResponse>> {
+    async apiServicesBookingOccurrenceAddServicePostRaw(requestParameters: ApiServicesBookingOccurrenceAddServicePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BookingServiceDtoApiResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -233,7 +233,7 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
         headerParameters['Content-Type'] = 'application/json';
 
 
-        let urlPath = `/api/Services/booking/add-service`;
+        let urlPath = `/api/Services/booking-occurrence/add-service`;
 
         const response = await this.request({
             path: urlPath,
@@ -248,18 +248,18 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
 
     /**
      */
-    async apiServicesBookingAddServicePost(requestParameters: ApiServicesBookingAddServicePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BookingServiceDtoApiResponse> {
-        const response = await this.apiServicesBookingAddServicePostRaw(requestParameters, initOverrides);
+    async apiServicesBookingOccurrenceAddServicePost(requestParameters: ApiServicesBookingOccurrenceAddServicePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BookingServiceDtoApiResponse> {
+        const response = await this.apiServicesBookingOccurrenceAddServicePostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async apiServicesBookingBookingIdServicesGetRaw(requestParameters: ApiServicesBookingBookingIdServicesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BookingServiceDtoListApiResponse>> {
-        if (requestParameters['bookingId'] == null) {
+    async apiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGetRaw(requestParameters: ApiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BookingServiceDtoListApiResponse>> {
+        if (requestParameters['bookingCourtOccurrenceId'] == null) {
             throw new runtime.RequiredError(
-                'bookingId',
-                'Required parameter "bookingId" was null or undefined when calling apiServicesBookingBookingIdServicesGet().'
+                'bookingCourtOccurrenceId',
+                'Required parameter "bookingCourtOccurrenceId" was null or undefined when calling apiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGet().'
             );
         }
 
@@ -268,8 +268,8 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
 
-        let urlPath = `/api/Services/booking/{bookingId}/services`;
-        urlPath = urlPath.replace(`{${"bookingId"}}`, encodeURIComponent(String(requestParameters['bookingId'])));
+        let urlPath = `/api/Services/booking-occurrence/{bookingCourtOccurrenceId}/services`;
+        urlPath = urlPath.replace(`{${"bookingCourtOccurrenceId"}}`, encodeURIComponent(String(requestParameters['bookingCourtOccurrenceId'])));
 
         const response = await this.request({
             path: urlPath,
@@ -283,14 +283,14 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
 
     /**
      */
-    async apiServicesBookingBookingIdServicesGet(requestParameters: ApiServicesBookingBookingIdServicesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BookingServiceDtoListApiResponse> {
-        const response = await this.apiServicesBookingBookingIdServicesGetRaw(requestParameters, initOverrides);
+    async apiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGet(requestParameters: ApiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BookingServiceDtoListApiResponse> {
+        const response = await this.apiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async apiServicesBookingRemoveServiceDeleteRaw(requestParameters: ApiServicesBookingRemoveServiceDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>> {
+    async apiServicesBookingOccurrenceRemoveServiceDeleteRaw(requestParameters: ApiServicesBookingOccurrenceRemoveServiceDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -298,7 +298,7 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
         headerParameters['Content-Type'] = 'application/json';
 
 
-        let urlPath = `/api/Services/booking/remove-service`;
+        let urlPath = `/api/Services/booking-occurrence/remove-service`;
 
         const response = await this.request({
             path: urlPath,
@@ -313,8 +313,8 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
 
     /**
      */
-    async apiServicesBookingRemoveServiceDelete(requestParameters: ApiServicesBookingRemoveServiceDeleteRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse> {
-        const response = await this.apiServicesBookingRemoveServiceDeleteRaw(requestParameters, initOverrides);
+    async apiServicesBookingOccurrenceRemoveServiceDelete(requestParameters: ApiServicesBookingOccurrenceRemoveServiceDeleteRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse> {
+        const response = await this.apiServicesBookingOccurrenceRemoveServiceDeleteRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

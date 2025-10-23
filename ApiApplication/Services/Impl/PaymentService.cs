@@ -125,7 +125,7 @@ public class PaymentService(
 
     private async Task<string> GenerateNextPaymentIdAsync()
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var prefix = $"PM-{now:ddMMyyyy}-";
         var lastId = await _context
             .Payments.AsNoTracking()

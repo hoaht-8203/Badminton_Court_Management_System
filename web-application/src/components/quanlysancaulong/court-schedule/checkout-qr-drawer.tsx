@@ -106,7 +106,7 @@ function QRSection({ checkoutDetail }: { checkoutDetail: CheckoutResponse | null
           type="primary"
           size="large"
           onClick={() => {
-            const paymentUrl = `/payment/${checkoutDetail?.orderId}`;
+            const paymentUrl = `/checkout/${checkoutDetail?.orderId}`;
             window.open(paymentUrl, "_blank");
           }}
           style={{

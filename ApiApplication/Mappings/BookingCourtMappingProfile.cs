@@ -1,4 +1,5 @@
 using ApiApplication.Dtos.BookingCourt;
+using ApiApplication.Dtos.Service;
 using ApiApplication.Entities;
 using AutoMapper;
 
@@ -69,6 +70,9 @@ public class BookingCourtMappingProfile : Profile
             )
             .ForMember(d => d.BookingServices, opt => opt.MapFrom(s => s.BookingServices))
             .ForMember(d => d.BookingOrderItems, opt => opt.MapFrom(s => s.BookingOrderItems));
+
+        CreateMap<BookingService, BookingServiceDto>()
+            .ForMember(d => d.ServiceName, opt => opt.MapFrom(s => s.Service!.Name));
 
         CreateMap<BookingCourtOccurrence, DetailBookingCourtOccurrenceResponse>()
             .ForMember(

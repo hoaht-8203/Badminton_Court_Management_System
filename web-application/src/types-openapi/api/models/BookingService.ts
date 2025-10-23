@@ -114,6 +114,18 @@ export interface BookingService {
     hours: number;
     /**
      * 
+     * @type {Date}
+     * @memberof BookingService
+     */
+    serviceStartTime: Date;
+    /**
+     * 
+     * @type {Date}
+     * @memberof BookingService
+     */
+    serviceEndTime?: Date | null;
+    /**
+     * 
      * @type {string}
      * @memberof BookingService
      */
@@ -139,6 +151,7 @@ export function instanceOfBookingService(value: object): value is BookingService
     if (!('unitPrice' in value) || value['unitPrice'] === undefined) return false;
     if (!('totalPrice' in value) || value['totalPrice'] === undefined) return false;
     if (!('hours' in value) || value['hours'] === undefined) return false;
+    if (!('serviceStartTime' in value) || value['serviceStartTime'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
@@ -166,6 +179,8 @@ export function BookingServiceFromJSONTyped(json: any, ignoreDiscriminator: bool
         'unitPrice': json['unitPrice'],
         'totalPrice': json['totalPrice'],
         'hours': json['hours'],
+        'serviceStartTime': (new Date(json['serviceStartTime'])),
+        'serviceEndTime': json['serviceEndTime'] == null ? undefined : (new Date(json['serviceEndTime'])),
         'notes': json['notes'] == null ? undefined : json['notes'],
         'status': json['status'],
     };
@@ -195,6 +210,8 @@ export function BookingServiceToJSONTyped(value?: BookingService | null, ignoreD
         'unitPrice': value['unitPrice'],
         'totalPrice': value['totalPrice'],
         'hours': value['hours'],
+        'serviceStartTime': ((value['serviceStartTime']).toISOString()),
+        'serviceEndTime': value['serviceEndTime'] === null ? null : ((value['serviceEndTime'] as any)?.toISOString()),
         'notes': value['notes'],
         'status': value['status'],
     };

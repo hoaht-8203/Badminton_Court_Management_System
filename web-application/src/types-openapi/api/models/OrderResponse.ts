@@ -48,6 +48,12 @@ export interface OrderResponse {
     bookingId?: string;
     /**
      * 
+     * @type {string}
+     * @memberof OrderResponse
+     */
+    bookingCourtOccurrenceId?: string | null;
+    /**
+     * 
      * @type {number}
      * @memberof OrderResponse
      */
@@ -64,6 +70,12 @@ export interface OrderResponse {
      * @memberof OrderResponse
      */
     courtName?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof OrderResponse
+     */
+    paymentMethod?: string | null;
     /**
      * 
      * @type {number}
@@ -175,9 +187,11 @@ export function OrderResponseFromJSONTyped(json: any, ignoreDiscriminator: boole
         
         'id': json['id'] == null ? undefined : json['id'],
         'bookingId': json['bookingId'] == null ? undefined : json['bookingId'],
+        'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'] == null ? undefined : json['bookingCourtOccurrenceId'],
         'customerId': json['customerId'] == null ? undefined : json['customerId'],
         'customerName': json['customerName'] == null ? undefined : json['customerName'],
         'courtName': json['courtName'] == null ? undefined : json['courtName'],
+        'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
         'courtTotalAmount': json['courtTotalAmount'] == null ? undefined : json['courtTotalAmount'],
         'courtPaidAmount': json['courtPaidAmount'] == null ? undefined : json['courtPaidAmount'],
         'courtRemainingAmount': json['courtRemainingAmount'] == null ? undefined : json['courtRemainingAmount'],
@@ -209,9 +223,11 @@ export function OrderResponseToJSONTyped(value?: OrderResponse | null, ignoreDis
         
         'id': value['id'],
         'bookingId': value['bookingId'],
+        'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
         'customerId': value['customerId'],
         'customerName': value['customerName'],
         'courtName': value['courtName'],
+        'paymentMethod': value['paymentMethod'],
         'courtTotalAmount': value['courtTotalAmount'],
         'courtPaidAmount': value['courtPaidAmount'],
         'courtRemainingAmount': value['courtRemainingAmount'],

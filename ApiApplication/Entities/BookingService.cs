@@ -30,6 +30,11 @@ public class BookingService : BaseEntity
     [Required]
     public required decimal Hours { get; set; } // Duration of service rental
 
+    [Required]
+    public required DateTime ServiceStartTime { get; set; } // When service usage started
+
+    public DateTime? ServiceEndTime { get; set; } // When service usage ended (null if still in use)
+
     [MaxLength(500)]
     public string? Notes { get; set; } // Special instructions or notes
 

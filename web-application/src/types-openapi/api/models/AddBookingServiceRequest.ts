@@ -24,13 +24,7 @@ export interface AddBookingServiceRequest {
      * @type {string}
      * @memberof AddBookingServiceRequest
      */
-    bookingId: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AddBookingServiceRequest
-     */
-    bookingCourtOccurrenceId?: string | null;
+    bookingCourtOccurrenceId: string;
     /**
      * 
      * @type {string}
@@ -55,7 +49,7 @@ export interface AddBookingServiceRequest {
  * Check if a given object implements the AddBookingServiceRequest interface.
  */
 export function instanceOfAddBookingServiceRequest(value: object): value is AddBookingServiceRequest {
-    if (!('bookingId' in value) || value['bookingId'] === undefined) return false;
+    if (!('bookingCourtOccurrenceId' in value) || value['bookingCourtOccurrenceId'] === undefined) return false;
     if (!('serviceId' in value) || value['serviceId'] === undefined) return false;
     if (!('quantity' in value) || value['quantity'] === undefined) return false;
     return true;
@@ -71,8 +65,7 @@ export function AddBookingServiceRequestFromJSONTyped(json: any, ignoreDiscrimin
     }
     return {
         
-        'bookingId': json['bookingId'],
-        'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'] == null ? undefined : json['bookingCourtOccurrenceId'],
+        'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'],
         'serviceId': json['serviceId'],
         'quantity': json['quantity'],
         'notes': json['notes'] == null ? undefined : json['notes'],
@@ -90,7 +83,6 @@ export function AddBookingServiceRequestToJSONTyped(value?: AddBookingServiceReq
 
     return {
         
-        'bookingId': value['bookingId'],
         'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
         'serviceId': value['serviceId'],
         'quantity': value['quantity'],

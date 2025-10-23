@@ -24,6 +24,10 @@ public class OrderMappingProfile : Profile
                     )
             )
             .ForMember(
+                dest => dest.PaymentMethod,
+                opt => opt.MapFrom(src => src.PaymentMethod)
+            )
+            .ForMember(
                 dest => dest.OverdueDisplay,
                 opt => opt.MapFrom(src => FormatOverdueTime(src.OverdueMinutes))
             )

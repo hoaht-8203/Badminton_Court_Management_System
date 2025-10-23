@@ -2,7 +2,6 @@ import { axiosInstance } from "@/lib/axios";
 import {
   ChangeServiceStatusRequest,
   CreateServiceRequest,
-  DeleteServiceRequest,
   DetailServiceRequest,
   DetailServiceResponse,
   ListServiceRequest,

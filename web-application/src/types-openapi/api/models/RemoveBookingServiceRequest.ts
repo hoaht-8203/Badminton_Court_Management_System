@@ -24,13 +24,14 @@ export interface RemoveBookingServiceRequest {
      * @type {string}
      * @memberof RemoveBookingServiceRequest
      */
-    id?: string;
+    bookingCourtOccurrenceId: string;
 }
 
 /**
  * Check if a given object implements the RemoveBookingServiceRequest interface.
  */
 export function instanceOfRemoveBookingServiceRequest(value: object): value is RemoveBookingServiceRequest {
+    if (!('bookingCourtOccurrenceId' in value) || value['bookingCourtOccurrenceId'] === undefined) return false;
     return true;
 }
 
@@ -44,7 +45,7 @@ export function RemoveBookingServiceRequestFromJSONTyped(json: any, ignoreDiscri
     }
     return {
         
-        'id': json['id'] == null ? undefined : json['id'],
+        'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'],
     };
 }
 
@@ -59,7 +60,7 @@ export function RemoveBookingServiceRequestToJSONTyped(value?: RemoveBookingServ
 
     return {
         
-        'id': value['id'],
+        'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
     };
 }
 

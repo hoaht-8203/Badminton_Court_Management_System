@@ -27,6 +27,13 @@ import {
     CustomerToJSON,
     CustomerToJSONTyped,
 } from './Customer';
+import type { BookingCourtOccurrence } from './BookingCourtOccurrence';
+import {
+    BookingCourtOccurrenceFromJSON,
+    BookingCourtOccurrenceFromJSONTyped,
+    BookingCourtOccurrenceToJSON,
+    BookingCourtOccurrenceToJSONTyped,
+} from './BookingCourtOccurrence';
 import type { BookingCourt } from './BookingCourt';
 import {
     BookingCourtFromJSON,
@@ -85,6 +92,18 @@ export interface Order {
     booking?: BookingCourt;
     /**
      * 
+     * @type {string}
+     * @memberof Order
+     */
+    bookingCourtOccurrenceId?: string | null;
+    /**
+     * 
+     * @type {BookingCourtOccurrence}
+     * @memberof Order
+     */
+    bookingCourtOccurrence?: BookingCourtOccurrence;
+    /**
+     * 
      * @type {number}
      * @memberof Order
      */
@@ -124,6 +143,12 @@ export interface Order {
      * @type {number}
      * @memberof Order
      */
+    servicesSubtotal?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof Order
+     */
     lateFeePercentage?: number;
     /**
      * 
@@ -149,6 +174,12 @@ export interface Order {
      * @memberof Order
      */
     status?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof Order
+     */
+    paymentMethod?: string | null;
     /**
      * 
      * @type {string}
@@ -189,17 +220,21 @@ export function OrderFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ord
         'id': json['id'] == null ? undefined : json['id'],
         'bookingId': json['bookingId'],
         'booking': json['booking'] == null ? undefined : BookingCourtFromJSON(json['booking']),
+        'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'] == null ? undefined : json['bookingCourtOccurrenceId'],
+        'bookingCourtOccurrence': json['bookingCourtOccurrence'] == null ? undefined : BookingCourtOccurrenceFromJSON(json['bookingCourtOccurrence']),
         'customerId': json['customerId'],
         'customer': json['customer'] == null ? undefined : CustomerFromJSON(json['customer']),
         'courtTotalAmount': json['courtTotalAmount'] == null ? undefined : json['courtTotalAmount'],
         'courtPaidAmount': json['courtPaidAmount'] == null ? undefined : json['courtPaidAmount'],
         'courtRemainingAmount': json['courtRemainingAmount'] == null ? undefined : json['courtRemainingAmount'],
         'itemsSubtotal': json['itemsSubtotal'] == null ? undefined : json['itemsSubtotal'],
+        'servicesSubtotal': json['servicesSubtotal'] == null ? undefined : json['servicesSubtotal'],
         'lateFeePercentage': json['lateFeePercentage'] == null ? undefined : json['lateFeePercentage'],
         'lateFeeAmount': json['lateFeeAmount'] == null ? undefined : json['lateFeeAmount'],
         'overdueMinutes': json['overdueMinutes'] == null ? undefined : json['overdueMinutes'],
         'totalAmount': json['totalAmount'] == null ? undefined : json['totalAmount'],
         'status': json['status'] == null ? undefined : json['status'],
+        'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
         'note': json['note'] == null ? undefined : json['note'],
         'payments': json['payments'] == null ? undefined : ((json['payments'] as Array<any>).map(PaymentFromJSON)),
     };
@@ -223,17 +258,21 @@ export function OrderToJSONTyped(value?: Order | null, ignoreDiscriminator: bool
         'id': value['id'],
         'bookingId': value['bookingId'],
         'booking': BookingCourtToJSON(value['booking']),
+        'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
+        'bookingCourtOccurrence': BookingCourtOccurrenceToJSON(value['bookingCourtOccurrence']),
         'customerId': value['customerId'],
         'customer': CustomerToJSON(value['customer']),
         'courtTotalAmount': value['courtTotalAmount'],
         'courtPaidAmount': value['courtPaidAmount'],
         'courtRemainingAmount': value['courtRemainingAmount'],
         'itemsSubtotal': value['itemsSubtotal'],
+        'servicesSubtotal': value['servicesSubtotal'],
         'lateFeePercentage': value['lateFeePercentage'],
         'lateFeeAmount': value['lateFeeAmount'],
         'overdueMinutes': value['overdueMinutes'],
         'totalAmount': value['totalAmount'],
         'status': value['status'],
+        'paymentMethod': value['paymentMethod'],
         'note': value['note'],
         'payments': value['payments'] == null ? undefined : ((value['payments'] as Array<any>).map(PaymentToJSON)),
     };

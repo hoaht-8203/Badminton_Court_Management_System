@@ -24,7 +24,7 @@ public class AutoCheckoutHostedService(
             {
                 using var scope = _sp.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
                 var today = DateOnly.FromDateTime(now);
                 var nowTime = TimeOnly.FromDateTime(now);
 

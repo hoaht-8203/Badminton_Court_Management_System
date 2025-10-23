@@ -12,5 +12,7 @@ public interface IOrderService
         string? status = null,
         string? paymentMethod = null
     );
+    Task<List<ListOrderResponse>> GetOrdersAsync(ListOrderRequest request);
     Task<bool> ConfirmPaymentAsync(Guid orderId);
+    Task<bool> ExtendPaymentTimeAsync(Guid orderId);
 }

@@ -10,6 +10,8 @@ public class Order : BaseEntity
     [Key]
     public Guid Id { get; set; }
 
+    public string OrderCode { get; set; } = string.Empty;
+
     public required Guid BookingId { get; set; }
 
     [ForeignKey(nameof(BookingId))]

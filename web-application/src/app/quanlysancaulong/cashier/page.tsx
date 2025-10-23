@@ -21,6 +21,7 @@ import { useListProducts } from "@/hooks/useProducts";
 import { useListServices } from "@/hooks/useServices";
 import { usePendingPaymentOrders } from "@/hooks/useOrders";
 import { cashierService } from "@/services/cashierService";
+import { ordersService } from "@/services/ordersService";
 import {
   CheckoutRequest,
   CheckoutResponse,
@@ -901,6 +902,8 @@ interface PendingPaymentsTabProps {
 
 // Memoize PendingPaymentsTab to prevent unnecessary re-renders
 const PendingPaymentsTab = memo(function PendingPaymentsTab({ data, loading, filter, onFilterChange }: PendingPaymentsTabProps) {
+  const [extendingPayment, setExtendingPayment] = useState<string | null>(null);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Pending":
@@ -924,6 +927,20 @@ const PendingPaymentsTab = memo(function PendingPaymentsTab({ data, loading, fil
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
+
+  const handleExtendPayment = useCallback(async (orderId: string) => {
+    setExtendingPayment(orderId);
+    try {
+      await ordersService.extendPaymentTime(orderId);
+      message.success("Gia hạn thanh toán thành công! Thêm 5 phút để thanh toán.");
+      // Refresh data after extending payment
+      window.location.reload();
+    } catch (error: any) {
+      message.error(error?.message || "Không thể gia hạn thanh toán");
+    } finally {
+      setExtendingPayment(null);
+    }
+  }, []);
 
   return (
     <div className="h-full p-3">
@@ -973,7 +990,7 @@ const PendingPaymentsTab = memo(function PendingPaymentsTab({ data, loading, fil
         ) : data.length === 0 ? (
           <Empty description="Không có đơn hàng nào" image={Empty.PRESENTED_IMAGE_SIMPLE} />
         ) : (
-          <div className="space-y-3">
+          <div className="flex flex-col space-y-3">
             {data.map((order, index) => (
               <Card key={order.id || index} size="small" className="transition-shadow hover:shadow-md">
                 <div className="space-y-2">
@@ -1010,18 +1027,25 @@ const PendingPaymentsTab = memo(function PendingPaymentsTab({ data, loading, fil
                     <div className="text-sm text-gray-600">
                       Tổng tiền: <span className="text-lg font-semibold text-red-600">{(order.totalAmount || 0).toLocaleString("vi-VN")} đ</span>
                     </div>
-                    {order.status === "Pending" && order.paymentMethod === "Bank" && (
-                      <Button
-                        type="primary"
-                        size="small"
-                        onClick={() => {
-                          const checkoutUrl = `/checkout/${order.id}`;
-                          window.open(checkoutUrl, "_blank");
-                        }}
-                      >
-                        Xem QR
-                      </Button>
-                    )}
+                    <div className="flex gap-2">
+                      {order.status === "Pending" && order.paymentMethod === "Bank" && (
+                        <Button
+                          type="primary"
+                          size="small"
+                          onClick={() => {
+                            const checkoutUrl = `/checkout/${order.id}`;
+                            window.open(checkoutUrl, "_blank");
+                          }}
+                        >
+                          Xem QR
+                        </Button>
+                      )}
+                      {order.status === "Cancelled" && order.paymentMethod === "Bank" && (
+                        <Button type="default" size="small" loading={extendingPayment === order.id} onClick={() => handleExtendPayment(order.id!)}>
+                          Gia hạn 5 phút
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </Card>

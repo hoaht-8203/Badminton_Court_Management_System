@@ -30,6 +30,12 @@ export interface CheckoutResponse {
      * @type {string}
      * @memberof CheckoutResponse
      */
+    orderCode?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof CheckoutResponse
+     */
     bookingId?: string;
     /**
      * 
@@ -177,6 +183,7 @@ export function CheckoutResponseFromJSONTyped(json: any, ignoreDiscriminator: bo
     return {
         
         'orderId': json['orderId'] == null ? undefined : json['orderId'],
+        'orderCode': json['orderCode'] == null ? undefined : json['orderCode'],
         'bookingId': json['bookingId'] == null ? undefined : json['bookingId'],
         'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'] == null ? undefined : json['bookingCourtOccurrenceId'],
         'customerId': json['customerId'] == null ? undefined : json['customerId'],
@@ -214,6 +221,7 @@ export function CheckoutResponseToJSONTyped(value?: CheckoutResponse | null, ign
     return {
         
         'orderId': value['orderId'],
+        'orderCode': value['orderCode'],
         'bookingId': value['bookingId'],
         'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
         'customerId': value['customerId'],

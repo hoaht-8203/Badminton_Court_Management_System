@@ -3,6 +3,7 @@ namespace ApiApplication.Dtos.Order;
 public class CheckoutResponse
 {
     public Guid OrderId { get; set; }
+    public string OrderCode { get; set; } = string.Empty;
     public Guid BookingId { get; set; }
     public Guid BookingCourtOccurrenceId { get; set; }
     public int CustomerId { get; set; }

@@ -70,7 +70,7 @@ const sideBarItems: MenuProps["items"] = [
     icon: <ArrowLeftRight className="h-4 w-4" />,
     children: [
       {
-        key: "quanlyhoadon",
+        key: "/quanlysancaulong/orders",
         label: "Quản lý hoá đơn",
       },
       {

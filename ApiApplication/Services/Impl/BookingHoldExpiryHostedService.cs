@@ -29,6 +29,8 @@ public class BookingHoldExpiryHostedService(
                     b.Status == BookingCourtStatus.PendingPayment
                     && b.HoldExpiresAtUtc != null
                     && b.HoldExpiresAtUtc <= now
+                    // Exclude bookings that have active orders (extended payments)
+                    && !db.Orders.Any(o => o.BookingId == b.Id && o.Status == "Pending")
                 );
 
                 var expiredIds = await expiredQuery.Select(b => b.Id).ToListAsync(stoppingToken);

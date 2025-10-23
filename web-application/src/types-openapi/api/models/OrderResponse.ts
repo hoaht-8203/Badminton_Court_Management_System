@@ -45,6 +45,12 @@ export interface OrderResponse {
      * @type {string}
      * @memberof OrderResponse
      */
+    orderCode?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof OrderResponse
+     */
     bookingId?: string;
     /**
      * 
@@ -186,6 +192,7 @@ export function OrderResponseFromJSONTyped(json: any, ignoreDiscriminator: boole
     return {
         
         'id': json['id'] == null ? undefined : json['id'],
+        'orderCode': json['orderCode'] == null ? undefined : json['orderCode'],
         'bookingId': json['bookingId'] == null ? undefined : json['bookingId'],
         'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'] == null ? undefined : json['bookingCourtOccurrenceId'],
         'customerId': json['customerId'] == null ? undefined : json['customerId'],
@@ -222,6 +229,7 @@ export function OrderResponseToJSONTyped(value?: OrderResponse | null, ignoreDis
     return {
         
         'id': value['id'],
+        'orderCode': value['orderCode'],
         'bookingId': value['bookingId'],
         'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
         'customerId': value['customerId'],

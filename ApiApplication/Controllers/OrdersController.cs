@@ -71,6 +71,23 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     }
 
     /// <summary>
+    /// Lấy danh sách đơn hàng với bộ lọc
+    /// </summary>
+    [HttpGet("list")]
+    public async Task<ActionResult<ApiResponse<List<ListOrderResponse>>>> GetOrdersAsync(
+        [FromQuery] ListOrderRequest request
+    )
+    {
+        var result = await _orderService.GetOrdersAsync(request);
+        return Ok(
+            ApiResponse<List<ListOrderResponse>>.SuccessResponse(
+                result,
+                "Lấy danh sách đơn hàng thành công"
+            )
+        );
+    }
+
+    /// <summary>
     /// Lấy thông tin checkout từ OrderId
     /// </summary>
     [HttpGet("checkout/{orderId}")]
@@ -95,5 +112,15 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     {
         var result = await _orderService.ConfirmPaymentAsync(orderId);
         return Ok(ApiResponse<bool>.SuccessResponse(result, "Xác nhận thanh toán thành công"));
+    }
+
+    /// <summary>
+    /// Gia hạn thời gian thanh toán cho đơn hàng đã bị hủy (thêm 5 phút)
+    /// </summary>
+    [HttpPost("{orderId}/extend-payment")]
+    public async Task<ActionResult<ApiResponse<bool>>> ExtendPaymentTimeAsync(Guid orderId)
+    {
+        var result = await _orderService.ExtendPaymentTimeAsync(orderId);
+        return Ok(ApiResponse<bool>.SuccessResponse(result, "Gia hạn thanh toán thành công"));
     }
 }

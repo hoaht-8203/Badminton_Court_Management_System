@@ -18,6 +18,7 @@ import type {
   BooleanApiResponse,
   CheckoutRequest,
   CheckoutResponseApiResponse,
+  ListOrderResponseListApiResponse,
   OrderResponseApiResponse,
   OrderResponseListApiResponse,
 } from '../models/index';
@@ -28,6 +29,8 @@ import {
     CheckoutRequestToJSON,
     CheckoutResponseApiResponseFromJSON,
     CheckoutResponseApiResponseToJSON,
+    ListOrderResponseListApiResponseFromJSON,
+    ListOrderResponseListApiResponseToJSON,
     OrderResponseApiResponseFromJSON,
     OrderResponseApiResponseToJSON,
     OrderResponseListApiResponseFromJSON,
@@ -46,7 +49,19 @@ export interface ApiOrdersCheckoutPostRequest {
     checkoutRequest?: CheckoutRequest;
 }
 
+export interface ApiOrdersListGetRequest {
+    status?: string;
+    paymentMethod?: string;
+    customerId?: number;
+    fromDate?: Date;
+    toDate?: Date;
+}
+
 export interface ApiOrdersOrderIdConfirmPaymentPostRequest {
+    orderId: string;
+}
+
+export interface ApiOrdersOrderIdExtendPaymentPostRequest {
     orderId: string;
 }
 
@@ -107,6 +122,23 @@ export interface OrdersApiInterface {
 
     /**
      * 
+     * @param {string} [status] 
+     * @param {string} [paymentMethod] 
+     * @param {number} [customerId] 
+     * @param {Date} [fromDate] 
+     * @param {Date} [toDate] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OrdersApiInterface
+     */
+    apiOrdersListGetRaw(requestParameters: ApiOrdersListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListOrderResponseListApiResponse>>;
+
+    /**
+     */
+    apiOrdersListGet(requestParameters: ApiOrdersListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListOrderResponseListApiResponse>;
+
+    /**
+     * 
      * @param {string} orderId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -117,6 +149,19 @@ export interface OrdersApiInterface {
     /**
      */
     apiOrdersOrderIdConfirmPaymentPost(requestParameters: ApiOrdersOrderIdConfirmPaymentPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse>;
+
+    /**
+     * 
+     * @param {string} orderId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof OrdersApiInterface
+     */
+    apiOrdersOrderIdExtendPaymentPostRaw(requestParameters: ApiOrdersOrderIdExtendPaymentPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>>;
+
+    /**
+     */
+    apiOrdersOrderIdExtendPaymentPost(requestParameters: ApiOrdersOrderIdExtendPaymentPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse>;
 
     /**
      * 
@@ -254,6 +299,53 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
 
     /**
      */
+    async apiOrdersListGetRaw(requestParameters: ApiOrdersListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListOrderResponseListApiResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['status'] != null) {
+            queryParameters['Status'] = requestParameters['status'];
+        }
+
+        if (requestParameters['paymentMethod'] != null) {
+            queryParameters['PaymentMethod'] = requestParameters['paymentMethod'];
+        }
+
+        if (requestParameters['customerId'] != null) {
+            queryParameters['CustomerId'] = requestParameters['customerId'];
+        }
+
+        if (requestParameters['fromDate'] != null) {
+            queryParameters['FromDate'] = (requestParameters['fromDate'] as any).toISOString();
+        }
+
+        if (requestParameters['toDate'] != null) {
+            queryParameters['ToDate'] = (requestParameters['toDate'] as any).toISOString();
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Orders/list`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListOrderResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiOrdersListGet(requestParameters: ApiOrdersListGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListOrderResponseListApiResponse> {
+        const response = await this.apiOrdersListGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
     async apiOrdersOrderIdConfirmPaymentPostRaw(requestParameters: ApiOrdersOrderIdConfirmPaymentPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>> {
         if (requestParameters['orderId'] == null) {
             throw new runtime.RequiredError(
@@ -284,6 +376,41 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
      */
     async apiOrdersOrderIdConfirmPaymentPost(requestParameters: ApiOrdersOrderIdConfirmPaymentPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse> {
         const response = await this.apiOrdersOrderIdConfirmPaymentPostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiOrdersOrderIdExtendPaymentPostRaw(requestParameters: ApiOrdersOrderIdExtendPaymentPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>> {
+        if (requestParameters['orderId'] == null) {
+            throw new runtime.RequiredError(
+                'orderId',
+                'Required parameter "orderId" was null or undefined when calling apiOrdersOrderIdExtendPaymentPost().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Orders/{orderId}/extend-payment`;
+        urlPath = urlPath.replace(`{${"orderId"}}`, encodeURIComponent(String(requestParameters['orderId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BooleanApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiOrdersOrderIdExtendPaymentPost(requestParameters: ApiOrdersOrderIdExtendPaymentPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse> {
+        const response = await this.apiOrdersOrderIdExtendPaymentPostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

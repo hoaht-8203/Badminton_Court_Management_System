@@ -83,6 +83,12 @@ export interface Order {
      * @type {string}
      * @memberof Order
      */
+    orderCode?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof Order
+     */
     bookingId: string;
     /**
      * 
@@ -218,6 +224,7 @@ export function OrderFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ord
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
         'id': json['id'] == null ? undefined : json['id'],
+        'orderCode': json['orderCode'] == null ? undefined : json['orderCode'],
         'bookingId': json['bookingId'],
         'booking': json['booking'] == null ? undefined : BookingCourtFromJSON(json['booking']),
         'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'] == null ? undefined : json['bookingCourtOccurrenceId'],
@@ -256,6 +263,7 @@ export function OrderToJSONTyped(value?: Order | null, ignoreDiscriminator: bool
         'createdBy': value['createdBy'],
         'updatedBy': value['updatedBy'],
         'id': value['id'],
+        'orderCode': value['orderCode'],
         'bookingId': value['bookingId'],
         'booking': BookingCourtToJSON(value['booking']),
         'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],

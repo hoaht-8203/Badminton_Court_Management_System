@@ -30,6 +30,12 @@ public class OrderService(
             .Include(x => x.Booking)
             .ThenInclude(x => x!.Customer)
             .Include(x => x.Payments)
+            .Include(x => x.BookingCourtOccurrence)
+            .ThenInclude(x => x!.BookingOrderItems)
+            .ThenInclude(x => x.Product)
+            .Include(x => x.BookingCourtOccurrence)
+            .ThenInclude(x => x!.BookingServices)
+            .ThenInclude(x => x.Service)
             .FirstOrDefaultAsync(x => x.Id == orderId);
 
         if (order == null)
@@ -60,6 +66,7 @@ public class OrderService(
         return new CheckoutResponse
         {
             OrderId = order.Id,
+            OrderCode = order.OrderCode,
             BookingId = order.BookingId,
             BookingCourtOccurrenceId = order.BookingCourtOccurrenceId ?? Guid.Empty,
             CustomerId = order.CustomerId,
@@ -157,9 +164,11 @@ public class OrderService(
         var paymentStatus = isCashPayment ? "Paid" : "PendingPayment";
 
         // Tạo Order
+        var orderCode = await GenerateOrderCodeAsync();
         var order = new Order
         {
             Id = Guid.NewGuid(),
+            OrderCode = orderCode,
             BookingId = booking.Id,
             BookingCourtOccurrenceId = occurrence.Id,
             CustomerId = booking.CustomerId,
@@ -218,10 +227,6 @@ public class OrderService(
         string qrUrl = string.Empty;
         var holdMins = 0;
 
-        System.Console.WriteLine($"PaymentMethod: {request.PaymentMethod}");
-        System.Console.WriteLine($"isCashPayment: {isCashPayment}");
-        System.Console.WriteLine($"totalAmount: {totalAmount}");
-
         if (!isCashPayment && totalAmount > 0)
         {
             var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
@@ -243,6 +248,7 @@ public class OrderService(
         return new CheckoutResponse
         {
             OrderId = order.Id,
+            OrderCode = order.OrderCode,
             BookingId = booking.Id,
             BookingCourtOccurrenceId = occurrence.Id,
             CustomerId = booking.CustomerId,
@@ -283,6 +289,10 @@ public class OrderService(
             .ThenInclude(x => x!.BookingCourtOccurrences)
             .ThenInclude(x => x.BookingOrderItems)
             .ThenInclude(x => x.Product)
+            .Include(x => x.Booking)
+            .ThenInclude(x => x!.BookingCourtOccurrences)
+            .ThenInclude(x => x.BookingServices)
+            .ThenInclude(x => x.Service)
             .FirstOrDefaultAsync(x => x.Id == orderId);
 
         if (order == null)
@@ -306,6 +316,10 @@ public class OrderService(
             .ThenInclude(x => x!.BookingCourtOccurrences)
             .ThenInclude(x => x.BookingOrderItems)
             .ThenInclude(x => x.Product)
+            .Include(x => x.Booking)
+            .ThenInclude(x => x!.BookingCourtOccurrences)
+            .ThenInclude(x => x.BookingServices)
+            .ThenInclude(x => x.Service)
             .Where(x => x.BookingId == bookingId)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
@@ -326,6 +340,11 @@ public class OrderService(
             .Include(x => x.Customer)
             .Include(x => x.Payments)
             .Include(x => x.BookingCourtOccurrence)
+            .ThenInclude(x => x!.BookingOrderItems)
+            .ThenInclude(x => x.Product)
+            .Include(x => x.BookingCourtOccurrence)
+            .ThenInclude(x => x!.BookingServices)
+            .ThenInclude(x => x.Service)
             .AsQueryable();
 
         // Filter by status if provided
@@ -344,6 +363,61 @@ public class OrderService(
         var orders = await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
 
         return _mapper.Map<List<OrderResponse>>(orders);
+    }
+
+    public async Task<List<ListOrderResponse>> GetOrdersAsync(ListOrderRequest request)
+    {
+        var query = _context
+            .Orders.Include(x => x.Booking)
+            .ThenInclude(x => x!.Court)
+            .Include(x => x.Booking)
+            .ThenInclude(x => x!.Customer)
+            .Include(x => x.Booking)
+            .ThenInclude(x => x.Court)
+            .ThenInclude(x => x.CourtArea)
+            .Include(x => x.Customer)
+            .Include(x => x.Payments)
+            .Include(x => x.BookingCourtOccurrence)
+            .ThenInclude(x => x!.BookingOrderItems)
+            .ThenInclude(x => x.Product)
+            .Include(x => x.BookingCourtOccurrence)
+            .ThenInclude(x => x!.BookingServices)
+            .ThenInclude(x => x.Service)
+            .AsQueryable();
+
+        // Filter by status if provided
+        if (!string.IsNullOrEmpty(request.Status))
+        {
+            query = query.Where(x => x.Status == request.Status);
+        }
+
+        // Filter by payment method if provided
+        if (!string.IsNullOrEmpty(request.PaymentMethod))
+        {
+            query = query.Where(x => x.PaymentMethod == request.PaymentMethod);
+        }
+
+        // Filter by customer if provided
+        if (request.CustomerId.HasValue)
+        {
+            query = query.Where(x => x.CustomerId == request.CustomerId.Value);
+        }
+
+        // Filter by date range if provided
+        if (request.FromDate.HasValue)
+        {
+            query = query.Where(x => x.CreatedAt.Date >= request.FromDate.Value.Date);
+        }
+
+        if (request.ToDate.HasValue)
+        {
+            query = query.Where(x => x.CreatedAt.Date <= request.ToDate.Value.Date);
+        }
+
+        // Order by creation time (newest first)
+        var orders = await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
+
+        return _mapper.Map<List<ListOrderResponse>>(orders);
     }
 
     public async Task<bool> ConfirmPaymentAsync(Guid orderId)
@@ -388,42 +462,46 @@ public class OrderService(
         return true;
     }
 
-    private async Task<decimal> CalculateBookingAmountForEntityAsync(BookingCourt booking)
+    public async Task<bool> ExtendPaymentTimeAsync(Guid orderId)
     {
-        var dow = GetCustomDayOfWeek(booking.StartDate);
-        var rules = await _context
-            .CourtPricingRules.Where(r =>
-                r.CourtId == booking.CourtId && r.DaysOfWeek.Contains(dow)
-            )
-            .OrderBy(r => r.Order)
-            .ToListAsync();
+        var order = await _context
+            .Orders.Include(x => x.Payments)
+            .Include(x => x.Booking)
+            .ThenInclude(x => x.Court)
+            .FirstOrDefaultAsync(x => x.Id == orderId);
 
-        if (rules.Count == 0)
+        if (order == null)
         {
-            return 0m;
+            throw new ApiException("Không tìm thấy đơn hàng", HttpStatusCode.BadRequest);
         }
 
-        var total = 0m;
-        var currentTime = booking.StartTime;
-        var endTime = booking.EndTime;
-
-        while (currentTime < endTime)
+        // Chỉ cho phép extend payment cho orders có status Cancelled
+        if (order.Status != OrderStatus.Cancelled)
         {
-            var applicableRule = rules.FirstOrDefault(r =>
-                currentTime >= r.StartTime && currentTime < r.EndTime
+            throw new ApiException(
+                "Chỉ có thể gia hạn thanh toán cho đơn hàng đã bị hủy",
+                HttpStatusCode.BadRequest
             );
-            if (applicableRule == null)
-            {
-                break;
-            }
-            var ruleEndTime = applicableRule.EndTime < endTime ? applicableRule.EndTime : endTime;
-            var hours = (decimal)(ruleEndTime.ToTimeSpan() - currentTime.ToTimeSpan()).TotalHours;
-            var priceForThisPeriod = applicableRule.PricePerHour * hours;
-            total += priceForThisPeriod;
-            currentTime = ruleEndTime;
         }
 
-        return Math.Ceiling(total);
+        // Cập nhật trạng thái order về Pending
+        order.Status = OrderStatus.Pending;
+
+        // Cập nhật trạng thái payment về PendingPayment và reset thời gian
+        foreach (var payment in order.Payments)
+        {
+            payment.Status = "PendingPayment";
+            payment.PaymentCreatedAt = DateTime.UtcNow; // Reset thời gian tạo payment
+        }
+
+        // Cập nhật trạng thái booking và court về CheckedIn để có thể tiếp tục chơi
+        if (order.Booking != null)
+        {
+            order.Booking.HoldExpiresAtUtc = DateTime.UtcNow.AddMinutes(5);
+        }
+
+        await _context.SaveChangesAsync();
+        return true;
     }
 
     private async Task<decimal> CalculateBookingAmountForOccurrenceAsync(
@@ -554,6 +632,9 @@ public class OrderService(
             .Where(bs => bs.BookingCourtOccurrenceId == occurrence.Id)
             .ToListAsync();
 
+        // Group by service to avoid duplicate stock updates
+        var serviceStockUpdates = new Dictionary<Guid, int>();
+
         foreach (var bookingService in bookingServices)
         {
             // Calculate actual usage time in hours
@@ -570,10 +651,27 @@ public class OrderService(
             bookingService.Hours = Math.Ceiling(usageHours); // Keep for reference
             bookingService.TotalPrice = Math.Ceiling(rawCost / 1000m) * 1000m;
 
-            // Return stock to service
+            // Accumulate stock return quantities by service
             if (bookingService.Service.StockQuantity.HasValue)
             {
-                bookingService.Service.StockQuantity += bookingService.Quantity;
+                if (serviceStockUpdates.ContainsKey(bookingService.ServiceId))
+                {
+                    serviceStockUpdates[bookingService.ServiceId] += bookingService.Quantity;
+                }
+                else
+                {
+                    serviceStockUpdates[bookingService.ServiceId] = bookingService.Quantity;
+                }
+            }
+        }
+
+        // Apply stock updates to services
+        foreach (var stockUpdate in serviceStockUpdates)
+        {
+            var service = await _context.Services.FindAsync(stockUpdate.Key);
+            if (service != null && service.StockQuantity.HasValue)
+            {
+                service.StockQuantity += stockUpdate.Value;
             }
         }
 
@@ -604,5 +702,31 @@ public class OrderService(
         }
 
         return totalServicesCost;
+    }
+
+    private async Task<string> GenerateOrderCodeAsync()
+    {
+        var today = DateTime.Now;
+        var datePrefix = today.ToString("ddMMyyyy");
+        var prefix = $"DH{datePrefix}";
+
+        // Tìm số thứ tự cao nhất trong ngày
+        var maxOrderCode = await _context
+            .Orders.Where(o => o.OrderCode.StartsWith(prefix))
+            .Select(o => o.OrderCode)
+            .OrderByDescending(code => code)
+            .FirstOrDefaultAsync();
+
+        int nextSequence = 1;
+        if (!string.IsNullOrEmpty(maxOrderCode))
+        {
+            var lastSequenceStr = maxOrderCode.Substring(prefix.Length + 1); // +1 for the dash
+            if (int.TryParse(lastSequenceStr, out int lastSequence))
+            {
+                nextSequence = lastSequence + 1;
+            }
+        }
+
+        return $"{prefix}-{nextSequence:D6}";
     }
 }

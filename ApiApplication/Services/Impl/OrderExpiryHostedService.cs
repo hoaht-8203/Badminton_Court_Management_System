@@ -27,9 +27,15 @@ public class OrderExpiryHostedService(
                 var now = DateTime.UtcNow;
 
                 // Find orders that are pending payment and have expired
-                var expiredOrdersQuery = db.Orders.Where(o =>
-                    o.Status == OrderStatus.Pending && o.CreatedAt.AddMinutes(5) <= now // 5 minutes expiry
-                );
+                // Use HoldExpiresAtUtc from the associated booking instead of CreatedAt
+                var expiredOrdersQuery = db
+                    .Orders.Include(o => o.Booking)
+                    .Where(o =>
+                        o.Status == OrderStatus.Pending
+                        && o.Booking != null
+                        && o.Booking.HoldExpiresAtUtc != null
+                        && o.Booking.HoldExpiresAtUtc <= now
+                    );
 
                 var expiredOrderIds = await expiredOrdersQuery
                     .Select(o => o.Id)

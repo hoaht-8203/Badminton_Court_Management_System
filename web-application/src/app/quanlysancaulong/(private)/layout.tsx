@@ -73,22 +73,6 @@ const sideBarItems: MenuProps["items"] = [
         key: "/quanlysancaulong/orders",
         label: "Quản lý hoá đơn",
       },
-      {
-        key: "trahang",
-        label: "Trả hàng",
-      },
-      {
-        key: "nhaphang",
-        label: "Nhập hàng",
-      },
-      {
-        key: "trahangnhap",
-        label: "Trả hàng nhập",
-      },
-      {
-        key: "xuathuy",
-        label: "Xuất huỷ",
-      },
     ],
   },
   {

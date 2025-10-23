@@ -346,11 +346,6 @@ const OrderInformation = ({
 
           <div className="mt-4 flex items-center justify-end gap-2">
             <div className="flex gap-2">
-              <Button type="primary" icon={<EyeOutlined />} onClick={handleClickViewOrder}>
-                Xem chi tiết
-              </Button>
-            </div>
-            <div className="flex gap-2">
               {record.status === "Cancelled" && (
                 <>
                   <Button icon={<StopOutlined />} onClick={handleClickExtendPayment}>

@@ -192,40 +192,65 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
             );
         }
 
-        // Check service stock availability
-        if (service.StockQuantity.HasValue && service.StockQuantity.Value < request.Quantity)
-        {
-            throw new ApiException(
-                $"Dịch vụ {service.Name} chỉ còn {service.StockQuantity.Value} sản phẩm",
-                HttpStatusCode.BadRequest
-            );
-        }
-
         // Check if service already exists for this occurrence
         var existingBookingService = await _context.BookingServices.FirstOrDefaultAsync(bs =>
             bs.BookingCourtOccurrenceId == occurrence.Id && bs.ServiceId == request.ServiceId
         );
 
+        // Check service stock availability
+        var totalQuantityNeeded = request.Quantity;
+        if (existingBookingService != null)
+        {
+            totalQuantityNeeded += existingBookingService.Quantity;
+        }
+
+        if (service.StockQuantity.HasValue && service.StockQuantity.Value < totalQuantityNeeded)
+        {
+            throw new ApiException(
+                $"Dịch vụ {service.Name} chỉ còn {service.StockQuantity.Value} sản phẩm, cần {totalQuantityNeeded}",
+                HttpStatusCode.BadRequest
+            );
+        }
+
         var now = DateTime.UtcNow;
         var serviceStartTime = now;
 
-        if (existingBookingService != null)
-        {
-            // Update quantity and recalculate from current time
-            existingBookingService.Quantity += request.Quantity;
-            existingBookingService.ServiceStartTime = now; // Reset start time to now
-            existingBookingService.ServiceEndTime = null; // Reset end time
-            existingBookingService.UnitPrice = service.PricePerHour;
-            existingBookingService.Hours = 0; // Will be calculated at checkout
-            existingBookingService.TotalPrice = 0; // Will be calculated at checkout
-            await _context.SaveChangesAsync();
-            return _mapper.Map<BookingServiceDto>(existingBookingService);
-        }
-
-        // Reduce service stock
+        // Reduce service stock (always do this regardless of existing service)
         if (service.StockQuantity.HasValue)
         {
             service.StockQuantity -= request.Quantity;
+        }
+
+        if (existingBookingService != null)
+        {
+            // Instead of updating existing service, create a new one with current time
+            // This ensures each rental period is tracked separately
+            var newBookingService = new BookingService
+            {
+                Id = Guid.NewGuid(),
+                BookingCourtOccurrenceId = occurrence.Id,
+                BookingCourtOccurrence = occurrence,
+                ServiceId = request.ServiceId,
+                Service = service,
+                Quantity = request.Quantity,
+                UnitPrice = service.PricePerHour,
+                Hours = 0, // Will be calculated at checkout
+                TotalPrice = 0, // Will be calculated at checkout
+                ServiceStartTime = serviceStartTime, // Current time for new rental
+                ServiceEndTime = null,
+                Notes = request.Notes,
+                Status = BookingServiceStatus.Pending,
+            };
+
+            await _context.BookingServices.AddAsync(newBookingService);
+            await _context.SaveChangesAsync();
+
+            // Reload with service information
+            var newServiceReloaded = await _context
+                .BookingServices.Include(bs => bs.Service)
+                .FirstAsync(bs => bs.Id == newBookingService.Id);
+
+            return _mapper.Map<BookingServiceDto>(newServiceReloaded);
         }
 
         var bookingService = new BookingService

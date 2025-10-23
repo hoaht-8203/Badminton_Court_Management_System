@@ -801,7 +801,7 @@ const CourtTab = memo(function CourtTab({ data, loading, onSelectCourt, selected
                         : "Không xác định";
             const isSelected = selectedCourtId && String(court.id) === String(selectedCourtId);
             return (
-              <Col span={24} md={12} lg={8} xl={4} key={index}>
+              <Col span={24} md={12} lg={8} xl={6} key={index}>
                 <Card
                   styles={{ body: { padding: 8 } }}
                   hoverable
@@ -853,15 +853,15 @@ const MenuTab = memo(function MenuTab({ data, loading, onAdd }: MenuTabProps) {
           </div>
         ) : (
           data?.map((product, index) => (
-            <Col span={24} md={12} lg={8} xl={4} key={index}>
+            <Col span={24} md={12} lg={8} xl={6} key={index}>
               <Card
                 hoverable
-                styles={{ cover: { border: "1px solid #f0f0f0", borderTopLeftRadius: 8, borderTopRightRadius: 8 } }}
+                styles={{ cover: { border: "1px solid #f0f0f0", borderTopLeftRadius: 8, borderTopRightRadius: 8 }, body: { padding: 8 } }}
                 onClick={() => onAdd(product)}
                 cover={
                   <div className="relative">
                     <Image
-                      style={{ width: "100%", height: "150px", objectFit: "cover" }}
+                      style={{ width: "100%", height: "150px", objectFit: "contain" }}
                       draggable={false}
                       alt={`Thực đơn ${index + 1}`}
                       src={product.images?.[0] || "/placeholder/product-image-placeholder.jpg"}
@@ -990,7 +990,7 @@ const PendingPaymentsTab = memo(function PendingPaymentsTab({ data, loading, fil
         ) : data.length === 0 ? (
           <Empty description="Không có đơn hàng nào" image={Empty.PRESENTED_IMAGE_SIMPLE} />
         ) : (
-          <div className="flex flex-col space-y-3">
+          <div className="flex flex-col gap-2">
             {data.map((order, index) => (
               <Card key={order.id || index} size="small" className="transition-shadow hover:shadow-md">
                 <div className="space-y-2">
@@ -1071,7 +1071,7 @@ const ServiceTab = memo(function ServiceTab({ data, loading, onAdd }: ServiceTab
           data?.map((service, index) => {
             const isOutOfStock = service.stockQuantity !== null && service.stockQuantity !== undefined && service.stockQuantity <= 0;
             return (
-              <Col span={24} md={12} lg={8} xl={4} key={index}>
+              <Col span={24} md={12} lg={8} xl={6} key={index}>
                 <Card
                   hoverable={!isOutOfStock}
                   styles={{
@@ -1080,7 +1080,7 @@ const ServiceTab = memo(function ServiceTab({ data, loading, onAdd }: ServiceTab
                       borderTopLeftRadius: 8,
                       borderTopRightRadius: 8,
                     },
-                    body: isOutOfStock ? { opacity: 0.5 } : {},
+                    body: isOutOfStock ? { opacity: 0.5 } : { padding: 8 },
                   }}
                   onClick={() => !isOutOfStock && onAdd(service)}
                   cover={
@@ -1099,7 +1099,7 @@ const ServiceTab = memo(function ServiceTab({ data, loading, onAdd }: ServiceTab
                           <span className="rounded-t-lg bg-red-500 px-2 py-1 text-xs text-white">Hết hàng</span>
                         ) : (
                           <span className="rounded-t-lg bg-blue-500 px-2 py-1 text-xs text-white">
-                            {service.pricePerHour?.toLocaleString("vi-VN", { style: "currency", currency: "VND" })}
+                            {service.pricePerHour?.toLocaleString("vi-VN", { style: "currency", currency: "VND" })} / {service.unit} / giờ
                           </span>
                         )}
                       </div>
@@ -1110,7 +1110,9 @@ const ServiceTab = memo(function ServiceTab({ data, loading, onAdd }: ServiceTab
                     title={<span className="font-medium">{service.name}</span>}
                     description={
                       <div className="text-xs text-gray-500">
-                        <div>Giá: {service.pricePerHour?.toLocaleString("vi-VN")} đ/giờ</div>
+                        <div>
+                          Giá: {service.pricePerHour?.toLocaleString("vi-VN")} đ / {service.unit} / giờ
+                        </div>
                         {service.stockQuantity !== null && <div className="text-blue-600">Còn lại: {service.stockQuantity} sản phẩm</div>}
                       </div>
                     }

@@ -3,7 +3,11 @@ import {
   CheckInBookingCourtRequest,
   CheckOutBookingCourtRequest,
   CreateBookingCourtRequest,
+  DetailBookingCourtOccurrenceRequest,
+  DetailBookingCourtOccurrenceResponse,
   DetailBookingCourtResponse,
+  ListBookingCourtOccurrenceRequest,
+  ListBookingCourtOccurrenceResponse,
   ListBookingCourtRequest,
   ListBookingCourtResponse,
   NoShowBookingCourtRequest,
@@ -27,22 +31,32 @@ export const courtScheduleService = {
     return response.data;
   },
 
+  async listBookingOccurrences(payload: ListBookingCourtOccurrenceRequest): Promise<ApiResponse<ListBookingCourtOccurrenceResponse[]>> {
+    const response = await axiosInstance.get("api/BookingCourts/occurrences", { params: payload });
+    return response.data;
+  },
+
+  async detailBookingOccurrence(payload: DetailBookingCourtOccurrenceRequest): Promise<ApiResponse<DetailBookingCourtOccurrenceResponse>> {
+    const response = await axiosInstance.get("api/BookingCourts/occurrence/detail", { params: payload });
+    return response.data;
+  },
+
   async cancelBooking(payload: CancelBookingCourtRequest): Promise<ApiResponse<boolean>> {
     const response = await axiosInstance.post("api/BookingCourts/cancel", payload);
     return response.data;
   },
 
-  async checkInBooking(payload: CheckInBookingCourtRequest): Promise<ApiResponse<boolean>> {
+  async checkInBookingOccurrence(payload: CheckInBookingCourtRequest): Promise<ApiResponse<boolean>> {
     const response = await axiosInstance.post("api/BookingCourts/checkin", payload);
     return response.data;
   },
 
-  async checkOutBooking(payload: CheckOutBookingCourtRequest): Promise<ApiResponse<boolean>> {
+  async checkOutBookingOccurrence(payload: CheckOutBookingCourtRequest): Promise<ApiResponse<boolean>> {
     const response = await axiosInstance.post("api/BookingCourts/checkout", payload);
     return response.data;
   },
 
-  async noShowBooking(payload: NoShowBookingCourtRequest): Promise<ApiResponse<boolean>> {
+  async noShowBookingOccurrence(payload: NoShowBookingCourtRequest): Promise<ApiResponse<boolean>> {
     const response = await axiosInstance.post("api/BookingCourts/noshow", payload);
     return response.data;
   },

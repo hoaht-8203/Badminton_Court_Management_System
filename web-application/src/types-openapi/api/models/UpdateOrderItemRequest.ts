@@ -24,7 +24,7 @@ export interface UpdateOrderItemRequest {
      * @type {string}
      * @memberof UpdateOrderItemRequest
      */
-    bookingId: string;
+    bookingCourtOccurrenceId: string;
     /**
      * 
      * @type {number}
@@ -43,7 +43,7 @@ export interface UpdateOrderItemRequest {
  * Check if a given object implements the UpdateOrderItemRequest interface.
  */
 export function instanceOfUpdateOrderItemRequest(value: object): value is UpdateOrderItemRequest {
-    if (!('bookingId' in value) || value['bookingId'] === undefined) return false;
+    if (!('bookingCourtOccurrenceId' in value) || value['bookingCourtOccurrenceId'] === undefined) return false;
     if (!('productId' in value) || value['productId'] === undefined) return false;
     if (!('quantity' in value) || value['quantity'] === undefined) return false;
     return true;
@@ -59,7 +59,7 @@ export function UpdateOrderItemRequestFromJSONTyped(json: any, ignoreDiscriminat
     }
     return {
         
-        'bookingId': json['bookingId'],
+        'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'],
         'productId': json['productId'],
         'quantity': json['quantity'],
     };
@@ -76,7 +76,7 @@ export function UpdateOrderItemRequestToJSONTyped(value?: UpdateOrderItemRequest
 
     return {
         
-        'bookingId': value['bookingId'],
+        'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
         'productId': value['productId'],
         'quantity': value['quantity'],
     };

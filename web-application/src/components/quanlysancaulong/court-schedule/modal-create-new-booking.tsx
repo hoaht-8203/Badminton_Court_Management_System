@@ -483,7 +483,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
                                 validator: (_, value) => {
                                   const [rangeStart] = (dateRangeWatch || []) as [any, any];
                                   if (value && rangeStart && rangeStart.isSame(dayjs(), "day") && value.isBefore(dayjs())) {
-                                    return Promise.reject(new Error("Giờ bắt đầu không được trong quá khứ hôm nay"));
+                                    // return Promise.reject(new Error("Giờ bắt đầu không được trong quá khứ hôm nay"));
                                   }
                                   return Promise.resolve();
                                 },

@@ -24,7 +24,9 @@ import type {
   CheckoutEstimateRequest,
   CheckoutEstimateResponseApiResponse,
   CreateBookingCourtRequest,
+  DetailBookingCourtOccurrenceResponseApiResponse,
   DetailBookingCourtResponseApiResponse,
+  ListBookingCourtOccurrenceResponseListApiResponse,
   ListBookingCourtResponseListApiResponse,
   NoShowBookingCourtRequest,
   UpdateOrderItemRequest,
@@ -48,8 +50,12 @@ import {
     CheckoutEstimateResponseApiResponseToJSON,
     CreateBookingCourtRequestFromJSON,
     CreateBookingCourtRequestToJSON,
+    DetailBookingCourtOccurrenceResponseApiResponseFromJSON,
+    DetailBookingCourtOccurrenceResponseApiResponseToJSON,
     DetailBookingCourtResponseApiResponseFromJSON,
     DetailBookingCourtResponseApiResponseToJSON,
+    ListBookingCourtOccurrenceResponseListApiResponseFromJSON,
+    ListBookingCourtOccurrenceResponseListApiResponseToJSON,
     ListBookingCourtResponseListApiResponseFromJSON,
     ListBookingCourtResponseListApiResponseToJSON,
     NoShowBookingCourtRequestFromJSON,
@@ -91,6 +97,18 @@ export interface ApiBookingCourtsListGetRequest {
 
 export interface ApiBookingCourtsNoshowPostRequest {
     noShowBookingCourtRequest?: NoShowBookingCourtRequest;
+}
+
+export interface ApiBookingCourtsOccurrenceDetailGetRequest {
+    id: string;
+}
+
+export interface ApiBookingCourtsOccurrencesGetRequest {
+    customerId?: number;
+    courtId?: string;
+    fromDate?: Date;
+    toDate?: Date;
+    status?: string;
 }
 
 export interface ApiBookingCourtsOrderAddItemPostRequest {
@@ -218,6 +236,36 @@ export interface BookingCourtsApiInterface {
     /**
      */
     apiBookingCourtsNoshowPost(requestParameters: ApiBookingCourtsNoshowPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse>;
+
+    /**
+     * 
+     * @param {string} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BookingCourtsApiInterface
+     */
+    apiBookingCourtsOccurrenceDetailGetRaw(requestParameters: ApiBookingCourtsOccurrenceDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DetailBookingCourtOccurrenceResponseApiResponse>>;
+
+    /**
+     */
+    apiBookingCourtsOccurrenceDetailGet(requestParameters: ApiBookingCourtsOccurrenceDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailBookingCourtOccurrenceResponseApiResponse>;
+
+    /**
+     * 
+     * @param {number} [customerId] 
+     * @param {string} [courtId] 
+     * @param {Date} [fromDate] 
+     * @param {Date} [toDate] 
+     * @param {string} [status] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BookingCourtsApiInterface
+     */
+    apiBookingCourtsOccurrencesGetRaw(requestParameters: ApiBookingCourtsOccurrencesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListBookingCourtOccurrenceResponseListApiResponse>>;
+
+    /**
+     */
+    apiBookingCourtsOccurrencesGet(requestParameters: ApiBookingCourtsOccurrencesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListBookingCourtOccurrenceResponseListApiResponse>;
 
     /**
      * 
@@ -523,6 +571,91 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
      */
     async apiBookingCourtsNoshowPost(requestParameters: ApiBookingCourtsNoshowPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse> {
         const response = await this.apiBookingCourtsNoshowPostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiBookingCourtsOccurrenceDetailGetRaw(requestParameters: ApiBookingCourtsOccurrenceDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DetailBookingCourtOccurrenceResponseApiResponse>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling apiBookingCourtsOccurrenceDetailGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['id'] != null) {
+            queryParameters['Id'] = requestParameters['id'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/BookingCourts/occurrence/detail`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => DetailBookingCourtOccurrenceResponseApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiBookingCourtsOccurrenceDetailGet(requestParameters: ApiBookingCourtsOccurrenceDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailBookingCourtOccurrenceResponseApiResponse> {
+        const response = await this.apiBookingCourtsOccurrenceDetailGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiBookingCourtsOccurrencesGetRaw(requestParameters: ApiBookingCourtsOccurrencesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListBookingCourtOccurrenceResponseListApiResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['customerId'] != null) {
+            queryParameters['CustomerId'] = requestParameters['customerId'];
+        }
+
+        if (requestParameters['courtId'] != null) {
+            queryParameters['CourtId'] = requestParameters['courtId'];
+        }
+
+        if (requestParameters['fromDate'] != null) {
+            queryParameters['FromDate'] = (requestParameters['fromDate'] as any).toISOString();
+        }
+
+        if (requestParameters['toDate'] != null) {
+            queryParameters['ToDate'] = (requestParameters['toDate'] as any).toISOString();
+        }
+
+        if (requestParameters['status'] != null) {
+            queryParameters['Status'] = requestParameters['status'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/BookingCourts/occurrences`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListBookingCourtOccurrenceResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiBookingCourtsOccurrencesGet(requestParameters: ApiBookingCourtsOccurrencesGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListBookingCourtOccurrenceResponseListApiResponse> {
+        const response = await this.apiBookingCourtsOccurrencesGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

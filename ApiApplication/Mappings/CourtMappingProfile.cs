@@ -41,5 +41,10 @@ public class CourtMappingProfile : Profile
 
         CreateMap<CourtArea, ListCourtGroupByCourtAreaResponse>();
         CreateMap<CourtPricingRules, ListCourtPricingRuleByCourtIdResponse>();
+        CreateMap<Court, CourtDto>()
+            .ForMember(
+                d => d.CourtAreaName,
+                opt => opt.MapFrom(s => s.CourtArea != null ? s.CourtArea.Name : string.Empty)
+            );
     }
 }

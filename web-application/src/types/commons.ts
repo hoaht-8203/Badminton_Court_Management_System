@@ -45,3 +45,12 @@ export const ServiceStatus = {
   Inactive: "Inactive",
   Maintenance: "Maintenance",
 };
+
+export const BookingCourtOccurrenceStatus = {
+  PendingPayment: "PendingPayment",
+  Active: "Active",
+  Cancelled: "Cancelled",
+  Completed: "Completed",
+  CheckedIn: "CheckedIn",
+  NoShow: "NoShow",
+};

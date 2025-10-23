@@ -5,7 +5,7 @@ namespace ApiApplication.Dtos.Service;
 public class AddBookingServiceRequest
 {
     [Required]
-    public required Guid BookingId { get; set; }
+    public required Guid BookingCourtOccurrenceId { get; set; }
 
     [Required]
     public required Guid ServiceId { get; set; }

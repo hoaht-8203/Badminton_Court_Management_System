@@ -1,4 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
+import { AddOrderItemRequest, CheckoutRequest, CheckoutResponse, AddBookingServiceRequest } from "@/types-openapi/api";
 
 export interface CheckoutItemInput {
   productId: number | string;
@@ -26,12 +27,8 @@ export const cashierService = {
     return res.data?.data as { paymentId: string; finalPayable: number };
   },
 
-  async addOrderItem(payload: { bookingId: string; productId: number | string; quantity: number }): Promise<void> {
-    await axiosInstance.post("/api/BookingCourts/order/add-item", {
-      bookingId: payload.bookingId,
-      productId: Number(payload.productId),
-      quantity: payload.quantity,
-    });
+  async addOrderItem(payload: AddOrderItemRequest): Promise<void> {
+    await axiosInstance.post("/api/BookingCourts/order/add-item", payload);
   },
 
   async listOrderItems(
@@ -41,11 +38,25 @@ export const cashierService = {
     return res.data?.data || [];
   },
 
-  async updateOrderItem(payload: { bookingId: string; productId: number | string; quantity: number }): Promise<void> {
+  async updateOrderItem(payload: { BookingCourtOccurrenceId: string; productId: number | string; quantity: number }): Promise<void> {
     await axiosInstance.post("/api/BookingCourts/order/update-item", {
-      bookingId: payload.bookingId,
+      BookingCourtOccurrenceId: payload.BookingCourtOccurrenceId,
       productId: Number(payload.productId),
       quantity: payload.quantity,
     });
+  },
+
+  async checkout(payload: CheckoutRequest): Promise<CheckoutResponse> {
+    const res = await axiosInstance.post("/api/Orders/checkout", payload);
+    return res.data?.data as CheckoutResponse;
+  },
+
+  async addService(payload: AddBookingServiceRequest): Promise<void> {
+    await axiosInstance.post("/api/Services/booking-occurrence/add-service", payload);
+  },
+
+  async getCheckoutInfo(orderId: string): Promise<CheckoutResponse> {
+    const res = await axiosInstance.get(`/api/Orders/checkout/${orderId}`);
+    return res.data?.data as CheckoutResponse;
   },
 };

@@ -89,7 +89,7 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
         );
     }
 
-    [HttpPost("booking/add-service")]
+    [HttpPost("booking-occurrence/add-service")]
     public async Task<ActionResult<ApiResponse<BookingServiceDto>>> AddBookingService(
         [FromBody] AddBookingServiceRequest request
     )
@@ -98,28 +98,31 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
         return Ok(
             ApiResponse<BookingServiceDto>.SuccessResponse(
                 result,
-                "Add service to booking successfully"
+                "Add service to booking occurrence successfully"
             )
         );
     }
 
-    [HttpDelete("booking/remove-service")]
+    [HttpDelete("booking-occurrence/remove-service")]
     public async Task<ActionResult<ApiResponse<bool>>> RemoveBookingService(
         [FromBody] RemoveBookingServiceRequest request
     )
     {
         var result = await _serviceService.RemoveBookingServiceAsync(request);
         return Ok(
-            ApiResponse<bool>.SuccessResponse(result, "Remove service from booking successfully")
+            ApiResponse<bool>.SuccessResponse(
+                result,
+                "Remove service from booking occurrence successfully"
+            )
         );
     }
 
-    [HttpGet("booking/{bookingId}/services")]
+    [HttpGet("booking-occurrence/{bookingCourtOccurrenceId}/services")]
     public async Task<ActionResult<ApiResponse<List<BookingServiceDto>>>> GetBookingServices(
-        Guid bookingId
+        Guid bookingCourtOccurrenceId
     )
     {
-        var result = await _serviceService.GetBookingServicesAsync(bookingId);
+        var result = await _serviceService.GetBookingServicesAsync(bookingCourtOccurrenceId);
         return Ok(
             ApiResponse<List<BookingServiceDto>>.SuccessResponse(
                 result,

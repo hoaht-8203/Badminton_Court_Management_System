@@ -68,33 +68,3 @@ export function useCancelBookingCourt() {
     },
   });
 }
-
-export function useCheckInBookingCourt() {
-  const queryClient = useQueryClient();
-  return useMutation<ApiResponse<boolean>, ApiError, CheckInBookingCourtRequest>({
-    mutationFn: (data) => courtScheduleService.checkInBooking(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
-    },
-  });
-}
-
-export function useCheckOutBookingCourt() {
-  const queryClient = useQueryClient();
-  return useMutation<ApiResponse<boolean>, ApiError, CheckOutBookingCourtRequest>({
-    mutationFn: (data) => courtScheduleService.checkOutBooking(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
-    },
-  });
-}
-
-export function useNoShowBookingCourt() {
-  const queryClient = useQueryClient();
-  return useMutation<ApiResponse<boolean>, ApiError, NoShowBookingCourtRequest>({
-    mutationFn: (data) => courtScheduleService.noShowBooking(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
-    },
-  });
-}

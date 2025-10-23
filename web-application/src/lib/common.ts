@@ -1,4 +1,4 @@
-import { ListBookingCourtResponse } from "@/types-openapi/api";
+import { ListBookingCourtOccurrenceResponse, ListBookingCourtResponse } from "@/types-openapi/api";
 import dayjs from "dayjs";
 import { DayPilot } from "daypilot-pro-react";
 
@@ -50,6 +50,29 @@ export function expandBookings(bookings: ListBookingCourtResponse[]) {
         ...b,
       });
     }
+  });
+
+  return events;
+}
+
+export function convertOccurrencesToEvents(occurrences: ListBookingCourtOccurrenceResponse[]) {
+  const events: BookingCourtEvent[] = [];
+
+  occurrences.forEach((occurrence) => {
+    events.push({
+      id: occurrence.id?.toString() ?? "",
+      text: occurrence.customerName ?? "",
+      start: occurrence.startDate + "T" + occurrence.startTime,
+      end: occurrence.endDate + "T" + occurrence.endTime,
+      resource: occurrence.courtId,
+      status: occurrence.status,
+      customerName: occurrence.customerName,
+      courtName: occurrence.courtName,
+      courtId: occurrence.courtId,
+      customerId: occurrence.customerId,
+      bookingCourtId: occurrence.bookingCourtId,
+      note: occurrence.note,
+    });
   });
 
   return events;

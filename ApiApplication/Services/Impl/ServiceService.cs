@@ -3,6 +3,7 @@ using ApiApplication.Constants;
 using ApiApplication.Data;
 using ApiApplication.Dtos.Service;
 using ApiApplication.Entities;
+using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
@@ -76,7 +77,7 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
 
         var entity = _mapper.Map<Service>(request);
         entity.Code = serviceCode;
-        entity.Status = ServiceStatus.Active;
+        entity.Status = Constants.ServiceStatus.Active;
 
         var created = await _context.Services.AddAsync(entity);
         await _context.SaveChangesAsync();
@@ -141,7 +142,7 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
             );
         }
 
-        service.Status = ServiceStatus.Deleted;
+        service.Status = Constants.ServiceStatus.Deleted;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -171,46 +172,75 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
 
     public async Task<BookingServiceDto> AddBookingServiceAsync(AddBookingServiceRequest request)
     {
-        var booking =
-            await _context.BookingCourts.FirstOrDefaultAsync(b => b.Id == request.BookingId)
-            ?? throw new ApiException("Không tìm thấy đặt sân", HttpStatusCode.BadRequest);
         var service =
             await _context.Services.FirstOrDefaultAsync(s => s.Id == request.ServiceId)
             ?? throw new ApiException("Không tìm thấy dịch vụ", HttpStatusCode.BadRequest);
 
-        // Check if service already exists for this booking
+        // Get occurrence directly by ID
+        var occurrence =
+            await _context
+                .BookingCourtOccurrences.Include(o => o.BookingCourt)
+                .FirstOrDefaultAsync(o => o.Id == request.BookingCourtOccurrenceId)
+            ?? throw new ApiException("Không tìm thấy lịch sân", HttpStatusCode.BadRequest);
+
+        // Check if occurrence is checked in
+        if (occurrence.Status != BookingCourtOccurrenceStatus.CheckedIn)
+        {
+            throw new ApiException(
+                "Chỉ có thể thêm dịch vụ khi đã check-in",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        // Check service stock availability
+        if (service.StockQuantity.HasValue && service.StockQuantity.Value < request.Quantity)
+        {
+            throw new ApiException(
+                $"Dịch vụ {service.Name} chỉ còn {service.StockQuantity.Value} sản phẩm",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        // Check if service already exists for this occurrence
         var existingBookingService = await _context.BookingServices.FirstOrDefaultAsync(bs =>
-            bs.BookingId == request.BookingId && bs.ServiceId == request.ServiceId
+            bs.BookingCourtOccurrenceId == occurrence.Id && bs.ServiceId == request.ServiceId
         );
+
+        var now = DateTime.UtcNow;
+        var serviceStartTime = now;
 
         if (existingBookingService != null)
         {
-            // Update quantity
+            // Update quantity and recalculate from current time
             existingBookingService.Quantity += request.Quantity;
-            existingBookingService.TotalPrice =
-                existingBookingService.Quantity
-                * existingBookingService.UnitPrice
-                * existingBookingService.Hours;
+            existingBookingService.ServiceStartTime = now; // Reset start time to now
+            existingBookingService.ServiceEndTime = null; // Reset end time
+            existingBookingService.UnitPrice = service.PricePerHour;
+            existingBookingService.Hours = 0; // Will be calculated at checkout
+            existingBookingService.TotalPrice = 0; // Will be calculated at checkout
             await _context.SaveChangesAsync();
             return _mapper.Map<BookingServiceDto>(existingBookingService);
         }
 
-        // Calculate hours based on booking duration
-        var startTime = booking.StartTime;
-        var endTime = booking.EndTime;
-        var hours = (decimal)(endTime.ToTimeSpan() - startTime.ToTimeSpan()).TotalHours;
+        // Reduce service stock
+        if (service.StockQuantity.HasValue)
+        {
+            service.StockQuantity -= request.Quantity;
+        }
 
         var bookingService = new BookingService
         {
             Id = Guid.NewGuid(),
-            BookingId = request.BookingId,
+            BookingCourtOccurrenceId = occurrence.Id,
+            BookingCourtOccurrence = occurrence,
             ServiceId = request.ServiceId,
-            Booking = booking,
             Service = service,
             Quantity = request.Quantity,
             UnitPrice = service.PricePerHour,
-            Hours = hours,
-            TotalPrice = request.Quantity * service.PricePerHour * hours,
+            Hours = 0, // Will be calculated at checkout
+            TotalPrice = 0, // Will be calculated at checkout
+            ServiceStartTime = serviceStartTime,
+            ServiceEndTime = null,
             Notes = request.Notes,
             Status = BookingServiceStatus.Pending,
         };
@@ -228,12 +258,21 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
 
     public async Task<bool> RemoveBookingServiceAsync(RemoveBookingServiceRequest request)
     {
-        var bookingService = await _context.BookingServices.FirstOrDefaultAsync(bs =>
-            bs.Id == request.Id
-        );
+        var bookingService = await _context
+            .BookingServices.Include(bs => bs.Service)
+            .FirstOrDefaultAsync(bs =>
+                bs.BookingCourtOccurrenceId == request.BookingCourtOccurrenceId
+            );
+
         if (bookingService == null)
         {
             throw new ApiException("Không tìm thấy dịch vụ đặt sân", HttpStatusCode.BadRequest);
+        }
+
+        // Return stock to service
+        if (bookingService.Service.StockQuantity.HasValue)
+        {
+            bookingService.Service.StockQuantity += bookingService.Quantity;
         }
 
         _context.BookingServices.Remove(bookingService);
@@ -241,11 +280,14 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
         return true;
     }
 
-    public async Task<List<BookingServiceDto>> GetBookingServicesAsync(Guid bookingId)
+    public async Task<List<BookingServiceDto>> GetBookingServicesAsync(
+        Guid bookingCourtOccurrenceId
+    )
     {
         var bookingServices = await _context
             .BookingServices.Include(bs => bs.Service)
-            .Where(bs => bs.BookingId == bookingId)
+            .Include(bs => bs.BookingCourtOccurrence)
+            .Where(bs => bs.BookingCourtOccurrenceId == bookingCourtOccurrenceId)
             .OrderBy(bs => bs.CreatedAt)
             .ToListAsync();
 

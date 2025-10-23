@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { BookingCourtOccurrenceDto } from './BookingCourtOccurrenceDto';
+import {
+    BookingCourtOccurrenceDtoFromJSON,
+    BookingCourtOccurrenceDtoFromJSONTyped,
+    BookingCourtOccurrenceDtoToJSON,
+    BookingCourtOccurrenceDtoToJSONTyped,
+} from './BookingCourtOccurrenceDto';
 import type { BookingServiceDto } from './BookingServiceDto';
 import {
     BookingServiceDtoFromJSON,
@@ -127,6 +134,12 @@ export interface DetailBookingCourtResponse {
     bookingServices?: Array<BookingServiceDto> | null;
     /**
      * 
+     * @type {Array<BookingCourtOccurrenceDto>}
+     * @memberof DetailBookingCourtResponse
+     */
+    bookingCourtOccurrences?: Array<BookingCourtOccurrenceDto> | null;
+    /**
+     * 
      * @type {number}
      * @memberof DetailBookingCourtResponse
      */
@@ -236,6 +249,7 @@ export function DetailBookingCourtResponseFromJSONTyped(json: any, ignoreDiscrim
         'customer': json['customer'] == null ? undefined : CustomerDtoFromJSON(json['customer']),
         'payments': json['payments'] == null ? undefined : ((json['payments'] as Array<any>).map(PaymentDtoFromJSON)),
         'bookingServices': json['bookingServices'] == null ? undefined : ((json['bookingServices'] as Array<any>).map(BookingServiceDtoFromJSON)),
+        'bookingCourtOccurrences': json['bookingCourtOccurrences'] == null ? undefined : ((json['bookingCourtOccurrences'] as Array<any>).map(BookingCourtOccurrenceDtoFromJSON)),
         'totalAmount': json['totalAmount'] == null ? undefined : json['totalAmount'],
         'paidAmount': json['paidAmount'] == null ? undefined : json['paidAmount'],
         'remainingAmount': json['remainingAmount'] == null ? undefined : json['remainingAmount'],
@@ -277,6 +291,7 @@ export function DetailBookingCourtResponseToJSONTyped(value?: DetailBookingCourt
         'customer': CustomerDtoToJSON(value['customer']),
         'payments': value['payments'] == null ? undefined : ((value['payments'] as Array<any>).map(PaymentDtoToJSON)),
         'bookingServices': value['bookingServices'] == null ? undefined : ((value['bookingServices'] as Array<any>).map(BookingServiceDtoToJSON)),
+        'bookingCourtOccurrences': value['bookingCourtOccurrences'] == null ? undefined : ((value['bookingCourtOccurrences'] as Array<any>).map(BookingCourtOccurrenceDtoToJSON)),
         'totalAmount': value['totalAmount'],
         'paidAmount': value['paidAmount'],
         'remainingAmount': value['remainingAmount'],

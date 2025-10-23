@@ -21,6 +21,7 @@ public class DetailBookingCourtResponse
     public Customer.CustomerDto Customer { get; set; } = null!;
     public List<PaymentDto> Payments { get; set; } = [];
     public List<BookingServiceDto> BookingServices { get; set; } = [];
+    public List<BookingCourtOccurrenceDto> BookingCourtOccurrences { get; set; } = [];
 
     // Payment summary
     public decimal TotalAmount { get; set; }

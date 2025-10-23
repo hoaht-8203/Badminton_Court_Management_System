@@ -125,7 +125,7 @@ public class PaymentService(
 
     private async Task<string> GenerateNextPaymentIdAsync()
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var prefix = $"PM-{now:ddMMyyyy}-";
         var lastId = await _context
             .Payments.AsNoTracking()
@@ -214,7 +214,8 @@ public class PaymentService(
         // Calculate service costs
         var serviceCost = 0m;
         var bookingServices = await _context
-            .BookingServices.Where(bs => bs.BookingId == booking.Id)
+            .BookingServices.Include(bs => bs.BookingCourtOccurrence)
+            .Where(bs => bs.BookingCourtOccurrence.BookingCourtId == booking.Id)
             .ToListAsync();
 
         foreach (var bookingService in bookingServices)
@@ -228,6 +229,65 @@ public class PaymentService(
     private static TimeOnly Max(TimeOnly a, TimeOnly b) => a > b ? a : b;
 
     private static TimeOnly Min(TimeOnly a, TimeOnly b) => a < b ? a : b;
+
+    public async Task<DetailPaymentResponse> CreatePaymentForOrderAsync(
+        CreatePaymentForOrderRequest request
+    )
+    {
+        // Kiểm tra Order có tồn tại không
+        var order = await _context
+            .Orders.Include(o => o.Booking)
+            .ThenInclude(b => b.Customer)
+            .Include(o => o.Booking)
+            .ThenInclude(b => b.Court)
+            .FirstOrDefaultAsync(o => o.Id == request.OrderId);
+
+        if (order == null)
+        {
+            throw new ApiException("Không tìm thấy đơn hàng", System.Net.HttpStatusCode.BadRequest);
+        }
+
+        // Kiểm tra Booking có tồn tại không
+        if (order.Booking == null)
+        {
+            throw new ApiException("Không tìm thấy đặt sân", System.Net.HttpStatusCode.BadRequest);
+        }
+
+        // Tạo Payment
+        var payment = new Payment
+        {
+            Id = await GenerateNextPaymentIdAsync(),
+            BookingId = request.BookingId,
+            BookingCourtOccurrenceId = request.BookingOccurrenceId,
+            OrderId = request.OrderId,
+            CustomerId = request.CustomerId,
+            Amount = request.Amount,
+            Status = "PendingPayment", // Mặc định là PendingPayment
+            Note = request.Note,
+            PaymentCreatedAt = DateTime.UtcNow,
+        };
+
+        await _context.Payments.AddAsync(payment);
+        await _context.SaveChangesAsync();
+
+        // Load lại payment với đầy đủ thông tin
+        var createdPayment = await _context
+            .Payments.Include(p => p.Booking)
+            .ThenInclude(b => b!.Court)
+            .Include(p => p.Customer)
+            .Include(p => p.Order)
+            .FirstOrDefaultAsync(p => p.Id == payment.Id);
+
+        if (createdPayment == null)
+        {
+            throw new ApiException(
+                "Lỗi khi tạo thanh toán",
+                System.Net.HttpStatusCode.InternalServerError
+            );
+        }
+
+        return _mapper.Map<DetailPaymentResponse>(createdPayment);
+    }
 
     private static int GetCustomDayOfWeek(DateOnly date)
     {

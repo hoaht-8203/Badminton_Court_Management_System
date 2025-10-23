@@ -59,10 +59,12 @@ public class ApplicationDbContext(
     public DbSet<Service> Services { get; set; }
     public DbSet<BookingService> BookingServices { get; set; }
     public DbSet<BookingOrderItem> BookingOrderItems { get; set; }
+    public DbSet<Order> Orders { get; set; }
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Cashflow> Cashflows { get; set; }
     public DbSet<CashflowType> CashflowTypes { get; set; }
     public DbSet<RelatedPerson> RelatedPeople { get; set; }
+    public DbSet<BookingCourtOccurrence> BookingCourtOccurrences { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -336,6 +338,71 @@ public class ApplicationDbContext(
             entity.HasIndex(e => e.ActivityTime);
         });
 
+        // BookingCourtOccurrence mappings
+        builder.Entity<BookingCourtOccurrence>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.Note).HasMaxLength(500);
+
+            entity
+                .HasOne(e => e.BookingCourt)
+                .WithMany(b => b.BookingCourtOccurrences)
+                .HasForeignKey(e => e.BookingCourtId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasMany(e => e.Payments)
+                .WithOne(p => p.BookingCourtOccurrence)
+                .HasForeignKey(p => p.BookingCourtOccurrenceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasMany(e => e.BookingServices)
+                .WithOne(bs => bs.BookingCourtOccurrence)
+                .HasForeignKey(bs => bs.BookingCourtOccurrenceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasMany(e => e.BookingOrderItems)
+                .WithOne(boi => boi.BookingCourtOccurrence)
+                .HasForeignKey(boi => boi.BookingCourtOccurrenceId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Order mappings
+        builder.Entity<Order>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CourtTotalAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.CourtPaidAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.CourtRemainingAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.ItemsSubtotal).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.LateFeePercentage).HasColumnType("decimal(5,2)");
+            entity.Property(e => e.LateFeeAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.Note).HasMaxLength(500);
+
+            entity
+                .HasOne(e => e.Booking)
+                .WithMany()
+                .HasForeignKey(e => e.BookingId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasOne(e => e.Customer)
+                .WithMany()
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity
+                .HasMany(e => e.Payments)
+                .WithOne(p => p.Order)
+                .HasForeignKey(p => p.OrderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         // Notification mappings
         builder.Entity<Notification>(entity =>
         {
@@ -434,7 +501,7 @@ public class ApplicationDbContext(
                     Id = 1,
                     FullName = "Nguyễn Văn An",
                     PhoneNumber = "0123456789",
-                    Email = "nguyenvanan@gmail.com",
+                    Email = "nguyenvana@example.com",
                     Status = CustomerStatus.Active,
                     Gender = "Nam",
                     Address = "123 Đường ABC, Phường Dịch Vọng",
@@ -456,7 +523,7 @@ public class ApplicationDbContext(
                     Id = 2,
                     FullName = "Trần Thị Bình",
                     PhoneNumber = "0987654321",
-                    Email = "tranthibinh@gmail.com",
+                    Email = "tranthibinh@example.com",
                     Status = CustomerStatus.Active,
                     Gender = "Nữ",
                     Address = "456 Đường XYZ, Phường Bến Nghé",
@@ -478,7 +545,7 @@ public class ApplicationDbContext(
                     Id = 3,
                     FullName = "Lê Văn Cường",
                     PhoneNumber = "0369852147",
-                    Email = "levancuong@gmail.com",
+                    Email = "levancuong@example.com",
                     Status = CustomerStatus.Active,
                     Gender = "Nam",
                     Address = "789 Đường DEF, Phường Láng Thượng",

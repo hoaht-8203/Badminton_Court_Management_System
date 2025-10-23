@@ -1,6 +1,9 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace ApiApplication.Dtos.Service;
 
 public class RemoveBookingServiceRequest
 {
-    public Guid Id { get; set; }
+    [Required]
+    public required Guid BookingCourtOccurrenceId { get; set; }
 }

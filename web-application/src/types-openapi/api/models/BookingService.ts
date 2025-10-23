@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { BookingCourtOccurrence } from './BookingCourtOccurrence';
+import {
+    BookingCourtOccurrenceFromJSON,
+    BookingCourtOccurrenceFromJSONTyped,
+    BookingCourtOccurrenceToJSON,
+    BookingCourtOccurrenceToJSONTyped,
+} from './BookingCourtOccurrence';
 import type { Service } from './Service';
 import {
     ServiceFromJSON,
@@ -20,13 +27,6 @@ import {
     ServiceToJSON,
     ServiceToJSONTyped,
 } from './Service';
-import type { BookingCourt } from './BookingCourt';
-import {
-    BookingCourtFromJSON,
-    BookingCourtFromJSONTyped,
-    BookingCourtToJSON,
-    BookingCourtToJSONTyped,
-} from './BookingCourt';
 
 /**
  * 
@@ -69,13 +69,13 @@ export interface BookingService {
      * @type {string}
      * @memberof BookingService
      */
-    bookingId: string;
+    bookingCourtOccurrenceId: string;
     /**
      * 
-     * @type {BookingCourt}
+     * @type {BookingCourtOccurrence}
      * @memberof BookingService
      */
-    booking: BookingCourt;
+    bookingCourtOccurrence: BookingCourtOccurrence;
     /**
      * 
      * @type {string}
@@ -114,6 +114,18 @@ export interface BookingService {
     hours: number;
     /**
      * 
+     * @type {Date}
+     * @memberof BookingService
+     */
+    serviceStartTime: Date;
+    /**
+     * 
+     * @type {Date}
+     * @memberof BookingService
+     */
+    serviceEndTime?: Date | null;
+    /**
+     * 
      * @type {string}
      * @memberof BookingService
      */
@@ -131,14 +143,15 @@ export interface BookingService {
  */
 export function instanceOfBookingService(value: object): value is BookingService {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('bookingId' in value) || value['bookingId'] === undefined) return false;
-    if (!('booking' in value) || value['booking'] === undefined) return false;
+    if (!('bookingCourtOccurrenceId' in value) || value['bookingCourtOccurrenceId'] === undefined) return false;
+    if (!('bookingCourtOccurrence' in value) || value['bookingCourtOccurrence'] === undefined) return false;
     if (!('serviceId' in value) || value['serviceId'] === undefined) return false;
     if (!('service' in value) || value['service'] === undefined) return false;
     if (!('quantity' in value) || value['quantity'] === undefined) return false;
     if (!('unitPrice' in value) || value['unitPrice'] === undefined) return false;
     if (!('totalPrice' in value) || value['totalPrice'] === undefined) return false;
     if (!('hours' in value) || value['hours'] === undefined) return false;
+    if (!('serviceStartTime' in value) || value['serviceStartTime'] === undefined) return false;
     if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
@@ -158,14 +171,16 @@ export function BookingServiceFromJSONTyped(json: any, ignoreDiscriminator: bool
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
         'id': json['id'],
-        'bookingId': json['bookingId'],
-        'booking': BookingCourtFromJSON(json['booking']),
+        'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'],
+        'bookingCourtOccurrence': BookingCourtOccurrenceFromJSON(json['bookingCourtOccurrence']),
         'serviceId': json['serviceId'],
         'service': ServiceFromJSON(json['service']),
         'quantity': json['quantity'],
         'unitPrice': json['unitPrice'],
         'totalPrice': json['totalPrice'],
         'hours': json['hours'],
+        'serviceStartTime': (new Date(json['serviceStartTime'])),
+        'serviceEndTime': json['serviceEndTime'] == null ? undefined : (new Date(json['serviceEndTime'])),
         'notes': json['notes'] == null ? undefined : json['notes'],
         'status': json['status'],
     };
@@ -187,14 +202,16 @@ export function BookingServiceToJSONTyped(value?: BookingService | null, ignoreD
         'createdBy': value['createdBy'],
         'updatedBy': value['updatedBy'],
         'id': value['id'],
-        'bookingId': value['bookingId'],
-        'booking': BookingCourtToJSON(value['booking']),
+        'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
+        'bookingCourtOccurrence': BookingCourtOccurrenceToJSON(value['bookingCourtOccurrence']),
         'serviceId': value['serviceId'],
         'service': ServiceToJSON(value['service']),
         'quantity': value['quantity'],
         'unitPrice': value['unitPrice'],
         'totalPrice': value['totalPrice'],
         'hours': value['hours'],
+        'serviceStartTime': ((value['serviceStartTime']).toISOString()),
+        'serviceEndTime': value['serviceEndTime'] === null ? null : ((value['serviceEndTime'] as any)?.toISOString()),
         'notes': value['notes'],
         'status': value['status'],
     };

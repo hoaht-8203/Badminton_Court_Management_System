@@ -9,10 +9,10 @@ public class BookingOrderItem : BaseEntity
     [Key]
     public Guid Id { get; set; }
 
-    public required Guid BookingId { get; set; }
+    public required Guid BookingCourtOccurrenceId { get; set; }
 
-    [ForeignKey(nameof(BookingId))]
-    public BookingCourt? Booking { get; set; }
+    [ForeignKey(nameof(BookingCourtOccurrenceId))]
+    public BookingCourtOccurrence? BookingCourtOccurrence { get; set; }
 
     public required int ProductId { get; set; }
 

@@ -73,4 +73,4 @@ export const useSetPriceTableProducts = () => {
       qc.invalidateQueries({ queryKey: ["price-table-products", v.priceTableId] });
     },
   });
-}; 
+};

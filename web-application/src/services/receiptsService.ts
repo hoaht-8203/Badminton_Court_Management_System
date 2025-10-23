@@ -28,5 +28,3 @@ export const receiptsService = {
     return res.data;
   },
 };
-
-

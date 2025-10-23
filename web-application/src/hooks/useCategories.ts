@@ -1,12 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { categoryService } from "@/services/categoryService";
-import { 
-  ListCategoryRequest, 
-  DetailCategoryRequest, 
-  CreateCategoryRequest,
-  UpdateCategoryRequest,
-  DeleteCategoryRequest
-} from "@/types-openapi/api";
+import { ListCategoryRequest, DetailCategoryRequest, CreateCategoryRequest, UpdateCategoryRequest, DeleteCategoryRequest } from "@/types-openapi/api";
 
 // Use axios-backed service to ensure auth headers/session are applied
 

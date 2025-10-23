@@ -20,5 +20,3 @@ export const supplierBankAccountsService = {
     return res.data;
   },
 };
-
-

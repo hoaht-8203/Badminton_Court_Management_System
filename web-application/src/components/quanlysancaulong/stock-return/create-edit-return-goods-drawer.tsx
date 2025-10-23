@@ -66,7 +66,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
   const [banks, setBanks] = useState<any[]>([]);
   const [editingBank, setEditingBank] = useState<any | null>(null);
   const [bankForm] = Form.useForm();
-  
+
   // Watch form values for bank info display
   const storeBankAccountNumber = Form.useWatch("storeBankAccountNumber", form);
   const storeBankAccountName = Form.useWatch("storeBankAccountName", form);
@@ -111,29 +111,31 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         setDiscount(Number(d?.discount || 0));
         setSupplierPaid(Number(d?.supplierPaid || 0));
         setCurrentStatus(d?.status || 0);
-        const loadedItems: ItemRow[] = await Promise.all((d?.items || []).map(async (i: any) => {
-          // Lấy thông tin stock từ productService.detail()
-          let stock = 0;
-          try {
-            const svc = await import("@/services/productService");
-            const productDetail = await svc.productService.detail({ id: i.productId } as any);
-            stock = (productDetail as any)?.data?.stock ?? 0;
-            console.log(`Load return goods item ${i.productName} (${i.productId}) stock:`, stock); // Debug log
-          } catch (error) {
-            console.log(`Error getting stock for return goods item ${i.productName} (${i.productId}):`, error); // Debug log
-          }
-          
-          return {
-            productId: i.productId,
-            code: i.productCode || String(i.productId),
-            name: i.productName || "",
-            quantity: i.quantity,
-            importPrice: i.importPrice,
-            returnPrice: i.returnPrice,
-            lineTotal: Number(i.quantity) * Number(i.returnPrice || 0),
-            stock: stock, // Sử dụng stock từ API
-          };
-        }));
+        const loadedItems: ItemRow[] = await Promise.all(
+          (d?.items || []).map(async (i: any) => {
+            // Lấy thông tin stock từ productService.detail()
+            let stock = 0;
+            try {
+              const svc = await import("@/services/productService");
+              const productDetail = await svc.productService.detail({ id: i.productId } as any);
+              stock = (productDetail as any)?.data?.stock ?? 0;
+              console.log(`Load return goods item ${i.productName} (${i.productId}) stock:`, stock); // Debug log
+            } catch (error) {
+              console.log(`Error getting stock for return goods item ${i.productName} (${i.productId}):`, error); // Debug log
+            }
+
+            return {
+              productId: i.productId,
+              code: i.productCode || String(i.productId),
+              name: i.productName || "",
+              quantity: i.quantity,
+              importPrice: i.importPrice,
+              returnPrice: i.returnPrice,
+              lineTotal: Number(i.quantity) * Number(i.returnPrice || 0),
+              stock: stock, // Sử dụng stock từ API
+            };
+          }),
+        );
         setItems(loadedItems);
       } catch (e) {
         console.error("Load return goods detail failed:", e);
@@ -150,7 +152,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         const data = (res as any)?.data;
         setBanks(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error('Error loading store bank accounts:', error);
+        console.error("Error loading store bank accounts:", error);
         setBanks([]);
       }
     })();
@@ -283,13 +285,13 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
 
   const updateQuantity = (productId: number, q: number) => {
     const quantity = Math.max(0, Number(q) || 0);
-    const item = items.find(i => i.productId === productId);
-    
+    const item = items.find((i) => i.productId === productId);
+
     // Validation đơn giản: không cho nhập vượt quá tồn kho
     if (item && quantity > item.stock) {
       return; // Không cập nhật, không hiện message
     }
-    
+
     setItems((prev) => prev.map((i) => (i.productId === productId ? { ...i, quantity, lineTotal: quantity * (i.returnPrice || 0) } : i)));
   };
 
@@ -309,13 +311,13 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
       key: "quantity",
       width: 120,
       render: (_: any, r: ItemRow) => (
-        <InputNumber 
-          min={0} 
-          value={r.quantity} 
-          onChange={(val) => updateQuantity(r.productId, Number(val))} 
-          style={{ width: 100 }} 
-          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+        <InputNumber
+          min={0}
+          value={r.quantity}
+          onChange={(val) => updateQuantity(r.productId, Number(val))}
+          style={{ width: 100 }}
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
         />
       ),
     },
@@ -324,13 +326,13 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
       key: "importPrice",
       width: 120,
       render: (_: any, r: ItemRow) => (
-        <InputNumber 
-          min={0} 
-          value={r.importPrice} 
-          disabled 
-          style={{ width: 120 }} 
-          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+        <InputNumber
+          min={0}
+          value={r.importPrice}
+          disabled
+          style={{ width: 120 }}
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
         />
       ),
     },
@@ -339,13 +341,13 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
       key: "returnPrice",
       width: 120,
       render: (_: any, r: ItemRow) => (
-        <InputNumber 
-          min={0} 
-          value={r.returnPrice} 
-          onChange={(val) => updateReturnPrice(r.productId, Number(val))} 
-          style={{ width: 120 }} 
-          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+        <InputNumber
+          min={0}
+          value={r.returnPrice}
+          onChange={(val) => updateReturnPrice(r.productId, Number(val))}
+          style={{ width: 120 }}
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
         />
       ),
     },
@@ -373,7 +375,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
       }
 
       // Validate stock quantity - đơn giản
-      const invalidItems = items.filter(item => item.quantity > item.stock);
+      const invalidItems = items.filter((item) => item.quantity > item.stock);
       if (invalidItems.length > 0) {
         message.error("Số lượng trả hàng không được vượt quá tồn kho");
         return;
@@ -414,7 +416,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         // Invalidate all queries that might contain return goods data
         await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });
       } catch {}
-      
+
       // Call onChanged to refresh parent component data
       if (onChanged) {
         // Add longer delay to ensure API changes are committed
@@ -444,7 +446,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         // Invalidate all queries that might contain return goods data
         await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });
       } catch {}
-      
+
       // Call onChanged to refresh parent component data
       if (onChanged) {
         // Add longer delay to ensure API changes are committed
@@ -727,13 +729,13 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Giảm giá</span>
-                  <InputNumber 
-                    min={0} 
-                    value={discount} 
-                    onChange={(v) => setDiscount(Number(v) || 0)} 
-                    style={{ width: 160 }} 
-                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                    parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                  <InputNumber
+                    min={0}
+                    value={discount}
+                    onChange={(v) => setDiscount(Number(v) || 0)}
+                    style={{ width: 160 }}
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -745,13 +747,13 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                     <span className="flex items-center gap-1 text-gray-600">
                       <CreditCardOutlined /> Tiền nhà cung cấp trả
                     </span>
-                    <InputNumber 
-                      min={0} 
-                      value={supplierPaid} 
-                      onChange={(v) => setSupplierPaid(Number(v) || 0)} 
-                      style={{ width: 160 }} 
-                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                      parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                    <InputNumber
+                      min={0}
+                      value={supplierPaid}
+                      onChange={(v) => setSupplierPaid(Number(v) || 0)}
+                      style={{ width: 160 }}
+                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
                     />
                   </div>
                   <div className="flex justify-end gap-2">
@@ -769,7 +771,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                     </Button>
                   </div>
                   {paymentMethod === "transfer" && storeBankAccountNumber && (
-                    <div className="mt-2 p-2 bg-blue-50 rounded border">
+                    <div className="mt-2 rounded border bg-blue-50 p-2">
                       <div className="text-sm text-gray-600">Thông tin ngân hàng đã chọn:</div>
                       <div className="text-sm font-medium">
                         {storeBankAccountNumber} - {storeBankAccountName}
@@ -870,11 +872,11 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                   <Button
                     size="small"
                     onClick={() => {
-                      form.setFieldsValue({ 
+                      form.setFieldsValue({
                         storeBankAccountId: r.id,
                         storeBankAccountNumber: r.accountNumber,
                         storeBankAccountName: r.accountName,
-                        storeBankName: r.bankName
+                        storeBankName: r.bankName,
                       });
                       setBankModalOpen(false);
                       message.success("Đã chọn tài khoản");

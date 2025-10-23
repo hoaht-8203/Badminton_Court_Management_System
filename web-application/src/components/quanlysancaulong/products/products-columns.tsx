@@ -14,9 +14,7 @@ export const productColumns: TableProps<ListProductResponse>["columns"] = [
     key: "isActive",
     width: 150,
     sorter: (a, b) => Number(!!a.isActive) - Number(!!b.isActive),
-    render: (v?: boolean) => (
-      <span className={`font-bold ${v ? "text-green-500" : "text-red-500"}`}>{v ? "Đang hoạt động" : "Ngừng hoạt động"}</span>
-    ),
+    render: (v?: boolean) => <span className={`font-bold ${v ? "text-green-500" : "text-red-500"}`}>{v ? "Đang hoạt động" : "Ngừng hoạt động"}</span>,
   },
   { title: "Bán trực tiếp", dataIndex: "isDirectSale", key: "isDirectSale", width: 120, render: (v) => (v ? "Có" : "Không") },
-]; 
+];

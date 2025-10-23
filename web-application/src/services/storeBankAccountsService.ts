@@ -4,7 +4,7 @@ import { ApiResponse } from "@/types/api";
 export const storeBankAccountsService = {
   async list(): Promise<ApiResponse<any[]>> {
     const res = await axiosInstance.get<ApiResponse<any[]>>("/api/store-bank-accounts");
-    
+
     return res.data;
   },
   async create(payload: { accountNumber: string; accountName: string; bankName: string }): Promise<ApiResponse<any>> {
@@ -18,5 +18,5 @@ export const storeBankAccountsService = {
   async delete(id: number): Promise<ApiResponse<string>> {
     const res = await axiosInstance.delete<ApiResponse<string>>(`/api/store-bank-accounts/${id}`);
     return res.data;
-  }
+  },
 };

@@ -25,12 +25,17 @@ const StockOutPage = () => {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [searchForm] = Form.useForm();
-  const [filters, setFilters] = useState<{ code?: string; product?: string; supplierId?: number; outBy?: string; range?: [dayjs.Dayjs, dayjs.Dayjs]; statuses?: number[] }>(
-    {
-      statuses: [0, 1],
-      range: [dayjs().startOf("day"), dayjs().endOf("day")],
-    }
-  );
+  const [filters, setFilters] = useState<{
+    code?: string;
+    product?: string;
+    supplierId?: number;
+    outBy?: string;
+    range?: [dayjs.Dayjs, dayjs.Dayjs];
+    statuses?: number[];
+  }>({
+    statuses: [0, 1],
+    range: [dayjs().startOf("day"), dayjs().endOf("day")],
+  });
 
   const [data, setData] = useState<StockOut[]>([]);
   const [loading, setLoading] = useState(false);
@@ -46,23 +51,26 @@ const StockOutPage = () => {
       const range = resolvedRange;
       const from = range?.[0]?.toDate();
       const to = range?.[1]?.toDate();
-      const status = (filters.statuses && filters.statuses.length === 1) ? filters.statuses[0] : undefined;
+      const status = filters.statuses && filters.statuses.length === 1 ? filters.statuses[0] : undefined;
       const res = await stockOutService.list({ from, to, status } as any);
-      const list = (res.data || []).map((r: any) => ({ 
-        id: r.id, 
-        code: r.code, 
-        outTime: new Date(r.outTime), 
+      const list = (res.data || []).map((r: any) => ({
+        id: r.id,
+        code: r.code,
+        outTime: new Date(r.outTime),
         supplierId: r.supplierId,
         supplierName: r.supplierName,
-        outBy: r.outBy, 
-        totalValue: r.totalValue, 
-        status: r.status as 0|1|2 
+        outBy: r.outBy,
+        totalValue: r.totalValue,
+        status: r.status as 0 | 1 | 2,
       })) as StockOut[];
       setData(list);
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { load();
+  useEffect(() => {
+    load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -78,9 +86,9 @@ const StockOutPage = () => {
   }, [editingId]);
 
   const supplierOptions = useMemo(() => {
-    const uniq = Array.from(new Set((data || []).map(x => x.supplierId).filter(Boolean)));
-    return uniq.map(sId => {
-      const supplier = data.find(x => x.supplierId === sId);
+    const uniq = Array.from(new Set((data || []).map((x) => x.supplierId).filter(Boolean)));
+    return uniq.map((sId) => {
+      const supplier = data.find((x) => x.supplierId === sId);
       return { label: supplier?.supplierName || `Supplier ${sId}`, value: sId };
     });
   }, [data]);
@@ -102,7 +110,10 @@ const StockOutPage = () => {
     });
   }, [data, filters, resolvedRange]);
 
-  const onCreate = () => { setEditingId(null); setOpen(true); };
+  const onCreate = () => {
+    setEditingId(null);
+    setOpen(true);
+  };
 
   return (
     <section>
@@ -110,31 +121,71 @@ const StockOutPage = () => {
         <Breadcrumb items={[{ title: "Quản lý kho" }, { title: "Phiếu xuất hủy" }]} />
       </div>
 
-      <Form form={searchForm} layout="vertical" onFinish={(vals) => { setFilters({ ...filters, ...vals }); load(); }} initialValues={filters}>
-        <Card className="mb-3" title="Lọc dữ liệu" extra={<Space><Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>Tìm kiếm</Button><Button onClick={() => { searchForm.resetFields(); setFilters({ statuses: [0,1], range: [dayjs().startOf("day"), dayjs().endOf("day")] }); }}>Reset</Button></Space>}>
+      <Form
+        form={searchForm}
+        layout="vertical"
+        onFinish={(vals) => {
+          setFilters({ ...filters, ...vals });
+          load();
+        }}
+        initialValues={filters}
+      >
+        <Card
+          className="mb-3"
+          title="Lọc dữ liệu"
+          extra={
+            <Space>
+              <Button type="primary" icon={<SearchOutlined />} onClick={() => searchForm.submit()}>
+                Tìm kiếm
+              </Button>
+              <Button
+                onClick={() => {
+                  searchForm.resetFields();
+                  setFilters({ statuses: [0, 1], range: [dayjs().startOf("day"), dayjs().endOf("day")] });
+                }}
+              >
+                Reset
+              </Button>
+            </Space>
+          }
+        >
           <Row gutter={16}>
-            <Col span={6}><Form.Item name="code" label="Theo mã phiếu xuất"><Input allowClear placeholder="Theo mã phiếu xuất" /></Form.Item></Col>
-            <Col span={6}><Form.Item name="product" label="Theo mã, tên hàng"><Input allowClear placeholder="Theo mã, tên hàng" /></Form.Item></Col>
-            <Col span={6}><Form.Item name="supplierId" label="Theo nhà cung cấp">
-              <Select
-                allowClear
-                showSearch
-                placeholder="Chọn nhà cung cấp"
-                optionFilterProp="label"
-                options={supplierOptions}
-              />
-            </Form.Item></Col>
-            
-            <Col span={6}><Form.Item name="outBy" label="Theo người xuất"><Input allowClear placeholder="Theo người xuất" /></Form.Item></Col>
+            <Col span={6}>
+              <Form.Item name="code" label="Theo mã phiếu xuất">
+                <Input allowClear placeholder="Theo mã phiếu xuất" />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item name="product" label="Theo mã, tên hàng">
+                <Input allowClear placeholder="Theo mã, tên hàng" />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item name="supplierId" label="Theo nhà cung cấp">
+                <Select allowClear showSearch placeholder="Chọn nhà cung cấp" optionFilterProp="label" options={supplierOptions} />
+              </Form.Item>
+            </Col>
+
+            <Col span={6}>
+              <Form.Item name="outBy" label="Theo người xuất">
+                <Input allowClear placeholder="Theo người xuất" />
+              </Form.Item>
+            </Col>
           </Row>
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item label="Trạng thái" name="statuses">
                 <Checkbox.Group style={{ width: "100%" }} onChange={(vals) => setFilters({ ...filters, statuses: vals as number[] })}>
                   <Row gutter={[0, 8]}>
-                    <Col span={24}><Checkbox value={0}>Phiếu tạm</Checkbox></Col>
-                    <Col span={24}><Checkbox value={1}>Hoàn thành</Checkbox></Col>
-                    <Col span={24}><Checkbox value={2}>Đã hủy</Checkbox></Col>
+                    <Col span={24}>
+                      <Checkbox value={0}>Phiếu tạm</Checkbox>
+                    </Col>
+                    <Col span={24}>
+                      <Checkbox value={1}>Hoàn thành</Checkbox>
+                    </Col>
+                    <Col span={24}>
+                      <Checkbox value={2}>Đã hủy</Checkbox>
+                    </Col>
                   </Row>
                 </Checkbox.Group>
               </Form.Item>
@@ -176,7 +227,13 @@ const StockOutPage = () => {
             { title: "Nhà cung cấp", dataIndex: "supplierName", key: "supplierName", width: 220, render: (t?: string) => t || "-" },
             { title: "Người xuất", dataIndex: "outBy", key: "outBy", width: 160, render: (t?: string) => t || "-" },
             { title: "Tổng giá trị", dataIndex: "totalValue", key: "totalValue", width: 140, render: (v?: number) => (v ?? 0).toLocaleString() },
-            { title: "Trạng thái", dataIndex: "status", key: "status", width: 140, render: (s: StockOut["status"]) => <Tag color={statusColors[s]}>{statusLabels[s]}</Tag> },
+            {
+              title: "Trạng thái",
+              dataIndex: "status",
+              key: "status",
+              width: 140,
+              render: (s: StockOut["status"]) => <Tag color={statusColors[s]}>{statusLabels[s]}</Tag>,
+            },
           ]}
           dataSource={filtered}
           loading={loading}
@@ -188,7 +245,15 @@ const StockOutPage = () => {
         />
       </div>
 
-      <CreateEditStockOutDrawer open={open} onClose={() => { setOpen(false); setEditingId(null); }} onChanged={() => load()} stockOutId={editingId ?? undefined} />
+      <CreateEditStockOutDrawer
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setEditingId(null);
+        }}
+        onChanged={() => load()}
+        stockOutId={editingId ?? undefined}
+      />
     </section>
   );
 };
@@ -199,8 +264,12 @@ const StockOutRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdi
   const [detail, setDetail] = React.useState<any | null>(null);
   React.useEffect(() => {
     const run = async () => {
-      try { const res = await stockOutService.detail(record.id); setDetail(res.data); }
-      catch { setDetail(null); }
+      try {
+        const res = await stockOutService.detail(record.id);
+        setDetail(res.data);
+      } catch {
+        setDetail(null);
+      }
     };
     run();
   }, [record?.id]);
@@ -230,26 +299,43 @@ const StockOutRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdi
         </div>
         <div>
           <div className="text-gray-500">Trạng thái:</div>
-          {(() => { const s = record.status as 0 | 1 | 2; return (
-            <div className="font-semibold"><Tag color={statusColors[s]}>{statusLabels[s]}</Tag></div>
-          ); })()}
+          {(() => {
+            const s = record.status as 0 | 1 | 2;
+            return (
+              <div className="font-semibold">
+                <Tag color={statusColors[s]}>{statusLabels[s]}</Tag>
+              </div>
+            );
+          })()}
         </div>
         {record.status === 0 && (
-          <div className="md:col-span-3 text-right space-x-2">
-            <Button type="primary" onClick={onEdit}>Cập nhật</Button>
-            <Button danger onClick={() => {
-              Modal.confirm({
-                title: "Xác nhận hủy phiếu",
-                content: "Bạn có chắc chắn muốn hủy phiếu xuất hủy này?",
-                okText: "Hủy phiếu",
-                cancelText: "Đóng",
-                okButtonProps: { danger: true },
-                onOk: async () => {
-                  try { await stockOutService.cancel(record.id); message.success("Đã hủy phiếu"); onCancelled(); }
-                  catch (e: any) { message.error(e?.message || "Hủy thất bại"); }
-                }
-              });
-            }}>Hủy phiếu</Button>
+          <div className="space-x-2 text-right md:col-span-3">
+            <Button type="primary" onClick={onEdit}>
+              Cập nhật
+            </Button>
+            <Button
+              danger
+              onClick={() => {
+                Modal.confirm({
+                  title: "Xác nhận hủy phiếu",
+                  content: "Bạn có chắc chắn muốn hủy phiếu xuất hủy này?",
+                  okText: "Hủy phiếu",
+                  cancelText: "Đóng",
+                  okButtonProps: { danger: true },
+                  onOk: async () => {
+                    try {
+                      await stockOutService.cancel(record.id);
+                      message.success("Đã hủy phiếu");
+                      onCancelled();
+                    } catch (e: any) {
+                      message.error(e?.message || "Hủy thất bại");
+                    }
+                  },
+                });
+              }}
+            >
+              Hủy phiếu
+            </Button>
           </div>
         )}
       </div>
@@ -273,12 +359,5 @@ const StockOutRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdi
     </div>
   );
 
-  return (
-    <Tabs
-      defaultActiveKey="info"
-      items={[
-        { key: "info", label: "Thông tin", children: infoTab },
-      ]}
-    />
-  );
+  return <Tabs defaultActiveKey="info" items={[{ key: "info", label: "Thông tin", children: infoTab }]} />;
 };

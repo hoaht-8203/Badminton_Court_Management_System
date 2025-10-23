@@ -1,9 +1,35 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Col, Drawer, Form, Input, Row, Divider, message, Space, DatePicker, Table, InputNumber, Modal, Card, List, Checkbox, Image, Tabs, Select } from "antd";
+import {
+  Button,
+  Col,
+  Drawer,
+  Form,
+  Input,
+  Row,
+  Divider,
+  message,
+  Space,
+  DatePicker,
+  Table,
+  InputNumber,
+  Modal,
+  Card,
+  List,
+  Checkbox,
+  Image,
+  Tabs,
+  Select,
+} from "antd";
 import { SaveOutlined, CloseOutlined, DeleteOutlined, SearchOutlined, EditOutlined, DeleteFilled } from "@ant-design/icons";
-import { useCreateInventoryCheck, useUpdateInventoryCheck, useDetailInventoryCheck, useDeleteInventoryCheck, useCompleteInventoryCheck } from "@/hooks/useInventory";
+import {
+  useCreateInventoryCheck,
+  useUpdateInventoryCheck,
+  useDetailInventoryCheck,
+  useDeleteInventoryCheck,
+  useCompleteInventoryCheck,
+} from "@/hooks/useInventory";
 import { CreateInventoryCheckRequest } from "@/types-openapi/api";
 import { useListProducts } from "@/hooks/useProducts";
 import type { TableColumnsType } from "antd";
@@ -53,7 +79,7 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
             systemQuantity: item.systemQuantity ?? 0,
             actualQuantity: item.actualQuantity ?? 0,
             costPrice: item.costPrice ?? 0,
-          }))
+          })),
         );
       } else {
         form.resetFields();
@@ -71,9 +97,7 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
         messageApi.error("Chỉ phiếu tạm mới được phép cập nhật");
         return;
       }
-      const resolvedCheckTime = isEdit
-        ? (values.checkTime && values.checkTime.toDate ? values.checkTime.toDate() : values.checkTime)
-        : new Date();
+      const resolvedCheckTime = isEdit ? (values.checkTime && values.checkTime.toDate ? values.checkTime.toDate() : values.checkTime) : new Date();
       const inventoryCheckData: CreateInventoryCheckRequest = {
         // Enforce current date when creating; convert dayjs -> Date
         checkTime: resolvedCheckTime,
@@ -107,13 +131,13 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
       form.resetFields();
       setItems([]);
       setRecentItems([]); // Clear history when closing
-      
+
       // Invalidate queries to refresh data
       try {
         await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });
         await queryClient.invalidateQueries({ queryKey: ["products"] });
       } catch {}
-      
+
       onClose();
     } catch {
       messageApi.error(isEdit ? "Cập nhật phiếu kiểm kê thất bại!" : "Tạo phiếu kiểm kê thất bại!");
@@ -174,7 +198,7 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
 
   // Manual items state
   type ManualItem = { productId: number; code: string; name: string; systemQuantity: number; actualQuantity: number; costPrice?: number };
-  type RecentItem = ManualItem & { action?: 'search' | 'edit' | 'delete' };
+  type RecentItem = ManualItem & { action?: "search" | "edit" | "delete" };
   const [items, setItems] = useState<ManualItem[]>([]);
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]); // Separate state for history
   const [query, setQuery] = useState<string>("");
@@ -186,7 +210,7 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
   const [activeTab, setActiveTab] = useState<string>("all");
   const { user } = useAuth();
   const { data: categoriesData } = useListCategories({});
-  
+
   const { data: productList } = useListProducts({ name: debouncedQuery } as any);
   const [productsWithImages, setProductsWithImages] = useState<any[]>([]);
 
@@ -200,15 +224,15 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
               const detail = await (await import("@/services/productService")).productService.detail({ id: product.id } as any);
               return {
                 ...product,
-                images: (detail as any)?.data?.images || []
+                images: (detail as any)?.data?.images || [],
               };
             } catch {
               return {
                 ...product,
-                images: []
+                images: [],
               };
             }
-          })
+          }),
         );
         setProductsWithImages(productDetails);
       };
@@ -260,19 +284,19 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
 
   // Save to history when user finishes editing (onBlur)
   const onBlurActual = (productId: number) => {
-    const item = items.find(x => x.productId === productId);
+    const item = items.find((x) => x.productId === productId);
     if (item) {
-      const updatedItem = { ...item, action: 'edit' as const };
-      setRecentItems(prev => [...prev, updatedItem]);
+      const updatedItem = { ...item, action: "edit" as const };
+      setRecentItems((prev) => [...prev, updatedItem]);
     }
   };
 
   const removeItem = (productId: number) => {
     // Find the item before removing to save to history
-    const item = items.find(x => x.productId === productId);
+    const item = items.find((x) => x.productId === productId);
     if (item) {
-      const deletedItem = { ...item, action: 'delete' as const };
-      setRecentItems(prev => [...prev, deletedItem]);
+      const deletedItem = { ...item, action: "delete" as const };
+      setRecentItems((prev) => [...prev, deletedItem]);
     }
     setItems((prev) => prev.filter((x) => x.productId !== productId));
   };
@@ -286,7 +310,6 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
       onOk: () => setItems([]),
     });
   };
-
 
   const columns: TableColumnsType<ManualItem> = [
     { title: "Mã hàng", dataIndex: "code", key: "code", width: 140 },
@@ -304,8 +327,8 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
           onChange={(val) => onChangeActual(r.productId, Number(val))}
           onBlur={() => onBlurActual(r.productId)}
           style={{ width: 140 }}
-          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
         />
       ),
     },
@@ -374,7 +397,14 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
               const stock = (d as any)?.data?.stock ?? 0;
               const cp = (d as any)?.data?.costPrice ?? 0;
               if (onlyInStock && stock <= 0) continue;
-              const newItem = { productId: p.id, code: p.code || String(p.id), name: p.name, systemQuantity: stock, actualQuantity: stock, costPrice: cp };
+              const newItem = {
+                productId: p.id,
+                code: p.code || String(p.id),
+                name: p.name,
+                systemQuantity: stock,
+                actualQuantity: stock,
+                costPrice: cp,
+              };
               setItems((prev) => {
                 if (prev.some((x) => x.productId === p.id)) return prev;
                 return [...prev, newItem];
@@ -455,12 +485,12 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
         }
       >
         {isEdit && isCancelled && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-            <div className="text-red-600 font-medium">Phiếu kiểm kê đã bị hủy</div>
-            <div className="text-red-500 text-sm">Phiếu này không thể chỉnh sửa hoặc thực hiện thao tác nào khác.</div>
+          <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3">
+            <div className="font-medium text-red-600">Phiếu kiểm kê đã bị hủy</div>
+            <div className="text-sm text-red-500">Phiếu này không thể chỉnh sửa hoặc thực hiện thao tác nào khác.</div>
           </div>
         )}
-        
+
         <Form form={form} layout="vertical" onFinish={onFinish} autoComplete="off" disabled={isEdit && (!isDraft || isCancelled)}>
           <Row gutter={16}>
             <Col span={8}>
@@ -476,20 +506,25 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
             <Col span={8}>
               <Card size="small" title="Kiểm gần đây">
                 {recentItems.length === 0 ? (
-                  <div className="text-gray-400 text-sm">Chưa có</div>
+                  <div className="text-sm text-gray-400">Chưa có</div>
                 ) : (
-                  (recentItems || []).slice(-6).reverse().map((i, index) => (
-                    <div key={`${i.productId}-${index}`} className="flex items-center py-1 text-sm hover:bg-gray-50 rounded px-1">
-                      <div className="flex items-center gap-2">
-                        {i.action === 'search' && <SearchOutlined className="text-gray-500" />}
-                        {i.action === 'edit' && <EditOutlined className="text-gray-500" />}
-                        {i.action === 'delete' && <DeleteFilled className="text-gray-500" />}
-                        {!i.action && <SearchOutlined className="text-gray-500" />}
-                        <span className="truncate" style={{ maxWidth: 180 }}>{i.name}</span>
-                        <span className="text-gray-400">({i.actualQuantity})</span>
+                  (recentItems || [])
+                    .slice(-6)
+                    .reverse()
+                    .map((i, index) => (
+                      <div key={`${i.productId}-${index}`} className="flex items-center rounded px-1 py-1 text-sm hover:bg-gray-50">
+                        <div className="flex items-center gap-2">
+                          {i.action === "search" && <SearchOutlined className="text-gray-500" />}
+                          {i.action === "edit" && <EditOutlined className="text-gray-500" />}
+                          {i.action === "delete" && <DeleteFilled className="text-gray-500" />}
+                          {!i.action && <SearchOutlined className="text-gray-500" />}
+                          <span className="truncate" style={{ maxWidth: 180 }}>
+                            {i.name}
+                          </span>
+                          <span className="text-gray-400">({i.actualQuantity})</span>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))
                 )}
               </Card>
             </Col>
@@ -499,7 +534,7 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
           <Row gutter={12} align="middle">
             <Col span={24}>
               <div className="mb-2 font-semibold">Tìm kiếm sản phẩm</div>
-              <div className="flex gap-3 items-center mb-2">
+              <div className="mb-2 flex items-center gap-3">
                 <Input
                   placeholder="Tìm kiếm sản phẩm..."
                   prefix={<SearchOutlined />}
@@ -518,26 +553,17 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
                     options={(categoriesData?.data || []).map((c: any) => ({ label: c.name, value: c.name }))}
                   />
                 </div>
-                <Checkbox
-                  checked={selectAllCategories}
-                  onChange={(e) => setSelectAllCategories(e.target.checked)}
-                >
+                <Checkbox checked={selectAllCategories} onChange={(e) => setSelectAllCategories(e.target.checked)}>
                   Tất cả nhóm
                 </Checkbox>
-                <Checkbox
-                  checked={onlyInStock}
-                  onChange={(e) => setOnlyInStock(e.target.checked)}
-                >
+                <Checkbox checked={onlyInStock} onChange={(e) => setOnlyInStock(e.target.checked)}>
                   Còn tồn
                 </Checkbox>
-                <Checkbox
-                  checked={onlyActive}
-                  onChange={(e) => setOnlyActive(e.target.checked)}
-                >
+                <Checkbox checked={onlyActive} onChange={(e) => setOnlyActive(e.target.checked)}>
                   Đang KD
                 </Checkbox>
               </div>
-              
+
               {/* Search Results */}
               {debouncedQuery && productsWithImages.length > 0 && (
                 <Card size="small" className="mb-2">
@@ -546,40 +572,42 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
                     dataSource={productsWithImages}
                     renderItem={(product: any) => {
                       return (
-                      <List.Item
-                        className="cursor-pointer hover:bg-gray-50 p-3 rounded border-b border-gray-100"
-                        onClick={() => onSelectProduct(`${product.code} - ${product.name}`, { data: { id: product.id, code: product.code, name: product.name } })}
-                      >
-                        <div className="flex items-center w-full">
-                          {/* Product Image */}
-                          <div className="mr-3">
-                            {product.images && product.images.length > 0 ? (
-                              <Image
-                                width={60}
-                                height={60}
-                                src={product.images[0]}
-                                alt={product.name}
-                                style={{ objectFit: "contain", borderRadius: 8 }}
-                              />
-                            ) : (
-                              <div 
-                                className="flex items-center justify-center bg-gray-100 text-gray-400 text-xs"
-                                style={{ width: 60, height: 60, borderRadius: 8 }}
-                              >
-                                No Image
+                        <List.Item
+                          className="cursor-pointer rounded border-b border-gray-100 p-3 hover:bg-gray-50"
+                          onClick={() =>
+                            onSelectProduct(`${product.code} - ${product.name}`, { data: { id: product.id, code: product.code, name: product.name } })
+                          }
+                        >
+                          <div className="flex w-full items-center">
+                            {/* Product Image */}
+                            <div className="mr-3">
+                              {product.images && product.images.length > 0 ? (
+                                <Image
+                                  width={60}
+                                  height={60}
+                                  src={product.images[0]}
+                                  alt={product.name}
+                                  style={{ objectFit: "contain", borderRadius: 8 }}
+                                />
+                              ) : (
+                                <div
+                                  className="flex items-center justify-center bg-gray-100 text-xs text-gray-400"
+                                  style={{ width: 60, height: 60, borderRadius: 8 }}
+                                >
+                                  No Image
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Product Info */}
+                            <div className="flex-1">
+                              <div className="mb-1 text-base font-semibold">{product.name}</div>
+                              <div className="text-sm text-gray-600">
+                                <span className="font-medium">Mã:</span> {product.code || product.id}
                               </div>
-                            )}
-                          </div>
-                          
-                          {/* Product Info */}
-                          <div className="flex-1">
-                            <div className="font-semibold text-base mb-1">{product.name}</div>
-                            <div className="text-sm text-gray-600">
-                              <span className="font-medium">Mã:</span> {product.code || product.id}
                             </div>
                           </div>
-                        </div>
-                      </List.Item>
+                        </List.Item>
                       );
                     }}
                   />
@@ -593,7 +621,9 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
           {items.length > 0 && (
             <div className="mb-2 text-right">
               <Space>
-                <Button danger onClick={removeAllItems}>Xóa tất cả</Button>
+                <Button danger onClick={removeAllItems}>
+                  Xóa tất cả
+                </Button>
               </Space>
             </div>
           )}
@@ -603,18 +633,12 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
             onChange={setActiveTab}
             items={[
               { key: "all", label: `Tất cả (${items.length})` },
-              { key: "matched", label: `Khớp (${items.filter((i)=> (i.actualQuantity??0)===(i.systemQuantity??0)).length})` },
-              { key: "delta", label: `Lệch (${items.filter((i)=> (i.actualQuantity??0)!==(i.systemQuantity??0)).length})` },
+              { key: "matched", label: `Khớp (${items.filter((i) => (i.actualQuantity ?? 0) === (i.systemQuantity ?? 0)).length})` },
+              { key: "delta", label: `Lệch (${items.filter((i) => (i.actualQuantity ?? 0) !== (i.systemQuantity ?? 0)).length})` },
             ]}
           />
 
-          <Table<ManualItem>
-            size="small"
-            rowKey={(r) => r.productId}
-            columns={columns}
-            dataSource={tableData}
-            pagination={false}
-          />
+          <Table<ManualItem> size="small" rowKey={(r) => r.productId} columns={columns} dataSource={tableData} pagination={false} />
 
           <Divider />
 
@@ -637,7 +661,6 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
           </ul>
         </div>
       </Drawer>
-
     </>
   );
 };

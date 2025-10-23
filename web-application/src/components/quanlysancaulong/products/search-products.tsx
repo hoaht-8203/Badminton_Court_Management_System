@@ -42,8 +42,12 @@ const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
         title="Lọc dữ liệu"
         extra={
           <div className="flex h-full items-center gap-2">
-            <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>Tìm kiếm</Button>
-            <Button icon={<ReloadOutlined />} onClick={handleReset}>Reset</Button>
+            <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+              Tìm kiếm
+            </Button>
+            <Button icon={<ReloadOutlined />} onClick={handleReset}>
+              Reset
+            </Button>
           </div>
         }
       >
@@ -60,17 +64,15 @@ const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
           </Col>
           <Col span={6}>
             <Form.Item<ProductFilters> label="Tìm theo nhóm hàng" name="category">
-              <Select 
-                allowClear 
+              <Select
+                allowClear
                 showSearch
                 placeholder="Chọn nhóm hàng"
                 optionFilterProp="label"
-                filterOption={(input, option) =>
-                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                }
-                options={(categoriesData?.data || []).map((c: any) => ({ 
-                  label: c.name, 
-                  value: c.name 
+                filterOption={(input, option) => (option?.label ?? "").toLowerCase().includes(input.toLowerCase())}
+                options={(categoriesData?.data || []).map((c: any) => ({
+                  label: c.name,
+                  value: c.name,
                 }))}
               />
             </Form.Item>
@@ -106,4 +108,4 @@ const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
   );
 };
 
-export default SearchProducts; 
+export default SearchProducts;

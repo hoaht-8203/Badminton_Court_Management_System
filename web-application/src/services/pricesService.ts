@@ -41,4 +41,4 @@ export const pricesService = {
     const res = await axiosInstance.get<ApiResponse<ListPriceTableProductsResponse>>("/api/Prices/get-products", { params: { priceTableId } });
     return res.data;
   },
-}; 
+};

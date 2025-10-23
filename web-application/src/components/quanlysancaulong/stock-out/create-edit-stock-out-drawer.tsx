@@ -1,7 +1,25 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Card, Col, DatePicker, Drawer, Form, Input, InputNumber, Row, Space, Table, message, Checkbox, List, Image, Select, Modal } from "antd";
+import {
+  Button,
+  Card,
+  Col,
+  DatePicker,
+  Drawer,
+  Form,
+  Input,
+  InputNumber,
+  Row,
+  Space,
+  Table,
+  message,
+  Checkbox,
+  List,
+  Image,
+  Select,
+  Modal,
+} from "antd";
 import { CloseOutlined, SaveOutlined, SearchOutlined } from "@ant-design/icons";
 import type { TableColumnsType } from "antd";
 import dayjs from "dayjs";
@@ -23,7 +41,6 @@ type StockOutItem = {
   images?: string[];
   stock: number; // Thêm thông tin tồn kho
 };
-
 
 interface Props {
   open: boolean;
@@ -53,9 +70,9 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
     if (!isEdit) {
       form.resetFields();
       setItems([]);
-      form.setFieldsValue({ 
+      form.setFieldsValue({
         outTime: dayjs(),
-        outBy: user?.fullName || user?.userName || user?.email || "Người dùng"
+        outBy: user?.fullName || user?.userName || user?.email || "Người dùng",
       });
       return;
     }
@@ -71,29 +88,31 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
           outBy: d?.outBy,
           note: d?.note,
         });
-        const loadedItems: StockOutItem[] = await Promise.all((d?.items || []).map(async (i: any) => {
-          // Lấy thông tin stock từ productService.detail()
-          let stock = 0;
-          try {
-            const svc = await import("@/services/productService");
-            const productDetail = await svc.productService.detail({ id: i.productId } as any);
-            stock = (productDetail as any)?.data?.stock ?? 0;
-            console.log(`Load stock-out item ${i.productName} (${i.productId}) stock:`, stock); // Debug log
-          } catch (error) {
-            console.log(`Error getting stock for stock-out item ${i.productName} (${i.productId}):`, error); // Debug log
-          }
-          
-          return {
-            productId: i.productId,
-            code: i.productCode || String(i.productId),
-            name: i.productName || "",
-            quantity: i.quantity,
-            costPrice: i.costPrice,
-            lineTotal: Number(i.quantity) * Number(i.costPrice || 0),
-            note: i.note,
-            stock: stock, // Sử dụng stock từ API
-          };
-        }));
+        const loadedItems: StockOutItem[] = await Promise.all(
+          (d?.items || []).map(async (i: any) => {
+            // Lấy thông tin stock từ productService.detail()
+            let stock = 0;
+            try {
+              const svc = await import("@/services/productService");
+              const productDetail = await svc.productService.detail({ id: i.productId } as any);
+              stock = (productDetail as any)?.data?.stock ?? 0;
+              console.log(`Load stock-out item ${i.productName} (${i.productId}) stock:`, stock); // Debug log
+            } catch (error) {
+              console.log(`Error getting stock for stock-out item ${i.productName} (${i.productId}):`, error); // Debug log
+            }
+
+            return {
+              productId: i.productId,
+              code: i.productCode || String(i.productId),
+              name: i.productName || "",
+              quantity: i.quantity,
+              costPrice: i.costPrice,
+              lineTotal: Number(i.quantity) * Number(i.costPrice || 0),
+              note: i.note,
+              stock: stock, // Sử dụng stock từ API
+            };
+          }),
+        );
         setItems(loadedItems);
       } catch (e: any) {
         message.error(e?.message || "Tải phiếu thất bại");
@@ -110,12 +129,16 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
   const [productsWithImages, setProductsWithImages] = useState<any[]>([]);
   useEffect(() => {
     const run = async () => {
-      if (!debouncedQuery) { setProductsWithImages([]); return; }
+      if (!debouncedQuery) {
+        setProductsWithImages([]);
+        return;
+      }
       try {
         const svc = await import("@/services/productService");
         const res = await svc.productService.list({ name: debouncedQuery } as any);
         const list: any[] = (res as any)?.data || [];
-        const detailWithImages = await Promise.all(list.slice(0, 6).map(async (p: any) => {
+        const detailWithImages = await Promise.all(
+          list.slice(0, 6).map(async (p: any) => {
             try {
               const d = await svc.productService.detail({ id: p.id } as any);
               const stock = (d as any)?.data?.stock ?? 0;
@@ -125,7 +148,8 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
               console.log(`Error getting stock for stock-out product ${p.name} (${p.id}):`, error); // Debug log
               return { ...p, images: [], costPrice: 0, stock: 0 };
             }
-        }));
+          }),
+        );
         setProductsWithImages(detailWithImages);
       } catch {
         setProductsWithImages([]);
@@ -153,12 +177,30 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
               const cost = (d as any)?.data?.costPrice ?? 0;
               const stock = (d as any)?.data?.stock ?? 0;
               console.log(`Stock-out auto-add product ${p.name} (${p.id}) stock:`, stock); // Debug log
-              const newItem: StockOutItem = { productId: p.id, code: p.code || String(p.id), name: p.name, quantity: 1, costPrice: cost, lineTotal: cost, note: "", stock: stock };
-              setItems((prev) => (prev.some(x => x.productId === p.id) ? prev : [...prev, newItem]));
+              const newItem: StockOutItem = {
+                productId: p.id,
+                code: p.code || String(p.id),
+                name: p.name,
+                quantity: 1,
+                costPrice: cost,
+                lineTotal: cost,
+                note: "",
+                stock: stock,
+              };
+              setItems((prev) => (prev.some((x) => x.productId === p.id) ? prev : [...prev, newItem]));
             } catch (error) {
               console.log(`Error auto-adding stock-out product ${p.name} (${p.id}):`, error); // Debug log
-              const newItem: StockOutItem = { productId: p.id, code: p.code || String(p.id), name: p.name, quantity: 1, costPrice: 0, lineTotal: 0, note: "", stock: 0 };
-              setItems((prev) => (prev.some(x => x.productId === p.id) ? prev : [...prev, newItem]));
+              const newItem: StockOutItem = {
+                productId: p.id,
+                code: p.code || String(p.id),
+                name: p.name,
+                quantity: 1,
+                costPrice: 0,
+                lineTotal: 0,
+                note: "",
+                stock: 0,
+              };
+              setItems((prev) => (prev.some((x) => x.productId === p.id) ? prev : [...prev, newItem]));
             }
           }
         }
@@ -183,32 +225,32 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       images: p.images || [],
       stock: stock,
     };
-    setItems(prev => (prev.some(x => x.productId === id) ? prev : [...prev, newItem]));
+    setItems((prev) => (prev.some((x) => x.productId === id) ? prev : [...prev, newItem]));
   };
 
   const updateQuantity = (productId: number, q: number) => {
     const quantity = Math.max(0, Number(q) || 0);
-    const item = items.find(i => i.productId === productId);
-    
+    const item = items.find((i) => i.productId === productId);
+
     // Validation đơn giản: không cho nhập vượt quá tồn kho
     if (item && quantity > item.stock) {
       return; // Không cập nhật, không hiện message
     }
-    
-    setItems(prev => prev.map(i => i.productId === productId ? { ...i, quantity, lineTotal: quantity * (i.costPrice ?? 0) } : i));
+
+    setItems((prev) => prev.map((i) => (i.productId === productId ? { ...i, quantity, lineTotal: quantity * (i.costPrice ?? 0) } : i)));
   };
 
   const updateCost = (productId: number, c: number) => {
     const cost = Math.max(0, Number(c) || 0);
-    setItems(prev => prev.map(i => i.productId === productId ? { ...i, costPrice: cost, lineTotal: cost * (i.quantity ?? 0) } : i));
+    setItems((prev) => prev.map((i) => (i.productId === productId ? { ...i, costPrice: cost, lineTotal: cost * (i.quantity ?? 0) } : i)));
   };
 
   const updateNote = (productId: number, note: string) => {
-    setItems(prev => prev.map(i => i.productId === productId ? { ...i, note } : i));
+    setItems((prev) => prev.map((i) => (i.productId === productId ? { ...i, note } : i)));
   };
 
   const removeItem = (productId: number) => {
-    setItems(prev => prev.filter(i => i.productId !== productId));
+    setItems((prev) => prev.filter((i) => i.productId !== productId));
   };
 
   const removeAllItems = () => {
@@ -233,13 +275,13 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       key: "quantity",
       width: 120,
       render: (_, r) => (
-        <InputNumber 
-          min={0} 
-          value={r.quantity} 
-          onChange={(val) => updateQuantity(r.productId, Number(val))} 
-          style={{ width: 100 }} 
-          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+        <InputNumber
+          min={0}
+          value={r.quantity}
+          onChange={(val) => updateQuantity(r.productId, Number(val))}
+          style={{ width: 100 }}
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
         />
       ),
     },
@@ -248,14 +290,14 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       key: "costPrice",
       width: 120,
       render: (_, r) => (
-        <InputNumber 
-          min={0} 
-          value={r.costPrice} 
-          onChange={(val) => updateCost(r.productId, Number(val))} 
-          style={{ width: 120 }} 
-          disabled 
-          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+        <InputNumber
+          min={0}
+          value={r.costPrice}
+          onChange={(val) => updateCost(r.productId, Number(val))}
+          style={{ width: 120 }}
+          disabled
+          formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+          parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
         />
       ),
     },
@@ -263,9 +305,7 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       title: "Ghi chú",
       key: "note",
       width: 200,
-      render: (_, r) => (
-        <Input value={r.note || ""} onChange={(e) => updateNote(r.productId, e.target.value)} placeholder="Ghi chú..." />
-      ),
+      render: (_, r) => <Input value={r.note || ""} onChange={(e) => updateNote(r.productId, e.target.value)} placeholder="Ghi chú..." />,
     },
     { title: "Giá trị hủy", dataIndex: "lineTotal", key: "lineTotal", width: 140, render: (v) => (v ?? 0).toLocaleString() },
     {
@@ -273,7 +313,16 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       key: "actions",
       width: 80,
       render: (_, r) => (
-        <Button danger size="small" onClick={(e) => { e.stopPropagation(); removeItem(r.productId); }}>Xóa</Button>
+        <Button
+          danger
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            removeItem(r.productId);
+          }}
+        >
+          Xóa
+        </Button>
       ),
     },
   ];
@@ -286,20 +335,20 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
 
   const doSave = async (complete: boolean) => {
     const values = form.getFieldsValue();
-    
+
     // Validate supplier selection
     if (!values.supplierId) {
       message.warning("Vui lòng chọn nhà cung cấp");
       return;
     }
-    
+
     if ((items || []).length === 0) {
       message.warning("Vui lòng thêm sản phẩm");
       return;
     }
 
     // Validate stock quantity - đơn giản
-    const invalidItems = items.filter(item => item.quantity > item.stock);
+    const invalidItems = items.filter((item) => item.quantity > item.stock);
     if (invalidItems.length > 0) {
       message.error("Số lượng xuất hủy không được vượt quá tồn kho");
       return;
@@ -307,16 +356,16 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
 
     try {
       const payload: CreateStockOutRequest = {
-        outTime: new Date(((values.outTime ? dayjs(values.outTime) : dayjs()).toDate()).toISOString()),
+        outTime: new Date((values.outTime ? dayjs(values.outTime) : dayjs()).toDate().toISOString()),
         supplierId: values.supplierId,
         outBy: values.outBy || undefined,
         note: values.note || undefined,
         complete,
-        items: items.map((i) => ({ 
-          productId: i.productId, 
-          quantity: i.quantity, 
+        items: items.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
           costPrice: i.costPrice,
-          note: i.note || undefined
+          note: i.note || undefined,
         })),
       };
 
@@ -324,7 +373,9 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
         if (complete) {
           await stockOutService.complete(stockOutId!);
           message.success("Đã hoàn thành phiếu xuất hủy");
-          try { await queryClient.invalidateQueries({ queryKey: ["products"] }); } catch {}
+          try {
+            await queryClient.invalidateQueries({ queryKey: ["products"] });
+          } catch {}
         } else {
           await stockOutService.update(stockOutId!, payload);
           message.success("Đã lưu nháp phiếu xuất hủy");
@@ -332,10 +383,16 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       } else {
         await stockOutService.create(payload);
         message.success(complete ? "Đã hoàn thành phiếu xuất hủy" : "Đã lưu nháp phiếu xuất hủy");
-        if (complete) { try { await queryClient.invalidateQueries({ queryKey: ["products"] }); } catch {} }
+        if (complete) {
+          try {
+            await queryClient.invalidateQueries({ queryKey: ["products"] });
+          } catch {}
+        }
       }
-      
-      try { onChanged?.(); } catch {}
+
+      try {
+        onChanged?.();
+      } catch {}
       onClose();
     } catch (e: any) {
       message.error(e?.message || "Lưu phiếu xuất hủy thất bại");
@@ -372,29 +429,43 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       footer={
         <div className="text-right">
           <Space>
-            <Button onClick={onClose} icon={<CloseOutlined />}>Đóng</Button>
+            <Button onClick={onClose} icon={<CloseOutlined />}>
+              Đóng
+            </Button>
             {!isEdit ? (
               <>
-                <Button type="default" onClick={() => onSave(false)} icon={<SaveOutlined />}>Lưu nháp</Button>
-                <Button type="primary" onClick={() => onSave(true)} icon={<SaveOutlined />}>Hoàn thành</Button>
+                <Button type="default" onClick={() => onSave(false)} icon={<SaveOutlined />}>
+                  Lưu nháp
+                </Button>
+                <Button type="primary" onClick={() => onSave(true)} icon={<SaveOutlined />}>
+                  Hoàn thành
+                </Button>
               </>
             ) : (
               <>
-                <Button type="default" onClick={() => onSave(false)} icon={<SaveOutlined />}>Lưu</Button>
-                <Button type="primary" onClick={() => onSave(true)} icon={<SaveOutlined />}>Hoàn thành</Button>
+                <Button type="default" onClick={() => onSave(false)} icon={<SaveOutlined />}>
+                  Lưu
+                </Button>
+                <Button type="primary" onClick={() => onSave(true)} icon={<SaveOutlined />}>
+                  Hoàn thành
+                </Button>
               </>
             )}
           </Space>
         </div>
       }
     >
-      <Form form={form} layout="vertical" initialValues={{ 
-        outTime: dayjs(),
-        outBy: user?.fullName || user?.userName || user?.email || "Người dùng"
-      }}>
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={{
+          outTime: dayjs(),
+          outBy: user?.fullName || user?.userName || user?.email || "Người dùng",
+        }}
+      >
         <Row gutter={16}>
           <Col span={8}>
-            <Form.Item name="outTime" label="Ngày xuất hủy" rules={[{ required: true, message: "Vui lòng chọn ngày" }]}> 
+            <Form.Item name="outTime" label="Ngày xuất hủy" rules={[{ required: true, message: "Vui lòng chọn ngày" }]}>
               <DatePicker style={{ width: "100%" }} format="DD/MM/YYYY" allowClear={false} disabled />
             </Form.Item>
           </Col>
@@ -405,7 +476,7 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
                 showSearch
                 placeholder="Chọn nhà cung cấp"
                 optionFilterProp="label"
-                options={suppliersData?.data?.map(s => ({ value: s.id, label: s.name })) || []}
+                options={suppliersData?.data?.map((s) => ({ value: s.id, label: s.name })) || []}
               />
             </Form.Item>
           </Col>
@@ -419,8 +490,14 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
         <Row gutter={12} align="middle">
           <Col span={24}>
             <div className="mb-2 font-semibold">Thêm sản phẩm</div>
-            <div className="flex gap-3 items-center mb-2">
-              <Input placeholder="Tìm kiếm sản phẩm..." prefix={<SearchOutlined />} value={query} onChange={(e) => setQuery(e.target.value)} style={{ flex: 1 }} />
+            <div className="mb-2 flex items-center gap-3">
+              <Input
+                placeholder="Tìm kiếm sản phẩm..."
+                prefix={<SearchOutlined />}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                style={{ flex: 1 }}
+              />
               <div style={{ minWidth: 260 }}>
                 <Select
                   mode="multiple"
@@ -432,7 +509,9 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
                   options={(categoriesData?.data || []).map((c: any) => ({ label: c.name, value: c.name }))}
                 />
               </div>
-              <Checkbox checked={selectAllCategories} onChange={(e) => setSelectAllCategories(e.target.checked)}>Tất cả nhóm</Checkbox>
+              <Checkbox checked={selectAllCategories} onChange={(e) => setSelectAllCategories(e.target.checked)}>
+                Tất cả nhóm
+              </Checkbox>
             </div>
 
             {debouncedQuery && productsWithImages.length > 0 && (
@@ -442,20 +521,33 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
                   dataSource={productsWithImages}
                   renderItem={(product: any) => (
                     <List.Item
-                      className="cursor-pointer hover:bg-gray-50 p-3 rounded border-b border-gray-100"
+                      className="cursor-pointer rounded border-b border-gray-100 p-3 hover:bg-gray-50"
                       onClick={() => onSelectProduct(product)}
                     >
-                      <div className="flex items-center w-full">
+                      <div className="flex w-full items-center">
                         <div className="mr-3">
                           {product.images && product.images.length > 0 ? (
-                            <Image width={60} height={60} src={product.images[0]} alt={product.name} style={{ objectFit: "contain", borderRadius: 8 }} />
+                            <Image
+                              width={60}
+                              height={60}
+                              src={product.images[0]}
+                              alt={product.name}
+                              style={{ objectFit: "contain", borderRadius: 8 }}
+                            />
                           ) : (
-                            <div className="flex items-center justify-center bg-gray-100 text-gray-400 text-xs" style={{ width: 60, height: 60, borderRadius: 8 }}>No Image</div>
+                            <div
+                              className="flex items-center justify-center bg-gray-100 text-xs text-gray-400"
+                              style={{ width: 60, height: 60, borderRadius: 8 }}
+                            >
+                              No Image
+                            </div>
                           )}
                         </div>
                         <div className="flex-1">
-                          <div className="font-semibold text-base mb-1">{product.name}</div>
-                          <div className="text-sm text-gray-600"><span className="font-medium">Mã:</span> {product.code || product.id}</div>
+                          <div className="mb-1 text-base font-semibold">{product.name}</div>
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Mã:</span> {product.code || product.id}
+                          </div>
                         </div>
                       </div>
                     </List.Item>
@@ -469,18 +561,14 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
         {items.length > 0 && (
           <div className="mb-2 text-right">
             <Space>
-              <Button danger onClick={removeAllItems}>Xóa tất cả</Button>
+              <Button danger onClick={removeAllItems}>
+                Xóa tất cả
+              </Button>
             </Space>
           </div>
         )}
 
-        <Table<StockOutItem>
-          size="small"
-          rowKey={(r) => r.productId}
-          columns={columns}
-          dataSource={items}
-          pagination={false}
-        />
+        <Table<StockOutItem> size="small" rowKey={(r) => r.productId} columns={columns} dataSource={items} pagination={false} />
 
         <Card className="mt-3" size="small">
           <Row gutter={16}>
@@ -491,15 +579,21 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
             </Col>
             <Col span={12}>
               <div className="space-y-3">
-                <div className="flex justify-between"><span className="text-gray-600">Tổng số lượng</span><span className="font-semibold">{totals.totalQuantity}</span></div>
-                <div className="flex justify-between"><span className="text-gray-600">Tổng giá trị hủy</span><span className="font-semibold">{totals.totalValue.toLocaleString()}</span></div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tổng số lượng</span>
+                  <span className="font-semibold">{totals.totalQuantity}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tổng giá trị hủy</span>
+                  <span className="font-semibold">{totals.totalValue.toLocaleString()}</span>
+                </div>
               </div>
             </Col>
           </Row>
         </Card>
       </Form>
 
-      <div className="text-sm text-gray-500 mt-4">
+      <div className="mt-4 text-sm text-gray-500">
         <p>Lưu ý:</p>
         <ul className="mt-2 list-inside list-disc space-y-1">
           <li>Mã phiếu xuất hủy sẽ được hệ thống sinh tự động.</li>

@@ -65,7 +65,7 @@ import { useListCategories } from "@/hooks/useCategories";
 // Utility function to format currency
 const formatCurrency = (value: number | undefined | null): string => {
   if (value === undefined || value === null) return "-";
-  return new Intl.NumberFormat('vi-VN').format(value);
+  return new Intl.NumberFormat("vi-VN").format(value);
 };
 
 const columns = [
@@ -427,7 +427,7 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
 
   useEffect(() => {
     if (productIdsRes?.data && open) {
-      const productIds = productIdsRes.data.products?.map(p => p.productId) || [];
+      const productIds = productIdsRes.data.products?.map((p) => p.productId) || [];
       setSelectedProductIds(productIds);
     }
   }, [productIdsRes?.data, open]);
@@ -641,7 +641,7 @@ const ProductsSelector = ({
     // Map categoryId to category name
     const selectedCategory = categoriesRes?.data?.find((cat: any) => cat.id === v.categoryId);
     const categoryName = selectedCategory?.name;
-    
+
     setParams({
       code: v.code || undefined,
       name: v.name || undefined,
@@ -672,12 +672,12 @@ const ProductsSelector = ({
       const value = rowsState[id] ?? row?.salePrice;
       return { productId: id, overrideSalePrice: value };
     });
-    
+
     const payload: SetPriceTableProductsRequest = {
       priceTableId: priceId,
       products: products,
     };
-    
+
     setProducts.mutate(payload, { onSuccess: () => message.success("Đã lưu sản phẩm áp dụng") });
   };
 
@@ -710,10 +710,12 @@ const ProductsSelector = ({
               <Select
                 allowClear
                 placeholder="Chọn nhóm hàng"
-                options={categoriesRes?.data?.map((cat: any) => ({
-                  value: cat.id,
-                  label: cat.name,
-                })) || []}
+                options={
+                  categoriesRes?.data?.map((cat: any) => ({
+                    value: cat.id,
+                    label: cat.name,
+                  })) || []
+                }
               />
             </Form.Item>
           </Col>
@@ -768,8 +770,8 @@ const ProductsSelector = ({
                 style={{ width: 140 }}
                 value={rowsState[r.id] ?? r.salePrice}
                 onChange={(val) => setRowsState((s) => ({ ...s, [r.id]: val as number }))}
-                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                parser={(value) => value!.replace(/\$\s?|(,*)/g, "")}
               />
             ),
           },

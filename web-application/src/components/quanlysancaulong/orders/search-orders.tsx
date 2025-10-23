@@ -75,23 +75,14 @@ const SearchOrders = ({ onSearch, onReset }: SearchOrdersProps) => {
           </Col>
           <Col span={6}>
             <Form.Item label="Khoảng thời gian" name="dateRange">
-              <DatePicker.RangePicker
-                placeholder={["Từ ngày", "Đến ngày"]}
-                style={{ width: "100%" }}
-                format="DD/MM/YYYY"
-              />
+              <DatePicker.RangePicker placeholder={["Từ ngày", "Đến ngày"]} style={{ width: "100%" }} format="DD/MM/YYYY" />
             </Form.Item>
           </Col>
         </Row>
         <Row gutter={16}>
           <Col span={24}>
             <div className="flex gap-2">
-              <Button
-                type="primary"
-                icon={<SearchOutlined />}
-                onClick={handleSearch}
-                loading={loading}
-              >
+              <Button type="primary" icon={<SearchOutlined />} onClick={handleSearch} loading={loading}>
                 Tìm kiếm
               </Button>
               <Button icon={<ReloadOutlined />} onClick={handleReset}>

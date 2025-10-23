@@ -155,141 +155,141 @@ const ProductInformation = ({
             label: "Thông tin",
             children: (
               <div>
-      <Row gutter={16} className="mb-4">
-        <Col span={18}>
-          <Row gutter={[16, 0]}>
-            <Col span={8}>
-              <div>
-                <div className="flex">
-                  <div className="w-32 font-medium">Mã hàng:</div>
-                  <div>{record.id}</div>
-                </div>
-                <Divider size="small" style={{ margin: "4px 0" }} />
+                <Row gutter={16} className="mb-4">
+                  <Col span={18}>
+                    <Row gutter={[16, 0]}>
+                      <Col span={8}>
+                        <div>
+                          <div className="flex">
+                            <div className="w-32 font-medium">Mã hàng:</div>
+                            <div>{record.id}</div>
+                          </div>
+                          <Divider size="small" style={{ margin: "4px 0" }} />
 
-                <div className="flex">
-                  <div className="w-32 font-medium">Mã hàng:</div>
-                  <div>{record.code || "-"}</div>
-                </div>
-                <Divider size="small" style={{ margin: "4px 0" }} />
+                          <div className="flex">
+                            <div className="w-32 font-medium">Mã hàng:</div>
+                            <div>{record.code || "-"}</div>
+                          </div>
+                          <Divider size="small" style={{ margin: "4px 0" }} />
 
-                <div className="flex">
-                  <div className="w-32 font-medium">Tên hàng:</div>
-                  <div>{record.name}</div>
-                </div>
-                <Divider size="small" style={{ margin: "4px 0" }} />
-              </div>
-            </Col>
+                          <div className="flex">
+                            <div className="w-32 font-medium">Tên hàng:</div>
+                            <div>{record.name}</div>
+                          </div>
+                          <Divider size="small" style={{ margin: "4px 0" }} />
+                        </div>
+                      </Col>
 
-            <Col span={8}>
-              <div>
-                <div className="flex">
-                  <div className="w-32 font-medium">Nhóm hàng:</div>
-                  <div>{record.category || "-"}</div>
-                </div>
-                <Divider size="small" style={{ margin: "4px 0" }} />
+                      <Col span={8}>
+                        <div>
+                          <div className="flex">
+                            <div className="w-32 font-medium">Nhóm hàng:</div>
+                            <div>{record.category || "-"}</div>
+                          </div>
+                          <Divider size="small" style={{ margin: "4px 0" }} />
 
-                <div className="flex">
-                  <div className="w-32 font-medium">Loại thực đơn:</div>
-                  <div>{record.menuType || "-"}</div>
-                </div>
-                <Divider size="small" style={{ margin: "4px 0" }} />
+                          <div className="flex">
+                            <div className="w-32 font-medium">Loại thực đơn:</div>
+                            <div>{record.menuType || "-"}</div>
+                          </div>
+                          <Divider size="small" style={{ margin: "4px 0" }} />
 
-                <div className="flex">
-                  <div className="w-32 font-medium">Kinh doanh:</div>
-                  <div>
-                    <span className={`font-bold ${isActive ? "text-green-500" : "text-red-500"}`}>
-                      {isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
-                    </span>
+                          <div className="flex">
+                            <div className="w-32 font-medium">Kinh doanh:</div>
+                            <div>
+                              <span className={`font-bold ${isActive ? "text-green-500" : "text-red-500"}`}>
+                                {isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
+                              </span>
+                            </div>
+                          </div>
+                          <Divider size="small" style={{ margin: "4px 0" }} />
+                        </div>
+                      </Col>
+
+                      <Col span={8}>
+                        <div>
+                          <div className="flex">
+                            <div className="w-32 font-medium">Giá vốn:</div>
+                            <div>{d?.costPrice ?? "-"}</div>
+                          </div>
+                          <Divider size="small" style={{ margin: "4px 0" }} />
+
+                          <div className="flex">
+                            <div className="w-32 font-medium">Giá bán:</div>
+                            <div>{record.salePrice}</div>
+                          </div>
+                          <Divider size="small" style={{ margin: "4px 0" }} />
+
+                          {record.menuType !== "Khác" && (
+                            <>
+                              <div className="flex">
+                                <div className="w-32 font-medium">Tồn kho:</div>
+                                <div>{d?.stock ?? 0}</div>
+                              </div>
+                              <Divider size="small" style={{ margin: "4px 0" }} />
+
+                              <div className="flex">
+                                <div className="w-32 font-medium">Ngưỡng min/max:</div>
+                                <div>{d ? `${d.minStock} / ${d.maxStock}` : "-"}</div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </Col>
+                    </Row>
+                  </Col>
+
+                  <Col span={6} className="flex items-start justify-end">
+                    {d?.images && d.images.length > 0 && (
+                      <div>
+                        <div className="mb-2 text-center font-semibold">Hình ảnh</div>
+                        <Image.PreviewGroup>
+                          <Image src={d.images[0]} alt="Product image" width={180} height={180} style={{ objectFit: "contain", borderRadius: 8 }} />
+                          {d.images.length > 1 && (
+                            <div className="mt-2 flex flex-wrap justify-center gap-2">
+                              {d.images.slice(1).map((url, idx) => (
+                                <Image
+                                  key={idx}
+                                  src={url}
+                                  alt={`Product image ${idx + 2}`}
+                                  width={60}
+                                  height={60}
+                                  style={{ objectFit: "cover", borderRadius: 6 }}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </Image.PreviewGroup>
+                      </div>
+                    )}
+                  </Col>
+                </Row>
+
+                <div className="flex justify-between">
+                  <div className="flex gap-2">
+                    <Button type="primary" icon={<EditOutlined />} onClick={onEdit}>
+                      Cập nhật hàng hóa
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button danger icon={<DeleteOutlined />} onClick={onDelete}>
+                      Xóa hàng hóa
+                    </Button>
+                    {isActive ? (
+                      <Button danger icon={<StopOutlined />} onClick={() => onChangeStatus(false)}>
+                        Ngừng hoạt động
+                      </Button>
+                    ) : (
+                      <Button
+                        className="!border-green-500 !bg-green-500 !text-white hover:!border-green-500 hover:!bg-green-500 hover:!text-white focus:!shadow-none active:!bg-green-500"
+                        icon={<CheckOutlined />}
+                        onClick={() => onChangeStatus(true)}
+                      >
+                        Kinh doanh
+                      </Button>
+                    )}
                   </div>
                 </div>
-                <Divider size="small" style={{ margin: "4px 0" }} />
-              </div>
-            </Col>
-
-            <Col span={8}>
-              <div>
-                <div className="flex">
-                  <div className="w-32 font-medium">Giá vốn:</div>
-                  <div>{d?.costPrice ?? "-"}</div>
-                </div>
-                <Divider size="small" style={{ margin: "4px 0" }} />
-
-                <div className="flex">
-                  <div className="w-32 font-medium">Giá bán:</div>
-                  <div>{record.salePrice}</div>
-                </div>
-                <Divider size="small" style={{ margin: "4px 0" }} />
-
-                {record.menuType !== "Khác" && (
-                  <>
-                    <div className="flex">
-                      <div className="w-32 font-medium">Tồn kho:</div>
-                      <div>{d?.stock ?? 0}</div>
-                    </div>
-                    <Divider size="small" style={{ margin: "4px 0" }} />
-
-                    <div className="flex">
-                      <div className="w-32 font-medium">Ngưỡng min/max:</div>
-                      <div>{d ? `${d.minStock} / ${d.maxStock}` : "-"}</div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </Col>
-          </Row>
-        </Col>
-
-        <Col span={6} className="flex items-start justify-end">
-          {d?.images && d.images.length > 0 && (
-            <div>
-              <div className="mb-2 text-center font-semibold">Hình ảnh</div>
-              <Image.PreviewGroup>
-                <Image src={d.images[0]} alt="Product image" width={180} height={180} style={{ objectFit: "contain", borderRadius: 8 }} />
-                {d.images.length > 1 && (
-                  <div className="mt-2 flex flex-wrap justify-center gap-2">
-                    {d.images.slice(1).map((url, idx) => (
-                      <Image
-                        key={idx}
-                        src={url}
-                        alt={`Product image ${idx + 2}`}
-                        width={60}
-                        height={60}
-                        style={{ objectFit: "cover", borderRadius: 6 }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </Image.PreviewGroup>
-            </div>
-          )}
-        </Col>
-      </Row>
-
-      <div className="flex justify-between">
-        <div className="flex gap-2">
-          <Button type="primary" icon={<EditOutlined />} onClick={onEdit}>
-            Cập nhật hàng hóa
-          </Button>
-        </div>
-        <div className="flex gap-2">
-          <Button danger icon={<DeleteOutlined />} onClick={onDelete}>
-            Xóa hàng hóa
-          </Button>
-          {isActive ? (
-            <Button danger icon={<StopOutlined />} onClick={() => onChangeStatus(false)}>
-              Ngừng hoạt động
-            </Button>
-          ) : (
-            <Button
-              className="!border-green-500 !bg-green-500 !text-white hover:!border-green-500 hover:!bg-green-500 hover:!text-white focus:!shadow-none active:!bg-green-500"
-              icon={<CheckOutlined />}
-              onClick={() => onChangeStatus(true)}
-            >
-              Kinh doanh
-            </Button>
-          )}
-        </div>
-      </div>
               </div>
             ),
           },
@@ -338,60 +338,61 @@ const ProductInventoryCards = ({ productId }: { productId: number }) => {
             <div>Chưa có thẻ kho nào</div>
             <div className="text-sm">Thẻ kho sẽ được tạo tự động khi có giao dịch tồn kho</div>
           </div>
-        )
+        ),
       }}
       columns={[
-        { 
-          title: "Chứng từ", 
-          dataIndex: "code", 
-          key: "code", 
+        {
+          title: "Chứng từ",
+          dataIndex: "code",
+          key: "code",
           width: 120,
-          fixed: "left"
+          fixed: "left",
         },
-        { 
-          title: "Phương thức", 
-          dataIndex: "method", 
-          key: "method", 
+        {
+          title: "Phương thức",
+          dataIndex: "method",
+          key: "method",
           width: 160,
-          ellipsis: true
+          ellipsis: true,
         },
-        { 
-          title: "Thời gian", 
-          dataIndex: "occurredAt", 
-          key: "occurredAt", 
-          width: 160, 
-          render: (d: any) => (d ? new Date(d).toLocaleString("vi-VN") : "-") 
+        {
+          title: "Thời gian",
+          dataIndex: "occurredAt",
+          key: "occurredAt",
+          width: 160,
+          render: (d: any) => (d ? new Date(d).toLocaleString("vi-VN") : "-"),
         },
-        { 
-          title: "Giá vốn", 
-          dataIndex: "costPrice", 
-          key: "costPrice", 
-          width: 120, 
+        {
+          title: "Giá vốn",
+          dataIndex: "costPrice",
+          key: "costPrice",
+          width: 120,
           align: "right",
-          render: (v: any) => (Number(v) || 0).toLocaleString("vi-VN") + " đ" 
+          render: (v: any) => (Number(v) || 0).toLocaleString("vi-VN") + " đ",
         },
-        { 
-          title: "Số lượng", 
-          dataIndex: "quantityChange", 
-          key: "quantityChange", 
+        {
+          title: "Số lượng",
+          dataIndex: "quantityChange",
+          key: "quantityChange",
           width: 100,
           align: "right",
           render: (v: any) => {
             const num = Number(v) || 0;
             return (
               <span className={num > 0 ? "text-green-600" : num < 0 ? "text-red-600" : ""}>
-                {num > 0 ? "+" : ""}{num.toLocaleString("vi-VN")}
+                {num > 0 ? "+" : ""}
+                {num.toLocaleString("vi-VN")}
               </span>
             );
-          }
+          },
         },
-        { 
-          title: "Tồn cuối", 
-          dataIndex: "endingStock", 
-          key: "endingStock", 
+        {
+          title: "Tồn cuối",
+          dataIndex: "endingStock",
+          key: "endingStock",
           width: 100,
           align: "right",
-          render: (v: any) => (Number(v) || 0).toLocaleString("vi-VN")
+          render: (v: any) => (Number(v) || 0).toLocaleString("vi-VN"),
         },
       ]}
     />

@@ -41,9 +41,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
   const generateNextCode = async () => {
     try {
       const res = await productService.list({});
-      const codes = (res.data || [])
-        .map((p) => p.code)
-        .filter((c): c is string => !!c && /^SP\d+$/.test(c));
+      const codes = (res.data || []).map((p) => p.code).filter((c): c is string => !!c && /^SP\d+$/.test(c));
       const maxNum = codes.reduce((acc, c) => {
         const n = parseInt(c.replace(/^SP/, ""), 10);
         return Number.isFinite(n) && n > acc ? n : acc;
@@ -235,12 +233,12 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
         <Row gutter={16}>
           <Col span={12}>
             <Form.Item name="costPrice" label="Giá vốn">
-              <InputNumber 
-                min={0} 
-                style={{ width: "100%" }} 
-                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              <InputNumber
+                min={0}
+                style={{ width: "100%" }}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                 // @ts-expect-error - Ant Design InputNumber parser type issue
-                parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
               />
             </Form.Item>
           </Col>
@@ -258,12 +256,12 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
                 }),
               ]}
             >
-              <InputNumber 
-                min={0} 
-                style={{ width: "100%" }} 
-                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              <InputNumber
+                min={0}
+                style={{ width: "100%" }}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                 // @ts-expect-error - Ant Design InputNumber parser type issue
-                parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
               />
             </Form.Item>
           </Col>
@@ -280,18 +278,18 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
         </Row>
 
         {!isService && (
-        <Row gutter={16}>
-          <Col span={8}>
-            <Form.Item name="isDirectSale" valuePropName="checked" label="Bán trực tiếp">
-              <Checkbox />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item name="manageInventory" valuePropName="checked" label="Quản lý tồn kho">
-              <Checkbox onChange={(e) => setManageInventory(e.target.checked)} />
-            </Form.Item>
-          </Col>
-        </Row>
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item name="isDirectSale" valuePropName="checked" label="Bán trực tiếp">
+                <Checkbox />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="manageInventory" valuePropName="checked" label="Quản lý tồn kho">
+                <Checkbox onChange={(e) => setManageInventory(e.target.checked)} />
+              </Form.Item>
+            </Col>
+          </Row>
         )}
 
         {!isService && manageInventory && (
@@ -308,12 +306,12 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
                   </span>
                 }
               >
-                <InputNumber 
-                  min={0} 
-                  style={{ width: "100%" }} 
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                // @ts-expect-error - Ant Design InputNumber parser type issue
-                parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                <InputNumber
+                  min={0}
+                  style={{ width: "100%" }}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  // @ts-expect-error - Ant Design InputNumber parser type issue
+                  parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
                 />
               </Form.Item>
             </Col>
@@ -329,12 +327,12 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
                   </span>
                 }
               >
-                <InputNumber 
-                  min={0} 
-                  style={{ width: "100%" }} 
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                // @ts-expect-error - Ant Design InputNumber parser type issue
-                parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                <InputNumber
+                  min={0}
+                  style={{ width: "100%" }}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  // @ts-expect-error - Ant Design InputNumber parser type issue
+                  parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
                 />
               </Form.Item>
             </Col>
@@ -350,12 +348,12 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
                   </span>
                 }
               >
-                <InputNumber 
-                  min={0} 
-                  style={{ width: "100%" }} 
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                // @ts-expect-error - Ant Design InputNumber parser type issue
-                parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, '')) || 0}
+                <InputNumber
+                  min={0}
+                  style={{ width: "100%" }}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  // @ts-expect-error - Ant Design InputNumber parser type issue
+                  parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
                 />
               </Form.Item>
             </Col>

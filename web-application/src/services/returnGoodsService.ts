@@ -1,10 +1,6 @@
 import { axiosInstance } from "@/lib/axios";
 import { ApiResponse } from "@/types/api";
-import {
-  CreateReturnGoodsRequest,
-  DetailReturnGoodsResponse,
-  ListReturnGoodsResponse,
-} from "@/types-openapi/api";
+import { CreateReturnGoodsRequest, DetailReturnGoodsResponse, ListReturnGoodsResponse } from "@/types-openapi/api";
 
 export const returnGoodsService = {
   async list(params: { from?: Date; to?: Date; status?: number }): Promise<ApiResponse<ListReturnGoodsResponse[]>> {

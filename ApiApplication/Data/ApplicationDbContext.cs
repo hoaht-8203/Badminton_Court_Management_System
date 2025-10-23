@@ -65,6 +65,7 @@ public class ApplicationDbContext(
     public DbSet<CashflowType> CashflowTypes { get; set; }
     public DbSet<RelatedPerson> RelatedPeople { get; set; }
     public DbSet<BookingCourtOccurrence> BookingCourtOccurrences { get; set; }
+    public DbSet<Blog> Blogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

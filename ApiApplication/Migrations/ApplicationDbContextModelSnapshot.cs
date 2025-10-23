@@ -271,6 +271,45 @@ namespace ApiApplication.Migrations
                     b.ToTable("AttendanceRecords");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.Blog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Blogs");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.BookingCourt", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2523,22 +2562,22 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 23, 16, 25, 17, 688, DateTimeKind.Utc).AddTicks(5500),
+                            CreatedAt = new DateTime(2025, 10, 23, 20, 55, 47, 87, DateTimeKind.Utc).AddTicks(6570),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 10, 23, 16, 25, 17, 688, DateTimeKind.Utc).AddTicks(5510),
+                            UpdatedAt = new DateTime(2025, 10, 23, 20, 55, 47, 87, DateTimeKind.Utc).AddTicks(6570),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 10, 23, 16, 25, 17, 688, DateTimeKind.Utc).AddTicks(5510),
+                            CreatedAt = new DateTime(2025, 10, 23, 20, 55, 47, 87, DateTimeKind.Utc).AddTicks(6570),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 10, 23, 16, 25, 17, 688, DateTimeKind.Utc).AddTicks(5510),
+                            UpdatedAt = new DateTime(2025, 10, 23, 20, 55, 47, 87, DateTimeKind.Utc).AddTicks(6570),
                             UpdatedBy = "System",
                             Value = ""
                         });

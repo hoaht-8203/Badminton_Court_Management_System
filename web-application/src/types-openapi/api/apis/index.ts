@@ -3,6 +3,7 @@
 export * from './ActivityApi';
 export * from './AttendanceApi';
 export * from './AuthApi';
+export * from './BlogsApi';
 export * from './BookingCourtsApi';
 export * from './CashflowsApi';
 export * from './CategoriesApi';

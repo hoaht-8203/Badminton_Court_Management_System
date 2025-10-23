@@ -2,6 +2,7 @@
 apis/ActivityApi.ts
 apis/AttendanceApi.ts
 apis/AuthApi.ts
+apis/BlogsApi.ts
 apis/BookingCourtsApi.ts
 apis/CashflowsApi.ts
 apis/CategoriesApi.ts
@@ -43,6 +44,7 @@ models/AttendanceRecord.ts
 models/AttendanceRequest.ts
 models/AttendanceResponse.ts
 models/BaseEntity.ts
+models/Blog.ts
 models/BookingCourt.ts
 models/BookingCourtOccurrence.ts
 models/BookingCourtOccurrenceDto.ts
@@ -91,6 +93,7 @@ models/CourtPricingRuleTemplateDtoListApiResponse.ts
 models/CourtPricingRules.ts
 models/CreateActivityRequest.ts
 models/CreateAdministratorRequest.ts
+models/CreateBlogRequest.ts
 models/CreateBookingCourtRequest.ts
 models/CreateCashflowRequest.ts
 models/CreateCategoryRequest.ts
@@ -128,6 +131,7 @@ models/Customer.ts
 models/CustomerDto.ts
 models/DayOfWeek.ts
 models/DeletCourtAreaRequest.ts
+models/DeleteBlogRequest.ts
 models/DeleteCategoryRequest.ts
 models/DeleteCourtPricingRuleTemplateRequest.ts
 models/DeleteCourtRequest.ts
@@ -144,6 +148,9 @@ models/Department.ts
 models/DetailAdministratorRequest.ts
 models/DetailAdministratorResponse.ts
 models/DetailAdministratorResponseApiResponse.ts
+models/DetailBlogRequest.ts
+models/DetailBlogResponse.ts
+models/DetailBlogResponseApiResponse.ts
 models/DetailBookingCourtOccurrenceRequest.ts
 models/DetailBookingCourtOccurrenceResponse.ts
 models/DetailBookingCourtOccurrenceResponseApiResponse.ts
@@ -213,6 +220,9 @@ models/ListActivityResponseListApiResponse.ts
 models/ListAdministratorRequest.ts
 models/ListAdministratorResponse.ts
 models/ListAdministratorResponseListApiResponse.ts
+models/ListBlogRequest.ts
+models/ListBlogResponse.ts
+models/ListBlogResponseListApiResponse.ts
 models/ListBookingCourtOccurrenceRequest.ts
 models/ListBookingCourtOccurrenceResponse.ts
 models/ListBookingCourtOccurrenceResponseListApiResponse.ts
@@ -376,6 +386,7 @@ models/Supplier.ts
 models/SupplierBankAccount.ts
 models/SupplierBankAccountListApiResponse.ts
 models/SystemConfig.ts
+models/UpdateBlogRequest.ts
 models/UpdateCashflowRequest.ts
 models/UpdateCategoryRequest.ts
 models/UpdateCourtAreaRequest.ts

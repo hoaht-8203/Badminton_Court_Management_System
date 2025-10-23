@@ -7,7 +7,7 @@ import { CurrentUserResponse } from "@/types-openapi/api";
 import { LogoutOutlined, SettingOutlined, UserOutlined, CalendarOutlined, ToolOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Avatar, Button, Dropdown, Layout, Menu } from "antd";
-import { ArrowLeftRight, ChartSpline, Columns2, Handshake, IdCardLanyard, Package, Settings } from "lucide-react";
+import { ArrowLeftRight, ChartSpline, Columns2, FileText, Handshake, IdCardLanyard, Package, Settings } from "lucide-react";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname, useRouter } from "next/navigation";
 import RequireAuth from "@/components/authentication/RequireAuth";
@@ -129,6 +129,17 @@ const sideBarItems: MenuProps["items"] = [
       {
         key: "/quanlysancaulong/roles",
         label: "Quản lý vai trò",
+      },
+    ],
+  },
+  {
+    key: "quanlynoidung",
+    label: "Quản lý nội dung",
+    icon: <FileText className="h-4 w-4" />,
+    children: [
+      {
+        key: "/quanlysancaulong/blogs",
+        label: "Quản lý bài viết",
       },
     ],
   },

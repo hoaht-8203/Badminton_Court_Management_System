@@ -13,14 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { PaymentMethod } from './PaymentMethod';
-import {
-    PaymentMethodFromJSON,
-    PaymentMethodFromJSONTyped,
-    PaymentMethodToJSON,
-    PaymentMethodToJSONTyped,
-} from './PaymentMethod';
-
 /**
  * 
  * @export
@@ -68,6 +60,12 @@ export interface CashflowResponse {
      * @type {string}
      * @memberof CashflowResponse
      */
+    personType?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof CashflowResponse
+     */
     relatedPerson?: string | null;
     /**
      * 
@@ -75,12 +73,6 @@ export interface CashflowResponse {
      * @memberof CashflowResponse
      */
     value?: number;
-    /**
-     * 
-     * @type {PaymentMethod}
-     * @memberof CashflowResponse
-     */
-    paymentMethod?: PaymentMethod;
     /**
      * 
      * @type {string}
@@ -101,13 +93,17 @@ export interface CashflowResponse {
     referenceNumber?: string | null;
     /**
      * 
-     * @type {boolean}
+     * @type {Date}
      * @memberof CashflowResponse
      */
-    accountInBusinessResults?: boolean;
+    createdAt?: Date;
+    /**
+     * 
+     * @type {string}
+     * @memberof CashflowResponse
+     */
+    createdBy?: string | null;
 }
-
-
 
 /**
  * Check if a given object implements the CashflowResponse interface.
@@ -132,13 +128,14 @@ export function CashflowResponseFromJSONTyped(json: any, ignoreDiscriminator: bo
         'cashflowTypeId': json['cashflowTypeId'] == null ? undefined : json['cashflowTypeId'],
         'cashflowTypeName': json['cashflowTypeName'] == null ? undefined : json['cashflowTypeName'],
         'relatedId': json['relatedId'] == null ? undefined : json['relatedId'],
+        'personType': json['personType'] == null ? undefined : json['personType'],
         'relatedPerson': json['relatedPerson'] == null ? undefined : json['relatedPerson'],
         'value': json['value'] == null ? undefined : json['value'],
-        'paymentMethod': json['paymentMethod'] == null ? undefined : PaymentMethodFromJSON(json['paymentMethod']),
         'status': json['status'] == null ? undefined : json['status'],
         'note': json['note'] == null ? undefined : json['note'],
         'referenceNumber': json['referenceNumber'] == null ? undefined : json['referenceNumber'],
-        'accountInBusinessResults': json['accountInBusinessResults'] == null ? undefined : json['accountInBusinessResults'],
+        'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
+        'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
     };
 }
 
@@ -159,13 +156,14 @@ export function CashflowResponseToJSONTyped(value?: CashflowResponse | null, ign
         'cashflowTypeId': value['cashflowTypeId'],
         'cashflowTypeName': value['cashflowTypeName'],
         'relatedId': value['relatedId'],
+        'personType': value['personType'],
         'relatedPerson': value['relatedPerson'],
         'value': value['value'],
-        'paymentMethod': PaymentMethodToJSON(value['paymentMethod']),
         'status': value['status'],
         'note': value['note'],
         'referenceNumber': value['referenceNumber'],
-        'accountInBusinessResults': value['accountInBusinessResults'],
+        'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
+        'createdBy': value['createdBy'],
     };
 }
 

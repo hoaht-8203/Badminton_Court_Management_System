@@ -20,13 +20,6 @@ import {
     CashflowTypeToJSON,
     CashflowTypeToJSONTyped,
 } from './CashflowType';
-import type { PaymentMethod } from './PaymentMethod';
-import {
-    PaymentMethodFromJSON,
-    PaymentMethodFromJSONTyped,
-    PaymentMethodToJSON,
-    PaymentMethodToJSONTyped,
-} from './PaymentMethod';
 
 /**
  * 
@@ -99,6 +92,12 @@ export interface Cashflow {
      * @type {string}
      * @memberof Cashflow
      */
+    personType?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof Cashflow
+     */
     relatedPerson?: string | null;
     /**
      * 
@@ -106,12 +105,6 @@ export interface Cashflow {
      * @memberof Cashflow
      */
     value: number;
-    /**
-     * 
-     * @type {PaymentMethod}
-     * @memberof Cashflow
-     */
-    paymentMethod?: PaymentMethod;
     /**
      * 
      * @type {string}
@@ -130,15 +123,7 @@ export interface Cashflow {
      * @memberof Cashflow
      */
     referenceNumber?: string | null;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof Cashflow
-     */
-    accountInBusinessResults?: boolean;
 }
-
-
 
 /**
  * Check if a given object implements the Cashflow interface.
@@ -171,13 +156,12 @@ export function CashflowFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'cashflowTypeId': json['cashflowTypeId'],
         'cashflowType': json['cashflowType'] == null ? undefined : CashflowTypeFromJSON(json['cashflowType']),
         'relatedId': json['relatedId'] == null ? undefined : json['relatedId'],
+        'personType': json['personType'] == null ? undefined : json['personType'],
         'relatedPerson': json['relatedPerson'] == null ? undefined : json['relatedPerson'],
         'value': json['value'],
-        'paymentMethod': json['paymentMethod'] == null ? undefined : PaymentMethodFromJSON(json['paymentMethod']),
         'status': json['status'],
         'note': json['note'] == null ? undefined : json['note'],
         'referenceNumber': json['referenceNumber'] == null ? undefined : json['referenceNumber'],
-        'accountInBusinessResults': json['accountInBusinessResults'] == null ? undefined : json['accountInBusinessResults'],
     };
 }
 
@@ -202,13 +186,12 @@ export function CashflowToJSONTyped(value?: Cashflow | null, ignoreDiscriminator
         'cashflowTypeId': value['cashflowTypeId'],
         'cashflowType': CashflowTypeToJSON(value['cashflowType']),
         'relatedId': value['relatedId'],
+        'personType': value['personType'],
         'relatedPerson': value['relatedPerson'],
         'value': value['value'],
-        'paymentMethod': PaymentMethodToJSON(value['paymentMethod']),
         'status': value['status'],
         'note': value['note'],
         'referenceNumber': value['referenceNumber'],
-        'accountInBusinessResults': value['accountInBusinessResults'],
     };
 }
 

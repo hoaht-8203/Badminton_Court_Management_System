@@ -1,6 +1,6 @@
-import { Table, Button, Typography, InputNumber, message } from "antd";
-import { useMemo, useState } from "react";
 import { PayrollItemResponse } from "@/types-openapi/api";
+import { Button, message, Table } from "antd";
+import { useMemo, useState } from "react";
 import BulkPayDrawer from "./bulk-pay-drawer";
 
 export default function SalarySlipPanel({

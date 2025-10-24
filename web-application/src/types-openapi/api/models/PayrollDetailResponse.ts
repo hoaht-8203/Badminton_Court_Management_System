@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { CashflowResponse } from './CashflowResponse';
+import {
+    CashflowResponseFromJSON,
+    CashflowResponseFromJSONTyped,
+    CashflowResponseToJSON,
+    CashflowResponseToJSONTyped,
+} from './CashflowResponse';
 import type { PayrollItemResponse } from './PayrollItemResponse';
 import {
     PayrollItemResponseFromJSON,
@@ -105,6 +112,12 @@ export interface PayrollDetailResponse {
      * @memberof PayrollDetailResponse
      */
     payrollItems?: Array<PayrollItemResponse> | null;
+    /**
+     * 
+     * @type {Array<CashflowResponse>}
+     * @memberof PayrollDetailResponse
+     */
+    cashflows?: Array<CashflowResponse> | null;
 }
 
 /**
@@ -137,6 +150,7 @@ export function PayrollDetailResponseFromJSONTyped(json: any, ignoreDiscriminato
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
         'payrollItems': json['payrollItems'] == null ? undefined : ((json['payrollItems'] as Array<any>).map(PayrollItemResponseFromJSON)),
+        'cashflows': json['cashflows'] == null ? undefined : ((json['cashflows'] as Array<any>).map(CashflowResponseFromJSON)),
     };
 }
 
@@ -164,6 +178,7 @@ export function PayrollDetailResponseToJSONTyped(value?: PayrollDetailResponse |
         'createdBy': value['createdBy'],
         'updatedBy': value['updatedBy'],
         'payrollItems': value['payrollItems'] == null ? undefined : ((value['payrollItems'] as Array<any>).map(PayrollItemResponseToJSON)),
+        'cashflows': value['cashflows'] == null ? undefined : ((value['cashflows'] as Array<any>).map(CashflowResponseToJSON)),
     };
 }
 

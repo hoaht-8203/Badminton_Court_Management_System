@@ -13,26 +13,12 @@
  */
 
 import { mapValues } from '../runtime';
-import type { PaymentMethod } from './PaymentMethod';
-import {
-    PaymentMethodFromJSON,
-    PaymentMethodFromJSONTyped,
-    PaymentMethodToJSON,
-    PaymentMethodToJSONTyped,
-} from './PaymentMethod';
-
 /**
  * 
  * @export
  * @interface UpdateCashflowRequest
  */
 export interface UpdateCashflowRequest {
-    /**
-     * 
-     * @type {number}
-     * @memberof UpdateCashflowRequest
-     */
-    id: number;
     /**
      * 
      * @type {number}
@@ -45,6 +31,12 @@ export interface UpdateCashflowRequest {
      * @memberof UpdateCashflowRequest
      */
     value: number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof UpdateCashflowRequest
+     */
+    isPayment?: boolean;
     /**
      * 
      * @type {Date}
@@ -62,6 +54,12 @@ export interface UpdateCashflowRequest {
      * @type {string}
      * @memberof UpdateCashflowRequest
      */
+    personType?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateCashflowRequest
+     */
     relatedPerson?: string | null;
     /**
      * 
@@ -71,31 +69,16 @@ export interface UpdateCashflowRequest {
     note?: string | null;
     /**
      * 
-     * @type {PaymentMethod}
-     * @memberof UpdateCashflowRequest
-     */
-    paymentMethod?: PaymentMethod;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof UpdateCashflowRequest
-     */
-    accountInBusinessResults?: boolean;
-    /**
-     * 
      * @type {string}
      * @memberof UpdateCashflowRequest
      */
     status?: string | null;
 }
 
-
-
 /**
  * Check if a given object implements the UpdateCashflowRequest interface.
  */
 export function instanceOfUpdateCashflowRequest(value: object): value is UpdateCashflowRequest {
-    if (!('id' in value) || value['id'] === undefined) return false;
     if (!('cashflowTypeId' in value) || value['cashflowTypeId'] === undefined) return false;
     if (!('value' in value) || value['value'] === undefined) return false;
     return true;
@@ -111,15 +94,14 @@ export function UpdateCashflowRequestFromJSONTyped(json: any, ignoreDiscriminato
     }
     return {
         
-        'id': json['id'],
         'cashflowTypeId': json['cashflowTypeId'],
         'value': json['value'],
+        'isPayment': json['isPayment'] == null ? undefined : json['isPayment'],
         'time': json['time'] == null ? undefined : (new Date(json['time'])),
         'relatedId': json['relatedId'] == null ? undefined : json['relatedId'],
+        'personType': json['personType'] == null ? undefined : json['personType'],
         'relatedPerson': json['relatedPerson'] == null ? undefined : json['relatedPerson'],
         'note': json['note'] == null ? undefined : json['note'],
-        'paymentMethod': json['paymentMethod'] == null ? undefined : PaymentMethodFromJSON(json['paymentMethod']),
-        'accountInBusinessResults': json['accountInBusinessResults'] == null ? undefined : json['accountInBusinessResults'],
         'status': json['status'] == null ? undefined : json['status'],
     };
 }
@@ -135,15 +117,14 @@ export function UpdateCashflowRequestToJSONTyped(value?: UpdateCashflowRequest |
 
     return {
         
-        'id': value['id'],
         'cashflowTypeId': value['cashflowTypeId'],
         'value': value['value'],
+        'isPayment': value['isPayment'],
         'time': value['time'] === null ? null : ((value['time'] as any)?.toISOString()),
         'relatedId': value['relatedId'],
+        'personType': value['personType'],
         'relatedPerson': value['relatedPerson'],
         'note': value['note'],
-        'paymentMethod': PaymentMethodToJSON(value['paymentMethod']),
-        'accountInBusinessResults': value['accountInBusinessResults'],
         'status': value['status'],
     };
 }

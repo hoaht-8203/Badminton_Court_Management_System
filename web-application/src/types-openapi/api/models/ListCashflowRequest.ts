@@ -13,14 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { PaymentMethod } from './PaymentMethod';
-import {
-    PaymentMethodFromJSON,
-    PaymentMethodFromJSONTyped,
-    PaymentMethodToJSON,
-    PaymentMethodToJSONTyped,
-} from './PaymentMethod';
-
 /**
  * 
  * @export
@@ -33,12 +25,6 @@ export interface ListCashflowRequest {
      * @memberof ListCashflowRequest
      */
     isPayment?: boolean | null;
-    /**
-     * 
-     * @type {PaymentMethod}
-     * @memberof ListCashflowRequest
-     */
-    paymentMethod?: PaymentMethod;
     /**
      * 
      * @type {Date}
@@ -63,21 +49,7 @@ export interface ListCashflowRequest {
      * @memberof ListCashflowRequest
      */
     status?: string | null;
-    /**
-     * 
-     * @type {number}
-     * @memberof ListCashflowRequest
-     */
-    page?: number;
-    /**
-     * 
-     * @type {number}
-     * @memberof ListCashflowRequest
-     */
-    pageSize?: number;
 }
-
-
 
 /**
  * Check if a given object implements the ListCashflowRequest interface.
@@ -97,13 +69,10 @@ export function ListCashflowRequestFromJSONTyped(json: any, ignoreDiscriminator:
     return {
         
         'isPayment': json['isPayment'] == null ? undefined : json['isPayment'],
-        'paymentMethod': json['paymentMethod'] == null ? undefined : PaymentMethodFromJSON(json['paymentMethod']),
         'from': json['from'] == null ? undefined : (new Date(json['from'])),
         'to': json['to'] == null ? undefined : (new Date(json['to'])),
         'cashflowTypeId': json['cashflowTypeId'] == null ? undefined : json['cashflowTypeId'],
         'status': json['status'] == null ? undefined : json['status'],
-        'page': json['page'] == null ? undefined : json['page'],
-        'pageSize': json['pageSize'] == null ? undefined : json['pageSize'],
     };
 }
 
@@ -119,13 +88,10 @@ export function ListCashflowRequestToJSONTyped(value?: ListCashflowRequest | nul
     return {
         
         'isPayment': value['isPayment'],
-        'paymentMethod': PaymentMethodToJSON(value['paymentMethod']),
         'from': value['from'] === null ? null : ((value['from'] as any)?.toISOString()),
         'to': value['to'] === null ? null : ((value['to'] as any)?.toISOString()),
         'cashflowTypeId': value['cashflowTypeId'],
         'status': value['status'],
-        'page': value['page'],
-        'pageSize': value['pageSize'],
     };
 }
 

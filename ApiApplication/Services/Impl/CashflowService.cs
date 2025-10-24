@@ -2,6 +2,7 @@ using ApiApplication.Data;
 using ApiApplication.Dtos.Cashflow;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
+using ApiApplication.Exceptions;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
@@ -26,10 +27,6 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         {
             query = query.Where(x => x.IsPayment == request.IsPayment.Value);
         }
-        if (request.PaymentMethod.HasValue)
-        {
-            query = query.Where(x => x.PaymentMethod == request.PaymentMethod.Value);
-        }
         if (request.From.HasValue)
         {
             query = query.Where(x => x.Time >= request.From.Value);
@@ -49,121 +46,95 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
 
         var items = await query
             .OrderByDescending(x => x.Time)
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
+            // .Skip((request.Page - 1) * request.PageSize)
+            // .Take(request.PageSize)
             .ProjectTo<CashflowResponse>(_mapper.ConfigurationProvider)
             .ToArrayAsync();
 
         return items;
     }
 
-    public async Task<CashflowResponse?> DetailAsync(DetailCashflowRequest request)
+    public async Task<CashflowResponse?> DetailAsync(int id)
     {
-        var query = _context
-            .Cashflows.Include(x => x.CashflowType)
-            .Where(x => x.ReferenceNumber == request.ReferenceNumber);
+        var query = _context.Cashflows.Include(x => x.CashflowType).Where(x => x.Id == id);
 
         return await query
             .ProjectTo<CashflowResponse>(_mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<int> CreateReceiptAsync(CreateCashflowRequest request)
+    public async Task<int> CreateCashflowAsync(CreateCashflowRequest request)
     {
+        if (request.Value <= 0)
+        {
+            throw new ApiException("Giá trị phiếu quỹ phải lớn hơn 0");
+        }
+        if (request.Time.HasValue && request.Time.Value > DateTime.Now)
+        {
+            throw new ApiException("Thời gian phiếu quỹ không được lớn hơn thời gian hiện tại");
+        }
+        {
+            request.Time = DateTime.Now;
+        }
         var type = await _context.CashflowTypes.FirstOrDefaultAsync(t =>
-            t.Id == request.CashflowTypeId
+            t.Id == request.CashflowTypeId && t.IsPayment == request.IsPayment
         );
         if (type == null)
         {
-            throw new InvalidOperationException("Loại thu/chi không tồn tại");
+            throw new ApiException("Loại thu/chi không tồn tại");
         }
 
         var entity = _mapper.Map<Cashflow>(request);
-        entity.IsPayment = false;
-        entity.CashflowTypeId = type.Id;
-        entity.CashflowType = type;
-        entity.Status = CashFlowStatus.Pending;
-        entity.Time = request.Time ?? DateTime.UtcNow;
-
-        var (valid, error) = CashflowValidationService.ValidateAndNormalize(entity);
-        if (!valid)
+        if (request.IsPayment)
         {
-            throw new InvalidOperationException(error ?? "Dữ liệu không hợp lệ");
+            entity.Value = -Math.Abs(entity.Value);
         }
-
-        _context.Cashflows.Add(entity);
-        await _context.SaveChangesAsync();
+        else
+        {
+            entity.Value = Math.Abs(request.Value);
+        }
 
         // Dùng code của loại thu/chi
         entity.ReferenceNumber = GenerateVoucherCode(type.Code, entity.Id);
+        _context.Cashflows.Add(entity);
         await _context.SaveChangesAsync();
         return entity.Id;
     }
 
-    public async Task<int> CreatePaymentAsync(CreateCashflowRequest request)
+    public async Task UpdateAsync(int id, UpdateCashflowRequest request)
     {
+        if (request.Value <= 0)
+        {
+            throw new ApiException("Giá trị phiếu quỹ phải lớn hơn 0");
+        }
+        if (request.Time.HasValue && request.Time.Value > DateTime.Now)
+        {
+            throw new ApiException("Thời gian phiếu quỹ không được lớn hơn thời gian hiện tại");
+        }
+
+        var entity = await _context.Cashflows.FirstOrDefaultAsync(x => x.Id == id);
         var type = await _context.CashflowTypes.FirstOrDefaultAsync(t =>
-            t.Id == request.CashflowTypeId
+            t.Id == request.CashflowTypeId && t.IsPayment == request.IsPayment
         );
-        if (type == null)
-        {
-            throw new InvalidOperationException("Loại thu/chi không tồn tại");
-        }
-
-        var entity = _mapper.Map<Cashflow>(request);
-        entity.IsPayment = true;
-        entity.CashflowTypeId = type.Id;
-        entity.CashflowType = type;
-        entity.Status = CashFlowStatus.Pending;
-        entity.Time = request.Time ?? DateTime.UtcNow;
-
-        var (valid, error) = CashflowValidationService.ValidateAndNormalize(entity);
-        if (!valid)
-        {
-            throw new InvalidOperationException(error ?? "Dữ liệu không hợp lệ");
-        }
-
-        _context.Cashflows.Add(entity);
-        await _context.SaveChangesAsync();
-
-        // Dùng code của loại thu/chi
-        entity.ReferenceNumber = GenerateVoucherCode(type.Code, entity.Id);
-        await _context.SaveChangesAsync();
-        return entity.Id;
-    }
-
-    public async Task UpdateAsync(UpdateCashflowRequest request)
-    {
-        var entity = await _context
-            .Cashflows.Include(x => x.CashflowType)
-            .FirstOrDefaultAsync(x => x.Id == request.Id);
         if (entity == null)
         {
-            throw new InvalidOperationException("Không tìm thấy phiếu quỹ");
+            throw new ApiException("Phiếu quỹ không tồn tại");
         }
-
-        var type = await _context.CashflowTypes.FirstOrDefaultAsync(t =>
-            t.Id == request.CashflowTypeId
-        );
         if (type == null)
         {
-            throw new InvalidOperationException("Loại thu/chi không tồn tại");
+            throw new ApiException("Loại thu/chi không tồn tại");
         }
 
-        entity.CashflowTypeId = type.Id;
-        entity.CashflowType = type;
         _mapper.Map(request, entity);
-        if (request.Time.HasValue)
-            entity.Time = request.Time.Value;
-        if (!string.IsNullOrWhiteSpace(request.Status))
-            entity.Status = request.Status!;
-
-        var (valid, error) = CashflowValidationService.ValidateAndNormalize(entity);
-        if (!valid)
+        entity.ReferenceNumber = GenerateVoucherCode(type.Code, entity.Id);
+        if (request.IsPayment)
         {
-            throw new InvalidOperationException(error ?? "Dữ liệu không hợp lệ");
+            entity.Value = -Math.Abs(entity.Value);
         }
-
+        else
+        {
+            entity.Value = Math.Abs(request.Value);
+        }
         await _context.SaveChangesAsync();
     }
 
@@ -176,5 +147,35 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         }
         _context.Cashflows.Remove(entity);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<string>> GetRelatedPersonsAsync(string personType)
+    {
+        switch (personType.ToLower())
+        {
+            case "customer":
+                return await _context
+                    .Customers.Where(c => c.Status == CustomerStatus.Active)
+                    .Select(c => c.FullName)
+                    .Distinct()
+                    .ToListAsync();
+            case "supplier":
+                return await _context
+                    .Suppliers.Where(s => s.Status == SupplierStatus.Active)
+                    .Select(s => s.Name)
+                    .Distinct()
+                    .ToListAsync();
+            case "staff":
+                return await _context
+                    .Staffs.Where(e => e.IsActive)
+                    .Select(e => e.FullName)
+                    .Distinct()
+                    .ToListAsync();
+            case "other":
+                //TODO: implement other related persons
+                return [];
+            default:
+                throw new ApiException("Loại đối tượng liên quan không hợp lệ");
+        }
     }
 }

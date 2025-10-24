@@ -1,6 +1,8 @@
 using System;
 using System.Net;
+using ApiApplication.Constants;
 using ApiApplication.Data;
+using ApiApplication.Dtos.Cashflow;
 using ApiApplication.Dtos.Payroll;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
@@ -15,11 +17,17 @@ public class PayrollService : IPayrollService
 {
     private readonly ApplicationDbContext _context;
     private readonly IMapper _mapper;
+    private readonly ICashflowService _cashflowService;
 
-    public PayrollService(ApplicationDbContext context, IMapper mapper)
+    public PayrollService(
+        ApplicationDbContext context,
+        IMapper mapper,
+        ICashflowService cashflowService
+    )
     {
         _context = context;
         _mapper = mapper;
+        _cashflowService = cashflowService;
     }
 
     public async Task<bool> CreatePayrollAsync(CreatePayrollRequest request)
@@ -235,8 +243,18 @@ public class PayrollService : IPayrollService
 
         if (payroll == null)
             return null;
-
-        return _mapper.Map<PayrollDetailResponse>(payroll);
+        var payrollItemIds = payroll.PayrollItems.Select(pi => pi.Id).ToList();
+        var response = _mapper.Map<PayrollDetailResponse>(payroll);
+        response.Cashflows = await _context
+            .Cashflows.Where(c =>
+                c.RelatedId != null
+                && payrollItemIds.Contains(c.RelatedId.Value)
+                && c.PersonType == RelatedPeopleGroup.Staff
+                && c.CashflowTypeId == CashflowTypeIdMapping.PayStaff
+            )
+            .Select(c => _mapper.Map<CashflowResponse>(c))
+            .ToListAsync();
+        return response;
     }
 
     public async Task<List<PayrollItemResponse>> GetPayrollItemsByPayrollIdAsync(int payrollId)
@@ -250,7 +268,10 @@ public class PayrollService : IPayrollService
 
     public async Task<bool> PayPayrollItemAsync(int payrollItemId, decimal amount)
     {
-        var payrollItem = await _context.PayrollItems.FindAsync(payrollItemId);
+        var payrollItem = await _context
+            .PayrollItems.Where(p => p.Id == payrollItemId)
+            .Include(pi => pi.Staff)
+            .FirstOrDefaultAsync();
         if (payrollItem == null)
             throw new ApiException("Phiếu lương không tồn tại", HttpStatusCode.NotFound);
         // if (amount <= 0)
@@ -269,11 +290,26 @@ public class PayrollService : IPayrollService
         _context.PayrollItems.Update(payrollItem);
         var result = await _context.SaveChangesAsync();
 
-        if (result <= 0)
-            throw new ApiException(
-                "Cập nhật bảng lương thất bại",
-                HttpStatusCode.InternalServerError
-            );
+        //TODO: add cashflow entry for payroll payment
+        try
+        {
+            var cashflowEntry = new CreateCashflowRequest
+            {
+                CashflowTypeId = CashflowTypeIdMapping.PayStaff, // Set appropriate CashflowTypeId for payroll payment
+                IsPayment = true,
+                Value = amount,
+                Note = $"Thanh toán phiếu lương cho nhân viên {payrollItem.Staff?.FullName ?? ""}",
+                RelatedId = payrollItem.Id,
+                PersonType = RelatedPeopleGroup.Staff,
+                RelatedPerson = payrollItem.Staff?.FullName,
+            };
+            await _cashflowService.CreateCashflowAsync(cashflowEntry);
+        }
+        catch (System.Exception)
+        {
+            throw new ApiException("Tạo phiếu quỹ thất bại", HttpStatusCode.InternalServerError);
+        }
+
         return true;
     }
 }

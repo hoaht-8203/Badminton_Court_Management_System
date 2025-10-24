@@ -13,14 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { PaymentMethod } from './PaymentMethod';
-import {
-    PaymentMethodFromJSON,
-    PaymentMethodFromJSONTyped,
-    PaymentMethodToJSON,
-    PaymentMethodToJSONTyped,
-} from './PaymentMethod';
-
 /**
  * 
  * @export
@@ -41,10 +33,22 @@ export interface CreateCashflowRequest {
     value: number;
     /**
      * 
+     * @type {boolean}
+     * @memberof CreateCashflowRequest
+     */
+    isPayment?: boolean;
+    /**
+     * 
      * @type {number}
      * @memberof CreateCashflowRequest
      */
     relatedId?: number | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof CreateCashflowRequest
+     */
+    personType?: string | null;
     /**
      * 
      * @type {string}
@@ -59,25 +63,11 @@ export interface CreateCashflowRequest {
     note?: string | null;
     /**
      * 
-     * @type {PaymentMethod}
-     * @memberof CreateCashflowRequest
-     */
-    paymentMethod?: PaymentMethod;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof CreateCashflowRequest
-     */
-    accountInBusinessResults?: boolean;
-    /**
-     * 
      * @type {Date}
      * @memberof CreateCashflowRequest
      */
     time?: Date | null;
 }
-
-
 
 /**
  * Check if a given object implements the CreateCashflowRequest interface.
@@ -100,11 +90,11 @@ export function CreateCashflowRequestFromJSONTyped(json: any, ignoreDiscriminato
         
         'cashflowTypeId': json['cashflowTypeId'],
         'value': json['value'],
+        'isPayment': json['isPayment'] == null ? undefined : json['isPayment'],
         'relatedId': json['relatedId'] == null ? undefined : json['relatedId'],
+        'personType': json['personType'] == null ? undefined : json['personType'],
         'relatedPerson': json['relatedPerson'] == null ? undefined : json['relatedPerson'],
         'note': json['note'] == null ? undefined : json['note'],
-        'paymentMethod': json['paymentMethod'] == null ? undefined : PaymentMethodFromJSON(json['paymentMethod']),
-        'accountInBusinessResults': json['accountInBusinessResults'] == null ? undefined : json['accountInBusinessResults'],
         'time': json['time'] == null ? undefined : (new Date(json['time'])),
     };
 }
@@ -122,11 +112,11 @@ export function CreateCashflowRequestToJSONTyped(value?: CreateCashflowRequest |
         
         'cashflowTypeId': value['cashflowTypeId'],
         'value': value['value'],
+        'isPayment': value['isPayment'],
         'relatedId': value['relatedId'],
+        'personType': value['personType'],
         'relatedPerson': value['relatedPerson'],
         'note': value['note'],
-        'paymentMethod': PaymentMethodToJSON(value['paymentMethod']),
-        'accountInBusinessResults': value['accountInBusinessResults'],
         'time': value['time'] === null ? null : ((value['time'] as any)?.toISOString()),
     };
 }

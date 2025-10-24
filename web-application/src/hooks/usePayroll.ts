@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { payrollService } from "@/services/payrollService";
-import { CreatePayrollRequest, ListPayrollResponse, PayrollDetailResponse } from "@/types-openapi/api";
+import { CreatePayrollRequest, PayrollDetailResponse } from "@/types-openapi/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useListPayrolls(params: any) {
   return useQuery({

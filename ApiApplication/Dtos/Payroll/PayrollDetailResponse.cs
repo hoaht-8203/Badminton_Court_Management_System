@@ -1,4 +1,5 @@
 using System;
+using ApiApplication.Dtos.Cashflow;
 using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Dtos.Payroll;
@@ -23,4 +24,5 @@ public class PayrollDetailResponse
 
     public ICollection<PayrollItemResponse> PayrollItems { get; set; } =
         new List<PayrollItemResponse>();
+    public ICollection<CashflowResponse> Cashflows { get; set; } = new List<CashflowResponse>();
 }

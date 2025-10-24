@@ -66,6 +66,7 @@ models/CashflowResponse.ts
 models/CashflowResponseApiResponse.ts
 models/CashflowResponseArrayApiResponse.ts
 models/CashflowType.ts
+models/CashflowTypeListApiResponse.ts
 models/Category.ts
 models/ChangeCourtStatusRequest.ts
 models/ChangeCustomerStatusRequest.ts
@@ -157,7 +158,6 @@ models/DetailBookingCourtOccurrenceResponseApiResponse.ts
 models/DetailBookingCourtRequest.ts
 models/DetailBookingCourtResponse.ts
 models/DetailBookingCourtResponseApiResponse.ts
-models/DetailCashflowRequest.ts
 models/DetailCategoryRequest.ts
 models/DetailCategoryResponse.ts
 models/DetailCategoryResponseApiResponse.ts
@@ -317,7 +317,6 @@ models/OrderResponseListApiResponse.ts
 models/PaginationRequest.ts
 models/Payment.ts
 models/PaymentDto.ts
-models/PaymentMethod.ts
 models/PaymentSummary.ts
 models/Payroll.ts
 models/PayrollDetailResponse.ts
@@ -382,6 +381,7 @@ models/StoreBankAccountResponse.ts
 models/StoreBankAccountResponseApiResponse.ts
 models/StoreBankAccountResponseIEnumerableApiResponse.ts
 models/StringApiResponse.ts
+models/StringListApiResponse.ts
 models/Supplier.ts
 models/SupplierBankAccount.ts
 models/SupplierBankAccountListApiResponse.ts

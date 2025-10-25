@@ -1,0 +1,42 @@
+<Window x:Class="FaceRecognation.LandingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Cầu Lông 365" Height="360" Width="720"
+    WindowStartupLocation="CenterScreen"
+    WindowState="Maximized"
+    ResizeMode="NoResize"
+    FontFamily="Segoe UI"
+    Opacity="0"
+    Loaded="Window_Loaded">
+    <Window.Resources>
+        <!-- Fade in on load -->
+        <Storyboard x:Key="FadeInStoryboard">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                             From="0" To="1"
+                             Duration="0:0:0.28" />
+        </Storyboard>
+
+        <!-- Fade out when closing (completed event handled in code-behind) -->
+        <Storyboard x:Key="FadeOutStoryboard">
+            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                             From="1" To="0"
+                             Duration="0:0:0.28" />
+        </Storyboard>
+    </Window.Resources>
+    <Grid Background="#f5f7fa">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Text="Cầu Lông 365:" FontSize="48" FontWeight="Bold" Foreground="#2C3E50" TextAlignment="Center" HorizontalAlignment="Center" />
+            <TextBlock Text="Quản lý sân cầu lông" FontSize="16" Foreground="#607080" Margin="0,8,0,0" HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Button x:Name="TimekeepingButton" Content="Chấm công" Width="200" Height="80" FontSize="18" Background="#1976D2" Foreground="White" Click="TimekeepingButton_Click" Margin="0,0,16,0" />
+            <Button x:Name="DataButton" Content="Thêm dữ liệu" Width="200" Height="80" FontSize="18" Background="#4CAF50" Foreground="White" Click="DataButton_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

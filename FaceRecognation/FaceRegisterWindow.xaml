@@ -4,7 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Đăng ký khuôn mặt" Height="420" Width="700"
+    Title="Đăng ký khuôn mặt" Height="420" Width="700"
+    WindowState="Maximized"
         FontFamily="Segoe UI"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
@@ -26,9 +27,7 @@
             <TextBlock Text="Đăng ký khuôn mặt" Foreground="White" FontSize="18" FontWeight="Bold"
                        VerticalAlignment="Center" Margin="20,0,0,0" />
 
-            <!-- Exit button on the right -->
-            <Button x:Name="ExitButton" Content="❌ Thoát" Grid.Column="1" Width="100" Height="36" Margin="0,12,12,12"
-                    Background="LightCoral" FontWeight="Bold" Click="ExitButton_Click" />
+                <!-- Use native window chrome; removed custom action buttons -->
         </Grid>
 
         <!-- Main content: face slots -->

@@ -1,6 +1,6 @@
 ﻿using System.Windows;
-using Microsoft.Win32;
 using System.Windows.Media.Imaging;
+using Microsoft.Win32;
 
 namespace FaceApp
 {
@@ -12,6 +12,8 @@ namespace FaceApp
         {
             InitializeComponent();
         }
+
+        // Native window chrome is used; minimize/maximize handlers removed.
 
         // Capture face: chọn ảnh từ file để demo
         private void CaptureButton_Click(object sender, RoutedEventArgs e)
@@ -29,10 +31,18 @@ namespace FaceApp
                 var bitmap = new BitmapImage(new System.Uri(dialog.FileName));
                 switch (currentFaceIndex)
                 {
-                    case 0: FaceImage1.Source = bitmap; break;
-                    case 1: FaceImage2.Source = bitmap; break;
-                    case 2: FaceImage3.Source = bitmap; break;
-                    case 3: FaceImage4.Source = bitmap; break;
+                    case 0:
+                        FaceImage1.Source = bitmap;
+                        break;
+                    case 1:
+                        FaceImage2.Source = bitmap;
+                        break;
+                    case 2:
+                        FaceImage3.Source = bitmap;
+                        break;
+                    case 3:
+                        FaceImage4.Source = bitmap;
+                        break;
                 }
                 currentFaceIndex++;
             }
@@ -45,14 +55,8 @@ namespace FaceApp
             MessageBox.Show("Faces registered successfully!");
         }
 
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
+        // Exit handled by system window close button.
 
-        }
-
-        private void SelectButton_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
+        private void SelectButton_Click(object sender, RoutedEventArgs e) { }
     }
 }

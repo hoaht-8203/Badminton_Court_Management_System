@@ -18,6 +18,7 @@ using System.Windows.Threading;
 using AForge.Video;
 using AForge.Video.DirectShow;
 using FaceRecognation.Services.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FaceRecognation
 {
@@ -107,18 +108,7 @@ namespace FaceRecognation
             timer.Start();
         }
 
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Stop webcam before closing
-            if (videoSource != null && videoSource.IsRunning)
-            {
-                videoSource.SignalToStop();
-                videoSource.WaitForStop();
-            }
-
-            // Close the application
-            Application.Current.Shutdown();
-        }
+        // Using native window chrome; custom action handlers removed.
 
         private void StartWebcam()
         {
@@ -180,6 +170,34 @@ namespace FaceRecognation
             catch (Exception ex)
             {
                 StatusText.Text = $"Error starting webcam: {ex.Message}";
+            }
+        }
+
+        private void HomeButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var app = Application.Current as App;
+                var sp = app?.ServiceProvider;
+                if (sp != null)
+                {
+                    var landing = sp.GetRequiredService<LandingWindow>();
+                    landing.Show();
+                    // Close this main window so Landing becomes active
+                    this.Close();
+                    return;
+                }
+            }
+            catch
+            {
+                // fallback: create a new instance
+                try
+                {
+                    var landing = new LandingWindow();
+                    landing.Show();
+                    this.Close();
+                }
+                catch { }
             }
         }
 

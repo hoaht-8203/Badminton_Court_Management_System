@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { serviceService } from "@/services/serviceService";
 import {
   CreateServiceRequest,
-  DeleteServiceRequest,
   DetailServiceRequest,
   DetailServiceResponse,
   ListServiceRequest,

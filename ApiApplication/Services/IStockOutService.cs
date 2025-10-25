@@ -8,6 +8,7 @@ namespace ApiApplication.Services
         Task<DetailStockOutResponse> DetailAsync(int id);
         Task<int> CreateAsync(CreateStockOutRequest request);
         Task UpdateAsync(int id, CreateStockOutRequest request);
+        Task UpdateNoteAsync(int id, string note);
         Task CompleteAsync(int id);
         Task CancelAsync(int id);
     }

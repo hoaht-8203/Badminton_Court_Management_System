@@ -208,14 +208,16 @@ public class ApplicationDbContext(
             entity.Property(p => p.Discount).HasColumnType("decimal(18,2)");
             entity.Property(p => p.PaymentAmount).HasColumnType("decimal(18,2)");
             entity.Property(p => p.PaymentMethod).HasMaxLength(10);
-            entity.Property(p => p.SupplierBankAccountNumber).HasMaxLength(50);
-            entity.Property(p => p.SupplierBankAccountName).HasMaxLength(100);
-            entity.Property(p => p.SupplierBankName).HasMaxLength(120);
             entity
                 .HasOne(r => r.Supplier)
                 .WithMany()
                 .HasForeignKey(r => r.SupplierId)
                 .OnDelete(DeleteBehavior.Restrict);
+            entity
+                .HasOne(r => r.SupplierBankAccount)
+                .WithMany()
+                .HasForeignKey(r => r.SupplierBankAccountId)
+                .OnDelete(DeleteBehavior.SetNull);
             entity
                 .HasMany(r => r.Items)
                 .WithOne(i => i.Receipt)

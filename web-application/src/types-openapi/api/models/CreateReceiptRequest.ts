@@ -59,22 +59,16 @@ export interface CreateReceiptRequest {
     paymentAmount?: number;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof CreateReceiptRequest
      */
-    supplierBankAccountNumber?: string | null;
+    supplierBankAccountId?: number | null;
     /**
      * 
      * @type {string}
      * @memberof CreateReceiptRequest
      */
-    supplierBankAccountName?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateReceiptRequest
-     */
-    supplierBankName?: string | null;
+    note?: string | null;
     /**
      * 
      * @type {boolean}
@@ -114,9 +108,8 @@ export function CreateReceiptRequestFromJSONTyped(json: any, ignoreDiscriminator
         'paymentMethod': json['paymentMethod'],
         'discount': json['discount'] == null ? undefined : json['discount'],
         'paymentAmount': json['paymentAmount'] == null ? undefined : json['paymentAmount'],
-        'supplierBankAccountNumber': json['supplierBankAccountNumber'] == null ? undefined : json['supplierBankAccountNumber'],
-        'supplierBankAccountName': json['supplierBankAccountName'] == null ? undefined : json['supplierBankAccountName'],
-        'supplierBankName': json['supplierBankName'] == null ? undefined : json['supplierBankName'],
+        'supplierBankAccountId': json['supplierBankAccountId'] == null ? undefined : json['supplierBankAccountId'],
+        'note': json['note'] == null ? undefined : json['note'],
         'complete': json['complete'] == null ? undefined : json['complete'],
         'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(CreateReceiptItemFromJSON)),
     };
@@ -138,9 +131,8 @@ export function CreateReceiptRequestToJSONTyped(value?: CreateReceiptRequest | n
         'paymentMethod': value['paymentMethod'],
         'discount': value['discount'],
         'paymentAmount': value['paymentAmount'],
-        'supplierBankAccountNumber': value['supplierBankAccountNumber'],
-        'supplierBankAccountName': value['supplierBankAccountName'],
-        'supplierBankName': value['supplierBankName'],
+        'supplierBankAccountId': value['supplierBankAccountId'],
+        'note': value['note'],
         'complete': value['complete'],
         'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(CreateReceiptItemToJSON)),
     };

@@ -8,6 +8,7 @@ public interface IReceiptService
     Task<int> CreateAsync(CreateReceiptRequest req);
     Task<DetailReceiptResponse> DetailAsync(int id);
     Task UpdateAsync(int id, CreateReceiptRequest req);
+    Task UpdateNoteAsync(int id, string note);
     Task CompleteAsync(int id);
     Task CancelAsync(int id);
 }

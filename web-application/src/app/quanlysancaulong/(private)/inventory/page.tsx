@@ -567,29 +567,30 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
       <Table<InventoryCheckItemResponse>
         size="small"
         rowKey={(r) => `${r.productCode}-${r.productName}`}
-        columns={[
-          { title: "Mã hàng hóa", dataIndex: "productCode", key: "productCode", width: 160 },
-          { title: "Tên hàng", dataIndex: "productName", key: "productName", width: 240 },
-          { title: "Tồn kho", dataIndex: "systemQuantity", key: "systemQuantity", width: 120 },
-          { title: "Thực tế", dataIndex: "actualQuantity", key: "actualQuantity", width: 120 },
-          { title: "SL lệch", dataIndex: "deltaQuantity", key: "deltaQuantity", width: 120 },
-          { 
-            title: "Giá trị chênh lệch", 
-            key: "deltaValue", 
-            width: 150,
-            render: (_, record) => {
-              const deltaValue = ((record.actualQuantity ?? 0) - (record.systemQuantity ?? 0)) * ((record as any).costPrice ?? 0);
-              return (
-                <span className={deltaValue >= 0 ? "text-green-600" : "text-red-600"}>
-                  {deltaValue.toLocaleString()}
-                </span>
-              );
-            }
-          },
-        ]}
-        dataSource={items}
-        pagination={false}
-      />
+        scroll={{ x: "max-content" }}
+          columns={[
+            { title: "Mã hàng hóa", dataIndex: "productCode", key: "productCode", width: 160 },
+            { title: "Tên hàng", dataIndex: "productName", key: "productName", width: 240 },
+            { title: "Tồn kho", dataIndex: "systemQuantity", key: "systemQuantity", width: 120 },
+            { title: "Thực tế", dataIndex: "actualQuantity", key: "actualQuantity", width: 120 },
+            { title: "SL lệch", dataIndex: "deltaQuantity", key: "deltaQuantity", width: 120 },
+            { 
+              title: "Giá trị chênh lệch", 
+              key: "deltaValue", 
+              width: 150,
+              render: (_, record) => {
+                const deltaValue = ((record.actualQuantity ?? 0) - (record.systemQuantity ?? 0)) * ((record as any).costPrice ?? 0);
+                return (
+                  <span className={deltaValue >= 0 ? "text-green-600" : "text-red-600"}>
+                    {deltaValue.toLocaleString()}
+                  </span>
+                );
+              }
+            },
+          ]}
+          dataSource={items}
+          pagination={false}
+        />
 
       <div className="mt-4 space-y-2 text-right">
         <div>

@@ -27,6 +27,10 @@ export const receiptsService = {
     const res = await axiosInstance.put<ApiResponse<string>>(`/api/Receipts/${id}/cancel`, {});
     return res.data;
   },
+  async updateNote(id: number, note: string): Promise<ApiResponse<string>> {
+    const res = await axiosInstance.put<ApiResponse<string>>(`/api/Receipts/${id}/note`, { note });
+    return res.data;
+  },
 };
 
 

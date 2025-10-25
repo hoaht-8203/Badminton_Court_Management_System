@@ -24,7 +24,7 @@ type StockInItem = {
 
 
 type SupplierBank = {
-  id: string;
+  id: number;
   accountNumber: string;
   accountName: string;
   bankName: string;
@@ -62,12 +62,24 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
   const supplierId = Form.useWatch("supplierId", form);
   
   // Watch form values for bank info display
-  const supplierBankAccountNumber = Form.useWatch("supplierBankAccountNumber", form);
-  const supplierBankAccountName = Form.useWatch("supplierBankAccountName", form);
-  const supplierBankName = Form.useWatch("supplierBankName", form);
+  const supplierBankAccountId = Form.useWatch("supplierBankAccountId", form);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      // Reset all filter states when closing
+      setQuery("");
+      setDebouncedQuery("");
+      setSelectedCategories([]);
+      setSelectAllCategories(false);
+      setDiscount(0);
+      setPaymentMethod("cash");
+      setPaymentAmount(0);
+      setBankModalOpen(false);
+      setBanks([]);
+      setEditingBank(null);
+      setProductsWithImages([]);
+      return;
+    }
     if (!isEdit) {
       form.resetFields();
       setItems([]);
@@ -84,9 +96,7 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
           date: d?.receiptTime ? dayjs(d.receiptTime) : dayjs(),
           supplierId: d?.supplierId,
           note: d?.note,
-          supplierBankAccountNumber: d?.supplierBankAccountNumber,
-          supplierBankAccountName: d?.supplierBankAccountName,
-          supplierBankName: d?.supplierBankName,
+          supplierBankAccountId: d?.supplierBankAccountId,
         });
         setPaymentMethod((d?.paymentMethod || "cash") as any);
         setDiscount(Number(d?.discount || 0));
@@ -106,10 +116,10 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
     })();
   }, [open, isEdit, form, receiptId]);
 
-  // Load banks when modal opens and supplier selected
+  // Load banks when supplier is selected (for both modal and display)
   useEffect(() => {
     const fetchBanks = async () => {
-      if (!bankModalOpen || !supplierId) return;
+      if (!supplierId) return;
       try {
         const res = await supplierBankAccountsService.list({ supplierId: Number(supplierId) });
         const data = res.data;
@@ -119,7 +129,7 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
       }
     };
     fetchBanks();
-  }, [bankModalOpen, supplierId]);
+  }, [supplierId]);
 
   // Sync modal form with editing state
   useEffect(() => {
@@ -288,6 +298,13 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
     return { totalQuantity, totalAmount, needPay, debt };
   }, [items, discount, paymentAmount]);
 
+  // Tự động cập nhật paymentAmount khi items thay đổi
+  useEffect(() => {
+    const totalAmount = items.reduce((s, i) => s + (i.lineTotal ?? 0), 0);
+    const needPay = Math.max(0, totalAmount - (discount || 0));
+    setPaymentAmount(needPay);
+  }, [items, discount]);
+
   const doSave = async (complete: boolean) => {
     const values = form.getFieldsValue();
     
@@ -309,15 +326,28 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
         paymentMethod: paymentMethod,
         discount: Number(discount || 0) as any,
         paymentAmount: Number(paymentAmount || 0) as any,
-        supplierBankAccountNumber: values.supplierBankAccountNumber || undefined,
-        supplierBankAccountName: values.supplierBankAccountName || undefined,
-        supplierBankName: values.supplierBankName || undefined,
+        supplierBankAccountId: values.supplierBankAccountId || undefined,
+        note: values.note || undefined,
         complete,
         items: items.map((i) => ({ productId: i.productId, quantity: i.quantity, costPrice: i.costPrice })) as any,
       };
 
       await receiptsService.create(payload);
       message.success(complete ? "Đã hoàn thành phiếu nhập" : "Đã lưu nháp phiếu nhập");
+      
+      // Reset all filter states
+      setQuery("");
+      setDebouncedQuery("");
+      setSelectedCategories([]);
+      setSelectAllCategories(false);
+      setDiscount(0);
+      setPaymentMethod("cash");
+      setPaymentAmount(0);
+      setBankModalOpen(false);
+      setBanks([]);
+      setEditingBank(null);
+      setProductsWithImages([]);
+      
       try { onChanged?.(); } catch {}
       onClose();
     } catch (e: any) {
@@ -379,9 +409,8 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                       paymentMethod: paymentMethod,
                       discount: Number(discount || 0) as any,
                       paymentAmount: Number(paymentAmount || 0) as any,
-                      supplierBankAccountNumber: values.supplierBankAccountNumber || undefined,
-                      supplierBankAccountName: values.supplierBankAccountName || undefined,
-                      supplierBankName: values.supplierBankName || undefined,
+                      supplierBankAccountId: values.supplierBankAccountId || undefined,
+                      note: values.note || undefined,
                       complete: false,
                       items: items.map((i) => ({ productId: i.productId, quantity: i.quantity, costPrice: i.costPrice })) as any,
                     };
@@ -393,6 +422,20 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                       onOk: async () => {
                         await receiptsService.update(Number(receiptId), payload);
                         message.success("Đã lưu phiếu tạm");
+                        
+                        // Reset all filter states
+                        setQuery("");
+                        setDebouncedQuery("");
+                        setSelectedCategories([]);
+                        setSelectAllCategories(false);
+                        setDiscount(0);
+                        setPaymentMethod("cash");
+                        setPaymentAmount(0);
+                        setBankModalOpen(false);
+                        setBanks([]);
+                        setEditingBank(null);
+                        setProductsWithImages([]);
+                        
                         try { onChanged?.(); } catch {}
                         onClose();
                       }
@@ -415,7 +458,26 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                       okText: "Hoàn thành",
                       cancelText: "Đóng",
                       onOk: async () => {
-                        try { await receiptsService.complete(Number(receiptId)); message.success("Đã hoàn thành phiếu"); try { onChanged?.(); } catch {} onClose(); }
+                        try { 
+                          await receiptsService.complete(Number(receiptId)); 
+                          message.success("Đã hoàn thành phiếu"); 
+                          
+                          // Reset all filter states
+                          setQuery("");
+                          setDebouncedQuery("");
+                          setSelectedCategories([]);
+                          setSelectAllCategories(false);
+                          setDiscount(0);
+                          setPaymentMethod("cash");
+                          setPaymentAmount(0);
+                          setBankModalOpen(false);
+                          setBanks([]);
+                          setEditingBank(null);
+                          setProductsWithImages([]);
+                          
+                          try { onChanged?.(); } catch {} 
+                          onClose(); 
+                        }
                         catch (e: any) { message.error(e?.message || "Hoàn thành thất bại"); }
                       }
                     });
@@ -429,13 +491,7 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
     >
       <Form form={form} layout="vertical" initialValues={{ date: dayjs() }}>
         {/* Persist selected bank info in form values */}
-        <Form.Item name="supplierBankAccountNumber" hidden>
-          <Input />
-        </Form.Item>
-        <Form.Item name="supplierBankAccountName" hidden>
-          <Input />
-        </Form.Item>
-        <Form.Item name="supplierBankName" hidden>
+        <Form.Item name="supplierBankAccountId" hidden>
           <Input />
         </Form.Item>
         <Row gutter={16}>
@@ -569,13 +625,25 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                       Chuyển khoản
                     </Button>
                   </div>
-                  {paymentMethod === "transfer" && supplierBankAccountNumber && (
+                  {paymentMethod === "transfer" && supplierBankAccountId && (
                     <div className="mt-2 p-2 bg-blue-50 rounded border">
                       <div className="text-sm text-gray-600">Thông tin ngân hàng đã chọn:</div>
                       <div className="text-sm font-medium">
-                        {supplierBankAccountNumber} - {supplierBankAccountName}
+                        {(() => {
+                          const selectedBank = banks.find(bank => bank.id === supplierBankAccountId);
+                          console.log('Debug - supplierBankAccountId:', supplierBankAccountId, typeof supplierBankAccountId);
+                          console.log('Debug - banks:', banks);
+                          console.log('Debug - bank ids:', banks.map(b => ({ id: b.id, type: typeof b.id })));
+                          console.log('Debug - selectedBank:', selectedBank);
+                          return selectedBank ? `${selectedBank.accountNumber} - ${selectedBank.accountName}` : 'Không tìm thấy thông tin ngân hàng';
+                        })()}
                       </div>
-                      <div className="text-sm text-gray-500">{supplierBankName}</div>
+                      <div className="text-sm text-gray-500">
+                        {(() => {
+                          const selectedBank = banks.find(bank => bank.id === supplierBankAccountId);
+                          return selectedBank?.bankName || '';
+                        })()}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -677,9 +745,7 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                 <Space>
                   <Button size="small" onClick={() => {
                     form.setFieldsValue({
-                      supplierBankAccountNumber: r.accountNumber,
-                      supplierBankAccountName: r.accountName,
-                      supplierBankName: r.bankName,
+                      supplierBankAccountId: r.id,
                     });
                     setBankModalOpen(false);
                     message.success("Đã chọn ngân hàng");

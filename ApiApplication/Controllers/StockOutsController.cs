@@ -73,4 +73,16 @@ public class StockOutsController(IStockOutService stockOutService) : ControllerB
         await _stockOutService.CancelAsync(id);
         return Ok(ApiResponse<object?>.SuccessResponse(null, "Hủy phiếu xuất kho thành công"));
     }
+
+    [HttpPut("{id}/note")]
+    public async Task<ActionResult<ApiResponse<object>>> UpdateNote(
+        int id,
+        [FromBody] UpdateStockOutNoteRequest req
+    )
+    {
+        await _stockOutService.UpdateNoteAsync(id, req.Note);
+        return Ok(ApiResponse<object>.SuccessResponse(new { }, "Cập nhật ghi chú thành công"));
+    }
 }
+
+public record UpdateStockOutNoteRequest(string Note);

@@ -3,6 +3,7 @@ using System;
 using ApiApplication.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251025171018_AddNoteToReceipt")]
+    partial class AddNoteToReceipt
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1608,8 +1611,17 @@ namespace ApiApplication.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("SupplierBankAccountId")
-                        .HasColumnType("integer");
+                    b.Property<string>("SupplierBankAccountName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("SupplierBankAccountNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("SupplierBankName")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
 
                     b.Property<int>("SupplierId")
                         .HasColumnType("integer");
@@ -1621,8 +1633,6 @@ namespace ApiApplication.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SupplierBankAccountId");
 
                     b.HasIndex("SupplierId");
 
@@ -2376,22 +2386,22 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 25, 17, 12, 50, 808, DateTimeKind.Utc).AddTicks(1660),
+                            CreatedAt = new DateTime(2025, 10, 25, 17, 10, 18, 557, DateTimeKind.Utc).AddTicks(9570),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 10, 25, 17, 12, 50, 808, DateTimeKind.Utc).AddTicks(1660),
+                            UpdatedAt = new DateTime(2025, 10, 25, 17, 10, 18, 557, DateTimeKind.Utc).AddTicks(9570),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 10, 25, 17, 12, 50, 808, DateTimeKind.Utc).AddTicks(1660),
+                            CreatedAt = new DateTime(2025, 10, 25, 17, 10, 18, 557, DateTimeKind.Utc).AddTicks(9570),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 10, 25, 17, 12, 50, 808, DateTimeKind.Utc).AddTicks(1660),
+                            UpdatedAt = new DateTime(2025, 10, 25, 17, 10, 18, 557, DateTimeKind.Utc).AddTicks(9570),
                             UpdatedBy = "System",
                             Value = ""
                         });
@@ -2791,11 +2801,6 @@ namespace ApiApplication.Migrations
 
             modelBuilder.Entity("ApiApplication.Entities.Receipt", b =>
                 {
-                    b.HasOne("ApiApplication.Entities.SupplierBankAccount", "SupplierBankAccount")
-                        .WithMany()
-                        .HasForeignKey("SupplierBankAccountId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("ApiApplication.Entities.Supplier", "Supplier")
                         .WithMany()
                         .HasForeignKey("SupplierId")
@@ -2803,8 +2808,6 @@ namespace ApiApplication.Migrations
                         .IsRequired();
 
                     b.Navigation("Supplier");
-
-                    b.Navigation("SupplierBankAccount");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.ReceiptItem", b =>

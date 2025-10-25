@@ -7,6 +7,45 @@ import dayjs from "dayjs";
 import CreateEditStockInDrawer from "@/components/quanlysancaulong/stock-in/create-edit-stock-in-drawer";
 import { receiptsService } from "@/services/receiptsService";
 import { useListSuppliers } from "@/hooks/useSuppliers";
+import { CreateReceiptRequest } from "@/types-openapi/api";
+
+// Component để tính tổng số tiền đã trả NCC
+const TotalPaymentSummaryCell = ({ receiptIds }: { receiptIds: number[] }) => {
+  const [totalPayment, setTotalPayment] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const calculateTotalPayment = async () => {
+      setLoading(true);
+      try {
+        let total = 0;
+        for (const receiptId of receiptIds) {
+          try {
+            const res = await receiptsService.detail(receiptId);
+            total += res.data?.paymentAmount ?? 0;
+          } catch (error) {
+            console.error(`Error fetching payment for receipt ${receiptId}:`, error);
+          }
+        }
+        setTotalPayment(total);
+      } catch (error) {
+        console.error("Error calculating total payment:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (receiptIds.length > 0) {
+      calculateTotalPayment();
+    } else {
+      setTotalPayment(0);
+      setLoading(false);
+    }
+  }, [receiptIds]);
+
+  if (loading) return <span>...</span>;
+  return <span className="font-bold text-black">{totalPayment.toLocaleString("vi-VN")}</span>;
+};
 
 type Receipt = {
   id: number;
@@ -129,6 +168,12 @@ const StockInPage = () => {
 
   const onCreate = () => { setEditingId(null); setOpen(true); };
 
+  // Add summary row to dataSource
+  const tableData = useMemo(() => {
+    const summaryRow: any = { id: 'summary', isSummaryRow: true };
+    return [summaryRow, ...filtered];
+  }, [filtered]);
+
   return (
     <section>
       <div className="mb-3">
@@ -152,6 +197,13 @@ const StockInPage = () => {
             <Col span={6}><Form.Item name="createdBy" label="Theo người tạo"><Input allowClear placeholder="Theo người tạo" /></Form.Item></Col>
           </Row>
           <Row gutter={16}>
+          <Col span={8}>
+              <Form.Item label="Thời gian">
+                <Form.Item name="range" noStyle>
+                  <DatePicker.RangePicker style={{ width: 280 }} />
+                </Form.Item>
+              </Form.Item>
+            </Col>
             <Col span={8}>
               <Form.Item label="Trạng thái" name="statuses">
                 <Checkbox.Group style={{ width: "100%" }} onChange={(vals) => setFilters({ ...filters, statuses: vals as number[] })}>
@@ -163,13 +215,7 @@ const StockInPage = () => {
                 </Checkbox.Group>
               </Form.Item>
             </Col>
-            <Col span={8}>
-              <Form.Item label="Thời gian">
-                <Form.Item name="range" noStyle>
-                  <DatePicker.RangePicker style={{ width: 280 }} />
-                </Form.Item>
-              </Form.Item>
-            </Col>
+           
           </Row>
         </Card>
       </Form>
@@ -195,17 +241,61 @@ const StockInPage = () => {
           bordered
           scroll={{ x: "max-content" }}
           columns={[
-            { title: "Mã nhập hàng", dataIndex: "code", key: "code", width: 140 },
-            { title: "Thời gian", dataIndex: "time", key: "time", width: 160, render: (d: Date) => dayjs(d).format("DD/MM/YYYY HH:mm") },
-            { title: "Nhà cung cấp", dataIndex: "supplierName", key: "supplierName", width: 220, render: (t?: string) => t || "-" },
-            { title: "Cần trả NCC", dataIndex: "needPay", key: "needPay", width: 140, render: (v?: number) => (v ?? 0).toLocaleString() },
-            { title: "Trạng thái", dataIndex: "status", key: "status", width: 140, render: (s: Receipt["status"]) => <Tag color={statusColors[s]}>{statusLabels[s]}</Tag> },
+            { 
+              title: "Mã nhập hàng", 
+              dataIndex: "code", 
+              key: "code", 
+              width: 140,
+              render: (text, record) => (record as any).isSummaryRow ? "" : text
+            },
+            { 
+              title: "Thời gian", 
+              dataIndex: "time", 
+              key: "time", 
+              width: 160, 
+              render: (d: Date, record) => (record as any).isSummaryRow ? "" : dayjs(d).format("DD/MM/YYYY HH:mm")
+            },
+            { 
+              title: "Nhà cung cấp", 
+              dataIndex: "supplierName", 
+              key: "supplierName", 
+              width: 220, 
+              render: (t?: string, record?: any) => (record as any)?.isSummaryRow ? "" : (t || "-")
+            },
+            { 
+              title: "Đã trả NCC", 
+              dataIndex: "needPay", 
+              key: "needPay", 
+              width: 140, 
+              render: (v?: number, record?: any) => {
+                if ((record as any)?.isSummaryRow) {
+                  return <TotalPaymentSummaryCell receiptIds={filtered.map(r => r.id)} />;
+                }
+                return (v ?? 0).toLocaleString();
+              }
+            },
+            { 
+              title: "Trạng thái", 
+              dataIndex: "status", 
+              key: "status", 
+              width: 140, 
+              render: (s: Receipt["status"], record?: any) => {
+                if ((record as any)?.isSummaryRow) return "";
+                return <Tag color={statusColors[s]}>{statusLabels[s]}</Tag>;
+              }
+            },
           ]}
-          dataSource={filtered}
+          dataSource={tableData as any}
           loading={loading}
           expandable={{
             expandRowByClick: true,
-            expandedRowRender: (record) => <ReceiptRowDetail record={record} onEdit={() => setEditingId((record as any).id)} onCancelled={load} />,
+            expandedRowRender: (record: any) => {
+              if (record.isSummaryRow) return null;
+              return <ReceiptRowDetail record={record} onEdit={() => setEditingId(record.id)} onCancelled={load} />;
+            },
+            onExpand: (expanded, record: any) => {
+              if (record.isSummaryRow) return false;
+            },
           }}
           pagination={false}
         />
@@ -221,9 +311,12 @@ export default StockInPage;
 
 const ReceiptRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdit: () => void; onCancelled: () => void }) => {
   const [detail, setDetail] = React.useState<any | null>(null);
+  const [note, setNote] = React.useState("");
+  const [saving, setSaving] = React.useState(false);
+  
   React.useEffect(() => {
     const run = async () => {
-      try { const res = await receiptsService.detail(record.id); setDetail(res.data); }
+      try { const res = await receiptsService.detail(record.id); setDetail(res.data); setNote(res.data?.note || ""); }
       catch { setDetail(null); }
     };
     run();
@@ -254,6 +347,43 @@ const ReceiptRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdit
     return { totalAmount, discount, needPay, paid, debt };
   }, [detail?.items, detail?.discount, detail?.paymentAmount]);
 
+  const handleSaveNote = async () => {
+    if (!detail) return;
+    try {
+      setSaving(true);
+      
+      // Phiếu tạm: cập nhật toàn bộ thông tin
+      if (detail.status === 0) { // Draft
+        const updatePayload: CreateReceiptRequest = {
+          supplierId: detail.supplierId,
+          receiptTime: detail.receiptTime,
+          paymentMethod: detail.paymentMethod,
+          discount: detail.discount,
+          paymentAmount: detail.paymentAmount,
+          supplierBankAccountId: detail.supplierBankAccountId,
+          note: note,
+          complete: false, // Phiếu tạm
+          items: detail.items?.map((i: any) => ({ productId: i.productId, quantity: i.quantity, costPrice: i.costPrice })) || [],
+        };
+        await receiptsService.update(record.id, updatePayload);
+      } else {
+        // Phiếu hoàn thành/hủy: chỉ cập nhật ghi chú
+        await receiptsService.updateNote(record.id, note);
+      }
+      
+      message.success("Đã lưu ghi chú thành công");
+      
+      // Reload detail to get updated note
+      const res = await receiptsService.detail(record.id);
+      setDetail(res.data);
+      setNote(res.data?.note || ""); // Cập nhật note state với giá trị mới
+    } catch (e: any) {
+      message.error(e?.message || "Lưu ghi chú thất bại");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="p-3">
       <Tabs
@@ -263,55 +393,108 @@ const ReceiptRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdit
             key: "info",
             label: "Thông tin",
             children: (
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+              <div className="space-y-6">
+                {/* Thông tin cơ bản */}
                 <div>
-                  <div className="text-gray-500">Mã phiếu:</div>
-                  <div className="font-semibold">{record.code}</div>
-                </div>
-                <div>
-                  <div className="text-gray-500">Thời gian:</div>
-                  <div className="font-semibold">{dayjs(record.time).format("DD/MM/YYYY HH:mm")}</div>
-                </div>
-                <div>
-                  <div className="text-gray-500">Nhà cung cấp:</div>
-                  <div className="font-semibold">{record.supplierName || "-"}</div>
-                </div>
-                <div>
-                  <div className="text-gray-500">Cần trả NCC:</div>
-                  <div className="font-semibold">{(record.needPay ?? 0).toLocaleString()}</div>
-                </div>
-                {/* Thanh toán hiển thị riêng ở tab Lịch sử thanh toán */}
-                <div>
-                  <div className="text-gray-500">Trạng thái:</div>
-                  {(() => { const s = record.status as 0 | 1 | 2; return (
-                    <div className="font-semibold"><Tag color={statusColors[s]}>{statusLabels[s]}</Tag></div>
-                  ); })()}
-                </div>
-                {record.status === 0 && (
-                  <div className="md:col-span-3 text-right space-x-2">
-                    <Button type="primary" onClick={onEdit}>Cập nhật</Button>
-                    <Button danger onClick={() => {
-                      Modal.confirm({
-                        title: "Xác nhận hủy phiếu",
-                        content: "Bạn có chắc chắn muốn hủy phiếu nhập này?",
-                        okText: "Hủy phiếu",
-                        cancelText: "Đóng",
-                        okButtonProps: { danger: true },
-                        onOk: async () => {
-                          try { await receiptsService.cancel(record.id); message.success("Đã hủy phiếu"); onCancelled(); }
-                          catch (e: any) { message.error(e?.message || "Hủy thất bại"); }
-                        }
-                      });
-                    }}>Hủy phiếu</Button>
+                  <h3 className="text-lg font-semibold mb-3">Thông tin phiếu nhập</h3>
+                  <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+                    <div>
+                      <div className="text-gray-500">Mã phiếu:</div>
+                      <div className="font-semibold">{record.code}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500">Thời gian:</div>
+                      <div className="font-semibold">{dayjs(record.time).format("DD/MM/YYYY HH:mm")}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500">Nhà cung cấp:</div>
+                      <div className="font-semibold">{record.supplierName || "-"}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500">Đã trả NCC:</div>
+                      <div className="font-semibold">{(record.needPay ?? 0).toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-gray-500">Trạng thái:</div>
+                      {(() => { const s = record.status as 0 | 1 | 2; return (
+                        <div className="font-semibold"><Tag color={statusColors[s]}>{statusLabels[s]}</Tag></div>
+                      ); })()}
+                    </div>
+                    <div className="md:col-span-3">
+                      <div className="text-gray-500 mb-2">Ghi chú:</div>
+                      <Input.TextArea
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        placeholder="Nhập ghi chú..."
+                        rows={3}
+                        className="mb-2"
+                      />
+                      <div className="flex justify-end">
+                        <Button 
+                          type="primary" 
+                          size="small"
+                          loading={saving}
+                          onClick={handleSaveNote}
+                        >
+                          Lưu ghi chú
+                        </Button>
+                      </div>
+                    </div>
+                    {record.status === 0 && (
+                      <div className="md:col-span-3 text-right space-x-2">
+                        <Button type="primary" onClick={onEdit}>Cập nhật</Button>
+                        <Button danger onClick={() => {
+                          Modal.confirm({
+                            title: "Xác nhận hủy phiếu",
+                            content: "Bạn có chắc chắn muốn hủy phiếu nhập này?",
+                            okText: "Hủy phiếu",
+                            cancelText: "Đóng",
+                            okButtonProps: { danger: true },
+                            onOk: async () => {
+                              try { await receiptsService.cancel(record.id); message.success("Đã hủy phiếu"); onCancelled(); }
+                              catch (e: any) { message.error(e?.message || "Hủy thất bại"); }
+                            }
+                          });
+                        }}>Hủy phiếu</Button>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
+
+                {/* Sản phẩm */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Sản phẩm</h3>
+                  <ReceiptProducts receiptId={record.id} />
+                </div>
+
+                {/* Thông tin thanh toán */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Thông tin thanh toán</h3>
+                  <div className="space-y-1 text-right">
+                    <div>
+                      <span className="text-gray-600">Tổng tiền hàng</span>
+                      <span className="font-semibold ml-2">{paymentSummary.totalAmount.toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Giảm giá phiếu nhập</span>
+                      <span className="font-semibold ml-2">{paymentSummary.discount.toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Cần trả NCC</span>
+                      <span className="font-semibold ml-2">{paymentSummary.needPay.toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Tiền đã trả NCC</span>
+                      <span className="font-semibold ml-2 text-green-600">{paymentSummary.paid.toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Còn nợ NCC</span>
+                      <span className="font-semibold ml-2 text-red-600">{paymentSummary.debt.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )
-          },
-          {
-            key: "items",
-            label: "Sản phẩm",
-            children: <ReceiptProducts receiptId={record.id} />
           },
           {
             key: "payments",
@@ -332,28 +515,6 @@ const ReceiptRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdit
                     { title: "Tiền chi", dataIndex: "amount", key: "amount", width: 140 },
                   ]}
                 />
-                <div className="mt-3 space-y-1 text-right">
-                  <div>
-                    <span className="text-gray-600">Tổng tiền hàng</span>
-                    <span className="font-semibold ml-2">{paymentSummary.totalAmount.toLocaleString()}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Giảm giá phiếu nhập</span>
-                    <span className="font-semibold ml-2">{paymentSummary.discount.toLocaleString()}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Cần trả NCC</span>
-                    <span className="font-semibold ml-2">{paymentSummary.needPay.toLocaleString()}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Tiền đã trả NCC</span>
-                    <span className="font-semibold ml-2 text-green-600">{paymentSummary.paid.toLocaleString()}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Còn nợ NCC</span>
-                    <span className="font-semibold ml-2 text-red-600">{paymentSummary.debt.toLocaleString()}</span>
-                  </div>
-                </div>
               </div>
             )
           }
@@ -380,22 +541,25 @@ const ReceiptProducts = ({ receiptId }: { receiptId: number }) => {
     run();
   }, [receiptId]);
   return (
-    <Table
-      size="small"
-      bordered
-      loading={loading}
-      rowKey={(r) => String((r as any).code) + String((r as any).name)}
-      dataSource={rows}
-      pagination={false}
-      columns={[
-        { title: "Mã hàng", dataIndex: "code", key: "code", width: 140 },
-        { title: "Tên hàng", dataIndex: "name", key: "name", width: 220 },
-        { title: "SL nhập", dataIndex: "quantity", key: "quantity", width: 120 },
-        { title: "Giá vốn", dataIndex: "costPrice", key: "costPrice", width: 140, render: (v) => (v ?? 0).toLocaleString() },
-        { title: "Thành tiền", dataIndex: "amount", key: "amount", width: 160, render: (v) => (v ?? 0).toLocaleString() },
-      ]}
-      locale={{ emptyText: "Chưa có sản phẩm" }}
-    />
+    <div className="max-h-96 overflow-y-auto">
+      <Table
+        size="small"
+        bordered
+        loading={loading}
+        rowKey={(r) => String((r as any).code) + String((r as any).name)}
+        dataSource={rows}
+        pagination={false}
+        scroll={{ x: "max-content" }}
+        columns={[
+          { title: "Mã hàng", dataIndex: "code", key: "code", width: 140 },
+          { title: "Tên hàng", dataIndex: "name", key: "name", width: 220 },
+          { title: "SL nhập", dataIndex: "quantity", key: "quantity", width: 120 },
+          { title: "Giá vốn", dataIndex: "costPrice", key: "costPrice", width: 140, render: (v) => (v ?? 0).toLocaleString() },
+          { title: "Thành tiền", dataIndex: "amount", key: "amount", width: 160, render: (v) => (v ?? 0).toLocaleString() },
+        ]}
+        locale={{ emptyText: "Chưa có sản phẩm" }}
+      />
+    </div>
   );
 };
 

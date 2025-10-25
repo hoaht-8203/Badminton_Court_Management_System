@@ -31,4 +31,8 @@ export const returnGoodsService = {
     const res = await axiosInstance.post<ApiResponse<string>>(`/api/ReturnGoods/cancel/${id}`, {});
     return res.data;
   },
+  async updateNote(id: number, note: string): Promise<ApiResponse<string>> {
+    const res = await axiosInstance.put<ApiResponse<string>>(`/api/ReturnGoods/${id}/note`, { note });
+    return res.data;
+  },
 };

@@ -49,7 +49,15 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
   const [selectAllCategories, setSelectAllCategories] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      // Reset all filter states when closing
+      setQuery("");
+      setDebouncedQuery("");
+      setSelectedCategories([]);
+      setSelectAllCategories(false);
+      setProductsWithImages([]);
+      return;
+    }
     if (!isEdit) {
       form.resetFields();
       setItems([]);
@@ -334,6 +342,13 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
         message.success(complete ? "Đã hoàn thành phiếu xuất hủy" : "Đã lưu nháp phiếu xuất hủy");
         if (complete) { try { await queryClient.invalidateQueries({ queryKey: ["products"] }); } catch {} }
       }
+      
+      // Reset all filter states
+      setQuery("");
+      setDebouncedQuery("");
+      setSelectedCategories([]);
+      setSelectAllCategories(false);
+      setProductsWithImages([]);
       
       try { onChanged?.(); } catch {}
       onClose();

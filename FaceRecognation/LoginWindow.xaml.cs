@@ -80,30 +80,9 @@ namespace FaceRecognation
                 var result = await _authService.LoginAsync(email, password);
                 if (result.Success)
                 {
-                    // Parse roles from the returned JSON payload and require Admin role
-                    bool isAdmin = false;
-                    try
-                    {
-                        if (!string.IsNullOrEmpty(result.RawData))
-                        {
-                            using var doc = JsonDocument.Parse(result.RawData);
-                            if (doc.RootElement.TryGetProperty("data", out var dataProp) &&
-                                dataProp.ValueKind == JsonValueKind.Object &&
-                                dataProp.TryGetProperty("roles", out var rolesProp) &&
-                                rolesProp.ValueKind == JsonValueKind.Array)
-                            {
-                                isAdmin = rolesProp.EnumerateArray()
-                                    .Select(e => e.GetString())
-                                    .Any(r => string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase));
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        // If parsing fails, treat as not authorized
-                        isAdmin = false;
-                    }
-
+                    // Require Admin role. AuthService stores the raw "data" JSON in CurrentUserJson,
+                    // and exposes HasRole to check roles safely.
+                    bool isAdmin = _authService.HasRole("Admin");
                     if (!isAdmin)
                     {
                         StatusText.Text = "Bạn không có quyền truy cập. Yêu cầu role 'Admin'.";
@@ -112,8 +91,8 @@ namespace FaceRecognation
                     }
 
                     StatusText.Text = "Đăng nhập thành công.";
-                    if (!string.IsNullOrEmpty(result.RawData))
-                        Application.Current.Properties["CurrentUser"] = result.RawData;
+                    if (result.Data != null)
+                        Application.Current.Properties["CurrentUser"] = result.Data;
 
                     // AuthService shares the CookieContainer via DI; no need to store cookies here.
                     // Navigate to StaffSelectWindow next

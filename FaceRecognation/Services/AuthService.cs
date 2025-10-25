@@ -13,6 +13,7 @@ namespace FaceRecognation.Services
     public class AuthService : IAuthService
     {
         private readonly HttpClient _http;
+        public Dtos.CurrentUserResponse? CurrentUser { get; private set; }
         public string? CurrentUserJson { get; private set; }
 
         public AuthService(HttpClient http)
@@ -24,10 +25,7 @@ namespace FaceRecognation.Services
             );
         }
 
-        public async Task<(bool Success, string? RawData, string? Message)> LoginAsync(
-            string email,
-            string password
-        )
+        public async Task<ApiResponse<Dtos.CurrentUserResponse>> LoginAsync(string email, string password)
         {
             var payload = new { Email = email, Password = password };
             var content = new StringContent(
@@ -44,40 +42,125 @@ namespace FaceRecognation.Services
                 {
                     var err = await resp.Content.ReadFromJsonAsync<ApiResponse<JsonElement>>();
                     if (err != null && !string.IsNullOrEmpty(err.Message))
-                        return (false, null, err.Message);
+                        return new ApiResponse<Dtos.CurrentUserResponse>
+                        {
+                            Success = false,
+                            Message = err.Message,
+                            Data = null
+                        };
                 }
                 catch { }
 
-                return (false, null, $"HTTP {resp.StatusCode}");
+                return new ApiResponse<Dtos.CurrentUserResponse>
+                {
+                    Success = false,
+                    Message = $"HTTP {resp.StatusCode}",
+                    Data = null
+                };
             }
 
-            var apiResp = await resp.Content.ReadFromJsonAsync<ApiResponse<JsonElement>>();
+            var apiResp = await resp.Content.ReadFromJsonAsync<ApiResponse<Dtos.CurrentUserResponse>>();
             if (apiResp == null)
-                return (false, null, "Empty response from server");
+                return new ApiResponse<Dtos.CurrentUserResponse>
+                {
+                    Success = false,
+                    Message = "Empty response from server",
+                    Data = null
+                };
 
             if (apiResp.Success)
             {
-                string? rawData = null;
-                if (
-                    apiResp.Data.ValueKind != JsonValueKind.Undefined
-                    && apiResp.Data.ValueKind != JsonValueKind.Null
-                )
-                {
-                    rawData = apiResp.Data.GetRawText();
-                    CurrentUserJson = rawData;
-                }
-
-                return (true, rawData, null);
+                // Store typed object and a JSON debug copy
+                CurrentUser = apiResp.Data;
+                CurrentUserJson = apiResp.Data != null ? JsonSerializer.Serialize(apiResp.Data) : null;
             }
 
-            return (false, null, apiResp.Message);
+            return apiResp;
         }
 
         public Task LogoutAsync()
         {
             // For now, removing cookies is left to consumer or we can call an API endpoint if available.
+            CurrentUser = null;
             CurrentUserJson = null;
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Check whether the currently stored CurrentUserJson contains the specified role.
+        /// The CurrentUserJson is expected to be the raw JSON contents of the server "data" field
+        /// (for example: { "roles": ["Admin"] }). Returns false if parsing fails or role not present.
+        /// </summary>
+        public bool HasRole(string role)
+        {
+            if (string.IsNullOrEmpty(role))
+                return false;
+
+            // Prefer typed CurrentUser when available
+            if (CurrentUser != null && CurrentUser.Roles != null)
+            {
+                foreach (var r in CurrentUser.Roles)
+                {
+                    if (string.Equals(r, role, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(CurrentUserJson))
+                return false;
+
+            try
+            {
+                using var doc = JsonDocument.Parse(CurrentUserJson);
+                var root = doc.RootElement;
+                // Support two shapes:
+                // 1) CurrentUserJson is the "data" object: { "roles": ["Admin"] }
+                // 2) CurrentUserJson is the full API response: { "success": true, "data": { "roles": [...] }, ... }
+                JsonElement rolesElem = default;
+
+                if (root.ValueKind == JsonValueKind.Object)
+                {
+                    if (
+                        root.TryGetProperty("roles", out var r1)
+                        && r1.ValueKind == JsonValueKind.Array
+                    )
+                    {
+                        rolesElem = r1;
+                    }
+                    else if (
+                        root.TryGetProperty("data", out var dataProp)
+                        && dataProp.ValueKind == JsonValueKind.Object
+                        && dataProp.TryGetProperty("roles", out var r2)
+                        && r2.ValueKind == JsonValueKind.Array
+                    )
+                    {
+                        rolesElem = r2;
+                    }
+                }
+
+                if (rolesElem.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in rolesElem.EnumerateArray())
+                    {
+                        if (
+                            item.ValueKind == JsonValueKind.String
+                            && string.Equals(
+                                item.GetString(),
+                                role,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                        )
+                            return true;
+                    }
+                }
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

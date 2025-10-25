@@ -5,13 +5,9 @@ namespace FaceRecognation.Services.Interfaces
     public interface IAuthService
     {
         /// <summary>
-        /// Perform login against /api/auth/login. Returns (Success, RawData, Message).
-        /// RawData contains the server "data" JSON if present.
+        /// Perform login against /api/auth/login. Returns the server ApiResponse<CurrentUserResponse>.
         /// </summary>
-        Task<(bool Success, string? RawData, string? Message)> LoginAsync(
-            string email,
-            string password
-        );
+        Task<Dtos.ApiResponse<Dtos.CurrentUserResponse>> LoginAsync(string email, string password);
 
         /// <summary>
         /// Optional logout endpoint call. Not required for initial implementation.
@@ -19,8 +15,9 @@ namespace FaceRecognation.Services.Interfaces
         Task LogoutAsync();
 
         /// <summary>
-        /// Raw JSON of the current user response returned by server after successful login (if any).
+        /// Check whether the current user JSON (if present) contains the specified role.
+        /// Returns false when no current user is set or parsing fails.
         /// </summary>
-        string? CurrentUserJson { get; }
+        bool HasRole(string role);
     }
 }

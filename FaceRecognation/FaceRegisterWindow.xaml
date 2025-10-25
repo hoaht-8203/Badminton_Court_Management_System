@@ -1,0 +1,114 @@
+﻿<Window x:Class="FaceApp.FaceRegisterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Đăng ký khuôn mặt" Height="420" Width="700"
+        FontFamily="Segoe UI"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Navbar -->
+            <RowDefinition Height="*"/>    <!-- Content -->
+            <RowDefinition Height="Auto"/> <!-- Actions -->
+        </Grid.RowDefinitions>
+
+        <!-- Navbar (matches MainWindow style) -->
+        <Grid Grid.Row="0" Background="#2C3E50" Height="60">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Text="Đăng ký khuôn mặt" Foreground="White" FontSize="18" FontWeight="Bold"
+                       VerticalAlignment="Center" Margin="20,0,0,0" />
+
+            <!-- Exit button on the right -->
+            <Button x:Name="ExitButton" Content="❌ Thoát" Grid.Column="1" Width="100" Height="36" Margin="0,12,12,12"
+                    Background="LightCoral" FontWeight="Bold" Click="ExitButton_Click" />
+        </Grid>
+
+        <!-- Main content: face slots -->
+        <ScrollViewer Grid.Row="1" Margin="20" HorizontalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Chụp / Chọn 5 ảnh khuôn mặt" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                <WrapPanel HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,10,0,0">
+                    <!-- Face slot 1: Chính diện -->
+                    <StackPanel Margin="6" Width="90">
+                        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Width="90" Height="90">
+                            <Image x:Name="FaceImage1" Width="88" Height="88" Stretch="UniformToFill" />
+                        </Border>
+                        <TextBlock Text="Chính diện"
+                   HorizontalAlignment="Center"
+                   FontSize="13"
+                   TextWrapping="Wrap"
+                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <!-- Face slot 2: Bên phải -->
+                    <StackPanel Margin="6" Width="90">
+                        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Width="90" Height="90">
+                            <Image x:Name="FaceImage2" Width="88" Height="88" Stretch="UniformToFill" />
+                        </Border>
+                        <TextBlock Text="Bên phải"
+                   HorizontalAlignment="Center"
+                   FontSize="13"
+                   TextWrapping="Wrap"
+                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <!-- Face slot 3: Bên trái -->
+                    <StackPanel Margin="6" Width="90">
+                        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Width="90" Height="90">
+                            <Image x:Name="FaceImage3" Width="88" Height="88" Stretch="UniformToFill" />
+                        </Border>
+                        <TextBlock Text="Bên trái"
+                   HorizontalAlignment="Center"
+                   FontSize="13"
+                   TextWrapping="Wrap"
+                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <!-- Face slot 4: Phía trên -->
+                    <StackPanel Margin="6" Width="90">
+                        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Width="90" Height="90">
+                            <Image x:Name="FaceImage4" Width="88" Height="88" Stretch="UniformToFill" />
+                        </Border>
+                        <TextBlock Text="Phía trên"
+                   HorizontalAlignment="Center"
+                   FontSize="13"
+                   TextWrapping="Wrap"
+                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <!-- Face slot 5: Phía dưới -->
+                    <StackPanel Margin="6" Width="90">
+                        <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="6" Width="90" Height="90">
+                            <Image x:Name="FaceImage5" Width="88" Height="88" Stretch="UniformToFill" />
+                        </Border>
+                        <TextBlock Text="Phía dưới"
+                   HorizontalAlignment="Center"
+                   FontSize="13"
+                   TextWrapping="Wrap"
+                   Margin="0,4,0,0"/>
+                    </StackPanel>
+                </WrapPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Action buttons -->
+        <Grid Grid.Row="2" Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Button x:Name="CaptureButton" Content="Chụp ảnh" Width="140" Height="40" Margin="8" Background="LightBlue" Click="CaptureButton_Click" />
+                <Button x:Name="SelectButton" Content="Chọn ảnh" Width="140" Height="40" Margin="8" Background="LightGreen" Click="SelectButton_Click" />
+                <Button x:Name="CompleteButton" Content="Hoàn tất" Width="140" Height="40" Margin="8" Background="#2C3E50" Foreground="White" FontWeight="Bold" Click="SaveButton_Click" Visibility="Collapsed" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

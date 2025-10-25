@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:FaceRecognation"
         mc:Ignorable="d"
         Title="Face Recognition - Webcam" 
-        WindowState="Maximized"
+
         WindowStyle="None"
         ResizeMode="NoResize"
         Topmost="False">

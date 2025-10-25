@@ -342,4 +342,38 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
         // If parsing fails, start from 1
         return "DV000001";
     }
+
+    public async Task<BookingServiceDto> EndServiceAsync(EndServiceRequest request)
+    {
+        var bookingService = await _context.BookingServices.FirstOrDefaultAsync(bs =>
+            bs.Id == request.BookingServiceId
+        );
+        if (bookingService == null)
+        {
+            throw new ApiException("Không tìm thấy dịch vụ đặt sân", HttpStatusCode.BadRequest);
+        }
+
+        var now = DateTime.UtcNow;
+        bookingService.ServiceEndTime = now;
+
+        // Calculate actual usage time in hours
+        var usageTime = now - bookingService.ServiceStartTime;
+        var usageHours = (decimal)usageTime.TotalHours;
+
+        // Update Hours with actual usage time
+        bookingService.Hours = usageHours;
+
+        // Calculate total price based on actual usage time
+        var rawCost = bookingService.Quantity * bookingService.UnitPrice * usageHours;
+        bookingService.TotalPrice = Math.Ceiling(rawCost / 1000m) * 1000m; // Round up to nearest 1000
+
+        bookingService.Status = BookingServiceStatus.Completed;
+        await _context.SaveChangesAsync();
+
+        var reloaded = await _context
+            .BookingServices.Include(bs => bs.Service)
+            .FirstAsync(bs => bs.Id == bookingService.Id);
+
+        return _mapper.Map<BookingServiceDto>(reloaded);
+    }
 }

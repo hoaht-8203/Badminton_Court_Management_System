@@ -1,5 +1,5 @@
 import { axiosInstance } from "@/lib/axios";
-import { AddOrderItemRequest, CheckoutRequest, CheckoutResponse, AddBookingServiceRequest } from "@/types-openapi/api";
+import { AddOrderItemRequest } from "@/types-openapi/api";
 
 export interface CheckoutItemInput {
   productId: number | string;
@@ -16,17 +16,6 @@ export interface CheckoutEstimateResponse {
 }
 
 export const cashierService = {
-  async estimateCheckout(payload: { bookingId: string; items: CheckoutItemInput[] }): Promise<CheckoutEstimateResponse> {
-    // Note: backend endpoint to be implemented server-side
-    const res = await axiosInstance.post("/api/BookingCourts/checkout/estimate", payload);
-    return res.data?.data as CheckoutEstimateResponse;
-  },
-
-  async confirmCheckout(payload: { bookingId: string; items: CheckoutItemInput[] }): Promise<{ paymentId: string; finalPayable: number }> {
-    const res = await axiosInstance.post("/api/BookingCourts/checkout/confirm", payload);
-    return res.data?.data as { paymentId: string; finalPayable: number };
-  },
-
   async addOrderItem(payload: AddOrderItemRequest): Promise<void> {
     await axiosInstance.post("/api/BookingCourts/order/add-item", payload);
   },
@@ -44,19 +33,5 @@ export const cashierService = {
       productId: Number(payload.productId),
       quantity: payload.quantity,
     });
-  },
-
-  async checkout(payload: CheckoutRequest): Promise<CheckoutResponse> {
-    const res = await axiosInstance.post("/api/Orders/checkout", payload);
-    return res.data?.data as CheckoutResponse;
-  },
-
-  async addService(payload: AddBookingServiceRequest): Promise<void> {
-    await axiosInstance.post("/api/Services/booking-occurrence/add-service", payload);
-  },
-
-  async getCheckoutInfo(orderId: string): Promise<CheckoutResponse> {
-    const res = await axiosInstance.get(`/api/Orders/checkout/${orderId}`);
-    return res.data?.data as CheckoutResponse;
   },
 };

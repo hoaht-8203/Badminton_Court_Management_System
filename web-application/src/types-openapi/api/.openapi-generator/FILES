@@ -78,7 +78,6 @@ models/CheckInBookingCourtRequest.ts
 models/CheckOutBookingCourtRequest.ts
 models/CheckoutEstimateRequest.ts
 models/CheckoutEstimateResponse.ts
-models/CheckoutEstimateResponseApiResponse.ts
 models/CheckoutItemInput.ts
 models/CheckoutRequest.ts
 models/CheckoutResponse.ts
@@ -206,6 +205,7 @@ models/EmailResponse.ts
 models/EmailResponseApiResponse.ts
 models/EmailTemplateRequest.ts
 models/EmailTemplateType.ts
+models/EndServiceRequest.ts
 models/ForgotPasswordRequest.ts
 models/Int32ApiResponse.ts
 models/Int32ListApiResponse.ts

@@ -21,6 +21,7 @@ import { useListProducts } from "@/hooks/useProducts";
 import { useListServices } from "@/hooks/useServices";
 import { usePendingPaymentOrders } from "@/hooks/useOrders";
 import { cashierService } from "@/services/cashierService";
+import { serviceService } from "@/services/serviceService";
 import { ordersService } from "@/services/ordersService";
 import {
   CheckoutRequest,
@@ -156,15 +157,19 @@ const CashierPageContent = memo(function CashierPageContent() {
       }
       try {
         // Call service API to add service (not order item)
-        await cashierService.addService({
+        const result = await serviceService.addBookingService({
           bookingCourtOccurrenceId: selectedOccurrenceId,
           serviceId: service.id!,
           quantity: 1,
           notes: `Thêm dịch vụ ${service.name}`,
         });
-        message.success("Đã thêm dịch vụ thành công");
-        // Refresh occurrence detail to show updated service usage
-        queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.detail(selectedOccurrenceId) });
+        if (result.data) {
+          message.success("Đã thêm dịch vụ thành công");
+          // Refresh occurrence detail to show updated service usage
+          queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.detail(selectedOccurrenceId) });
+        } else {
+          message.error(result.message || "Không thể thêm dịch vụ");
+        }
       } catch (e: any) {
         message.error(e?.message || "Không thể thêm dịch vụ");
       }
@@ -314,8 +319,8 @@ const CashierPageContent = memo(function CashierPageContent() {
         note: `Thanh toán ${paymentMethod === "Cash" ? "tiền mặt" : "chuyển khoản"} - ${new Date().toLocaleString("vi-VN")}`,
       };
 
-      const result = await cashierService.checkout(checkoutRequest);
-      setCheckoutDetail(result);
+      const result = await ordersService.checkout(checkoutRequest);
+      setCheckoutDetail(result.data || null);
 
       if (paymentMethod === "Bank") {
         // Show QR drawer for bank transfer
@@ -337,6 +342,21 @@ const CashierPageContent = memo(function CashierPageContent() {
       setIsCheckoutLoading(false);
     }
   }, [selectedOccurrenceId, occurrenceDetail, paymentMethod, lateFeePercentage, refreshAllData]);
+
+  // Handle ending service
+  const handleEndService = useCallback(
+    async (serviceId: string) => {
+      try {
+        await serviceService.endService({ bookingServiceId: serviceId });
+        message.success("Đã dừng dịch vụ thành công");
+        // Refresh occurrence detail to get updated service data
+        queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.detail(selectedOccurrenceId || "") });
+      } catch (error: any) {
+        message.error(error?.message || "Không thể dừng dịch vụ");
+      }
+    },
+    [queryClient, selectedOccurrenceId],
+  );
 
   return (
     <div className="cashier-page-section h-screen p-4">
@@ -468,12 +488,12 @@ const CashierPageContent = memo(function CashierPageContent() {
             {/* Service Usage Information */}
             {occurrenceDetail && occurrenceDetail.status === "CheckedIn" && (
               <div className="mb-2 rounded border p-2">
-                <div className="mb-2 text-sm font-semibold">Dịch vụ đang sử dụng</div>
+                <div className="mb-2 text-sm font-semibold">Dịch vụ sử dụng</div>
                 <div className="text-xs text-gray-600">Dịch vụ được tính theo thời gian thực tế từ lúc thêm đến checkout</div>
                 {occurrenceDetail.bookingServices && occurrenceDetail.bookingServices.length > 0 ? (
                   <div className="mt-2 space-y-2">
                     {occurrenceDetail.bookingServices.map((service, index) => (
-                      <ServiceUsageItem key={index} service={service} />
+                      <ServiceUsageItem key={index} service={service} onEndService={handleEndService} />
                     ))}
                   </div>
                 ) : (
@@ -643,8 +663,9 @@ const CashierPageContent = memo(function CashierPageContent() {
 });
 
 // Memoize ServiceUsageItem to prevent unnecessary re-renders when parent updates
-const ServiceUsageItem = memo(function ServiceUsageItem({ service }: { service: any }) {
+const ServiceUsageItem = memo(function ServiceUsageItem({ service, onEndService }: { service: any; onEndService?: (serviceId: string) => void }) {
   const [nowTs, setNowTs] = useState<number>(() => Date.now());
+  const [isEnding, setIsEnding] = useState(false);
 
   useEffect(() => {
     const id = setInterval(() => setNowTs(Date.now()), 1000);
@@ -653,6 +674,25 @@ const ServiceUsageItem = memo(function ServiceUsageItem({ service }: { service: 
 
   // Memoize expensive calculations to prevent recalculation on every render
   const { displayHours, displayMinutes, displaySeconds, currentCost } = useMemo(() => {
+    // Nếu dịch vụ đã hoàn thành, sử dụng dữ liệu tĩnh
+    if (service.status === "Completed" && service.serviceEndTime) {
+      const startTime = new Date(service.serviceStartTime || new Date());
+      const endTime = new Date(service.serviceEndTime);
+      const usageMs = Math.max(0, endTime.getTime() - startTime.getTime());
+      const totalSeconds = Math.floor(usageMs / 1000);
+      const displayHours = Math.floor(totalSeconds / 3600);
+      const displayMinutes = Math.floor((totalSeconds % 3600) / 60);
+      const displaySeconds = totalSeconds % 60;
+
+      return {
+        displayHours,
+        displayMinutes,
+        displaySeconds,
+        currentCost: service.totalPrice || 0,
+      };
+    }
+
+    // Nếu dịch vụ đang sử dụng, tính toán real-time
     const startTime = new Date(service.serviceStartTime || new Date());
     const usageMs = Math.max(0, nowTs - startTime.getTime());
     const totalSeconds = Math.floor(usageMs / 1000);
@@ -666,7 +706,20 @@ const ServiceUsageItem = memo(function ServiceUsageItem({ service }: { service: 
     const currentCost = service.totalPrice || Math.ceil(rawCost / 1000) * 1000;
 
     return { displayHours, displayMinutes, displaySeconds, currentCost };
-  }, [nowTs, service.serviceStartTime, service.quantity, service.unitPrice, service.totalPrice]);
+  }, [nowTs, service.serviceStartTime, service.serviceEndTime, service.quantity, service.unitPrice, service.totalPrice, service.status]);
+
+  const handleEndService = async () => {
+    if (!onEndService || isEnding) return;
+
+    setIsEnding(true);
+    try {
+      await onEndService(service.id);
+    } catch (error) {
+      console.error("Error ending service:", error);
+    } finally {
+      setIsEnding(false);
+    }
+  };
 
   return (
     <div className="rounded bg-blue-50 p-2 text-sm">
@@ -679,10 +732,18 @@ const ServiceUsageItem = memo(function ServiceUsageItem({ service }: { service: 
           <div className="text-xs text-gray-600">
             Đã sử dụng: {displayHours} giờ {displayMinutes} phút {String(displaySeconds).padStart(2, "0")} giây
           </div>
+          {service.status === "Completed" && service.serviceEndTime && (
+            <div className="text-xs text-gray-600">Kết thúc: {new Date(service.serviceEndTime).toLocaleString("vi-VN")}</div>
+          )}
         </div>
         <div className="text-right">
           <div className="font-semibold text-blue-600">{currentCost.toLocaleString("vi-VN")} đ</div>
-          <div className="text-xs text-gray-500">{service.status === "Completed" ? "Đã hoàn thành" : "Đang sử dụng"}</div>
+          <div className="mb-2 text-xs text-gray-500">{service.status === "Completed" ? "Đã hoàn thành" : "Đang sử dụng"}</div>
+          {service.status !== "Completed" && onEndService && (
+            <Button size="small" type="primary" danger loading={isEnding} onClick={handleEndService} className="text-xs">
+              Dừng dịch vụ
+            </Button>
+          )}
         </div>
       </div>
     </div>
@@ -701,6 +762,12 @@ const ServicesTotalCost = memo(function ServicesTotalCost({ services }: { servic
   // Memoize expensive calculation to prevent recalculation on every render
   const totalCost = useMemo(() => {
     return services.reduce((sum, service) => {
+      // Nếu dịch vụ đã hoàn thành, sử dụng totalPrice tĩnh
+      if (service.status === "Completed" && service.totalPrice) {
+        return sum + service.totalPrice;
+      }
+
+      // Nếu dịch vụ đang sử dụng, tính toán real-time
       const startTime = new Date(service.serviceStartTime || new Date());
       const usageMs = Math.max(0, nowTs - startTime.getTime());
       const actualUsageHours = usageMs / (1000 * 60 * 60);
@@ -734,8 +801,14 @@ const FinalPayableAmount = memo(function FinalPayableAmount({
 
   // Memoize expensive calculations to prevent recalculation on every render
   const totalPayable = useMemo(() => {
-    // Calculate services cost in real-time
+    // Calculate services cost - use static data for completed services
     const servicesCost = services.reduce((sum, service) => {
+      // Nếu dịch vụ đã hoàn thành, sử dụng totalPrice tĩnh
+      if (service.status === "Completed" && service.totalPrice) {
+        return sum + service.totalPrice;
+      }
+
+      // Nếu dịch vụ đang sử dụng, tính toán real-time
       const startTime = new Date(service.serviceStartTime || new Date());
       const usageMs = Math.max(0, nowTs - startTime.getTime());
       const actualUsageHours = usageMs / (1000 * 60 * 60);

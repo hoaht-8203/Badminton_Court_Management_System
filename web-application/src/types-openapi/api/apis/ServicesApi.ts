@@ -23,6 +23,7 @@ import type {
   CreateServiceRequest,
   DeleteServiceRequest,
   DetailServiceResponseApiResponse,
+  EndServiceRequest,
   ListServiceResponseListApiResponse,
   RemoveBookingServiceRequest,
   UpdateServiceRequest,
@@ -44,6 +45,8 @@ import {
     DeleteServiceRequestToJSON,
     DetailServiceResponseApiResponseFromJSON,
     DetailServiceResponseApiResponseToJSON,
+    EndServiceRequestFromJSON,
+    EndServiceRequestToJSON,
     ListServiceResponseListApiResponseFromJSON,
     ListServiceResponseListApiResponseToJSON,
     RemoveBookingServiceRequestFromJSON,
@@ -58,6 +61,10 @@ export interface ApiServicesBookingOccurrenceAddServicePostRequest {
 
 export interface ApiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGetRequest {
     bookingCourtOccurrenceId: string;
+}
+
+export interface ApiServicesBookingOccurrenceEndServicePutRequest {
+    endServiceRequest?: EndServiceRequest;
 }
 
 export interface ApiServicesBookingOccurrenceRemoveServiceDeleteRequest {
@@ -122,6 +129,19 @@ export interface ServicesApiInterface {
     /**
      */
     apiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGet(requestParameters: ApiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BookingServiceDtoListApiResponse>;
+
+    /**
+     * 
+     * @param {EndServiceRequest} [endServiceRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ServicesApiInterface
+     */
+    apiServicesBookingOccurrenceEndServicePutRaw(requestParameters: ApiServicesBookingOccurrenceEndServicePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BookingServiceDtoApiResponse>>;
+
+    /**
+     */
+    apiServicesBookingOccurrenceEndServicePut(requestParameters: ApiServicesBookingOccurrenceEndServicePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BookingServiceDtoApiResponse>;
 
     /**
      * 
@@ -285,6 +305,36 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
      */
     async apiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGet(requestParameters: ApiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BookingServiceDtoListApiResponse> {
         const response = await this.apiServicesBookingOccurrenceBookingCourtOccurrenceIdServicesGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiServicesBookingOccurrenceEndServicePutRaw(requestParameters: ApiServicesBookingOccurrenceEndServicePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BookingServiceDtoApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Services/booking-occurrence/end-service`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: EndServiceRequestToJSON(requestParameters['endServiceRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BookingServiceDtoApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiServicesBookingOccurrenceEndServicePut(requestParameters: ApiServicesBookingOccurrenceEndServicePutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BookingServiceDtoApiResponse> {
+        const response = await this.apiServicesBookingOccurrenceEndServicePutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

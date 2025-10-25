@@ -213,20 +213,6 @@ public class BookingCourtsController(
         );
     }
 
-    [HttpPost("checkout/estimate")]
-    public async Task<ActionResult<ApiResponse<CheckoutEstimateResponse>>> EstimateCheckout(
-        [FromBody] CheckoutEstimateRequest request
-    )
-    {
-        var result = await _service.EstimateCheckoutAsync(request);
-        return Ok(
-            ApiResponse<CheckoutEstimateResponse>.SuccessResponse(
-                result,
-                "Tính toán checkout thành công"
-            )
-        );
-    }
-
     [HttpPost("order/add-item")]
     public async Task<ActionResult<ApiResponse<bool>>> AddOrderItem(
         [FromBody] AddOrderItemRequest request

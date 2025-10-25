@@ -12,6 +12,7 @@ public class BookingServiceDto
     public decimal TotalPrice { get; set; }
     public decimal Hours { get; set; }
     public DateTime ServiceStartTime { get; set; }
+    public DateTime? ServiceEndTime { get; set; }
     public string? Notes { get; set; }
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }

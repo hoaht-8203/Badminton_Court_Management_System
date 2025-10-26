@@ -397,6 +397,7 @@ models/UpdateInventoryCardRequest.ts
 models/UpdateInventoryCardResponse.ts
 models/UpdateInventoryCardResponseApiResponse.ts
 models/UpdateMyProfileRequest.ts
+models/UpdateNoteRequest.ts
 models/UpdateOrderItemRequest.ts
 models/UpdatePasswordRequest.ts
 models/UpdatePriceTableProductRequest.ts
@@ -406,6 +407,7 @@ models/UpdateProductImagesRequest.ts
 models/UpdateProductRequest.ts
 models/UpdateRoleRequest.ts
 models/UpdateServiceRequest.ts
+models/UpdateStockOutNoteRequest.ts
 models/UpdateSupplierRequest.ts
 models/UpdateUserRequest.ts
 models/UpdateUserRolesRequest.ts

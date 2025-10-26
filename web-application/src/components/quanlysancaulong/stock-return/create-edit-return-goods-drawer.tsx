@@ -81,7 +81,22 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
   const [currentStatus, setCurrentStatus] = useState<0 | 1 | 2>(0); // 0: draft, 1: completed, 2: cancelled
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      // Reset all filter states when closing
+      setQuery("");
+      setDebouncedQuery("");
+      setSelectedCategories([]);
+      setSelectAllCategories(false);
+      setDiscount(0);
+      setSupplierPaid(0);
+      setPaymentMethod("cash");
+      setBankModalOpen(false);
+      setBanks([]);
+      setEditingBank(null);
+      setCurrentStatus(0);
+      setProductsWithImages([]);
+      return;
+    }
     if (!isEdit) {
       // Create mode - reset form
       form.resetFields();
@@ -256,6 +271,17 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
     return { itemsTotal, needPay, debt, totalQuantity };
   }, [items, discount, supplierPaid]);
 
+  // Auto-fill giá tiền NCC trả khi items thay đổi
+  useEffect(() => {
+    if (items.length > 0) {
+      const newSupplierPaid = totals.needPay;
+      setSupplierPaid(newSupplierPaid);
+      form.setFieldsValue({
+        supplierPaid: newSupplierPaid,
+      });
+    }
+  }, [items, discount, totals.needPay, form]);
+
   // const addProductByQuery = async () => {
   //   const q = query.trim();
   //   if (!q) return;
@@ -425,6 +451,20 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         }, 500);
       }
 
+      // Reset all filter states
+      setQuery("");
+      setDebouncedQuery("");
+      setSelectedCategories([]);
+      setSelectAllCategories(false);
+      setDiscount(0);
+      setSupplierPaid(0);
+      setPaymentMethod("cash");
+      setBankModalOpen(false);
+      setBanks([]);
+      setEditingBank(null);
+      setCurrentStatus(0);
+      setProductsWithImages([]);
+
       onClose();
     } catch (e: any) {
       message.error(e?.message || "Lưu phiếu trả hàng thất bại");
@@ -454,6 +494,20 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
           onChanged();
         }, 500);
       }
+
+      // Reset all filter states
+      setQuery("");
+      setDebouncedQuery("");
+      setSelectedCategories([]);
+      setSelectAllCategories(false);
+      setDiscount(0);
+      setSupplierPaid(0);
+      setPaymentMethod("cash");
+      setBankModalOpen(false);
+      setBanks([]);
+      setEditingBank(null);
+      setCurrentStatus(0);
+      setProductsWithImages([]);
 
       onClose();
     } catch (e: any) {

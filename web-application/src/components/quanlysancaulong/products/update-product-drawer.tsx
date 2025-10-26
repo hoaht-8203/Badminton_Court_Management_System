@@ -25,6 +25,10 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
       const { id, images, ...rest } = data.data;
       form.setFieldsValue({ id, ...rest, images: images ?? undefined });
       setManageInventory(!!rest.manageInventory);
+    } else if (!open) {
+      // Reset all states when closing
+      setNewCategoryName("");
+      setManageInventory(false);
     }
   }, [data?.data, open, form]);
 

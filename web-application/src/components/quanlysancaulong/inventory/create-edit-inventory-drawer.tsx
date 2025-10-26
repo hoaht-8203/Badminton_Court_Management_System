@@ -88,6 +88,16 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
         // For create mode, fix checkTime to current date
         form.setFieldsValue({ checkTime: dayjs() });
       }
+    } else {
+      // Reset all filter states when closing
+      setQuery("");
+      setDebouncedQuery("");
+      setOnlyInStock(false);
+      setOnlyActive(false);
+      setSelectAllCategories(false);
+      setSelectedCategories([]);
+      setActiveTab("all");
+      setProductsWithImages([]);
     }
   }, [open, isEdit, inventoryData, form]);
 
@@ -132,6 +142,16 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
       setItems([]);
       setRecentItems([]); // Clear history when closing
 
+      // Reset all filter states
+      setQuery("");
+      setDebouncedQuery("");
+      setOnlyInStock(false);
+      setOnlyActive(false);
+      setSelectAllCategories(false);
+      setSelectedCategories([]);
+      setActiveTab("all");
+      setProductsWithImages([]);
+
       // Invalidate queries to refresh data
       try {
         await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });
@@ -155,6 +175,16 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
       onOk: () => {
         deleteMutation.mutate(inventoryId, {
           onSuccess: async () => {
+            // Reset all filter states
+            setQuery("");
+            setDebouncedQuery("");
+            setOnlyInStock(false);
+            setOnlyActive(false);
+            setSelectAllCategories(false);
+            setSelectedCategories([]);
+            setActiveTab("all");
+            setProductsWithImages([]);
+
             // Invalidate queries to refresh data
             try {
               await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });

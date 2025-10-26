@@ -53,8 +53,8 @@ const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
       >
         <Row gutter={16}>
           <Col span={6}>
-            <Form.Item<ProductFilters> label="Tìm theo mã code" name="code">
-              <Input placeholder="Nhập mã code" />
+            <Form.Item<ProductFilters> label="Tìm theo mã hàng" name="code">
+              <Input placeholder="Nhập mã hàng" />
             </Form.Item>
           </Col>
           <Col span={6}>
@@ -97,8 +97,8 @@ const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
           <Col span={6}>
             <Form.Item<ProductFilters> label="Trạng thái kinh doanh" name="isActive">
               <Select allowClear placeholder="Chọn trạng thái">
-                <Select.Option value={true as unknown as string}>Đang hoạt động</Select.Option>
-                <Select.Option value={false as unknown as string}>Ngừng hoạt động</Select.Option>
+                <Select.Option value={true as unknown as string}>Kinh doanh</Select.Option>
+                <Select.Option value={false as unknown as string}>Ngừng kinh doanh</Select.Option>
               </Select>
             </Form.Item>
           </Col>

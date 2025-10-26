@@ -63,6 +63,11 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
       }
       // generate code on open
       generateNextCode();
+    } else {
+      // Reset all states when closing
+      setNewCategoryName("");
+      setFiles([]);
+      setManageInventory(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);

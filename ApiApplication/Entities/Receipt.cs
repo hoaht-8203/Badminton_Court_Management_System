@@ -23,16 +23,13 @@ public class Receipt : BaseEntity
     [MaxLength(10)]
     public string PaymentMethod { get; set; } = "cash";
 
-    [MaxLength(50)]
-    public string? SupplierBankAccountNumber { get; set; }
-
-    [MaxLength(100)]
-    public string? SupplierBankAccountName { get; set; }
-
-    [MaxLength(120)]
-    public string? SupplierBankName { get; set; }
+    public int? SupplierBankAccountId { get; set; }
+    public virtual SupplierBankAccount? SupplierBankAccount { get; set; }
 
     public ReceiptStatus Status { get; set; } = ReceiptStatus.Draft;
+
+    [MaxLength(500)]
+    public string? Note { get; set; }
 
     public virtual ICollection<ReceiptItem> Items { get; set; } = new List<ReceiptItem>();
 }

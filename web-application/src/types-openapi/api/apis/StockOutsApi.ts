@@ -20,6 +20,7 @@ import type {
   Int32ApiResponse,
   ListStockOutResponseListApiResponse,
   ObjectApiResponse,
+  UpdateStockOutNoteRequest,
 } from '../models/index';
 import {
     CreateStockOutRequestFromJSON,
@@ -32,6 +33,8 @@ import {
     ListStockOutResponseListApiResponseToJSON,
     ObjectApiResponseFromJSON,
     ObjectApiResponseToJSON,
+    UpdateStockOutNoteRequestFromJSON,
+    UpdateStockOutNoteRequestToJSON,
 } from '../models/index';
 
 export interface ApiStockOutsCancelIdPostRequest {
@@ -48,6 +51,11 @@ export interface ApiStockOutsCreatePostRequest {
 
 export interface ApiStockOutsDetailIdGetRequest {
     id: number;
+}
+
+export interface ApiStockOutsIdNotePutRequest {
+    id: number;
+    updateStockOutNoteRequest?: UpdateStockOutNoteRequest;
 }
 
 export interface ApiStockOutsListGetRequest {
@@ -119,6 +127,20 @@ export interface StockOutsApiInterface {
     /**
      */
     apiStockOutsDetailIdGet(requestParameters: ApiStockOutsDetailIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailStockOutResponseApiResponse>;
+
+    /**
+     * 
+     * @param {number} id 
+     * @param {UpdateStockOutNoteRequest} [updateStockOutNoteRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof StockOutsApiInterface
+     */
+    apiStockOutsIdNotePutRaw(requestParameters: ApiStockOutsIdNotePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiStockOutsIdNotePut(requestParameters: ApiStockOutsIdNotePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
     /**
      * 
@@ -288,6 +310,44 @@ export class StockOutsApi extends runtime.BaseAPI implements StockOutsApiInterfa
      */
     async apiStockOutsDetailIdGet(requestParameters: ApiStockOutsDetailIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailStockOutResponseApiResponse> {
         const response = await this.apiStockOutsDetailIdGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiStockOutsIdNotePutRaw(requestParameters: ApiStockOutsIdNotePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling apiStockOutsIdNotePut().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/StockOuts/{id}/note`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateStockOutNoteRequestToJSON(requestParameters['updateStockOutNoteRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiStockOutsIdNotePut(requestParameters: ApiStockOutsIdNotePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiStockOutsIdNotePutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -5,7 +5,8 @@
     WindowStartupLocation="CenterOwner"
     WindowState="Maximized"
     ResizeMode="CanResize"
-        FontFamily="Segoe UI">
+        FontFamily="Segoe UI"
+        FontSize="24">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -40,11 +41,15 @@
         </StackPanel>
 
         <!-- Data grid -->
-        <DataGrid x:Name="StaffDataGrid" Grid.Row="2" Margin="16" AutoGenerateColumns="False" SelectionMode="Single" IsReadOnly="True" SelectionChanged="StaffDataGrid_SelectionChanged">
+        <DataGrid x:Name="StaffDataGrid" Grid.Row="2" Margin="16" AutoGenerateColumns="False" SelectionMode="Single" IsReadOnly="True" SelectionChanged="StaffDataGrid_SelectionChanged" FontSize="24">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60" />
-                <DataGridTextColumn Header="Họ và tên" Binding="{Binding FullName}" Width="*" />
+                <DataGridTextColumn Header="Họ và tên" Binding="{Binding FullName}" Width="200" />
+                <DataGridTextColumn Header="CMND/CCCD" Binding="{Binding IdentificationNumber}" Width="140" />
                 <DataGridTextColumn Header="SĐT" Binding="{Binding PhoneNumber}" Width="140" />
+                <DataGridTextColumn Header="Ngày sinh" Binding="{Binding DateOfBirth, StringFormat=d}" Width="140" />
+                <DataGridTextColumn Header="Ngày vào làm" Binding="{Binding DateOfJoining, StringFormat=d}" Width="140" />
+                <DataGridTextColumn Header="Địa chỉ" Binding="{Binding Address}" Width="*" />
                 <DataGridCheckBoxColumn Header="Hoạt động" Binding="{Binding IsActive}" Width="100" />
             </DataGrid.Columns>
         </DataGrid>

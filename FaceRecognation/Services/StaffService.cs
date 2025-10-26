@@ -18,7 +18,7 @@ namespace FaceRecognation.Services
             _http = http ?? throw new ArgumentNullException(nameof(http));
         }
 
-        public async Task<List<StaffResponseDto>> GetAllAsync(ListStaffRequestDto request)
+        public async Task<List<StaffResponse>> GetAllAsync(ListStaffRequest request)
         {
             // Build query string from request properties (simple approach)
             var query = new List<string>();
@@ -38,35 +38,33 @@ namespace FaceRecognation.Services
 
             var resp = await _http.GetAsync(url);
             resp.EnsureSuccessStatusCode();
-            var apiResp = await resp.Content.ReadFromJsonAsync<
-                ApiResponse<List<StaffResponseDto>>
-            >();
-            return apiResp?.Data ?? new List<StaffResponseDto>();
+            var apiResp = await resp.Content.ReadFromJsonAsync<ApiResponse<List<StaffResponse>>>();
+            return apiResp?.Data ?? new List<StaffResponse>();
         }
 
-        public async Task<StaffResponseDto?> GetByIdAsync(int id)
+        public async Task<StaffResponse?> GetByIdAsync(int id)
         {
             var resp = await _http.GetAsync($"/api/staff/{id}");
             if (resp.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return null;
             resp.EnsureSuccessStatusCode();
-            var apiResp = await resp.Content.ReadFromJsonAsync<ApiResponse<StaffResponseDto>>();
+            var apiResp = await resp.Content.ReadFromJsonAsync<ApiResponse<StaffResponse>>();
             return apiResp?.Data;
         }
 
-        public async Task CreateAsync(StaffRequestDto request)
+        public async Task CreateAsync(StaffRequest request)
         {
             var resp = await _http.PostAsJsonAsync("/api/staff", request);
             resp.EnsureSuccessStatusCode();
         }
 
-        public async Task UpdateAsync(int id, StaffRequestDto request)
+        public async Task UpdateAsync(int id, StaffRequest request)
         {
             var resp = await _http.PutAsJsonAsync($"/api/staff/{id}", request);
             resp.EnsureSuccessStatusCode();
         }
 
-        public async Task ChangeStatusAsync(ChangeStaffStatusRequestDto request)
+        public async Task ChangeStatusAsync(ChangeStaffStatusRequest request)
         {
             var resp = await _http.PostAsJsonAsync("/api/staff/change-status", request);
             resp.EnsureSuccessStatusCode();

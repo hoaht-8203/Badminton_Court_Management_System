@@ -100,4 +100,65 @@ public class AttendanceService : IAttendanceService
         _context.AttendanceRecords.Remove(attendanceRecord);
         return await _context.SaveChangesAsync() > 0;
     }
+
+    public async Task<bool> CheckInAsync(int staffId)
+    {
+        var now = DateTime.Now;
+        var today = DateOnly.FromDateTime(now);
+
+        // Find existing record for today
+        var attendance = await _context.AttendanceRecords.FirstOrDefaultAsync(a =>
+            a.StaffId == staffId && a.Date == today
+        );
+
+        var timeNow = TimeOnly.FromDateTime(now);
+
+        if (attendance == null)
+        {
+            var newRecord = new Entities.AttendanceRecord
+            {
+                StaffId = staffId,
+                Date = today,
+                CheckInTime = timeNow,
+                CheckOutTime = null,
+                Notes = null,
+            };
+            _context.AttendanceRecords.Add(newRecord);
+        }
+        else
+        {
+            // Update check-in time (overwrite) and clear checkout
+            attendance.CheckInTime = timeNow;
+            attendance.CheckOutTime = null;
+            _context.AttendanceRecords.Update(attendance);
+        }
+
+        return await _context.SaveChangesAsync() > 0;
+    }
+
+    public async Task<bool> CheckOutAsync(int staffId)
+    {
+        var now = DateTime.Now;
+        var today = DateOnly.FromDateTime(now);
+
+        // Find the most recent check-in record for today (nearest in past)
+        var attendance = await _context
+            .AttendanceRecords.Where(a => a.StaffId == staffId && a.Date == today)
+            .OrderByDescending(a => a.CheckInTime)
+            .FirstOrDefaultAsync();
+
+        if (attendance == null)
+        {
+            // No check-in for today
+            return false;
+        }
+
+        // If already checked out, consider it a no-op (return false)
+        if (attendance.CheckOutTime != null)
+            return false;
+
+        attendance.CheckOutTime = TimeOnly.FromDateTime(now);
+        _context.AttendanceRecords.Update(attendance);
+        return await _context.SaveChangesAsync() > 0;
+    }
 }

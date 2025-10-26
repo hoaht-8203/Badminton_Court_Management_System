@@ -7,24 +7,45 @@ using System.Windows;
 using System.Windows.Controls;
 using FaceRecognation.Dtos;
 using FaceRecognation.Services.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FaceRecognation
 {
     public partial class StaffSelectWindow : Window
     {
         private readonly IStaffService _staffService;
-        private List<StaffResponseDto> _allStaff = new List<StaffResponseDto>();
+        private List<StaffResponse> _allStaff = new List<StaffResponse>();
         private int _currentPage = 1;
         private int _pageSize = 10;
 
         public StaffSelectWindow(IStaffService staffService)
         {
             _staffService = staffService ?? throw new ArgumentNullException(nameof(staffService));
-            InitializeComponent();
-            PageSizeComboBox.Loaded += (s, e) =>
+            try
             {
-                SetPageSizeFromCombo();
-            };
+                InitializeComponent();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Lỗi khi khởi tạo XAML: {ex.Message}\n\n{ex.StackTrace}",
+                    "Lỗi XAML",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+                throw;
+            }
+
+            // Defensive: if generated field bindings are missing for some reason (x:Class mismatch / build action),
+            // use FindName at runtime or show a diagnostic message.
+            if (FindName("PageSizeComboBox") is ComboBox pageSizeCombo)
+            {
+                pageSizeCombo.Loaded += (s, e) => SetPageSizeFromCombo();
+            }
+            else
+            {
+                // We'll still attempt to continue; SetPageSizeFromCombo will be called from Loaded when available.
+            }
             Loaded += StaffSelectWindow_Loaded;
         }
 
@@ -39,15 +60,29 @@ namespace FaceRecognation
         {
             try
             {
-                var req = new ListStaffRequestDto { Keyword = keyword };
-                _allStaff = await _staffService.GetAllAsync(req);
+                if (_staffService == null)
+                {
+                    MessageBox.Show(
+                        "IStaffService is not available (null). Ensure it is registered in DI and the window is constructed via the ServiceProvider.",
+                        "Lỗi cấu hình",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                    return;
+                }
+
+                var req = new ListStaffRequest { Keyword = keyword };
+
+                var list = await _staffService.GetAllAsync(req);
+                _allStaff = list ?? new List<StaffResponse>();
                 _currentPage = 1;
                 UpdateGrid();
             }
             catch (Exception ex)
             {
+                // Show full details to aid debugging (message + stack)
                 MessageBox.Show(
-                    $"Lỗi khi tải danh sách nhân viên: {ex.Message}",
+                    $"Lỗi khi tải danh sách nhân viên: {ex.Message}\n\n{ex.StackTrace}",
                     "Lỗi",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
@@ -67,11 +102,29 @@ namespace FaceRecognation
                 _currentPage = Math.Max(1, totalPages);
 
             var items = _allStaff.Skip((_currentPage - 1) * _pageSize).Take(_pageSize).ToList();
-            StaffDataGrid.ItemsSource = items;
-            PageInfoText.Text = $"Trang {_currentPage} / {Math.Max(1, totalPages)} (Tổng: {total})";
+            // Use generated fields when available; otherwise try FindName to retrieve the control from XAML namescope.
+            var dg = StaffDataGrid ?? FindName("StaffDataGrid") as System.Windows.Controls.DataGrid;
+            if (dg != null)
+                dg.ItemsSource = items;
+            else
+            {
+                //MessageBox.Show("Không tìm thấy control 'StaffDataGrid' trong XAML. Kiểm tra x:Name và x:Class của StaffSelectWindow.", "Lỗi giao diện", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-            PrevPageButton.IsEnabled = _currentPage > 1;
-            NextPageButton.IsEnabled = _currentPage < totalPages;
+            var pageInfo =
+                PageInfoText ?? FindName("PageInfoText") as System.Windows.Controls.TextBlock;
+            if (pageInfo != null)
+                pageInfo.Text = $"Trang {_currentPage} / {Math.Max(1, totalPages)} (Tổng: {total})";
+
+            var prevBtn =
+                PrevPageButton ?? FindName("PrevPageButton") as System.Windows.Controls.Button;
+            var nextBtn =
+                NextPageButton ?? FindName("NextPageButton") as System.Windows.Controls.Button;
+            if (prevBtn != null)
+                prevBtn.IsEnabled = _currentPage > 1;
+            if (nextBtn != null)
+                nextBtn.IsEnabled = _currentPage < totalPages;
         }
 
         private void StaffDataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -119,11 +172,62 @@ namespace FaceRecognation
 
         private void ContinueButton_Click(object sender, RoutedEventArgs e)
         {
-            if (StaffDataGrid.SelectedItem is StaffResponseDto s)
+            if (StaffDataGrid.SelectedItem is StaffResponse s)
             {
-                Application.Current.Properties["SelectedStaff"] = JsonSerializer.Serialize(s);
-                DialogResult = true;
-                Close();
+                try
+                {
+                    // Prefer resolving FaceRegisterWindow from DI so the ICompreFaceService is injected.
+                    var app = Application.Current as App;
+                    var sp = app?.ServiceProvider;
+                    Window? faceWnd = null;
+
+                    if (sp != null)
+                    {
+                        faceWnd = sp.GetRequiredService<FaceRegisterWindow>();
+                        // call InitForStaff if available
+                        try
+                        {
+                            var mi = faceWnd.GetType().GetMethod("InitForStaff");
+                            if (mi != null) mi.Invoke(faceWnd, new object[] { s });
+                            else faceWnd.Title = $"Thêm dữ liệu khuôn mặt cho {s.FullName}";
+                        }
+                        catch
+                        {
+                            faceWnd.Title = $"Thêm dữ liệu khuôn mặt cho {s.FullName}";
+                        }
+                    }
+                    else
+                    {
+                        // Fallback to parameterless construction in correct namespace
+                        faceWnd = new FaceRegisterWindow();
+                        try
+                        {
+                            var mi = faceWnd.GetType().GetMethod("InitForStaff");
+                            if (mi != null) mi.Invoke(faceWnd, new object[] { s });
+                            else faceWnd.Title = $"Thêm dữ liệu khuôn mặt cho {s.FullName}";
+                        }
+                        catch
+                        {
+                            faceWnd.Title = $"Thêm dữ liệu khuôn mặt cho {s.FullName}";
+                        }
+                    }
+
+                    var res = faceWnd.ShowDialog();
+
+                    // After face registration dialog closes, store selected staff and close this window
+                    Application.Current.Properties["SelectedStaff"] = JsonSerializer.Serialize(s);
+                    DialogResult = true;
+                    Close();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Không thể mở cửa sổ đăng ký khuôn mặt: {ex.Message}",
+                        "Lỗi",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                }
             }
         }
     }

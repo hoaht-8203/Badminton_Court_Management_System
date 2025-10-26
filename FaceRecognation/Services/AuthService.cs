@@ -25,7 +25,10 @@ namespace FaceRecognation.Services
             );
         }
 
-        public async Task<ApiResponse<Dtos.CurrentUserResponse>> LoginAsync(string email, string password)
+        public async Task<ApiResponse<Dtos.CurrentUserResponse>> LoginAsync(
+            string email,
+            string password
+        )
         {
             var payload = new { Email = email, Password = password };
             var content = new StringContent(
@@ -46,7 +49,7 @@ namespace FaceRecognation.Services
                         {
                             Success = false,
                             Message = err.Message,
-                            Data = null
+                            Data = null,
                         };
                 }
                 catch { }
@@ -55,24 +58,27 @@ namespace FaceRecognation.Services
                 {
                     Success = false,
                     Message = $"HTTP {resp.StatusCode}",
-                    Data = null
+                    Data = null,
                 };
             }
 
-            var apiResp = await resp.Content.ReadFromJsonAsync<ApiResponse<Dtos.CurrentUserResponse>>();
+            var apiResp = await resp.Content.ReadFromJsonAsync<
+                ApiResponse<Dtos.CurrentUserResponse>
+            >();
             if (apiResp == null)
                 return new ApiResponse<Dtos.CurrentUserResponse>
                 {
                     Success = false,
                     Message = "Empty response from server",
-                    Data = null
+                    Data = null,
                 };
 
             if (apiResp.Success)
             {
                 // Store typed object and a JSON debug copy
                 CurrentUser = apiResp.Data;
-                CurrentUserJson = apiResp.Data != null ? JsonSerializer.Serialize(apiResp.Data) : null;
+                CurrentUserJson =
+                    apiResp.Data != null ? JsonSerializer.Serialize(apiResp.Data) : null;
             }
 
             return apiResp;

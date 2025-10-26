@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace FaceRecognation.Dtos
 {
-    public class StaffRequestDto
+    public class StaffRequest
     {
         public string FullName { get; set; } = string.Empty;
         public string? IdentificationNumber { get; set; }

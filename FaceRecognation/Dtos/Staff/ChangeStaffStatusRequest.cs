@@ -1,6 +1,6 @@
 namespace FaceRecognation.Dtos
 {
-    public class ChangeStaffStatusRequestDto
+    public class ChangeStaffStatusRequest
     {
         public int StaffId { get; set; }
         public bool IsActive { get; set; }

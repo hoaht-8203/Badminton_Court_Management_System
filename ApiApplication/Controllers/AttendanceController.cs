@@ -17,6 +17,34 @@ namespace ApiApplication.Controllers
             _attendanceService = attendanceService;
         }
 
+        [HttpPost("checkin")]
+        public async Task<IActionResult> CheckIn([FromBody] Dtos.Attendance.CheckInRequest request)
+        {
+            var result = await _attendanceService.CheckInAsync(request.StaffId);
+            return Ok(
+                ApiResponse<bool>.SuccessResponse(
+                    result,
+                    result ? "Check-in thành công" : "Check-in thất bại"
+                )
+            );
+        }
+
+        [HttpPost("checkout")]
+        public async Task<IActionResult> CheckOut(
+            [FromBody] Dtos.Attendance.CheckOutRequest request
+        )
+        {
+            var result = await _attendanceService.CheckOutAsync(request.StaffId);
+            if (!result)
+                return BadRequest(
+                    ApiResponse<bool>.ErrorResponse(
+                        "Không tìm thấy check-in phù hợp trong ngày hoặc đã check-out"
+                    )
+                );
+
+            return Ok(ApiResponse<bool>.SuccessResponse(result, "Check-out thành công"));
+        }
+
         [HttpPost]
         public async Task<IActionResult> AddAttendanceRecord([FromBody] AttendanceRequest request)
         {

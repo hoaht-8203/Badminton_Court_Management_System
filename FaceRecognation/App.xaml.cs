@@ -17,6 +17,34 @@ namespace FaceRecognation
     {
         public IServiceProvider? ServiceProvider { get; private set; }
 
+        /// <summary>
+        /// Show the specified window and close all other top-level windows in the application.
+        /// The specified window will be set as Application.Current.MainWindow.
+        /// </summary>
+        public void ShowWindowAndCloseOthers(Window window)
+        {
+            if (window == null)
+                return;
+
+            // copy current windows to avoid modifying collection while iterating
+            var existing = this.Windows.Cast<Window>().ToList();
+
+            // Show the new window first (but don't set as main yet) so it appears before others close
+            window.Show();
+
+            foreach (var w in existing)
+            {
+                try
+                {
+                    if (w != window)
+                        w.Close();
+                }
+                catch { }
+            }
+
+            this.MainWindow = window;
+        }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -88,6 +116,7 @@ namespace FaceRecognation
 
             // Register windows so they can be resolved from DI
             services.AddTransient<LoginWindow>();
+            services.AddTransient<FaceRegisterWindow>();
             services.AddTransient<MainWindow>();
             services.AddTransient<StaffSelectWindow>();
             services.AddTransient<LandingWindow>();

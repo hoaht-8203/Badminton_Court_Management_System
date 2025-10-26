@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace FaceRecognation.Dtos
 {
-    public class ListStaffRequestDto
+    public class ListStaffRequest
     {
         public int? Status { get; set; }
         public List<int>? DepartmentIds { get; set; }

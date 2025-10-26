@@ -1,10 +1,10 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using FaceRecognation.Services.Interfaces;
@@ -95,7 +95,9 @@ namespace FaceRecognation
                         Application.Current.Properties["CurrentUser"] = result.Data;
 
                     // AuthService shares the CookieContainer via DI; no need to store cookies here.
-                    // Navigate to StaffSelectWindow next
+                    // Navigate to StaffSelectWindow next. Show it modally and only set DialogResult = true
+                    // when the staff selection completes successfully. This prevents LandingWindow
+                    // from opening MainWindow before staff selection is done.
                     try
                     {
                         var app = Application.Current as App;
@@ -103,9 +105,17 @@ namespace FaceRecognation
                         if (sp != null)
                         {
                             var staffSelect = sp.GetRequiredService<StaffSelectWindow>();
-                            staffSelect.Show();
-                            DialogResult = true;
-                            this.Close();
+                            var sel = staffSelect.ShowDialog();
+                            if (sel == true)
+                            {
+                                DialogResult = true;
+                                this.Close();
+                                return;
+                            }
+
+                            // If staff selection was cancelled, keep the login window open
+                            StatusText.Text = "Đã hủy chọn nhân viên.";
+                            LoginButton.IsEnabled = true;
                             return;
                         }
                     }
@@ -114,7 +124,8 @@ namespace FaceRecognation
                     // If DI is not available we cannot construct StaffSelectWindow (it requires services).
                     // Inform the user and keep the login window open so the app can be started through
                     // the normal bootstrap (where the ServiceProvider is available).
-                    StatusText.Text = "Đăng nhập thành công, nhưng không thể mở trang chọn nhân viên (ServiceProvider không sẵn có).";
+                    StatusText.Text =
+                        "Đăng nhập thành công, nhưng không thể mở trang chọn nhân viên (ServiceProvider không sẵn có).";
                     LoginButton.IsEnabled = true;
                     return;
                 }

@@ -76,8 +76,8 @@ namespace FaceRecognation
                     if (string.Equals(action, "time", System.StringComparison.OrdinalIgnoreCase))
                     {
                         var main = sp.GetRequiredService<MainWindow>();
-                        Application.Current.MainWindow = main;
-                        main.Show();
+                        var appObj = Application.Current as App;
+                        appObj?.ShowWindowAndCloseOthers(main);
                     }
                     else if (
                         string.Equals(action, "admin", System.StringComparison.OrdinalIgnoreCase)
@@ -88,8 +88,8 @@ namespace FaceRecognation
                         if (result == true)
                         {
                             var main = sp.GetRequiredService<MainWindow>();
-                            Application.Current.MainWindow = main;
-                            main.Show();
+                            var appObj = Application.Current as App;
+                            appObj?.ShowWindowAndCloseOthers(main);
                         }
                         else
                         {

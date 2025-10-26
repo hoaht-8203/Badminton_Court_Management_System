@@ -2,7 +2,7 @@ using System;
 
 namespace FaceRecognation.Dtos
 {
-    public class StaffResponseDto
+    public class StaffResponse
     {
         public int Id { get; set; }
         public string FullName { get; set; } = string.Empty;

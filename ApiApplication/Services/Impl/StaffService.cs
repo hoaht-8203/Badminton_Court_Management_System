@@ -139,18 +139,18 @@ namespace ApiApplication.Services.Impl
                 else if (request.Status.Value == 0)
                     query = query.Where(s => !s.IsActive);
             }
-            if (request.DepartmentIds != null && request.DepartmentIds.Any())
-            {
-                query = query.Where(s =>
-                    s.DepartmentId.HasValue && request.DepartmentIds.Contains(s.DepartmentId.Value)
-                );
-            }
-            if (request.BranchIds != null && request.BranchIds.Any())
-            {
-                query = query.Where(s =>
-                    s.BranchId.HasValue && request.BranchIds.Contains(s.BranchId.Value)
-                );
-            }
+            // if (request.DepartmentIds != null && request.DepartmentIds.Any())
+            // {
+            //     query = query.Where(s =>
+            //         s.DepartmentId.HasValue && request.DepartmentIds.Contains(s.DepartmentId.Value)
+            //     );
+            // }
+            // if (request.BranchIds != null && request.BranchIds.Any())
+            // {
+            //     query = query.Where(s =>
+            //         s.BranchId.HasValue && request.BranchIds.Contains(s.BranchId.Value)
+            //     );
+            // }
             if (!string.IsNullOrWhiteSpace(request.Keyword))
             {
                 query = query.Where(s =>

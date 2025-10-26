@@ -5,11 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FaceRecognation"
         mc:Ignorable="d"
-        Title="Face Recognition - Webcam" 
-        WindowState="Maximized"
-        WindowStyle="None"
-        ResizeMode="NoResize"
-        Topmost="False">
+    Title="Face Recognition - Webcam" 
+    WindowState="Maximized"
+    Topmost="False">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>  <!-- Header with controls -->
@@ -28,28 +26,28 @@
                 <ColumnDefinition Width="Auto"/> <!-- Exit button right -->
             </Grid.ColumnDefinitions>
             
-            <!-- Recognition Button - Center (Near Camera) -->
-            <Button x:Name="CaptureButton" Content="🔍 Recognize Face" 
-                    Grid.Column="1"
-                    Click="CaptureButton_Click" 
-                    Width="220" Height="50" Margin="10"
-                    Background="LightBlue"
-                    FontSize="16"
-                    FontWeight="Bold"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    IsEnabled="False"/>
+        <!-- Home button on the left -->
+            <Button x:Name="HomeButton" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="12,0,0,0" Width="120" Height="40" Click="HomeButton_Click"
+                    Background="#FF4C6A" Foreground="White" FontWeight="Bold" Padding="8,4" ToolTip="Về trang chính">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock Text="🏠" FontSize="16" Margin="0,0,8,0" />
+                    <TextBlock Text="Home" FontWeight="Bold" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+
+        <!-- Recognition Button - Center (Near Camera) -->
+        <Button x:Name="CaptureButton" Content="🔍 Recognize Face" 
+            Grid.Column="1"
+            Click="CaptureButton_Click" 
+            Width="220" Height="50" Margin="10"
+            Background="LightBlue"
+            FontSize="16"
+            FontWeight="Bold"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            IsEnabled="False"/>
             
-            <!-- Exit Button - Top Right -->
-            <Button x:Name="ExitButton" Content="❌ Exit" 
-                    Grid.Column="3"
-                    Click="ExitButton_Click" 
-                    Width="100" Height="50" Margin="10"
-                    Background="LightCoral"
-                    FontSize="16"
-                    FontWeight="Bold"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"/>
+            <!-- Native window chrome is used; custom window action buttons removed -->
         </Grid>
         
         <!-- Main Content Area -->

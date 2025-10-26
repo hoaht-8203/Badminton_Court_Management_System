@@ -11,19 +11,11 @@ namespace ApiApplication.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "AccountInBusinessResults",
-                table: "Cashflows");
-
-            migrationBuilder.DropColumn(
-                name: "PaymentMethod",
-                table: "Cashflows");
-
-            migrationBuilder.AddColumn<string>(
-                name: "PersonType",
-                table: "Cashflows",
-                type: "text",
-                nullable: true);
+            // use idempotent raw SQL so the migration can be applied safely when the DB
+            // already has/doesn't have the columns (avoids "column already exists" errors)
+            migrationBuilder.Sql("ALTER TABLE \"Cashflows\" DROP COLUMN IF EXISTS \"AccountInBusinessResults\";");
+            migrationBuilder.Sql("ALTER TABLE \"Cashflows\" DROP COLUMN IF EXISTS \"PaymentMethod\";");
+            migrationBuilder.Sql("ALTER TABLE \"Cashflows\" ADD COLUMN IF NOT EXISTS \"PersonType\" text;");
 
             migrationBuilder.UpdateData(
                 table: "SystemConfigs",
@@ -43,23 +35,10 @@ namespace ApiApplication.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "PersonType",
-                table: "Cashflows");
-
-            migrationBuilder.AddColumn<bool>(
-                name: "AccountInBusinessResults",
-                table: "Cashflows",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
-
-            migrationBuilder.AddColumn<int>(
-                name: "PaymentMethod",
-                table: "Cashflows",
-                type: "integer",
-                nullable: false,
-                defaultValue: 0);
+            // reverse operations using IF EXISTS/IF NOT EXISTS to be safe on rollback
+            migrationBuilder.Sql("ALTER TABLE \"Cashflows\" DROP COLUMN IF EXISTS \"PersonType\";");
+            migrationBuilder.Sql("ALTER TABLE \"Cashflows\" ADD COLUMN IF NOT EXISTS \"AccountInBusinessResults\" boolean NOT NULL DEFAULT false;");
+            migrationBuilder.Sql("ALTER TABLE \"Cashflows\" ADD COLUMN IF NOT EXISTS \"PaymentMethod\" integer NOT NULL DEFAULT 0;");
 
             migrationBuilder.UpdateData(
                 table: "SystemConfigs",

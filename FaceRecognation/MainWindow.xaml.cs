@@ -17,6 +17,8 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using AForge.Video;
 using AForge.Video.DirectShow;
+using FaceRecognation.Services.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FaceRecognation
 {
@@ -29,17 +31,22 @@ namespace FaceRecognation
         private FilterInfoCollection? videoDevices;
         private bool isWebcamRunning = false;
         private int selectedDeviceIndex = -1;
-        private bool isFlipped = true; // Auto flip by default
-        private HttpClient? httpClient;
-        private string compreFaceBaseUrl = "http://localhost:8000";
-        private string recognitionApiKey = "80bea556-2d8b-43de-b0b3-efdc7d9caa2e";
-        private string antiSpoofingUrl = "http://localhost:5001";
+        private bool isFlipped = true;
 
-        public MainWindow()
+        private readonly ICompreFaceService _compreFaceService;
+        private readonly IAntiSnoofingService _antiSnoofingService;
+
+        // Constructor will be called by DI (registered in App.xaml.cs)
+        public MainWindow(
+            ICompreFaceService compreFaceService,
+            IAntiSnoofingService antiSnoofingService
+        )
         {
+            _compreFaceService = compreFaceService;
+            _antiSnoofingService = antiSnoofingService;
+
             InitializeComponent();
             InitializeWebcam();
-            InitializeCompreFace();
             AutoStartWebcam();
         }
 
@@ -86,22 +93,7 @@ namespace FaceRecognation
             }
         }
 
-        private void InitializeCompreFace()
-        {
-            try
-            {
-                // Initialize HTTP client for CompreFace API
-                httpClient = new HttpClient();
-                httpClient.BaseAddress = new Uri(compreFaceBaseUrl);
-                httpClient.DefaultRequestHeaders.Add("x-api-key", recognitionApiKey);
-
-                StatusText.Text += "\nCompreFace HTTP client initialized successfully!";
-            }
-            catch (Exception ex)
-            {
-                StatusText.Text += $"\nError initializing CompreFace: {ex.Message}";
-            }
-        }
+        // CompreFace HTTP interactions are handled by the injected _compreFaceService.
 
         private void AutoStartWebcam()
         {
@@ -116,18 +108,7 @@ namespace FaceRecognation
             timer.Start();
         }
 
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
-            // Stop webcam before closing
-            if (videoSource != null && videoSource.IsRunning)
-            {
-                videoSource.SignalToStop();
-                videoSource.WaitForStop();
-            }
-
-            // Close the application
-            Application.Current.Shutdown();
-        }
+        // Using native window chrome; custom action handlers removed.
 
         private void StartWebcam()
         {
@@ -192,11 +173,39 @@ namespace FaceRecognation
             }
         }
 
+        private void HomeButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var app = Application.Current as App;
+                var sp = app?.ServiceProvider;
+                if (sp != null)
+                {
+                    var landing = sp.GetRequiredService<LandingWindow>();
+                    landing.Show();
+                    // Close this main window so Landing becomes active
+                    this.Close();
+                    return;
+                }
+            }
+            catch
+            {
+                // fallback: create a new instance
+                try
+                {
+                    var landing = new LandingWindow();
+                    landing.Show();
+                    this.Close();
+                }
+                catch { }
+            }
+        }
+
         private async void CaptureButton_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                if (WebcamImage.Source != null && httpClient != null)
+                if (WebcamImage?.Source != null)
                 {
                     StatusText.Text = "Checking liveness...";
 
@@ -206,95 +215,49 @@ namespace FaceRecognation
                     // Convert to byte array
                     byte[] imageBytes = ConvertBitmapSourceToByteArray(bitmapSource);
 
-                    // Step 1: Check anti-spoofing/liveness first
-                    bool isReal = await CheckLiveness(imageBytes);
+                    // Step 1: Check anti-spoofing/liveness first via injected service
+                    bool isReal = await _antiSnoofingService.CheckLivenessAsync(imageBytes);
 
                     if (!isReal)
                     {
                         StatusText.Text = "❌ Spoofing detected! Face not real.";
 
-                        // Clear info tab and show spoofing warning
                         RecognitionInfoText.Text =
-                            $"🚫 ANTI-SPOOFING DETECTED\n\n"
-                            + $"The system detected a fake face or photo!\n\n"
-                            + $"Security measures:\n"
-                            + $"• Please use a real face\n"
-                            + $"• Remove any photos or screens\n"
-                            + $"• Ensure good lighting\n"
-                            + $"• Look directly at the camera\n\n"
-                            + $"Try again with a live person.";
+                            $"🚫 ANTI-SPOOFING DETECTED\n\nThe system detected a fake face or photo!\n\n"
+                            + $"Security measures:\n• Please use a real face\n• Remove any photos or screens\n• Ensure good lighting\n• Look directly at the camera\n\nTry again with a live person.";
                         return;
                     }
 
-                    // Step 2: If liveness check passes, proceed with CompreFace recognition
+                    // Step 2: If liveness check passes, proceed with CompreFace recognition via injected service
                     StatusText.Text = "✅ Liveness verified! Recognizing face...";
 
-                    // Create multipart form data for CompreFace
-                    using (var content = new MultipartFormDataContent())
+                    try
                     {
-                        content.Add(new ByteArrayContent(imageBytes), "file", "face.jpg");
-                        content.Add(new StringContent("0.81"), "det_prob_threshold");
-                        content.Add(
-                            new StringContent("landmarks,gender,age,detector,calculator"),
-                            "face_plugins"
-                        );
-                        content.Add(new StringContent("1"), "prediction_count");
-                        content.Add(new StringContent("true"), "status");
-
-                        // Call CompreFace recognition API
-                        var response = await httpClient.PostAsync(
-                            "/api/v1/recognition/recognize",
-                            content
-                        );
-
-                        var jsonResponse = await response.Content.ReadAsStringAsync();
-
-                        if (response.IsSuccessStatusCode)
-                        {
-                            DisplayRecognitionResults(jsonResponse);
-                        }
-                        else
-                        {
-                            StatusText.Text = $"Recognition failed: {response.StatusCode}";
-
-                            // Clear info tab and show error
-                            RecognitionInfoText.Text =
-                                $"❌ COMPREFACE API ERROR\n\n"
-                                + $"Status Code: {response.StatusCode}\n"
-                                + $"Error Details: {jsonResponse}\n\n"
-                                + $"Please check:\n"
-                                + $"• CompreFace server is running\n"
-                                + $"• API key is correct\n"
-                                + $"• Network connection is stable";
-                        }
+                        var jsonResponse = await _compreFaceService.RecognizeAsync(imageBytes);
+                        DisplayRecognitionResults(jsonResponse);
+                    }
+                    catch (HttpRequestException httpEx)
+                    {
+                        StatusText.Text = $"Recognition failed: {httpEx.Message}";
+                        RecognitionInfoText.Text = $"❌ COMPREFACE API ERROR\n\n{httpEx.Message}";
+                    }
+                    catch (Exception ex)
+                    {
+                        StatusText.Text = $"Recognition failed: {ex.Message}";
+                        RecognitionInfoText.Text = $"❌ COMPREFACE ERROR\n\n{ex.Message}";
                     }
                 }
                 else
                 {
-                    StatusText.Text = "Webcam not ready or CompreFace not initialized!";
-
-                    // Clear info tab and show error
+                    StatusText.Text = "Webcam not ready!";
                     RecognitionInfoText.Text =
-                        $"❌ INITIALIZATION ERROR\n\n"
-                        + $"Webcam or CompreFace not ready!\n\n"
-                        + $"Please check:\n"
-                        + $"• Webcam is connected and working\n"
-                        + $"• CompreFace server is running\n"
-                        + $"• API key is configured correctly";
+                        $"❌ INITIALIZATION ERROR\n\nWebcam not ready!\n\nPlease check your webcam and try again.";
                 }
             }
             catch (Exception ex)
             {
                 StatusText.Text = $"Error recognizing face: {ex.Message}";
-
-                // Clear info tab and show error
-                RecognitionInfoText.Text =
-                    $"❌ EXCEPTION ERROR\n\n"
-                    + $"Error: {ex.Message}\n\n"
-                    + $"Please check:\n"
-                    + $"• Application logs for details\n"
-                    + $"• Network connectivity\n"
-                    + $"• CompreFace server status";
+                RecognitionInfoText.Text = $"❌ EXCEPTION ERROR\n\nError: {ex.Message}";
             }
         }
 
@@ -400,107 +363,12 @@ namespace FaceRecognation
         {
             try
             {
-                Console.WriteLine("=== CHECKING LIVENESS ===");
-                Console.WriteLine($"Image size: {imageBytes.Length} bytes");
-
-                // Create HTTP client for anti-spoofing API
-                using (var antiSpoofingClient = new HttpClient())
-                {
-                    antiSpoofingClient.BaseAddress = new Uri(antiSpoofingUrl);
-                    antiSpoofingClient.Timeout = TimeSpan.FromSeconds(30); // 30 second timeout
-
-                    // Create multipart form data for anti-spoofing
-                    using (var content = new MultipartFormDataContent())
-                    {
-                        content.Add(new ByteArrayContent(imageBytes), "file", "liveness_check.jpg");
-
-                        Console.WriteLine($"Sending request to: {antiSpoofingUrl}/check-liveness");
-
-                        // Call anti-spoofing API
-                        var response = await antiSpoofingClient.PostAsync(
-                            "/check-liveness",
-                            content
-                        );
-                        var jsonResponse = await response.Content.ReadAsStringAsync();
-
-                        Console.WriteLine($"Anti-spoofing response status: {response.StatusCode}");
-                        Console.WriteLine($"Anti-spoofing response: {jsonResponse}");
-
-                        if (response.IsSuccessStatusCode)
-                        {
-                            // Parse JSON response
-                            using (JsonDocument doc = JsonDocument.Parse(jsonResponse))
-                            {
-                                if (
-                                    doc.RootElement.TryGetProperty(
-                                        "is_real",
-                                        out JsonElement isRealElement
-                                    )
-                                )
-                                {
-                                    bool isReal = isRealElement.GetBoolean();
-                                    Console.WriteLine($"Liveness check result: {isReal}");
-
-                                    if (
-                                        doc.RootElement.TryGetProperty(
-                                            "score",
-                                            out JsonElement scoreElement
-                                        )
-                                    )
-                                    {
-                                        double score = scoreElement.GetDouble();
-                                        Console.WriteLine($"Confidence score: {score}");
-                                    }
-
-                                    return isReal;
-                                }
-                                else
-                                {
-                                    Console.WriteLine("No 'is_real' property found in response");
-                                    return false;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine(
-                                $"Anti-spoofing API error: {response.StatusCode} - {jsonResponse}"
-                            );
-                            StatusText.Text = $"Anti-spoofing API error: {response.StatusCode}";
-
-                            // Clear info tab and show anti-spoofing error
-                            RecognitionInfoText.Text =
-                                $"❌ ANTI-SPOOFING API ERROR\n\n"
-                                + $"Status Code: {response.StatusCode}\n"
-                                + $"Error Details: {jsonResponse}\n\n"
-                                + $"Please check:\n"
-                                + $"• Anti-spoofing server is running on port 5001\n"
-                                + $"• DeepFace dependencies are installed\n"
-                                + $"• Network connection is stable";
-
-                            return false;
-                        }
-                    }
-                }
+                return await _antiSnoofingService.CheckLivenessAsync(imageBytes);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"=== LIVENESS CHECK ERROR ===");
-                Console.WriteLine($"Error: {ex.Message}");
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-                Console.WriteLine($"=== END ERROR ===");
-
                 StatusText.Text = $"Liveness check failed: {ex.Message}";
-
-                // Clear info tab and show liveness error
-                RecognitionInfoText.Text =
-                    $"❌ LIVENESS CHECK ERROR\n\n"
-                    + $"Error: {ex.Message}\n\n"
-                    + $"Please check:\n"
-                    + $"• Anti-spoofing server is running\n"
-                    + $"• DeepFace is properly installed\n"
-                    + $"• Network connectivity to port 5001";
-
+                RecognitionInfoText.Text = $"❌ LIVENESS CHECK ERROR\n\nError: {ex.Message}";
                 return false;
             }
         }

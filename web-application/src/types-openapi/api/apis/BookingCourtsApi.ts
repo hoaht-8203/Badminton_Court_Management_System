@@ -21,8 +21,6 @@ import type {
   CancelBookingCourtRequest,
   CheckInBookingCourtRequest,
   CheckOutBookingCourtRequest,
-  CheckoutEstimateRequest,
-  CheckoutEstimateResponseApiResponse,
   CreateBookingCourtRequest,
   DetailBookingCourtOccurrenceResponseApiResponse,
   DetailBookingCourtResponseApiResponse,
@@ -44,10 +42,6 @@ import {
     CheckInBookingCourtRequestToJSON,
     CheckOutBookingCourtRequestFromJSON,
     CheckOutBookingCourtRequestToJSON,
-    CheckoutEstimateRequestFromJSON,
-    CheckoutEstimateRequestToJSON,
-    CheckoutEstimateResponseApiResponseFromJSON,
-    CheckoutEstimateResponseApiResponseToJSON,
     CreateBookingCourtRequestFromJSON,
     CreateBookingCourtRequestToJSON,
     DetailBookingCourtOccurrenceResponseApiResponseFromJSON,
@@ -70,10 +64,6 @@ export interface ApiBookingCourtsCancelPostRequest {
 
 export interface ApiBookingCourtsCheckinPostRequest {
     checkInBookingCourtRequest?: CheckInBookingCourtRequest;
-}
-
-export interface ApiBookingCourtsCheckoutEstimatePostRequest {
-    checkoutEstimateRequest?: CheckoutEstimateRequest;
 }
 
 export interface ApiBookingCourtsCheckoutPostRequest {
@@ -155,19 +145,6 @@ export interface BookingCourtsApiInterface {
     /**
      */
     apiBookingCourtsCheckinPost(requestParameters: ApiBookingCourtsCheckinPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse>;
-
-    /**
-     * 
-     * @param {CheckoutEstimateRequest} [checkoutEstimateRequest] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof BookingCourtsApiInterface
-     */
-    apiBookingCourtsCheckoutEstimatePostRaw(requestParameters: ApiBookingCourtsCheckoutEstimatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CheckoutEstimateResponseApiResponse>>;
-
-    /**
-     */
-    apiBookingCourtsCheckoutEstimatePost(requestParameters: ApiBookingCourtsCheckoutEstimatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CheckoutEstimateResponseApiResponse>;
 
     /**
      * 
@@ -370,36 +347,6 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
      */
     async apiBookingCourtsCheckinPost(requestParameters: ApiBookingCourtsCheckinPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse> {
         const response = await this.apiBookingCourtsCheckinPostRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     */
-    async apiBookingCourtsCheckoutEstimatePostRaw(requestParameters: ApiBookingCourtsCheckoutEstimatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CheckoutEstimateResponseApiResponse>> {
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-        headerParameters['Content-Type'] = 'application/json';
-
-
-        let urlPath = `/api/BookingCourts/checkout/estimate`;
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-            body: CheckoutEstimateRequestToJSON(requestParameters['checkoutEstimateRequest']),
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => CheckoutEstimateResponseApiResponseFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiBookingCourtsCheckoutEstimatePost(requestParameters: ApiBookingCourtsCheckoutEstimatePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CheckoutEstimateResponseApiResponse> {
-        const response = await this.apiBookingCourtsCheckoutEstimatePostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

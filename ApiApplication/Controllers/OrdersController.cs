@@ -105,16 +105,6 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     }
 
     /// <summary>
-    /// Xác nhận thanh toán cho đơn hàng (dành cho thanh toán chuyển khoản)
-    /// </summary>
-    [HttpPost("{orderId}/confirm-payment")]
-    public async Task<ActionResult<ApiResponse<bool>>> ConfirmPaymentAsync(Guid orderId)
-    {
-        var result = await _orderService.ConfirmPaymentAsync(orderId);
-        return Ok(ApiResponse<bool>.SuccessResponse(result, "Xác nhận thanh toán thành công"));
-    }
-
-    /// <summary>
     /// Gia hạn thời gian thanh toán cho đơn hàng đã bị hủy (thêm 5 phút)
     /// </summary>
     [HttpPost("{orderId}/extend-payment")]

@@ -81,6 +81,12 @@ export interface BookingServiceDto {
     serviceStartTime?: Date;
     /**
      * 
+     * @type {Date}
+     * @memberof BookingServiceDto
+     */
+    serviceEndTime?: Date | null;
+    /**
+     * 
      * @type {string}
      * @memberof BookingServiceDto
      */
@@ -132,6 +138,7 @@ export function BookingServiceDtoFromJSONTyped(json: any, ignoreDiscriminator: b
         'totalPrice': json['totalPrice'] == null ? undefined : json['totalPrice'],
         'hours': json['hours'] == null ? undefined : json['hours'],
         'serviceStartTime': json['serviceStartTime'] == null ? undefined : (new Date(json['serviceStartTime'])),
+        'serviceEndTime': json['serviceEndTime'] == null ? undefined : (new Date(json['serviceEndTime'])),
         'notes': json['notes'] == null ? undefined : json['notes'],
         'status': json['status'] == null ? undefined : json['status'],
         'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
@@ -160,6 +167,7 @@ export function BookingServiceDtoToJSONTyped(value?: BookingServiceDto | null, i
         'totalPrice': value['totalPrice'],
         'hours': value['hours'],
         'serviceStartTime': value['serviceStartTime'] == null ? undefined : ((value['serviceStartTime']).toISOString()),
+        'serviceEndTime': value['serviceEndTime'] === null ? null : ((value['serviceEndTime'] as any)?.toISOString()),
         'notes': value['notes'],
         'status': value['status'],
         'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),

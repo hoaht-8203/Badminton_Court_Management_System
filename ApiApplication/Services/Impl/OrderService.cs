@@ -420,48 +420,6 @@ public class OrderService(
         return _mapper.Map<List<ListOrderResponse>>(orders);
     }
 
-    public async Task<bool> ConfirmPaymentAsync(Guid orderId)
-    {
-        var order = await _context
-            .Orders.Include(x => x.Payments)
-            .Include(x => x.Booking)
-            .ThenInclude(x => x.Court)
-            .FirstOrDefaultAsync(x => x.Id == orderId);
-
-        if (order == null)
-        {
-            throw new ApiException("Không tìm thấy đơn hàng", HttpStatusCode.BadRequest);
-        }
-
-        if (order.Status != OrderStatus.Pending)
-        {
-            throw new ApiException(
-                "Đơn hàng không ở trạng thái chờ thanh toán",
-                HttpStatusCode.BadRequest
-            );
-        }
-
-        // Cập nhật trạng thái order và payment
-        order.Status = OrderStatus.Paid;
-        foreach (var payment in order.Payments)
-        {
-            payment.Status = "Paid";
-        }
-
-        // Cập nhật trạng thái booking và court khi xác nhận thanh toán
-        if (order.Booking != null)
-        {
-            order.Booking.Status = "Completed";
-            if (order.Booking.Court != null)
-            {
-                order.Booking.Court.Status = "Active";
-            }
-        }
-
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
     public async Task<bool> ExtendPaymentTimeAsync(Guid orderId)
     {
         var order = await _context
@@ -637,6 +595,25 @@ public class OrderService(
 
         foreach (var bookingService in bookingServices)
         {
+            // Nếu dịch vụ đã hoàn thành, không cập nhật gì thêm
+            if (bookingService.Status == "Completed")
+            {
+                // Vẫn cần cập nhật stock cho các dịch vụ đã hoàn thành
+                if (bookingService.Service.StockQuantity.HasValue)
+                {
+                    if (serviceStockUpdates.ContainsKey(bookingService.ServiceId))
+                    {
+                        serviceStockUpdates[bookingService.ServiceId] += bookingService.Quantity;
+                    }
+                    else
+                    {
+                        serviceStockUpdates[bookingService.ServiceId] = bookingService.Quantity;
+                    }
+                }
+                continue;
+            }
+
+            // Chỉ cập nhật các dịch vụ chưa hoàn thành
             // Calculate actual usage time in hours
             var usageTime = now - bookingService.ServiceStartTime;
             var usageHours = (decimal)usageTime.TotalHours;
@@ -650,6 +627,7 @@ public class OrderService(
             // Round up to nearest 1000 for billing (same logic as frontend)
             bookingService.Hours = Math.Ceiling(usageHours); // Keep for reference
             bookingService.TotalPrice = Math.Ceiling(rawCost / 1000m) * 1000m;
+            bookingService.Status = "Completed"; // Mark as completed during checkout
 
             // Accumulate stock return quantities by service
             if (bookingService.Service.StockQuantity.HasValue)
@@ -689,7 +667,14 @@ public class OrderService(
 
         foreach (var bookingService in bookingServices)
         {
-            // Calculate actual usage time in hours
+            // Nếu dịch vụ đã hoàn thành, sử dụng TotalPrice tĩnh
+            if (bookingService.Status == "Completed" && bookingService.TotalPrice > 0)
+            {
+                totalServicesCost += bookingService.TotalPrice;
+                continue;
+            }
+
+            // Nếu dịch vụ chưa hoàn thành, tính toán real-time
             var usageTime = now - bookingService.ServiceStartTime;
             var usageHours = (decimal)usageTime.TotalHours;
 

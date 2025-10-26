@@ -57,10 +57,6 @@ export interface ApiOrdersListGetRequest {
     toDate?: Date;
 }
 
-export interface ApiOrdersOrderIdConfirmPaymentPostRequest {
-    orderId: string;
-}
-
 export interface ApiOrdersOrderIdExtendPaymentPostRequest {
     orderId: string;
 }
@@ -136,19 +132,6 @@ export interface OrdersApiInterface {
     /**
      */
     apiOrdersListGet(requestParameters: ApiOrdersListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListOrderResponseListApiResponse>;
-
-    /**
-     * 
-     * @param {string} orderId 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof OrdersApiInterface
-     */
-    apiOrdersOrderIdConfirmPaymentPostRaw(requestParameters: ApiOrdersOrderIdConfirmPaymentPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>>;
-
-    /**
-     */
-    apiOrdersOrderIdConfirmPaymentPost(requestParameters: ApiOrdersOrderIdConfirmPaymentPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse>;
 
     /**
      * 
@@ -341,41 +324,6 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
      */
     async apiOrdersListGet(requestParameters: ApiOrdersListGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListOrderResponseListApiResponse> {
         const response = await this.apiOrdersListGetRaw(requestParameters, initOverrides);
-        return await response.value();
-    }
-
-    /**
-     */
-    async apiOrdersOrderIdConfirmPaymentPostRaw(requestParameters: ApiOrdersOrderIdConfirmPaymentPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>> {
-        if (requestParameters['orderId'] == null) {
-            throw new runtime.RequiredError(
-                'orderId',
-                'Required parameter "orderId" was null or undefined when calling apiOrdersOrderIdConfirmPaymentPost().'
-            );
-        }
-
-        const queryParameters: any = {};
-
-        const headerParameters: runtime.HTTPHeaders = {};
-
-
-        let urlPath = `/api/Orders/{orderId}/confirm-payment`;
-        urlPath = urlPath.replace(`{${"orderId"}}`, encodeURIComponent(String(requestParameters['orderId'])));
-
-        const response = await this.request({
-            path: urlPath,
-            method: 'POST',
-            headers: headerParameters,
-            query: queryParameters,
-        }, initOverrides);
-
-        return new runtime.JSONApiResponse(response, (jsonValue) => BooleanApiResponseFromJSON(jsonValue));
-    }
-
-    /**
-     */
-    async apiOrdersOrderIdConfirmPaymentPost(requestParameters: ApiOrdersOrderIdConfirmPaymentPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse> {
-        const response = await this.apiOrdersOrderIdConfirmPaymentPostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

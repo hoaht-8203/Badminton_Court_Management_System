@@ -66,7 +66,15 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
   const [selectAllCategories, setSelectAllCategories] = useState(false);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      // Reset all filter states when closing
+      setQuery("");
+      setDebouncedQuery("");
+      setSelectedCategories([]);
+      setSelectAllCategories(false);
+      setProductsWithImages([]);
+      return;
+    }
     if (!isEdit) {
       form.resetFields();
       setItems([]);
@@ -389,6 +397,13 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
           } catch {}
         }
       }
+
+      // Reset all filter states
+      setQuery("");
+      setDebouncedQuery("");
+      setSelectedCategories([]);
+      setSelectAllCategories(false);
+      setProductsWithImages([]);
 
       try {
         onChanged?.();

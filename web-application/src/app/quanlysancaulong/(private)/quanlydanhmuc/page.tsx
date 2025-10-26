@@ -1,15 +1,15 @@
 "use client";
 
-import { useDeleteProduct, useListProducts, /* useUpdateProduct, */ useDetailProduct } from "@/hooks/useProducts";
+import CreateNewProductDrawer from "@/components/quanlysancaulong/products/create-new-product-drawer";
+import { productColumns, StockCell, StockSummaryCell } from "@/components/quanlysancaulong/products/products-columns";
+import SearchProducts from "@/components/quanlysancaulong/products/search-products";
+import UpdateProductDrawer from "@/components/quanlysancaulong/products/update-product-drawer";
+import { useDeleteProduct, /* useUpdateProduct, */ useDetailProduct, useListProducts } from "@/hooks/useProducts";
 import { ApiError, axiosInstance } from "@/lib/axios";
 import { DetailProductResponse, ListProductRequest, ListProductResponse } from "@/types-openapi/api";
-import { Breadcrumb, Button, Col, Divider, Image, message, Modal, Row, Table, TableProps, Tabs } from "antd";
-import { useMemo, useState, useEffect } from "react";
-import { productColumns } from "@/components/quanlysancaulong/products/products-columns";
-import CreateNewProductDrawer from "@/components/quanlysancaulong/products/create-new-product-drawer";
-import UpdateProductDrawer from "@/components/quanlysancaulong/products/update-product-drawer";
-import SearchProducts from "@/components/quanlysancaulong/products/search-products";
-import { CheckOutlined, DeleteOutlined, EditOutlined, StopOutlined, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
+import { CheckOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined, StopOutlined } from "@ant-design/icons";
+import { Breadcrumb, Button, Col, Divider, Image, message, Modal, Row, Table, TableProps, Tabs, Tag } from "antd";
+import { useEffect, useMemo, useState } from "react";
 
 type ProductFilters = ListProductRequest & { priceSort?: "ascend" | "descend"; isActive?: boolean };
 
@@ -42,7 +42,19 @@ const ProductCategoryPage = () => {
     } else if (searchParams.priceSort === "descend") {
       arr.sort((a, b) => (b.salePrice ?? 0) - (a.salePrice ?? 0));
     }
-    return arr;
+
+    // Thêm hàng tổng kết ở đầu
+    const summaryRow = {
+      id: -1, // ID đặc biệt để phân biệt
+      code: "",
+      name: "",
+      category: "",
+      salePrice: null,
+      isActive: null,
+      isSummaryRow: true, // Flag để nhận biết đây là hàng tổng kết
+    };
+
+    return [summaryRow, ...arr];
   }, [data?.data, searchParams.isActive, searchParams.priceSort]);
 
   const updateStatus = async (id: number, isActive: boolean) => {
@@ -62,62 +74,80 @@ const ProductCategoryPage = () => {
       <div>
         <div className="mb-2 flex items-center justify-between">
           <div>
-            <span className="font-bold text-green-500">Tổng số hàng hóa: {tableData.length}</span>
+            <span className="font-bold text-green-500">Tổng số hàng hóa: {tableData.filter((item) => !(item as any).isSummaryRow).length}</span>
           </div>
           <div className="flex gap-2">
+            <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
+              Tải lại
+            </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenCreate(true)}>
               Thêm hàng hóa
-            </Button>
-            <Button type="primary" icon={<ReloadOutlined />} onClick={() => refetch()}>
-              Tải lại
             </Button>
           </div>
         </div>
 
         <Table<ListProductResponse>
           {...tableProps}
-          columns={[...productColumns!]}
-          dataSource={tableData}
+          columns={productColumns?.map((col) => {
+            if (col.key === "stock") {
+              return {
+                ...col,
+                render: (_, record) => {
+                  if ((record as any).isSummaryRow) {
+                    return <StockSummaryCell productIds={tableData.filter((item) => !(item as any).isSummaryRow).map((item) => item.id!)} />;
+                  }
+                  return <StockCell productId={record.id!} />;
+                },
+              };
+            }
+            return col;
+          })}
+          dataSource={tableData as any}
           loading={isFetching}
           expandable={{
             expandRowByClick: true,
-            expandedRowRender: (record) => (
-              <ProductInformation
-                record={record}
-                onEdit={() => {
-                  setCurrentId(record.id!);
-                  setOpenUpdate(true);
-                }}
-                onDelete={() => {
-                  modal.confirm({
-                    title: "Xác nhận",
-                    content: `Xóa hàng hóa ${record.name}?`,
-                    onOk: () =>
-                      deleteMutation.mutate(
-                        { id: record.id! },
-                        { onSuccess: () => message.success("Xóa thành công"), onError: (e: ApiError) => message.error(e.message) },
-                      ),
-                  });
-                }}
-                onChangeStatus={(active) =>
-                  modal.confirm({
-                    title: "Xác nhận",
-                    content: active
-                      ? "Bạn có chắc chắn muốn mở kinh doanh cho hàng hóa này?"
-                      : "Bạn có chắc chắn muốn ngừng kinh doanh hàng hóa này?",
-                    onOk: async () => {
-                      try {
-                        await updateStatus(record.id!, active);
-                        message.success("Cập nhật trạng thái thành công");
-                        refetch();
-                      } catch (e: any) {
-                        message.error(e?.message || "Lỗi cập nhật trạng thái");
-                      }
-                    },
-                  })
-                }
-              />
-            ),
+            expandedRowRender: (record) => {
+              // Không hiển thị chi tiết cho hàng tổng kết
+              if ((record as any).isSummaryRow) return null;
+
+              return (
+                <ProductInformation
+                  record={record}
+                  onEdit={() => {
+                    setCurrentId(record.id!);
+                    setOpenUpdate(true);
+                  }}
+                  onDelete={() => {
+                    modal.confirm({
+                      title: "Xác nhận",
+                      content: `Xóa hàng hóa ${record.name}?`,
+                      onOk: () =>
+                        deleteMutation.mutate(
+                          { id: record.id! },
+                          { onSuccess: () => message.success("Xóa thành công"), onError: (e: ApiError) => message.error(e.message) },
+                        ),
+                    });
+                  }}
+                  onChangeStatus={(active) =>
+                    modal.confirm({
+                      title: "Xác nhận",
+                      content: active
+                        ? "Bạn có chắc chắn muốn mở kinh doanh cho hàng hóa này?"
+                        : "Bạn có chắc chắn muốn ngừng kinh doanh hàng hóa này?",
+                      onOk: async () => {
+                        try {
+                          await updateStatus(record.id!, active);
+                          message.success("Cập nhật trạng thái thành công");
+                          refetch();
+                        } catch (e: any) {
+                          message.error(e?.message || "Lỗi cập nhật trạng thái");
+                        }
+                      },
+                    })
+                  }
+                />
+              );
+            },
           }}
         />
       </div>
@@ -162,12 +192,6 @@ const ProductInformation = ({
                         <div>
                           <div className="flex">
                             <div className="w-32 font-medium">Mã hàng:</div>
-                            <div>{record.id}</div>
-                          </div>
-                          <Divider size="small" style={{ margin: "4px 0" }} />
-
-                          <div className="flex">
-                            <div className="w-32 font-medium">Mã hàng:</div>
                             <div>{record.code || "-"}</div>
                           </div>
                           <Divider size="small" style={{ margin: "4px 0" }} />
@@ -197,9 +221,7 @@ const ProductInformation = ({
                           <div className="flex">
                             <div className="w-32 font-medium">Kinh doanh:</div>
                             <div>
-                              <span className={`font-bold ${isActive ? "text-green-500" : "text-red-500"}`}>
-                                {isActive ? "Đang hoạt động" : "Ngừng hoạt động"}
-                              </span>
+                              <Tag color={isActive ? "green" : "red"}>{isActive ? "Kinh doanh" : "Ngừng kinh doanh"}</Tag>
                             </div>
                           </div>
                           <Divider size="small" style={{ margin: "4px 0" }} />
@@ -232,34 +254,58 @@ const ProductInformation = ({
                                 <div className="w-32 font-medium">Ngưỡng min/max:</div>
                                 <div>{d ? `${d.minStock} / ${d.maxStock}` : "-"}</div>
                               </div>
+                              <Divider size="small" style={{ margin: "4px 0" }} />
                             </>
                           )}
+
+                          <div className="flex">
+                            <div className="w-32 font-medium">Mô tả:</div>
+                            <div
+                              className="max-h-32 flex-1 overflow-y-auto rounded border border-gray-200 px-2 py-1 text-sm"
+                              style={{ minHeight: "32px" }}
+                            >
+                              {d?.description || "-"}
+                            </div>
+                          </div>
+                          <Divider size="small" style={{ margin: "4px 0" }} />
+
+                          <div className="flex">
+                            <div className="w-32 font-medium">Ghi chú:</div>
+                            <div
+                              className="max-h-32 flex-1 overflow-y-auto rounded border border-gray-200 px-2 py-1 text-sm"
+                              style={{ minHeight: "32px" }}
+                            >
+                              {"" /* Ghi chú field 'note' không tồn tại trên kiểu DetailProductResponse */}
+                            </div>
+                          </div>
                         </div>
                       </Col>
                     </Row>
                   </Col>
 
-                  <Col span={6} className="flex items-start justify-end">
+                  <Col span={6} className="flex flex-col items-center">
                     {d?.images && d.images.length > 0 && (
-                      <div>
-                        <div className="mb-2 text-center font-semibold">Hình ảnh</div>
-                        <Image.PreviewGroup>
-                          <Image src={d.images[0]} alt="Product image" width={180} height={180} style={{ objectFit: "contain", borderRadius: 8 }} />
-                          {d.images.length > 1 && (
-                            <div className="mt-2 flex flex-wrap justify-center gap-2">
-                              {d.images.slice(1).map((url, idx) => (
-                                <Image
-                                  key={idx}
-                                  src={url}
-                                  alt={`Product image ${idx + 2}`}
-                                  width={60}
-                                  height={60}
-                                  style={{ objectFit: "cover", borderRadius: 6 }}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </Image.PreviewGroup>
+                      <div className="w-full">
+                        <div className="mb-3 text-center font-semibold">Hình ảnh</div>
+                        <div className="flex justify-center">
+                          <Image.PreviewGroup>
+                            <Image src={d.images[0]} alt="Product image" width={180} height={180} style={{ objectFit: "contain", borderRadius: 8 }} />
+                            {d.images.length > 1 && (
+                              <div className="mt-2 flex flex-wrap justify-center gap-2">
+                                {d.images.slice(1).map((url, idx) => (
+                                  <Image
+                                    key={idx}
+                                    src={url}
+                                    alt={`Product image ${idx + 2}`}
+                                    width={60}
+                                    height={60}
+                                    style={{ objectFit: "cover", borderRadius: 6 }}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </Image.PreviewGroup>
+                        </div>
                       </div>
                     )}
                   </Col>
@@ -277,7 +323,7 @@ const ProductInformation = ({
                     </Button>
                     {isActive ? (
                       <Button danger icon={<StopOutlined />} onClick={() => onChangeStatus(false)}>
-                        Ngừng hoạt động
+                        Ngừng kinh doanh
                       </Button>
                     ) : (
                       <Button
@@ -285,7 +331,7 @@ const ProductInformation = ({
                         icon={<CheckOutlined />}
                         onClick={() => onChangeStatus(true)}
                       >
-                        Kinh doanh
+                        Mở kinh doanh
                       </Button>
                     )}
                   </div>

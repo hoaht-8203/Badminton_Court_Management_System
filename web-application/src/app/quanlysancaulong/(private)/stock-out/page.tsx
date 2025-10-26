@@ -174,6 +174,13 @@ const StockOutPage = () => {
           </Row>
           <Row gutter={16}>
             <Col span={8}>
+              <Form.Item label="Thời gian">
+                <Form.Item name="range" noStyle>
+                  <DatePicker.RangePicker style={{ width: 280 }} />
+                </Form.Item>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
               <Form.Item label="Trạng thái" name="statuses">
                 <Checkbox.Group style={{ width: "100%" }} onChange={(vals) => setFilters({ ...filters, statuses: vals as number[] })}>
                   <Row gutter={[0, 8]}>
@@ -188,13 +195,6 @@ const StockOutPage = () => {
                     </Col>
                   </Row>
                 </Checkbox.Group>
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item label="Thời gian">
-                <Form.Item name="range" noStyle>
-                  <DatePicker.RangePicker style={{ width: 280 }} />
-                </Form.Item>
               </Form.Item>
             </Col>
           </Row>
@@ -262,17 +262,55 @@ export default StockOutPage;
 
 const StockOutRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdit: () => void; onCancelled: () => void }) => {
   const [detail, setDetail] = React.useState<any | null>(null);
+  const [note, setNote] = React.useState("");
+  const [saving, setSaving] = React.useState(false);
+
   React.useEffect(() => {
     const run = async () => {
       try {
         const res = await stockOutService.detail(record.id);
         setDetail(res.data);
+        setNote(res.data?.note || "");
       } catch {
         setDetail(null);
       }
     };
     run();
   }, [record?.id]);
+
+  const handleSaveNote = async () => {
+    if (!detail) return;
+    try {
+      setSaving(true);
+
+      // Phiếu tạm: cập nhật toàn bộ thông tin
+      if (detail.status === 0) {
+        // Draft
+        const updatePayload = {
+          outTime: detail.outTime,
+          supplierId: detail.supplierId,
+          outBy: detail.outBy,
+          note: note,
+          items: detail.items?.map((i: any) => ({ productId: i.productId, quantity: i.quantity, costPrice: i.costPrice })) || [],
+        };
+        await stockOutService.update(record.id, updatePayload);
+      } else {
+        // Phiếu hoàn thành/hủy: chỉ cập nhật ghi chú
+        await stockOutService.updateNote(record.id, note);
+      }
+
+      message.success("Đã lưu ghi chú thành công");
+
+      // Reload detail to get updated note
+      const res = await stockOutService.detail(record.id);
+      setDetail(res.data);
+      setNote(res.data?.note || "");
+    } catch (e: any) {
+      message.error(e?.message || "Lưu ghi chú thất bại");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const infoTab = (
     <div className="p-3">
@@ -308,6 +346,15 @@ const StockOutRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdi
             );
           })()}
         </div>
+        <div className="md:col-span-3">
+          <div className="mb-2 text-gray-500">Ghi chú:</div>
+          <Input.TextArea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Nhập ghi chú..." rows={3} className="mb-2" />
+          <div className="flex justify-end">
+            <Button type="primary" size="small" loading={saving} onClick={handleSaveNote}>
+              Lưu ghi chú
+            </Button>
+          </div>
+        </div>
         {record.status === 0 && (
           <div className="space-x-2 text-right md:col-span-3">
             <Button type="primary" onClick={onEdit}>
@@ -341,20 +388,31 @@ const StockOutRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdi
       </div>
 
       {detail && (
-        <Table
-          size="small"
-          rowKey={(r) => (r as any).productId}
-          dataSource={detail.items || []}
-          pagination={false}
-          columns={[
-            { title: "Mã hàng hóa", dataIndex: "productCode", key: "productCode", width: 160 },
-            { title: "Tên hàng", dataIndex: "productName", key: "productName", width: 220 },
-            { title: "SL hủy", dataIndex: "quantity", key: "quantity", width: 120 },
-            { title: "Giá vốn", dataIndex: "costPrice", key: "costPrice", width: 140, render: (v) => (v ?? 0).toLocaleString() },
-            { title: "Giá trị hủy", key: "totalValue", width: 160, render: (_, r: any) => ((r.quantity || 0) * (r.costPrice || 0)).toLocaleString() },
-          ]}
-          locale={{ emptyText: "Chưa có sản phẩm" }}
-        />
+        <div className="mt-4">
+          <h4 className="mb-3 text-lg font-semibold">Danh sách sản phẩm xuất hủy</h4>
+          <div className="max-h-96 overflow-y-auto">
+            <Table
+              size="small"
+              rowKey={(r) => (r as any).productId}
+              dataSource={detail.items || []}
+              pagination={false}
+              scroll={{ x: "max-content" }}
+              columns={[
+                { title: "Mã hàng hóa", dataIndex: "productCode", key: "productCode", width: 160 },
+                { title: "Tên hàng", dataIndex: "productName", key: "productName", width: 220 },
+                { title: "SL hủy", dataIndex: "quantity", key: "quantity", width: 120 },
+                { title: "Giá vốn", dataIndex: "costPrice", key: "costPrice", width: 140, render: (v) => (v ?? 0).toLocaleString() },
+                {
+                  title: "Giá trị hủy",
+                  key: "totalValue",
+                  width: 160,
+                  render: (_, r: any) => ((r.quantity || 0) * (r.costPrice || 0)).toLocaleString(),
+                },
+              ]}
+              locale={{ emptyText: "Chưa có sản phẩm" }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

@@ -20,6 +20,7 @@ import type {
   Int32ApiResponse,
   ListReceiptResponseListApiResponse,
   ObjectApiResponse,
+  UpdateNoteRequest,
 } from '../models/index';
 import {
     CreateReceiptRequestFromJSON,
@@ -32,6 +33,8 @@ import {
     ListReceiptResponseListApiResponseToJSON,
     ObjectApiResponseFromJSON,
     ObjectApiResponseToJSON,
+    UpdateNoteRequestFromJSON,
+    UpdateNoteRequestToJSON,
 } from '../models/index';
 
 export interface ApiReceiptsDetailGetRequest {
@@ -44,6 +47,11 @@ export interface ApiReceiptsIdCancelPutRequest {
 
 export interface ApiReceiptsIdCompletePutRequest {
     id: number;
+}
+
+export interface ApiReceiptsIdNotePutRequest {
+    id: number;
+    updateNoteRequest?: UpdateNoteRequest;
 }
 
 export interface ApiReceiptsIdPutRequest {
@@ -106,6 +114,20 @@ export interface ReceiptsApiInterface {
     /**
      */
     apiReceiptsIdCompletePut(requestParameters: ApiReceiptsIdCompletePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
+     * @param {number} id 
+     * @param {UpdateNoteRequest} [updateNoteRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ReceiptsApiInterface
+     */
+    apiReceiptsIdNotePutRaw(requestParameters: ApiReceiptsIdNotePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiReceiptsIdNotePut(requestParameters: ApiReceiptsIdNotePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
     /**
      * 
@@ -254,6 +276,44 @@ export class ReceiptsApi extends runtime.BaseAPI implements ReceiptsApiInterface
      */
     async apiReceiptsIdCompletePut(requestParameters: ApiReceiptsIdCompletePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiReceiptsIdCompletePutRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiReceiptsIdNotePutRaw(requestParameters: ApiReceiptsIdNotePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling apiReceiptsIdNotePut().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Receipts/{id}/note`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UpdateNoteRequestToJSON(requestParameters['updateNoteRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiReceiptsIdNotePut(requestParameters: ApiReceiptsIdNotePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiReceiptsIdNotePutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -1,5 +1,7 @@
+using System.Net;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.InventoryCard;
+using ApiApplication.Exceptions;
 using ApiApplication.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,13 +20,46 @@ public class InventoryCardsController(IInventoryCardService service) : Controlle
         [FromQuery] int productId
     )
     {
-        var list = await _service.ListByProductAsync(productId);
-        return Ok(
-            ApiResponse<List<ListByProductResponse>>.SuccessResponse(
-                list,
-                "Lấy thẻ kho theo sản phẩm thành công"
-            )
-        );
+        try
+        {
+            if (productId <= 0)
+            {
+                throw new ApiException("Mã sản phẩm không hợp lệ", HttpStatusCode.BadRequest);
+            }
+
+            var list = await _service.ListByProductAsync(productId);
+
+            if (list == null || !list.Any())
+            {
+                throw new ApiException(
+                    "Không tìm thấy thẻ kho cho sản phẩm này",
+                    HttpStatusCode.NotFound
+                );
+            }
+
+            return Ok(
+                ApiResponse<List<ListByProductResponse>>.SuccessResponse(
+                    list,
+                    "Lấy thẻ kho theo sản phẩm thành công"
+                )
+            );
+        }
+        catch (ApiException ex)
+        {
+            return StatusCode(
+                (int)ex.StatusCode,
+                ApiResponse<List<ListByProductResponse>>.ErrorResponse(ex.Message, ex.Errors)
+            );
+        }
+        catch (Exception)
+        {
+            return StatusCode(
+                (int)HttpStatusCode.InternalServerError,
+                ApiResponse<List<ListByProductResponse>>.ErrorResponse(
+                    "Lỗi khi lấy thẻ kho theo sản phẩm"
+                )
+            );
+        }
     }
 
     [HttpPost("create")]
@@ -32,28 +67,79 @@ public class InventoryCardsController(IInventoryCardService service) : Controlle
         [FromBody] CreateInventoryCardRequest request
     )
     {
-        var generatedCode = await _service.GenerateNextSaleInventoryCardCodeAsync();
-
-        var costPrice = await _service.GetProductCostPriceAsync(request.ProductId);
-
-        var updateRequest = new UpdateInventoryCardRequest
+        try
         {
-            ProductId = request.ProductId,
-            Code = generatedCode,
-            Method = "Bán hàng",
-            OccurredAt = DateTime.UtcNow,
-            CostPrice = costPrice,
-            QuantityChange = -Math.Abs(request.QuantityChange),
-            Note = request.Note,
-            UpdateProductStock = request.UpdateProductStock,
-        };
+            if (request == null)
+            {
+                throw new ApiException("Dữ liệu yêu cầu không hợp lệ", HttpStatusCode.BadRequest);
+            }
 
-        var result = await _service.UpdateInventoryCardAsync(updateRequest);
-        return Ok(
-            ApiResponse<UpdateInventoryCardResponse>.SuccessResponse(
-                result,
-                "Tạo thẻ kho và cập nhật tồn kho thành công"
-            )
-        );
+            if (request.ProductId <= 0)
+            {
+                throw new ApiException("Mã sản phẩm không hợp lệ", HttpStatusCode.BadRequest);
+            }
+
+            if (request.QuantityChange <= 0)
+            {
+                throw new ApiException(
+                    "Số lượng thay đổi phải lớn hơn 0",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            var generatedCode = await _service.GenerateNextSaleInventoryCardCodeAsync();
+            if (string.IsNullOrEmpty(generatedCode))
+            {
+                throw new ApiException(
+                    "Không thể tạo mã thẻ kho",
+                    HttpStatusCode.InternalServerError
+                );
+            }
+
+            var costPrice = await _service.GetProductCostPriceAsync(request.ProductId);
+
+            var updateRequest = new UpdateInventoryCardRequest
+            {
+                ProductId = request.ProductId,
+                Code = generatedCode,
+                Method = "Bán hàng",
+                OccurredAt = DateTime.UtcNow,
+                CostPrice = costPrice,
+                QuantityChange = -Math.Abs(request.QuantityChange),
+                Note = request.Note,
+                UpdateProductStock = request.UpdateProductStock,
+            };
+
+            var result = await _service.UpdateInventoryCardAsync(updateRequest);
+
+            if (result == null)
+            {
+                throw new ApiException(
+                    "Không thể cập nhật thẻ kho",
+                    HttpStatusCode.InternalServerError
+                );
+            }
+
+            return Ok(
+                ApiResponse<UpdateInventoryCardResponse>.SuccessResponse(
+                    result,
+                    "Tạo thẻ kho và cập nhật tồn kho thành công"
+                )
+            );
+        }
+        catch (ApiException ex)
+        {
+            return StatusCode(
+                (int)ex.StatusCode,
+                ApiResponse<UpdateInventoryCardResponse>.ErrorResponse(ex.Message, ex.Errors)
+            );
+        }
+        catch (Exception)
+        {
+            return StatusCode(
+                (int)HttpStatusCode.InternalServerError,
+                ApiResponse<UpdateInventoryCardResponse>.ErrorResponse("Lỗi khi tạo thẻ kho")
+            );
+        }
     }
 }

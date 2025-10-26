@@ -48,9 +48,8 @@ public class ReceiptService(ApplicationDbContext context) : IReceiptService
             PaymentMethod = req.PaymentMethod,
             Discount = req.Discount,
             PaymentAmount = req.PaymentAmount,
-            SupplierBankAccountNumber = req.SupplierBankAccountNumber,
-            SupplierBankAccountName = req.SupplierBankAccountName,
-            SupplierBankName = req.SupplierBankName,
+            SupplierBankAccountId = req.SupplierBankAccountId,
+            Note = req.Note,
             Status = req.Complete ? ReceiptStatus.Completed : ReceiptStatus.Draft,
         };
         entity.Code = await GenerateNextReceiptCodeAsync();
@@ -102,6 +101,7 @@ public class ReceiptService(ApplicationDbContext context) : IReceiptService
             await _context
                 .Receipts.Include(x => x.Items)
                 .ThenInclude(i => i.Product)
+                .Include(x => x.SupplierBankAccount)
                 .FirstOrDefaultAsync(x => x.Id == id)
             ?? throw new ApiException(
                 "Không tìm thấy phiếu nhập",
@@ -116,10 +116,12 @@ public class ReceiptService(ApplicationDbContext context) : IReceiptService
             PaymentMethod = r.PaymentMethod,
             Discount = r.Discount,
             PaymentAmount = r.PaymentAmount,
-            SupplierBankAccountNumber = r.SupplierBankAccountNumber,
-            SupplierBankAccountName = r.SupplierBankAccountName,
-            SupplierBankName = r.SupplierBankName,
+            SupplierBankAccountId = r.SupplierBankAccountId,
+            SupplierBankAccountNumber = r.SupplierBankAccount?.AccountNumber,
+            SupplierBankAccountName = r.SupplierBankAccount?.AccountName,
+            SupplierBankName = r.SupplierBankAccount?.BankName,
             Status = (int)r.Status,
+            Note = r.Note,
             Items = r
                 .Items.Select(i => new DetailReceiptItem
                 {
@@ -152,9 +154,8 @@ public class ReceiptService(ApplicationDbContext context) : IReceiptService
         r.PaymentMethod = req.PaymentMethod;
         r.Discount = req.Discount;
         r.PaymentAmount = req.PaymentAmount;
-        r.SupplierBankAccountNumber = req.SupplierBankAccountNumber;
-        r.SupplierBankAccountName = req.SupplierBankAccountName;
-        r.SupplierBankName = req.SupplierBankName;
+        r.SupplierBankAccountId = req.SupplierBankAccountId;
+        r.Note = req.Note;
 
         // replace items
         _context.ReceiptItems.RemoveRange(r.Items);
@@ -167,6 +168,20 @@ public class ReceiptService(ApplicationDbContext context) : IReceiptService
             })
             .ToList();
 
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateNoteAsync(int id, string note)
+    {
+        var r =
+            await _context.Receipts.FirstOrDefaultAsync(x => x.Id == id)
+            ?? throw new ApiException(
+                "Không tìm thấy phiếu nhập",
+                System.Net.HttpStatusCode.NotFound
+            );
+
+        // Cho phép cập nhật ghi chú cho mọi trạng thái phiếu
+        r.Note = note;
         await _context.SaveChangesAsync();
     }
 

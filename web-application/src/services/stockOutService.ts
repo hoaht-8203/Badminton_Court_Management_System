@@ -32,4 +32,9 @@ export const stockOutService = {
     const res = await axiosInstance.post<ApiResponse<string>>(`/api/StockOuts/cancel/${id}`);
     return res.data;
   },
+
+  async updateNote(id: number, note: string): Promise<ApiResponse<string>> {
+    const res = await axiosInstance.put<ApiResponse<string>>(`/api/StockOuts/${id}/note`, { note });
+    return res.data;
+  },
 };

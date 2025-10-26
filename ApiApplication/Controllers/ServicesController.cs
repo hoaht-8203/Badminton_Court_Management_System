@@ -130,4 +130,15 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
             )
         );
     }
+
+    [HttpPut("booking-occurrence/end-service")]
+    public async Task<ActionResult<ApiResponse<BookingServiceDto>>> EndService(
+        [FromBody] EndServiceRequest request
+    )
+    {
+        var result = await _serviceService.EndServiceAsync(request);
+        return Ok(
+            ApiResponse<BookingServiceDto>.SuccessResponse(result, "End service successfully")
+        );
+    }
 }

@@ -20,6 +20,13 @@ import {
     ReceiptItemToJSON,
     ReceiptItemToJSONTyped,
 } from './ReceiptItem';
+import type { SupplierBankAccount } from './SupplierBankAccount';
+import {
+    SupplierBankAccountFromJSON,
+    SupplierBankAccountFromJSONTyped,
+    SupplierBankAccountToJSON,
+    SupplierBankAccountToJSONTyped,
+} from './SupplierBankAccount';
 import type { ReceiptStatus } from './ReceiptStatus';
 import {
     ReceiptStatusFromJSON,
@@ -115,28 +122,28 @@ export interface Receipt {
     paymentMethod?: string | null;
     /**
      * 
-     * @type {string}
+     * @type {number}
      * @memberof Receipt
      */
-    supplierBankAccountNumber?: string | null;
+    supplierBankAccountId?: number | null;
     /**
      * 
-     * @type {string}
+     * @type {SupplierBankAccount}
      * @memberof Receipt
      */
-    supplierBankAccountName?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof Receipt
-     */
-    supplierBankName?: string | null;
+    supplierBankAccount?: SupplierBankAccount;
     /**
      * 
      * @type {ReceiptStatus}
      * @memberof Receipt
      */
     status?: ReceiptStatus;
+    /**
+     * 
+     * @type {string}
+     * @memberof Receipt
+     */
+    note?: string | null;
     /**
      * 
      * @type {Array<ReceiptItem>}
@@ -176,10 +183,10 @@ export function ReceiptFromJSONTyped(json: any, ignoreDiscriminator: boolean): R
         'discount': json['discount'] == null ? undefined : json['discount'],
         'paymentAmount': json['paymentAmount'] == null ? undefined : json['paymentAmount'],
         'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
-        'supplierBankAccountNumber': json['supplierBankAccountNumber'] == null ? undefined : json['supplierBankAccountNumber'],
-        'supplierBankAccountName': json['supplierBankAccountName'] == null ? undefined : json['supplierBankAccountName'],
-        'supplierBankName': json['supplierBankName'] == null ? undefined : json['supplierBankName'],
+        'supplierBankAccountId': json['supplierBankAccountId'] == null ? undefined : json['supplierBankAccountId'],
+        'supplierBankAccount': json['supplierBankAccount'] == null ? undefined : SupplierBankAccountFromJSON(json['supplierBankAccount']),
         'status': json['status'] == null ? undefined : ReceiptStatusFromJSON(json['status']),
+        'note': json['note'] == null ? undefined : json['note'],
         'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(ReceiptItemFromJSON)),
     };
 }
@@ -207,10 +214,10 @@ export function ReceiptToJSONTyped(value?: Receipt | null, ignoreDiscriminator: 
         'discount': value['discount'],
         'paymentAmount': value['paymentAmount'],
         'paymentMethod': value['paymentMethod'],
-        'supplierBankAccountNumber': value['supplierBankAccountNumber'],
-        'supplierBankAccountName': value['supplierBankAccountName'],
-        'supplierBankName': value['supplierBankName'],
+        'supplierBankAccountId': value['supplierBankAccountId'],
+        'supplierBankAccount': SupplierBankAccountToJSON(value['supplierBankAccount']),
         'status': ReceiptStatusToJSON(value['status']),
+        'note': value['note'],
         'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(ReceiptItemToJSON)),
     };
 }

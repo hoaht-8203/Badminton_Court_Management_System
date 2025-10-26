@@ -15,4 +15,5 @@ public interface IServiceService
     Task<BookingServiceDto> AddBookingServiceAsync(AddBookingServiceRequest request);
     Task<bool> RemoveBookingServiceAsync(RemoveBookingServiceRequest request);
     Task<List<BookingServiceDto>> GetBookingServicesAsync(Guid bookingCourtOccurrenceId);
+    Task<BookingServiceDto> EndServiceAsync(EndServiceRequest request);
 }

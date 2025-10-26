@@ -180,6 +180,18 @@ namespace ApiApplication.Services.Impl
             await _context.SaveChangesAsync();
         }
 
+        public async Task UpdateNoteAsync(int id, string note)
+        {
+            var stockOut = await _context.StockOuts.FirstOrDefaultAsync(x => x.Id == id);
+            if (stockOut == null)
+                throw new ArgumentException("Stock out not found");
+
+            // Cho phép cập nhật ghi chú cho mọi trạng thái
+            stockOut.Note = note;
+            stockOut.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+
         public async Task CompleteAsync(int id)
         {
             var stockOut = await _context

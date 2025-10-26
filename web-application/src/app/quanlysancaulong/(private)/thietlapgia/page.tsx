@@ -71,12 +71,24 @@ const formatCurrency = (value: number | undefined | null): string => {
 const columns = [
   { title: "Tên bảng giá", dataIndex: "name", key: "name" },
   {
-    title: "Hiệu lực",
+    title: "Thời gian áp dụng",
     key: "range",
     render: (_: any, r: ListPriceTableResponse) => {
-      const a = r.effectiveFrom ? dayjs(r.effectiveFrom).format("DD/MM/YYYY") : "---";
-      const b = r.effectiveTo ? dayjs(r.effectiveTo).format("DD/MM/YYYY") : "---";
-      return `${a} - ${b}`;
+      if (!r.effectiveFrom && !r.effectiveTo) {
+        return <span className="text-gray-500">Không giới hạn</span>;
+      }
+      const from = r.effectiveFrom ? dayjs(r.effectiveFrom).format("DD/MM/YYYY") : "Không giới hạn";
+      const to = r.effectiveTo ? dayjs(r.effectiveTo).format("DD/MM/YYYY") : "Không giới hạn";
+      return (
+        <div>
+          <div className="text-sm">
+            <span className="font-medium">Từ:</span> {from}
+          </div>
+          <div className="text-sm">
+            <span className="font-medium">Đến:</span> {to}
+          </div>
+        </div>
+      );
     },
   },
   {
@@ -92,8 +104,8 @@ const PriceManagementPage = () => {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  const [searchForm] = Form.useForm<{ name?: string; range?: [Dayjs, Dayjs] }>();
-  const [searchValues, setSearchValues] = useState<{ name?: string; range?: [Dayjs, Dayjs] }>({});
+  const [searchForm] = Form.useForm<{ name?: string; range?: [Dayjs, Dayjs]; isActive?: boolean }>();
+  const [searchValues, setSearchValues] = useState<{ name?: string; range?: [Dayjs, Dayjs]; isActive?: boolean }>({});
 
   const { data, isFetching, refetch } = useListPrices(filters);
   // const createMutation = useCreatePrice(); // Unused
@@ -114,16 +126,18 @@ const PriceManagementPage = () => {
     const listData = data?.data ?? [];
     const name = (searchValues.name || "").trim().toLowerCase();
     const range = searchValues.range;
+    const isActive = searchValues.isActive;
     return listData.filter((x) => {
       const okName = !name || (x.name || "").toLowerCase().includes(name);
-      if (!range || range.length !== 2) return okName;
+      const okStatus = isActive === undefined || x.isActive === isActive;
+      if (!range || range.length !== 2) return okName && okStatus;
       const from = range[0]?.startOf("day");
       const to = range[1]?.endOf("day");
       const effFrom = x.effectiveFrom ? dayjs(x.effectiveFrom) : null;
       const effTo = x.effectiveTo ? dayjs(x.effectiveTo) : null;
       const overlap =
         (!effFrom || !to || effFrom.isBefore(to.add(1, "millisecond"))) && (!effTo || !from || effTo.isAfter(from.subtract(1, "millisecond")));
-      return okName && overlap;
+      return okName && okStatus && overlap;
     });
   }, [data?.data, searchValues]);
 
@@ -160,7 +174,7 @@ const PriceManagementPage = () => {
                 <Input allowClear placeholder="Nhập tên" />
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col span={6}>
               <Form.Item name="range" label="Hiệu lực từ ngày - đến">
                 <DatePicker.RangePicker
                   style={{ width: "100%" }}
@@ -168,6 +182,18 @@ const PriceManagementPage = () => {
                     // disallow selecting past dates for end < start within UI filtering (loose)
                     return false;
                   }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item name="isActive" label="Trạng thái">
+                <Select
+                  allowClear
+                  placeholder="Chọn trạng thái"
+                  options={[
+                    { value: true, label: "Kích hoạt" },
+                    { value: false, label: "Không kích hoạt" },
+                  ]}
                 />
               </Form.Item>
             </Col>
@@ -314,9 +340,7 @@ const PriceInformation = ({
           <Row gutter={8}>
             <Col span={8}>Trạng thái:</Col>
             <Col span={16}>
-              <span className={`font-bold ${record.isActive ? "text-green-500" : "text-red-500"}`}>
-                {record.isActive ? "Kinh doanh" : "Không kinh doanh"}
-              </span>
+              <Tag color={record.isActive ? "green" : "red"}>{record.isActive ? "Kích hoạt" : "Không kích hoạt"}</Tag>
             </Col>
           </Row>
         </Col>
@@ -630,7 +654,7 @@ const ProductsSelector = ({
       // block selecting inactive rows
       const activeKeys = selectedRows.filter((r) => r.isActive).map((r) => r.id as number);
       if (activeKeys.length !== selectedRows.length) {
-        message.warning("Không thể chọn sản phẩm Không kinh doanh");
+        message.warning("Không thể chọn sản phẩm Không kích hoạt");
       }
       onChangeSelected(activeKeys);
     },
@@ -664,7 +688,7 @@ const ProductsSelector = ({
       return row && !row.isActive;
     });
     if (invalid) {
-      message.error("Không thể lưu: có sản phẩm 'Không kinh doanh' trong lựa chọn");
+      message.error("Không thể lưu: có sản phẩm 'Không kích hoạt' trong lựa chọn");
       return;
     }
     const products: PriceTableProductItem[] = selected.map((id) => {
@@ -740,8 +764,8 @@ const ProductsSelector = ({
                 allowClear
                 placeholder="Chọn trạng thái"
                 options={[
-                  { value: true, label: "Kinh doanh" },
-                  { value: false, label: "Không kinh doanh" },
+                  { value: true, label: "Kích hoạt" },
+                  { value: false, label: "Không kích hoạt" },
                 ]}
               />
             </Form.Item>
@@ -750,38 +774,41 @@ const ProductsSelector = ({
         </Row>
       </Form>
 
-      <Table
-        rowKey="id"
-        dataSource={rows}
-        loading={isFetching}
-        rowSelection={rowSelection as any}
-        pagination={{ pageSize: 10 }}
-        columns={[
-          { title: "Mã", dataIndex: "code" },
-          { title: "Tên hàng", dataIndex: "name" },
-          { title: "Nhóm", dataIndex: "category" },
-          { title: "Giá vốn", key: "costPrice", render: (_: any, r: any) => <CostCell productId={r.id} /> },
-          {
-            title: "Giá áp dụng",
-            key: "overrideSalePrice",
-            render: (_: any, r: any) => (
-              <InputNumber
-                min={0}
-                style={{ width: 140 }}
-                value={rowsState[r.id] ?? r.salePrice}
-                onChange={(val) => setRowsState((s) => ({ ...s, [r.id]: val as number }))}
-                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                parser={(value) => value!.replace(/\$\s?|(,*)/g, "")}
-              />
-            ),
-          },
-          {
-            title: "Trạng thái",
-            dataIndex: "isActive",
-            render: (v: boolean) => (v ? <Tag color="green">Kinh doanh</Tag> : <Tag color="red">Không kinh doanh</Tag>),
-          },
-        ]}
-      />
+      <div className="max-h-96 overflow-y-auto">
+        <Table
+          rowKey="id"
+          dataSource={rows}
+          loading={isFetching}
+          rowSelection={rowSelection as any}
+          pagination={{ pageSize: 10 }}
+          scroll={{ x: "max-content" }}
+          columns={[
+            { title: "Mã", dataIndex: "code" },
+            { title: "Tên hàng", dataIndex: "name" },
+            { title: "Nhóm", dataIndex: "category" },
+            { title: "Giá vốn", key: "costPrice", render: (_: any, r: any) => <CostCell productId={r.id} /> },
+            {
+              title: "Giá áp dụng",
+              key: "overrideSalePrice",
+              render: (_: any, r: any) => (
+                <InputNumber
+                  min={0}
+                  style={{ width: 140 }}
+                  value={rowsState[r.id] ?? r.salePrice}
+                  onChange={(val) => setRowsState((s) => ({ ...s, [r.id]: val as number }))}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  parser={(value) => value!.replace(/\$\s?|(,*)/g, "")}
+                />
+              ),
+            },
+            {
+              title: "Trạng thái",
+              dataIndex: "isActive",
+              render: (v: boolean) => (v ? <Tag color="green">Kích hoạt</Tag> : <Tag color="red">Không kích hoạt</Tag>),
+            },
+          ]}
+        />
+      </div>
 
       <div className="mt-4 text-right">
         <Button type="primary" onClick={onSave}>

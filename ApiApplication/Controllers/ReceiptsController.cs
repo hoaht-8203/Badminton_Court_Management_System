@@ -63,4 +63,16 @@ public class ReceiptsController(IReceiptService receiptService) : ControllerBase
         await _service.CancelAsync(id);
         return Ok(ApiResponse<object>.SuccessResponse(new { }, "Hủy phiếu nhập thành công"));
     }
+
+    [HttpPut("{id}/note")]
+    public async Task<ActionResult<ApiResponse<object>>> UpdateNote(
+        int id,
+        [FromBody] UpdateNoteRequest req
+    )
+    {
+        await _service.UpdateNoteAsync(id, req.Note);
+        return Ok(ApiResponse<object>.SuccessResponse(new { }, "Cập nhật ghi chú thành công"));
+    }
 }
+
+public record UpdateNoteRequest(string Note);

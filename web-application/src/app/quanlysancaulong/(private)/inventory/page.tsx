@@ -596,6 +596,7 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
       <Table<InventoryCheckItemResponse>
         size="small"
         rowKey={(r) => `${r.productCode}-${r.productName}`}
+        scroll={{ x: "max-content" }}
         columns={[
           { title: "Mã hàng hóa", dataIndex: "productCode", key: "productCode", width: 160 },
           { title: "Tên hàng", dataIndex: "productName", key: "productName", width: 240 },

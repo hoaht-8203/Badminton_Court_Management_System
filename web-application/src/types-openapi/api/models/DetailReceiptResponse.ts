@@ -71,6 +71,12 @@ export interface DetailReceiptResponse {
     paymentAmount?: number;
     /**
      * 
+     * @type {number}
+     * @memberof DetailReceiptResponse
+     */
+    supplierBankAccountId?: number | null;
+    /**
+     * 
      * @type {string}
      * @memberof DetailReceiptResponse
      */
@@ -93,6 +99,12 @@ export interface DetailReceiptResponse {
      * @memberof DetailReceiptResponse
      */
     status?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailReceiptResponse
+     */
+    note?: string | null;
     /**
      * 
      * @type {Array<DetailReceiptItem>}
@@ -125,10 +137,12 @@ export function DetailReceiptResponseFromJSONTyped(json: any, ignoreDiscriminato
         'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
         'discount': json['discount'] == null ? undefined : json['discount'],
         'paymentAmount': json['paymentAmount'] == null ? undefined : json['paymentAmount'],
+        'supplierBankAccountId': json['supplierBankAccountId'] == null ? undefined : json['supplierBankAccountId'],
         'supplierBankAccountNumber': json['supplierBankAccountNumber'] == null ? undefined : json['supplierBankAccountNumber'],
         'supplierBankAccountName': json['supplierBankAccountName'] == null ? undefined : json['supplierBankAccountName'],
         'supplierBankName': json['supplierBankName'] == null ? undefined : json['supplierBankName'],
         'status': json['status'] == null ? undefined : json['status'],
+        'note': json['note'] == null ? undefined : json['note'],
         'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(DetailReceiptItemFromJSON)),
     };
 }
@@ -151,10 +165,12 @@ export function DetailReceiptResponseToJSONTyped(value?: DetailReceiptResponse |
         'paymentMethod': value['paymentMethod'],
         'discount': value['discount'],
         'paymentAmount': value['paymentAmount'],
+        'supplierBankAccountId': value['supplierBankAccountId'],
         'supplierBankAccountNumber': value['supplierBankAccountNumber'],
         'supplierBankAccountName': value['supplierBankAccountName'],
         'supplierBankName': value['supplierBankName'],
         'status': value['status'],
+        'note': value['note'],
         'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(DetailReceiptItemToJSON)),
     };
 }

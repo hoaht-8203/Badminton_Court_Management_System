@@ -103,6 +103,17 @@ namespace FaceRecognation
                     CookieContainer = sp.GetRequiredService<CookieContainer>(),
                 });
 
+            // Attendance client (calls ApiApplication attendance endpoints)
+            services
+                .AddHttpClient<Services.Interfaces.IAttendanceClient, Services.AttendanceClient>(client =>
+                {
+                    client.BaseAddress = new Uri(apiBaseUrl);
+                })
+                .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
+                {
+                    CookieContainer = sp.GetRequiredService<CookieContainer>(),
+                });
+
             // Register staff client
             services
                 .AddHttpClient<Services.Interfaces.IStaffService, Services.StaffService>(client =>
@@ -118,6 +129,7 @@ namespace FaceRecognation
             services.AddTransient<LoginWindow>();
             services.AddTransient<FaceRegisterWindow>();
             services.AddTransient<MainWindow>();
+            services.AddTransient<AttendanceWindow>();
             services.AddTransient<StaffSelectWindow>();
             services.AddTransient<LandingWindow>();
 

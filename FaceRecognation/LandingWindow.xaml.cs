@@ -75,9 +75,10 @@ namespace FaceRecognation
                 {
                     if (string.Equals(action, "time", System.StringComparison.OrdinalIgnoreCase))
                     {
-                        var main = sp.GetRequiredService<MainWindow>();
+                        // Open AttendanceWindow (face-based timekeeping)
+                        var attendance = sp.GetRequiredService<AttendanceWindow>();
                         var appObj = Application.Current as App;
-                        appObj?.ShowWindowAndCloseOthers(main);
+                        appObj?.ShowWindowAndCloseOthers(attendance);
                     }
                     else if (
                         string.Equals(action, "admin", System.StringComparison.OrdinalIgnoreCase)

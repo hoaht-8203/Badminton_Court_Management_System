@@ -2,11 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using Microsoft.Win32;
 using FaceRecognation.Dtos;
 using FaceRecognation.Services.Interfaces;
-using System.Windows.Input;
+using Microsoft.Win32;
 
 namespace FaceRecognation
 {
@@ -24,7 +24,8 @@ namespace FaceRecognation
         }
 
         // DI constructor (used when resolving from ServiceProvider)
-        public FaceRegisterWindow(ICompreFaceService compreFaceService) : this()
+        public FaceRegisterWindow(ICompreFaceService compreFaceService)
+            : this()
         {
             _compreFaceService = compreFaceService;
         }
@@ -61,7 +62,12 @@ namespace FaceRecognation
         {
             if (currentFaceIndex > 4)
             {
-                MessageBox.Show("Bạn đã đăng ký đủ 5 ảnh.", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    "Bạn đã đăng ký đủ 5 ảnh.",
+                    "Thông báo",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
                 return;
             }
 
@@ -85,7 +91,8 @@ namespace FaceRecognation
                 // If we've already filled all slots, replace the last one
                 var idx = currentFaceIndex > 4 ? 4 : currentFaceIndex;
                 SetImageForIndex(idx, dialog.FileName);
-                if (currentFaceIndex <= 4) currentFaceIndex = Math.Min(4, currentFaceIndex + 1);
+                if (currentFaceIndex <= 4)
+                    currentFaceIndex = Math.Min(4, currentFaceIndex + 1);
                 UpdateActionButtons();
             }
         }
@@ -102,11 +109,21 @@ namespace FaceRecognation
 
                 switch (idx)
                 {
-                    case 0: FaceImage1.Source = bitmap; break;
-                    case 1: FaceImage2.Source = bitmap; break;
-                    case 2: FaceImage3.Source = bitmap; break;
-                    case 3: FaceImage4.Source = bitmap; break;
-                    case 4: FaceImage5.Source = bitmap; break;
+                    case 0:
+                        FaceImage1.Source = bitmap;
+                        break;
+                    case 1:
+                        FaceImage2.Source = bitmap;
+                        break;
+                    case 2:
+                        FaceImage3.Source = bitmap;
+                        break;
+                    case 3:
+                        FaceImage4.Source = bitmap;
+                        break;
+                    case 4:
+                        FaceImage5.Source = bitmap;
+                        break;
                 }
 
                 // store path so we can upload bytes later
@@ -115,14 +132,24 @@ namespace FaceRecognation
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Không thể đọc file ảnh: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    "Không thể đọc file ảnh: " + ex.Message,
+                    "Lỗi",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
 
         private void UpdateActionButtons()
         {
             // If all five images are present, hide capture/select and show Complete
-            bool allPresent = FaceImage1.Source != null && FaceImage2.Source != null && FaceImage3.Source != null && FaceImage4.Source != null && FaceImage5.Source != null;
+            bool allPresent =
+                FaceImage1.Source != null
+                && FaceImage2.Source != null
+                && FaceImage3.Source != null
+                && FaceImage4.Source != null
+                && FaceImage5.Source != null;
             CaptureButton.Visibility = allPresent ? Visibility.Collapsed : Visibility.Visible;
             SelectButton.Visibility = allPresent ? Visibility.Collapsed : Visibility.Visible;
             CompleteButton.Visibility = allPresent ? Visibility.Visible : Visibility.Collapsed;
@@ -135,19 +162,34 @@ namespace FaceRecognation
             bool allPresent = _imagePaths.All(p => !string.IsNullOrEmpty(p));
             if (!allPresent)
             {
-                MessageBox.Show("Vui lòng chọn đủ 5 ảnh khuôn mặt trước khi hoàn tất.", "Thiếu ảnh", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "Vui lòng chọn đủ 5 ảnh khuôn mặt trước khi hoàn tất.",
+                    "Thiếu ảnh",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 return;
             }
 
             if (_staff == null)
             {
-                MessageBox.Show("Không xác định nhân viên.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    "Không xác định nhân viên.",
+                    "Lỗi",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
                 return;
             }
 
             if (_compreFaceService == null)
             {
-                MessageBox.Show("Dịch vụ CompreFace không sẵn có.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    "Dịch vụ CompreFace không sẵn có.",
+                    "Lỗi",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
                 return;
             }
 
@@ -159,21 +201,32 @@ namespace FaceRecognation
                 var createResp = await _compreFaceService.CreateSubjectAsync(subjectName);
 
                 // Upload each image
-                //for (int i = 0; i < _imagePaths.Length; i++)
-                //{
-                //    var path = _imagePaths[i];
-                //    if (string.IsNullOrEmpty(path) || !File.Exists(path)) continue;
-                //    var bytes = await File.ReadAllBytesAsync(path);
-                //    await _compreFaceService.AddFaceToSubjectAsync(subjectName, bytes);
-                //}
+                for (int i = 0; i < _imagePaths.Length; i++)
+                {
+                    var path = _imagePaths[i];
+                    if (string.IsNullOrEmpty(path) || !File.Exists(path))
+                        continue;
+                    var bytes = await File.ReadAllBytesAsync(path);
+                    await _compreFaceService.AddFaceToSubjectAsync(subjectName, bytes);
+                }
 
-                MessageBox.Show("Đăng ký khuôn mặt thành công!", "Hoàn tất", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(
+                    "Đăng ký khuôn mặt thành công!",
+                    "Hoàn tất",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
                 this.DialogResult = true;
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Lỗi khi đăng ký với CompreFace: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    $"Lỗi khi đăng ký với CompreFace: {ex.Message}",
+                    "Lỗi",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
     }

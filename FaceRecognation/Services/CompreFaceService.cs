@@ -39,8 +39,14 @@ namespace FaceRecognation.Services
 
             // Use the same endpoint MainWindow used
             var response = await _httpClient.PostAsync("/api/v1/recognition/recognize", content);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            var body = await response.Content.ReadAsStringAsync();
+            if (response.IsSuccessStatusCode)
+            {
+                return body;
+            }
+
+            // Provide the response body for easier debugging (CompreFace returns JSON errors)
+            throw new HttpRequestException($"CompreFace Recognize failed ({(int)response.StatusCode}) {body}");
         }
 
         public async Task<bool> VerifySubjectAsync(
@@ -123,7 +129,10 @@ namespace FaceRecognation.Services
 
             // Fallback: try alternate endpoint used by some CompreFace versions
             var altContent = new StringContent(payload, Encoding.UTF8, "application/json");
-            var altResponse = await _httpClient.PostAsync("/api/v1/recognition/subjects", altContent);
+            var altResponse = await _httpClient.PostAsync(
+                "/api/v1/recognition/subjects",
+                altContent
+            );
             var altBody = await altResponse.Content.ReadAsStringAsync();
             if (altResponse.IsSuccessStatusCode)
             {
@@ -131,7 +140,9 @@ namespace FaceRecognation.Services
             }
 
             // Both attempts failed, throw with both bodies for debugging
-            throw new HttpRequestException($"CompreFace CreateSubject failed (/api/v1/subject: {(int)response.StatusCode}) {body} ; (/api/v1/recognition/subjects: {(int)altResponse.StatusCode}) {altBody}");
+            throw new HttpRequestException(
+                $"CompreFace CreateSubject failed (/api/v1/subject: {(int)response.StatusCode}) {body} ; (/api/v1/recognition/subjects: {(int)altResponse.StatusCode}) {altBody}"
+            );
         }
 
         public async Task<string> DeleteSubjectAsync(string subjectName)
@@ -144,26 +155,76 @@ namespace FaceRecognation.Services
 
         public async Task<string> AddFaceToSubjectAsync(string subjectName, byte[] imageBytes)
         {
-            using var content = new MultipartFormDataContent();
-            var imageContent = new ByteArrayContent(imageBytes);
-            imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
-            content.Add(imageContent, "file", "face.jpg");
-            var response = await _httpClient.PostAsync($"/api/v1/subject/{Uri.EscapeDataString(subjectName)}/face", content);
-            var body = await response.Content.ReadAsStringAsync();
-            if (response.IsSuccessStatusCode)
+            // Try the endpoint used by your Postman screenshot first:
+            // POST /api/v1/recognition/faces?subject={subject}
+            // Form-data: file (binary)
+
+            async Task<(bool ok, HttpResponseMessage resp, string body)> TryPost(
+                string url,
+                string fieldName
+            )
             {
-                return body;
+                using var multipart = new MultipartFormDataContent();
+                var imageContent = new ByteArrayContent(imageBytes);
+                imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
+                multipart.Add(imageContent, fieldName, "face.jpg");
+                var resp = await _httpClient.PostAsync(url, multipart);
+                var body = await resp.Content.ReadAsStringAsync();
+                return (resp.IsSuccessStatusCode, resp, body);
             }
 
-            // Fallback: alternate endpoint path
-            var altResponse = await _httpClient.PostAsync($"/api/v1/recognition/subjects/{Uri.EscapeDataString(subjectName)}/faces", content);
-            var altBody = await altResponse.Content.ReadAsStringAsync();
-            if (altResponse.IsSuccessStatusCode)
+            var attempted = new System.Collections.Generic.List<string>();
+            var escaped = Uri.EscapeDataString(subjectName);
+
+            var candidates = new System.Collections.Generic.List<string>
             {
-                return altBody;
+                $"/api/v1/recognition/faces?subject={escaped}",
+                $"/api/v1/subject/{escaped}/face",
+                $"/api/v1/recognition/subjects/{escaped}/faces",
+            };
+
+            // If the server returns a numeric id for the subject, try id-based endpoint first
+            try
+            {
+                var subjJson = await GetSubjectAsync(subjectName);
+                if (!string.IsNullOrWhiteSpace(subjJson))
+                {
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(subjJson);
+                        if (
+                            doc.RootElement.TryGetProperty("id", out var idProp)
+                            && idProp.ValueKind == JsonValueKind.Number
+                        )
+                        {
+                            var idStr = idProp.GetRawText();
+                            // prefer id-based subject endpoint
+                            candidates.Insert(0, $"/api/v1/subject/{idStr}/face");
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+
+            string[] fieldNames = new[] { "file", "image" };
+            var errors = new System.Text.StringBuilder();
+
+            foreach (var url in candidates)
+            {
+                foreach (var field in fieldNames)
+                {
+                    attempted.Add(url + " [" + field + "]");
+                    var (ok, resp, body) = await TryPost(url, field);
+                    if (ok)
+                        return body;
+                    errors.AppendLine($"{url} field={field} -> {(int)resp.StatusCode}: {body}");
+                }
             }
 
-            throw new HttpRequestException($"CompreFace AddFace failed (/api/v1/subject/.../face: {(int)response.StatusCode}) {body} ; (/api/v1/recognition/subjects/.../faces: {(int)altResponse.StatusCode}) {altBody}");
+            throw new HttpRequestException(
+                $"CompreFace AddFace failed. Attempts: {string.Join(", ", attempted)}\nDetails:\n{errors}"
+            );
         }
 
         public async Task<string> GetSubjectAsync(string subjectName)

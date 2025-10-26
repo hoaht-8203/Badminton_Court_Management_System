@@ -188,8 +188,10 @@ namespace FaceRecognation
                         try
                         {
                             var mi = faceWnd.GetType().GetMethod("InitForStaff");
-                            if (mi != null) mi.Invoke(faceWnd, new object[] { s });
-                            else faceWnd.Title = $"Thêm dữ liệu khuôn mặt cho {s.FullName}";
+                            if (mi != null)
+                                mi.Invoke(faceWnd, new object[] { s });
+                            else
+                                faceWnd.Title = $"Thêm dữ liệu khuôn mặt cho {s.FullName}";
                         }
                         catch
                         {
@@ -203,8 +205,10 @@ namespace FaceRecognation
                         try
                         {
                             var mi = faceWnd.GetType().GetMethod("InitForStaff");
-                            if (mi != null) mi.Invoke(faceWnd, new object[] { s });
-                            else faceWnd.Title = $"Thêm dữ liệu khuôn mặt cho {s.FullName}";
+                            if (mi != null)
+                                mi.Invoke(faceWnd, new object[] { s });
+                            else
+                                faceWnd.Title = $"Thêm dữ liệu khuôn mặt cho {s.FullName}";
                         }
                         catch
                         {

@@ -150,15 +150,29 @@ builder
     })
     .AddJwtBearer(options =>
     {
-        var jwtOptions = builder
-            .Configuration.GetSection(JwtOptions.JwtOptionsKey)
-            .Get<JwtOptions>();
-        if (jwtOptions == null)
+        // Try to get JwtOptions from configuration with fallback values
+        var jwtOptions = new JwtOptions
         {
-            throw new ArgumentException(
-                $"JwtOptions configuration not found. Please check appsettings.json for '{JwtOptions.JwtOptionsKey}' section."
-            );
-        }
+            Secret =
+                builder.Configuration["JwtOptions:Secret"]
+                ?? Environment.GetEnvironmentVariable("JWT_SECRET")
+                ?? "871ad85acb1a0faf58dfd9499624dc699e03f9bc",
+            Issuer =
+                builder.Configuration["JwtOptions:Issuer"]
+                ?? Environment.GetEnvironmentVariable("JWT_ISSUER")
+                ?? "https://caulong365-api.azurewebsites.net/",
+            Audience =
+                builder.Configuration["JwtOptions:Audience"]
+                ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+                ?? "https://caulong365-api.azurewebsites.net/",
+            ExpirationTimeInMinutes = int.TryParse(
+                builder.Configuration["JwtOptions:ExpirationTimeInMinutes"]
+                    ?? Environment.GetEnvironmentVariable("JWT_EXPIRATION_MINUTES"),
+                out var exp
+            )
+                ? exp
+                : 15,
+        };
 
         options.TokenValidationParameters = new TokenValidationParameters
         {

@@ -263,6 +263,8 @@ export * from './ListStockOutResponseListApiResponse';
 export * from './ListSupplierRequest';
 export * from './ListSupplierResponse';
 export * from './ListSupplierResponseListApiResponse';
+export * from './ListUserBookingHistoryResponse';
+export * from './ListUserBookingHistoryResponseListApiResponse';
 export * from './ListUserRoleItemResponse';
 export * from './ListUserRoleItemResponseListApiResponse';
 export * from './ListUserRolesRequest';

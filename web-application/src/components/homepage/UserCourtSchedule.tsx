@@ -502,9 +502,9 @@ const UserCourtScheduler = ({ courts }: UserCourtSchedulerProps) => {
             eventHeight={70}
           />
         </div>
-
-        <UserCreateBookingModal open={open} onClose={handleModalClose} newBooking={newBooking} isBookingInPast={isBookingInPast} />
       </div>
+
+      <UserCreateBookingModal open={open} onClose={handleModalClose} newBooking={newBooking} isBookingInPast={isBookingInPast} />
     </>
   );
 };

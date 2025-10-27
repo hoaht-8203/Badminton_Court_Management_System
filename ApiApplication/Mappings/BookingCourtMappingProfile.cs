@@ -57,6 +57,29 @@ public class BookingCourtMappingProfile : Profile
                 opt => opt.MapFrom(s => s.Payments.Where(p => p.BookingCourtOccurrenceId == null))
             );
 
+        CreateMap<BookingCourt, ListUserBookingHistoryResponse>()
+            .ForMember(
+                d => d.TotalHours,
+                opt =>
+                    opt.MapFrom(s =>
+                        (decimal)(s.EndTime.ToTimeSpan() - s.StartTime.ToTimeSpan()).TotalHours
+                    )
+            )
+            .ForMember(d => d.CourtName, opt => opt.MapFrom(s => s.Court!.Name))
+            .ForMember(d => d.CustomerName, opt => opt.MapFrom(s => s.Customer!.FullName))
+            .ForMember(d => d.Customer, opt => opt.MapFrom(s => s.Customer))
+            .ForMember(
+                d => d.Payments,
+                opt => opt.MapFrom(s => s.Payments.Where(p => p.BookingCourtOccurrenceId == null))
+            )
+            .ForMember(
+                d => d.BookingCourtOccurrences,
+                opt => opt.MapFrom(s => s.BookingCourtOccurrences)
+            )
+            .ForMember(d => d.TotalAmount, opt => opt.Ignore())
+            .ForMember(d => d.PaidAmount, opt => opt.Ignore())
+            .ForMember(d => d.RemainingAmount, opt => opt.Ignore());
+
         CreateMap<CreateBookingCourtRequest, BookingCourt>()
             .ForMember(d => d.Id, opt => opt.MapFrom(_ => Guid.NewGuid()));
 

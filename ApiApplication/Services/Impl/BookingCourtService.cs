@@ -11,6 +11,7 @@ using ApiApplication.Exceptions;
 using ApiApplication.Services;
 using ApiApplication.SignalR;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,7 +23,9 @@ public class BookingCourtService(
     IPaymentService paymentService,
     IConfiguration configuration,
     IHubContext<BookingHub> hub,
-    INotificationService notificationService
+    INotificationService notificationService,
+    IHttpContextAccessor httpContextAccessor,
+    UserManager<ApplicationUser> userManager
 ) : IBookingCourtService
 {
     private readonly ApplicationDbContext _context = context;
@@ -31,6 +34,8 @@ public class BookingCourtService(
     private readonly IConfiguration _configuration = configuration;
     private readonly IHubContext<BookingHub> _hub = hub;
     private readonly INotificationService _notificationService = notificationService;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
 
     public async Task<DetailBookingCourtResponse> CreateBookingCourtAsync(
         CreateBookingCourtRequest request
@@ -696,6 +701,73 @@ public class BookingCourtService(
             .Include(x => x.Payments)
             .ToListAsync();
         return _mapper.Map<List<ListBookingCourtResponse>>(items);
+    }
+
+    public async Task<List<ListUserBookingHistoryResponse>> GetUserBookingHistoryAsync()
+    {
+        // Get current user from HttpContext (similar to GetMyProfileAsync)
+        var principal = _httpContextAccessor.HttpContext?.User;
+        if (principal?.Identity == null || !principal.Identity.IsAuthenticated)
+        {
+            throw new ApiException("Không được phép truy cập", HttpStatusCode.Unauthorized);
+        }
+
+        var user =
+            await _userManager.GetUserAsync(principal)
+            ?? throw new ApiException("Không tìm thấy tài khoản", HttpStatusCode.Unauthorized);
+
+        // Find user's associated customer
+        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == user.Id);
+        if (customer == null)
+        {
+            return new List<ListUserBookingHistoryResponse>();
+        }
+
+        var query = _context
+            .BookingCourts.Include(x => x.Court)
+            .Include(x => x.Customer)
+            .Include(x => x.BookingCourtOccurrences)
+            .Where(x => x.CustomerId == customer.Id)
+            .AsQueryable();
+
+        var items = await query
+            .OrderByDescending(x => x.StartDate)
+            .ThenByDescending(x => x.CreatedAt)
+            .Include(x => x.Customer)
+            .Include(x => x.Payments)
+            .ToListAsync();
+
+        var result = new List<ListUserBookingHistoryResponse>();
+
+        foreach (var booking in items)
+        {
+            var dto = _mapper.Map<ListUserBookingHistoryResponse>(booking);
+
+            // Calculate total amount from all occurrences
+            var totalAmount = 0m;
+            foreach (var occurrence in booking.BookingCourtOccurrences)
+            {
+                var occurrenceAmount = await CalculateBookingAmountForOccurrenceAsync(occurrence);
+                totalAmount += occurrenceAmount;
+            }
+
+            // Calculate paid amount from all payments
+            var paidAmount = booking
+                .Payments.Where(p => p.Status == PaymentStatus.Paid)
+                .Sum(p => p.Amount);
+
+            // Calculate remaining amount
+            var remainingAmount = Math.Max(0, totalAmount - paidAmount);
+
+            // Add calculated amounts to DTO
+            dto.TotalAmount = Math.Ceiling(totalAmount);
+            dto.PaidAmount = Math.Ceiling(paidAmount);
+            dto.RemainingAmount = Math.Ceiling(remainingAmount);
+
+            result.Add(dto);
+        }
+
+        return result;
     }
 
     public async Task<List<ListBookingCourtOccurrenceResponse>> ListBookingCourtOccurrencesAsync(
@@ -1401,11 +1473,6 @@ public class BookingCourtService(
                 PricePerHour = r.PricePerHour,
             })
             .ToList();
-    }
-
-    private CourtPriceRule? GetApplicablePriceForTime(List<CourtPriceRule> pricing, TimeOnly time)
-    {
-        return pricing.FirstOrDefault(p => time >= p.StartTime && time < p.EndTime);
     }
 
     private async Task CreateBookingCourtOccurrencesAsync(

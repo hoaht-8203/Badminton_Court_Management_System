@@ -201,6 +201,20 @@ public class BookingCourtsController(
         );
     }
 
+    [HttpGet("user/history")]
+    public async Task<
+        ActionResult<ApiResponse<List<ListUserBookingHistoryResponse>>>
+    > GetUserBookingHistory()
+    {
+        var result = await _service.GetUserBookingHistoryAsync();
+        return Ok(
+            ApiResponse<List<ListUserBookingHistoryResponse>>.SuccessResponse(
+                result,
+                "Lấy lịch sử đặt sân thành công"
+            )
+        );
+    }
+
     [AllowAnonymous]
     [HttpGet("occurrences")]
     public async Task<

@@ -10,6 +10,7 @@ import {
   ListBookingCourtOccurrenceResponse,
   ListBookingCourtRequest,
   ListBookingCourtResponse,
+  ListUserBookingHistoryResponse,
   NoShowBookingCourtRequest,
   UserCreateBookingCourtRequest,
 } from "@/types-openapi/api";
@@ -65,5 +66,10 @@ export const courtScheduleService = {
   async noShowBookingOccurrence(payload: NoShowBookingCourtRequest): Promise<ApiResponse<boolean>> {
     const response = await axiosInstance.post("api/BookingCourts/noshow", payload);
     return response.data;
+  },
+
+  async getUserBookingHistory(): Promise<ApiResponse<ListUserBookingHistoryResponse[]>> {
+    const res = await axiosInstance.get<ApiResponse<ListUserBookingHistoryResponse[]>>("/api/BookingCourts/user/history");
+    return res.data;
   },
 };

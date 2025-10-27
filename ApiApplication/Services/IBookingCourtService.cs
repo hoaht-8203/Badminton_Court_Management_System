@@ -9,6 +9,7 @@ public interface IBookingCourtService
         UserCreateBookingCourtRequest request
     );
     Task<List<ListBookingCourtResponse>> ListBookingCourtsAsync(ListBookingCourtRequest request);
+    Task<List<ListUserBookingHistoryResponse>> GetUserBookingHistoryAsync();
     Task<List<ListBookingCourtOccurrenceResponse>> ListBookingCourtOccurrencesAsync(
         ListBookingCourtOccurrenceRequest request
     );

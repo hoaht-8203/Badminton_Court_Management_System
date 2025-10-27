@@ -299,6 +299,8 @@ models/ListStockOutResponseListApiResponse.ts
 models/ListSupplierRequest.ts
 models/ListSupplierResponse.ts
 models/ListSupplierResponseListApiResponse.ts
+models/ListUserBookingHistoryResponse.ts
+models/ListUserBookingHistoryResponseListApiResponse.ts
 models/ListUserRoleItemResponse.ts
 models/ListUserRoleItemResponseListApiResponse.ts
 models/ListUserRolesRequest.ts

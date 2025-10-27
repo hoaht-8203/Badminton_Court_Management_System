@@ -26,6 +26,7 @@ import type {
   DetailBookingCourtResponseApiResponse,
   ListBookingCourtOccurrenceResponseListApiResponse,
   ListBookingCourtResponseListApiResponse,
+  ListUserBookingHistoryResponseListApiResponse,
   NoShowBookingCourtRequest,
   UpdateOrderItemRequest,
   UserCreateBookingCourtRequest,
@@ -53,6 +54,8 @@ import {
     ListBookingCourtOccurrenceResponseListApiResponseToJSON,
     ListBookingCourtResponseListApiResponseFromJSON,
     ListBookingCourtResponseListApiResponseToJSON,
+    ListUserBookingHistoryResponseListApiResponseFromJSON,
+    ListUserBookingHistoryResponseListApiResponseToJSON,
     NoShowBookingCourtRequestFromJSON,
     NoShowBookingCourtRequestToJSON,
     UpdateOrderItemRequestFromJSON,
@@ -302,6 +305,18 @@ export interface BookingCourtsApiInterface {
     /**
      */
     apiBookingCourtsUserCreatePost(requestParameters: ApiBookingCourtsUserCreatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailBookingCourtResponseApiResponse>;
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BookingCourtsApiInterface
+     */
+    apiBookingCourtsUserHistoryGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListUserBookingHistoryResponseListApiResponse>>;
+
+    /**
+     */
+    apiBookingCourtsUserHistoryGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListUserBookingHistoryResponseListApiResponse>;
 
 }
 
@@ -744,6 +759,33 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
      */
     async apiBookingCourtsUserCreatePost(requestParameters: ApiBookingCourtsUserCreatePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailBookingCourtResponseApiResponse> {
         const response = await this.apiBookingCourtsUserCreatePostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiBookingCourtsUserHistoryGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListUserBookingHistoryResponseListApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/BookingCourts/user/history`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListUserBookingHistoryResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiBookingCourtsUserHistoryGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListUserBookingHistoryResponseListApiResponse> {
+        const response = await this.apiBookingCourtsUserHistoryGetRaw(initOverrides);
         return await response.value();
     }
 

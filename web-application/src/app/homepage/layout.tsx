@@ -4,7 +4,7 @@ import React from "react";
 
 import { useAuth } from "@/context/AuthContext";
 import { CurrentUserResponse } from "@/types-openapi/api";
-import { LoginOutlined, LogoutOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
+import { HistoryOutlined, LoginOutlined, LogoutOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Avatar, Button, Dropdown, Layout } from "antd";
 import { Content } from "antd/es/layout/layout";
@@ -44,7 +44,7 @@ const userMenuItems = (user: CurrentUserResponse, router: AppRouterInstance, log
         },
       },
       {
-        key: "4",
+        key: "5",
         label: "Đăng xuất",
         icon: <LogoutOutlined />,
         onClick: () => {
@@ -68,7 +68,7 @@ const userMenuItems = (user: CurrentUserResponse, router: AppRouterInstance, log
       label: "Thông tin cá nhân",
       icon: <UserOutlined />,
       onClick: () => {
-        router.push("/quanlysancaulong/users/profile");
+        router.push("/homepage/profile");
       },
     },
     {

@@ -24,16 +24,16 @@ public class AutoCheckoutHostedService(
             {
                 using var scope = _sp.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                var now = DateTime.UtcNow;
+                var now = DateTime.Now;
                 var today = DateOnly.FromDateTime(now);
                 var nowTime = TimeOnly.FromDateTime(now);
 
-                // Handle today's occurrences
-                // Overdue and never checked in (still Active due to deposit) but time window fully passed -> mark NoShow
-                // Do NOT auto-complete CheckedIn occurrences; checkout must be manual
-                var overdueActiveToNoShow = await db
+                var overdueToNoShow = await db
                     .BookingCourtOccurrences.Where(o =>
-                        o.Status == BookingCourtOccurrenceStatus.Active
+                        (
+                            o.Status == BookingCourtOccurrenceStatus.Active
+                            || o.Status == BookingCourtOccurrenceStatus.PendingPayment
+                        )
                         && o.Date == today
                         && o.EndTime < nowTime
                     )
@@ -44,10 +44,21 @@ public class AutoCheckoutHostedService(
                 var updatedBookingIds = new List<Guid>();
                 var updatedOccurrenceIds = new List<Guid>();
 
-                foreach (var occurrence in overdueActiveToNoShow)
+                foreach (var occurrence in overdueToNoShow)
                 {
+                    var oldStatus = occurrence.Status;
                     occurrence.Status = BookingCourtOccurrenceStatus.NoShow;
                     noShowCount++;
+
+                    _logger.LogInformation(
+                        "Auto NoShow: Occurrence {OccurrenceId} (Booking {BookingId}) - {Date} {StartTime}-{EndTime} changed from {OldStatus} to NoShow",
+                        occurrence.Id,
+                        occurrence.BookingCourtId,
+                        occurrence.Date,
+                        occurrence.StartTime,
+                        occurrence.EndTime,
+                        oldStatus
+                    );
 
                     // Free up court on no-show
                     var court = await db.Courts.FirstOrDefaultAsync(
@@ -55,19 +66,23 @@ public class AutoCheckoutHostedService(
                         stoppingToken
                     );
                     if (court != null)
+                    {
                         court.Status = CourtStatus.Active;
+                        _logger.LogInformation("Court {CourtId} released due to NoShow", court.Id);
+                    }
 
                     updatedBookingIds.Add(occurrence.BookingCourtId);
                     updatedOccurrenceIds.Add(occurrence.Id);
                 }
 
-                if (overdueActiveToNoShow.Count > 0)
+                if (overdueToNoShow.Count > 0)
                 {
                     await db.SaveChangesAsync(stoppingToken);
                     _logger.LogInformation(
-                        "AutoCheckout: Completed={CompletedCount}, NoShow={NoShowCount}",
-                        0,
-                        noShowCount
+                        "AutoCheckout Summary: Processed {TotalCount} overdue occurrences, marked {NoShowCount} as NoShow, released {CourtCount} courts",
+                        overdueToNoShow.Count,
+                        noShowCount,
+                        overdueToNoShow.Count
                     );
 
                     // Realtime notify UI for each updated booking and occurrence
@@ -101,7 +116,13 @@ public class AutoCheckoutHostedService(
                         }
                     }
                 }
-                // else: nothing to do this tick
+                else
+                {
+                    _logger.LogDebug(
+                        "AutoCheckout: No overdue occurrences found at {CurrentTime}",
+                        now
+                    );
+                }
             }
             catch (Exception ex)
             {

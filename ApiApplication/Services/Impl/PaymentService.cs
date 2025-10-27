@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ApiApplication.Data;
 using ApiApplication.Dtos.Payment;
 using ApiApplication.Entities;
@@ -5,6 +6,8 @@ using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
 using ApiApplication.SignalR;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,12 +16,16 @@ namespace ApiApplication.Services.Impl;
 public class PaymentService(
     ApplicationDbContext context,
     IMapper mapper,
-    IHubContext<BookingHub> hub
+    IHubContext<BookingHub> hub,
+    IHttpContextAccessor httpContextAccessor,
+    UserManager<ApplicationUser> userManager
 ) : IPaymentService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
     private readonly IHubContext<BookingHub> _hub = hub;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
 
     public async Task<DetailPaymentResponse> CreatePaymentAsync(CreatePaymentRequest request)
     {

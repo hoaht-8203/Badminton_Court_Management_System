@@ -26,8 +26,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleUnauthorized = React.useCallback(() => {
     setUser(null);
-    if (typeof window !== "undefined" && !window.location.href.includes("/quanlysancaulong/login")) {
-      router.push("/quanlysancaulong/login");
+    if (typeof window !== "undefined" && !window.location.href.includes("/quanlysancaulong/login") && !window.location.href.includes("/homepage")) {
+      router.push("/homepage");
     }
   }, [router]);
 
@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await authService.logout();
     } catch {}
     setUser(null);
-    router.push("/quanlysancaulong/login");
+    router.push("/homepage");
   }, [router]);
 
   const hasRole = React.useCallback(

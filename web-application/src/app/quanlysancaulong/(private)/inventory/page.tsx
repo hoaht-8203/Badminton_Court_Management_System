@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { Breadcrumb, Button, Table, Space, Tag, Card, Form, Input, DatePicker, Modal, Row, Col, Checkbox, Spin, message } from "antd";
-import { PlusOutlined, ReloadOutlined, SearchOutlined, CalendarOutlined, FileTextOutlined, CloseOutlined } from "@ant-design/icons";
+import { Breadcrumb, Button, Table, Space, Tag, Card, Form, Input, DatePicker, Modal, Row, Col, Checkbox, Spin, message, Tabs } from "antd";
+import { PlusOutlined, ReloadOutlined, SearchOutlined, CalendarOutlined, FileTextOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import type { ColumnsType, TableProps } from "antd/es/table";
 import type { InventoryCheck, InventoryCheckStatus, InventoryCheckItemResponse } from "@/types-openapi/api";
 import { useListInventoryChecks, useDeleteInventoryCheck, useDetailInventoryCheck, useMergeInventoryChecks } from "@/hooks/useInventory";
 import CreateEditInventoryDrawer from "@/components/quanlysancaulong/inventory/create-edit-inventory-drawer";
-
 
 // Inventory status mapping
 const statusColors = {
@@ -53,6 +52,8 @@ const InventoryManagementPage = () => {
   const { data, isLoading, refetch } = useListInventoryChecks({});
   const mergeMutation = useMergeInventoryChecks();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [productMatchIds, setProductMatchIds] = useState<Set<number> | null>(null);
+  const [debouncedProductQuery, setDebouncedProductQuery] = useState<string>("");
 
   // Auto refresh every 5 seconds
   useEffect(() => {
@@ -82,9 +83,9 @@ const InventoryManagementPage = () => {
         ids.map(async (id) => {
           const response = await (await import("@/services/inventoryService")).inventoryService.detail(id);
           return response.data;
-        })
+        }),
       );
-      
+
       // Combine all items from selected checks
       const allItems: any[] = [];
       details.forEach((check, index) => {
@@ -93,12 +94,12 @@ const InventoryManagementPage = () => {
             allItems.push({
               ...item,
               checkCode: check.code,
-              checkIndex: index + 1
+              checkIndex: index + 1,
             });
           });
         }
       });
-      
+
       setMergeData(allItems);
       setMergeModalOpen(true);
     } catch {
@@ -128,8 +129,7 @@ const InventoryManagementPage = () => {
 
     return listData.filter((x) => {
       const okCode = !code || (x.code || "").toLowerCase().includes(code);
-      // productQuery placeholder: if inventory item details are not present, ignore this filter
-      const okProduct = !productQuery || false;
+      const okProduct = !productQuery || (productMatchIds?.has((x.id as number) || -1) ?? false);
       const okStatus = !statuses || statuses.has((x.status as number) ?? -1);
 
       if (!range) return okCode && okProduct && okStatus;
@@ -141,10 +141,89 @@ const InventoryManagementPage = () => {
 
       return okCode && okProduct && okStatus && okTime;
     });
-  }, [data?.data, searchValues, resolvedRange]);
+  }, [data?.data, searchValues, resolvedRange, productMatchIds]);
+
+  // Debounce productQuery
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedProductQuery((searchValues.productQuery || "").trim().toLowerCase()), 200);
+    return () => clearTimeout(t);
+  }, [searchValues.productQuery]);
+
+  // Build productMatchIds by fetching details and checking items
+  useEffect(() => {
+    const run = async () => {
+      const listData = data?.data ?? [];
+      const q = debouncedProductQuery;
+      if (!q) {
+        setProductMatchIds(null);
+        return;
+      }
+      try {
+        // Limit to current filtered by basic conditions (code/status/time) to reduce requests
+        const code = (searchValues.code || "").trim().toLowerCase();
+        const statuses = searchValues.statuses && searchValues.statuses.length > 0 ? new Set(searchValues.statuses) : undefined;
+        const range = resolvedRange;
+        const prelim = listData.filter((x) => {
+          const okCode = !code || (x.code || "").toLowerCase().includes(code);
+          const okStatus = !statuses || statuses.has((x.status as number) ?? -1);
+          const from = range?.[0]?.startOf("day");
+          const to = range?.[1]?.endOf("day");
+          const checkTime = x.checkTime ? dayjs(x.checkTime) : null;
+          const okTime = !checkTime || (checkTime.isAfter(from) && checkTime.isBefore(to));
+          return okCode && okStatus && okTime;
+        });
+
+        const svc = (await import("@/services/inventoryService")).inventoryService;
+        const chunks: any[][] = [];
+        const ids = prelim.map((p) => p.id as number).filter(Boolean);
+        const concurrency = 5;
+        for (let i = 0; i < ids.length; i += concurrency) chunks.push(ids.slice(i, i + concurrency));
+        const matched = new Set<number>();
+        for (const batch of chunks) {
+          const results = await Promise.all(
+            batch.map(async (id) => {
+              try {
+                const res = await svc.detail(id);
+                return { id, data: res.data };
+              } catch {
+                return { id, data: null };
+              }
+            }),
+          );
+          for (const r of results) {
+            const items = (r.data?.items || []) as any[];
+            if (
+              items.some(
+                (it) =>
+                  String(it.productCode || "")
+                    .toLowerCase()
+                    .includes(q) ||
+                  String(it.productName || "")
+                    .toLowerCase()
+                    .includes(q),
+              )
+            ) {
+              matched.add(r.id);
+            }
+          }
+        }
+        setProductMatchIds(matched);
+      } catch {
+        setProductMatchIds(new Set<number>());
+      }
+    };
+    run();
+  }, [debouncedProductQuery, data?.data, resolvedRange, searchValues.code, searchValues.statuses]);
 
   const columns: ColumnsType<
-    InventoryCheck & { totalDelta?: number; balancedAt?: Date; totalDeltaIncrease?: number; totalDeltaDecrease?: number; note?: string }
+    InventoryCheck & {
+      totalDelta?: number;
+      balancedAt?: Date;
+      totalDeltaIncrease?: number;
+      totalDeltaDecrease?: number;
+      note?: string;
+      isAutoGenerated?: boolean;
+    }
   > = [
     {
       title: "Mã kiểm kê",
@@ -219,7 +298,6 @@ const InventoryManagementPage = () => {
     });
   };
 
-
   return (
     <section>
       {contextHolder}
@@ -254,10 +332,10 @@ const InventoryManagementPage = () => {
             </Col>
             <Col span={6}>
               <Form.Item label="Trạng thái" name="statuses">
-                <Checkbox.Group 
+                <Checkbox.Group
                   style={{ width: "100%" }}
                   onChange={(values) => {
-                    setSearchValues(prev => ({ ...prev, statuses: values as number[] }));
+                    setSearchValues((prev) => ({ ...prev, statuses: values as number[] }));
                   }}
                 >
                   <Row gutter={[0, 8]}>
@@ -293,8 +371,11 @@ const InventoryManagementPage = () => {
           <Button
             disabled={selectedRowKeys.length < 2}
             onClick={() => {
-              const ids = filteredData.filter(x => selectedRowKeys.includes(x.id as any) && (x.status as any) === 0).map(x => x.id!);
-              if (ids.length < 2) { message.warning("Chỉ gộp được các phiếu tạm"); return; }
+              const ids = filteredData.filter((x) => selectedRowKeys.includes(x.id as any) && (x.status as any) === 0).map((x) => x.id!);
+              if (ids.length < 2) {
+                message.warning("Chỉ gộp được các phiếu tạm");
+                return;
+              }
               // Fetch details for selected checks
               fetchMergeData(ids);
             }}
@@ -324,16 +405,17 @@ const InventoryManagementPage = () => {
         />
       </div>
 
-      <CreateEditInventoryDrawer open={open} onClose={() => { setOpen(false); setEditingId(null); }} inventoryId={editingId ?? undefined} />
-      
+      <CreateEditInventoryDrawer
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          setEditingId(null);
+        }}
+        inventoryId={editingId ?? undefined}
+      />
+
       {/* Merge Confirmation Modal */}
-      <Modal
-        title="Gộp phiếu kiểm kho"
-        open={mergeModalOpen}
-        onCancel={() => setMergeModalOpen(false)}
-        width={800}
-        footer={null}
-      >
+      <Modal title="Gộp phiếu kiểm kho" open={mergeModalOpen} onCancel={() => setMergeModalOpen(false)} width={800} footer={null}>
         <div className="space-y-4">
           {/* Summary Table */}
           <Table
@@ -351,7 +433,7 @@ const InventoryManagementPage = () => {
               },
               {
                 title: "Tên hàng",
-                dataIndex: "productName", 
+                dataIndex: "productName",
                 key: "productName",
                 width: 200,
               },
@@ -365,7 +447,7 @@ const InventoryManagementPage = () => {
               {
                 title: "Thực tế",
                 dataIndex: "actualQuantity",
-                key: "actualQuantity", 
+                key: "actualQuantity",
                 width: 100,
                 align: "right",
               },
@@ -374,16 +456,16 @@ const InventoryManagementPage = () => {
                 key: "discrepancy",
                 width: 100,
                 align: "right",
-                render: (_, record) => (record.actualQuantity - record.systemQuantity),
+                render: (_, record) => record.actualQuantity - record.systemQuantity,
               },
             ]}
           />
-          
+
           {/* Summary Statistics */}
-          <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+          <div className="space-y-2 rounded-lg bg-gray-50 p-4">
             <div className="flex justify-between">
               <span className="font-medium">Số lượng lệch tăng:</span>
-              <span className="text-green-600 font-semibold">
+              <span className="font-semibold text-green-600">
                 {mergeData.reduce((sum, item) => {
                   const diff = item.actualQuantity - item.systemQuantity;
                   return sum + (diff > 0 ? diff : 0);
@@ -392,37 +474,33 @@ const InventoryManagementPage = () => {
             </div>
             <div className="flex justify-between">
               <span className="font-medium">Số lượng lệch giảm:</span>
-              <span className="text-red-600 font-semibold">
-                {Math.abs(mergeData.reduce((sum, item) => {
-                  const diff = item.actualQuantity - item.systemQuantity;
-                  return sum + (diff < 0 ? diff : 0);
-                }, 0))}
+              <span className="font-semibold text-red-600">
+                {Math.abs(
+                  mergeData.reduce((sum, item) => {
+                    const diff = item.actualQuantity - item.systemQuantity;
+                    return sum + (diff < 0 ? diff : 0);
+                  }, 0),
+                )}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="font-medium">Tổng thực tế:</span>
-              <span className="font-semibold">
-                {mergeData.reduce((sum, item) => sum + item.actualQuantity, 0)}
-              </span>
+              <span className="font-semibold">{mergeData.reduce((sum, item) => sum + item.actualQuantity, 0)}</span>
             </div>
             <div className="flex justify-between">
               <span className="font-medium">Tổng chênh lệch:</span>
-              <span className="font-semibold">
-                {mergeData.reduce((sum, item) => sum + (item.actualQuantity - item.systemQuantity), 0)}
-              </span>
+              <span className="font-semibold">{mergeData.reduce((sum, item) => sum + (item.actualQuantity - item.systemQuantity), 0)}</span>
             </div>
           </div>
-          
+
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4">
-            <Button onClick={() => setMergeModalOpen(false)}>
-              Bỏ qua
-            </Button>
-            <Button 
-              type="primary" 
+            <Button onClick={() => setMergeModalOpen(false)}>Bỏ qua</Button>
+            <Button
+              type="primary"
               icon={<FileTextOutlined />}
               onClick={() => {
-                const ids = filteredData.filter(x => selectedRowKeys.includes(x.id as any) && (x.status as any) === 0).map(x => x.id!);
+                const ids = filteredData.filter((x) => selectedRowKeys.includes(x.id as any) && (x.status as any) === 0).map((x) => x.id!);
                 mergeMutation.mutate(ids);
                 setMergeModalOpen(false);
               }}
@@ -447,7 +525,7 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
   const totalInc = items.reduce((s, i) => s + Math.max(0, i.deltaQuantity ?? 0), 0);
   const totalDec = items.reduce((s, i) => s + Math.max(0, -(i.deltaQuantity ?? 0)), 0);
   const totalDelta = items.reduce((s, i) => s + (i.deltaQuantity ?? 0), 0);
-  const totalDeltaValue = items.reduce((s, i) => s + (((i.actualQuantity ?? 0) - (i.systemQuantity ?? 0)) * ((i as any).costPrice ?? 0)), 0);
+  const totalDeltaValue = items.reduce((s, i) => s + ((i.actualQuantity ?? 0) - (i.systemQuantity ?? 0)) * ((i as any).costPrice ?? 0), 0);
 
   if (isFetching) {
     return (
@@ -457,7 +535,7 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
     );
   }
 
-  return (
+  const infoTab = (
     <div className="p-3">
       <div className="mb-3 grid grid-cols-1 gap-2 md:grid-cols-3">
         <div>
@@ -495,7 +573,20 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
             <Button onClick={() => d?.id && onEdit(d.id)} type="primary">
               Cập nhật
             </Button>
-            <Button danger onClick={() => d?.id && cancelMutation.mutate(d.id)} loading={cancelMutation.isPending}>
+            <Button
+              danger
+              onClick={() => {
+                Modal.confirm({
+                  title: "Xác nhận hủy phiếu",
+                  content: "Bạn có chắc chắn muốn hủy phiếu kiểm kê này?",
+                  okText: "Hủy phiếu",
+                  cancelText: "Đóng",
+                  okButtonProps: { danger: true },
+                  onOk: () => d?.id && cancelMutation.mutate(d.id),
+                });
+              }}
+              loading={cancelMutation.isPending}
+            >
               Hủy phiếu
             </Button>
           </>
@@ -505,24 +596,21 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
       <Table<InventoryCheckItemResponse>
         size="small"
         rowKey={(r) => `${r.productCode}-${r.productName}`}
+        scroll={{ x: "max-content" }}
         columns={[
           { title: "Mã hàng hóa", dataIndex: "productCode", key: "productCode", width: 160 },
           { title: "Tên hàng", dataIndex: "productName", key: "productName", width: 240 },
           { title: "Tồn kho", dataIndex: "systemQuantity", key: "systemQuantity", width: 120 },
           { title: "Thực tế", dataIndex: "actualQuantity", key: "actualQuantity", width: 120 },
           { title: "SL lệch", dataIndex: "deltaQuantity", key: "deltaQuantity", width: 120 },
-          { 
-            title: "Giá trị chênh lệch", 
-            key: "deltaValue", 
+          {
+            title: "Giá trị chênh lệch",
+            key: "deltaValue",
             width: 150,
             render: (_, record) => {
               const deltaValue = ((record.actualQuantity ?? 0) - (record.systemQuantity ?? 0)) * ((record as any).costPrice ?? 0);
-              return (
-                <span className={deltaValue >= 0 ? "text-green-600" : "text-red-600"}>
-                  {deltaValue.toLocaleString()}
-                </span>
-              );
-            }
+              return <span className={deltaValue >= 0 ? "text-green-600" : "text-red-600"}>{deltaValue.toLocaleString()}</span>;
+            },
           },
         ]}
         dataSource={items}
@@ -548,6 +636,8 @@ const InventoryRowDetail = ({ id, onEdit }: { id: number; onEdit: (id: number) =
       </div>
     </div>
   );
+
+  return <Tabs defaultActiveKey="info" items={[{ key: "info", label: "Thông tin", children: infoTab }]} />;
 };
 
 export default InventoryManagementPage;

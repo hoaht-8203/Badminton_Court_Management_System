@@ -7,10 +7,10 @@ public interface IScheduleService
 {
     Task<bool> AssignShiftToStaffAsync(ScheduleRequest request);
     Task<List<ScheduleByShiftResponse>> GetScheduleOfWeekByShiftAsync(
-        ScheduleRequest request
+        WeeklyScheduleRequest request
     );
     Task<List<ScheduleByStaffResponse>> GetScheduleOfWeekByStaffAsync(
-        ScheduleRequest request
+        WeeklyScheduleRequest request
     );
     Task<List<ScheduleResponse>> GetScheduleOfWeekByStaffIdAsync(
         ScheduleRequest request,

@@ -1,10 +1,10 @@
-import { StaffRequest } from "@/types-openapi/api/models/StaffRequest";
-import { UploadOutlined, DeleteOutlined, LoadingOutlined } from "@ant-design/icons";
-import { Avatar, Button, Col, DatePicker, Drawer, Form, Input, Row, Space, Tabs, Upload, Image, Spin, message } from "antd";
-import dayjs from "dayjs";
-import React, { useState } from "react";
 import SalarySetupForm from "@/components/quanlysancaulong/staffs/list-staff/salary-setup-form";
 import { fileService } from "@/services/fileService";
+import { StaffRequest } from "@/types-openapi/api/models/StaffRequest";
+import { DeleteOutlined, LoadingOutlined, UploadOutlined } from "@ant-design/icons";
+import { Avatar, Button, Col, DatePicker, Drawer, Form, Input, Row, Space, Spin, Tabs, Upload, message } from "antd";
+import dayjs from "dayjs";
+import React, { useState } from "react";
 
 interface StaffModalProps {
   open: boolean;
@@ -208,7 +208,7 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
   return (
     <Drawer
       open={open}
-      title="Thêm mới nhân viên"
+      title={staff && staff.id ? "Cập nhật nhân viên" : "Thêm mới nhân viên"}
       onClose={onClose}
       width={900}
       destroyOnClose

@@ -1,7 +1,6 @@
 import { axiosInstance } from "@/lib/axios";
 import {
   ChangeCourtStatusRequest,
-  CourtPricingRuleDto,
   CourtPricingRuleTemplateDto,
   CreateCourtPricingRuleTemplateRequest,
   CreateCourtRequest,

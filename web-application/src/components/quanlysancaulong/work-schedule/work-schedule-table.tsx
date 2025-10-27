@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import React, { useState } from "react";
 import AssignDrawer from "./assign-drawer";
+import AttendanceModal from "./attendance-modal";
 dayjs.extend(weekOfYear);
 
 interface ScheduleCell {
@@ -27,11 +28,11 @@ const daysOfWeek = [
 ];
 
 const statusMap = {
-  ON_TIME: { color: "#1890ff", text: "Đúng giờ" },
-  LATE: { color: "#9254de", text: "Đi muộn / Về sớm" },
-  MISSING: { color: "#ff4d4f", text: "Chấm công thiếu" },
-  NOT_CHECKED: { color: "#faad14", text: "Chưa chấm công" },
-  OFF: { color: "#bfbfbf", text: "Nghỉ làm" },
+  NotYet: { color: "#faad14", text: "Chưa diễn ra" },
+  Attended: { color: "#1890ff", text: "Đã chấm công" },
+  Late: { color: "#9254de", text: "Đi muộn / Về sớm" },
+  Missing: { color: "#bfbfbf", text: "Chấm công thiếu" },
+  Absent: { color: "#ff4d4f", text: "Nghỉ làm" },
 } as const;
 
 const WorkScheduleTable: React.FC = () => {
@@ -42,7 +43,11 @@ const WorkScheduleTable: React.FC = () => {
   });
   const [searchParams, setSearchParams] = useState(ListStaffRequestFromJSON({}));
   const { data: staffs, isFetching: loadingStaffs, refetch: refetchStaffs } = useListStaffs(searchParams);
-  const { data: shifts, isFetching, refetch } = useListShifts();
+  const { data: shifts, isFetching } = useListShifts();
+
+  // State cho modal chấm công
+  const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+  const [attendanceModalData, setAttendanceModalData] = useState<any>(null);
 
   const staffList =
     staffs?.data
@@ -54,7 +59,7 @@ const WorkScheduleTable: React.FC = () => {
   const startDate = weekStart.toDate();
   const endDate = weekStart.add(6, "day").toDate();
   // Lấy lịch làm việc theo ca cho tuần hiện tại
-  const { data: scheduleByShiftRaw, isFetching: loadingSchedule } = useGetScheduleByShift({ startDate, endDate });
+  const { data: scheduleByShiftRaw, isFetching: loadingSchedule, refetch } = useGetScheduleByShift({ startDate, endDate });
 
   // Format lại dữ liệu trả về từ API thành dạng { [shiftId]: { [dayOfWeek]: ScheduleCell[] } }
   const scheduleByShift: Record<string, Record<number, ScheduleCell[]>> = React.useMemo(() => {
@@ -68,13 +73,35 @@ const WorkScheduleTable: React.FC = () => {
       for (const day of shiftItem.days) {
         if (typeof day?.dayOfWeek !== "number" || !Array.isArray(day?.staffs)) continue;
         result[shiftId][day.dayOfWeek] = day.staffs.map((staff: any) => ({
+          ...staff,
           name: staff?.fullName ?? "",
-          status: "NOT_CHECKED", // hoặc lấy từ API nếu có trạng thái
+          status: staff?.attendanceStatus ?? "NotYet", // lấy đúng status từ API
         }));
       }
     }
     return result;
   }, [scheduleByShiftRaw]);
+
+  // Hàm mở modal chấm công
+  const handleOpenAttendanceModal = (staff: any, shift: any, date: string) => {
+    setAttendanceModalData({
+      staff: {
+        id: staff?.id,
+        fullName: staff?.fullName,
+        code: staff?.code,
+      },
+      shift: {
+        id: shift?.id,
+        name: shift?.name,
+        time: shift?.time,
+      },
+      date,
+      status: staff?.status ?? "NotYet",
+      attendanceRecordId: staff?.attendanceRecordId ?? null,
+    });
+    setAttendanceModalOpen(true);
+  };
+
   return (
     <div style={{ background: "#fff", borderRadius: 8, padding: 16 }}>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
@@ -101,9 +128,7 @@ const WorkScheduleTable: React.FC = () => {
           Xếp lịch
         </Button>
       </div>
-      {/* Tuần bắt đầu từ thứ 2 */}
       <div style={{ overflowX: "auto" }}>
-        {/* IIFE tuần bắt đầu từ thứ 2 */}
         {(() => {
           const monday = weekStart;
           const weekDays = daysOfWeek.map((d, idx) => {
@@ -157,25 +182,29 @@ const WorkScheduleTable: React.FC = () => {
                               background: "#fff",
                             }}
                           >
-                            {cellData.map((item: ScheduleCell, idx: number) => (
-                              <div
-                                key={idx}
-                                style={{
-                                  background: "#fff7e6",
-                                  borderRadius: 6,
-                                  marginBottom: 6,
-                                  padding: 6,
-                                  fontSize: 14,
-                                  border: "1px solid #ffd591",
-                                }}
-                              >
-                                <div style={{ fontWeight: 500 }}>{item.name}</div>
-                                <div style={{ fontSize: 12, color: "#888" }}>-- --</div>
-                                <div style={{ fontSize: 12, color: statusMap[item.status]?.color || "#faad14" }}>
-                                  {statusMap[item.status]?.text || "Chưa chấm công"}
+                            {cellData.map((item: any, idx: number) => {
+                              const statusKey = (item.status ?? "NotYet") as keyof typeof statusMap;
+                              const statusInfo = statusMap[statusKey] || statusMap.NotYet;
+                              return (
+                                <div
+                                  key={idx}
+                                  style={{
+                                    background: statusInfo.color + "22",
+                                    borderRadius: 6,
+                                    marginBottom: 6,
+                                    padding: 6,
+                                    fontSize: 14,
+                                    border: `1px solid ${statusInfo.color}`,
+                                    cursor: "pointer",
+                                  }}
+                                  onClick={() => handleOpenAttendanceModal(item, shift, d.fullDate)}
+                                >
+                                  <div style={{ fontWeight: 500 }}>{item.name}</div>
+                                  <div style={{ fontSize: 12, color: "#888" }}>-- --</div>
+                                  <div style={{ fontSize: 12, color: statusInfo.color }}>{statusInfo.text}</div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </td>
                         );
                       })}
@@ -188,17 +217,26 @@ const WorkScheduleTable: React.FC = () => {
         })()}
       </div>
       <div style={{ display: "flex", gap: 16, marginTop: 20, justifyContent: "center" }}>
-        <Tag color="#1890ff">Đúng giờ</Tag>
-        <Tag color="#9254de">Đi muộn / Về sớm</Tag>
-        <Tag color="#ff4d4f">Chấm công thiếu</Tag>
-        <Tag color="#faad14">Chưa chấm công</Tag>
-        <Tag color="#bfbfbf">Nghỉ làm</Tag>
+        {Object.entries(statusMap).map(([key, value]) => (
+          <Tag key={key} color={value.color}>
+            {value.text}
+          </Tag>
+        ))}
       </div>
       <AssignDrawer
         open={assignDrawerOpen}
         onClose={() => setAssignDrawerOpen(false)}
         staffList={staffList}
         shiftList={shifts?.map((s) => ({ key: String(s.id), label: s.name || "" })) || []}
+      />
+      {/* Modal chấm công */}
+      <AttendanceModal
+        open={attendanceModalOpen}
+        {...attendanceModalData}
+        onClose={() => {
+          setAttendanceModalOpen(false);
+          refetch();
+        }}
       />
     </div>
   );

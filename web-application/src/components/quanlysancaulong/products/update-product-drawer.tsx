@@ -25,13 +25,19 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
       const { id, images, ...rest } = data.data;
       form.setFieldsValue({ id, ...rest, images: images ?? undefined });
       setManageInventory(!!rest.manageInventory);
+    } else if (!open) {
+      // Reset all states when closing
+      setNewCategoryName("");
+      setManageInventory(false);
     }
   }, [data?.data, open, form]);
 
   // FE no longer creates inventory checks here; backend handles auto-balanced creation when stock changes.
 
   const onSubmit = (values: UpdateProductRequest) => {
-    updateMutation.mutate(values, {
+    // Ensure not to accidentally change active status; backend has a dedicated endpoint
+    const { ...rest } = values as any;
+    updateMutation.mutate(rest as UpdateProductRequest, {
       onSuccess: async () => {
         message.success("Cập nhật hàng hóa thành công");
         onClose();
@@ -67,7 +73,7 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
                   },
                 ]}
               >
-                <Input placeholder="VD: SP001" />
+                <Input placeholder="VD: SP001" disabled />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -174,7 +180,13 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item name="costPrice" label="Giá vốn">
-                <InputNumber min={0} style={{ width: "100%" }} />
+                <InputNumber
+                  min={0}
+                  style={{ width: "100%" }}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  // @ts-expect-error - Ant Design InputNumber parser type issue
+                  parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
+                />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -191,7 +203,13 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
                   }),
                 ]}
               >
-                <InputNumber min={0} style={{ width: "100%" }} />
+                <InputNumber
+                  min={0}
+                  style={{ width: "100%" }}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  // @ts-expect-error - Ant Design InputNumber parser type issue
+                  parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
+                />
               </Form.Item>
             </Col>
           </Row>
@@ -230,7 +248,13 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
                     </span>
                   }
                 >
-                  <InputNumber min={0} style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    style={{ width: "100%" }}
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    // @ts-expect-error - Ant Design InputNumber parser type issue
+                    parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
+                  />
                 </Form.Item>
               </Col>
               <Col span={8}>
@@ -245,7 +269,13 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
                     </span>
                   }
                 >
-                  <InputNumber min={0} style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    style={{ width: "100%" }}
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    // @ts-expect-error - Ant Design InputNumber parser type issue
+                    parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
+                  />
                 </Form.Item>
               </Col>
               <Col span={8}>
@@ -260,7 +290,13 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
                     </span>
                   }
                 >
-                  <InputNumber min={0} style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    style={{ width: "100%" }}
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    // @ts-expect-error - Ant Design InputNumber parser type issue
+                    parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
+                  />
                 </Form.Item>
               </Col>
             </Row>
@@ -274,7 +310,7 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
             </Col>
             <Col span={12}>
               <Form.Item name="noteTemplate" label="Mẫu ghi chú">
-                <Input.TextArea rows={2} />
+                <Input.TextArea rows={3} />
               </Form.Item>
             </Col>
           </Row>

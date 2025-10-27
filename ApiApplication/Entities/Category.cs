@@ -10,7 +10,7 @@ public class Category : BaseEntity, IAuditableEntity
 
     [Required]
     [MaxLength(100)]
-    public string Name { get; set; } = string.Empty; 
+    public string Name { get; set; } = string.Empty;
 
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }

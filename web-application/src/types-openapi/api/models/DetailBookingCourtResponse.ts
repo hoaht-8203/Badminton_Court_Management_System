@@ -13,6 +13,20 @@
  */
 
 import { mapValues } from '../runtime';
+import type { BookingCourtOccurrenceDto } from './BookingCourtOccurrenceDto';
+import {
+    BookingCourtOccurrenceDtoFromJSON,
+    BookingCourtOccurrenceDtoFromJSONTyped,
+    BookingCourtOccurrenceDtoToJSON,
+    BookingCourtOccurrenceDtoToJSONTyped,
+} from './BookingCourtOccurrenceDto';
+import type { BookingServiceDto } from './BookingServiceDto';
+import {
+    BookingServiceDtoFromJSON,
+    BookingServiceDtoFromJSONTyped,
+    BookingServiceDtoToJSON,
+    BookingServiceDtoToJSONTyped,
+} from './BookingServiceDto';
 import type { CustomerDto } from './CustomerDto';
 import {
     CustomerDtoFromJSON,
@@ -114,6 +128,18 @@ export interface DetailBookingCourtResponse {
     payments?: Array<PaymentDto> | null;
     /**
      * 
+     * @type {Array<BookingServiceDto>}
+     * @memberof DetailBookingCourtResponse
+     */
+    bookingServices?: Array<BookingServiceDto> | null;
+    /**
+     * 
+     * @type {Array<BookingCourtOccurrenceDto>}
+     * @memberof DetailBookingCourtResponse
+     */
+    bookingCourtOccurrences?: Array<BookingCourtOccurrenceDto> | null;
+    /**
+     * 
      * @type {number}
      * @memberof DetailBookingCourtResponse
      */
@@ -166,6 +192,30 @@ export interface DetailBookingCourtResponse {
      * @memberof DetailBookingCourtResponse
      */
     expiresAtUtc?: Date | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    overdueMinutes?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    overdueHours?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    surchargeAmount?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    lateFeePercentage?: number;
 }
 
 /**
@@ -198,6 +248,8 @@ export function DetailBookingCourtResponseFromJSONTyped(json: any, ignoreDiscrim
         'totalHours': json['totalHours'] == null ? undefined : json['totalHours'],
         'customer': json['customer'] == null ? undefined : CustomerDtoFromJSON(json['customer']),
         'payments': json['payments'] == null ? undefined : ((json['payments'] as Array<any>).map(PaymentDtoFromJSON)),
+        'bookingServices': json['bookingServices'] == null ? undefined : ((json['bookingServices'] as Array<any>).map(BookingServiceDtoFromJSON)),
+        'bookingCourtOccurrences': json['bookingCourtOccurrences'] == null ? undefined : ((json['bookingCourtOccurrences'] as Array<any>).map(BookingCourtOccurrenceDtoFromJSON)),
         'totalAmount': json['totalAmount'] == null ? undefined : json['totalAmount'],
         'paidAmount': json['paidAmount'] == null ? undefined : json['paidAmount'],
         'remainingAmount': json['remainingAmount'] == null ? undefined : json['remainingAmount'],
@@ -207,6 +259,10 @@ export function DetailBookingCourtResponseFromJSONTyped(json: any, ignoreDiscrim
         'qrUrl': json['qrUrl'] == null ? undefined : json['qrUrl'],
         'holdMinutes': json['holdMinutes'] == null ? undefined : json['holdMinutes'],
         'expiresAtUtc': json['expiresAtUtc'] == null ? undefined : (new Date(json['expiresAtUtc'])),
+        'overdueMinutes': json['overdueMinutes'] == null ? undefined : json['overdueMinutes'],
+        'overdueHours': json['overdueHours'] == null ? undefined : json['overdueHours'],
+        'surchargeAmount': json['surchargeAmount'] == null ? undefined : json['surchargeAmount'],
+        'lateFeePercentage': json['lateFeePercentage'] == null ? undefined : json['lateFeePercentage'],
     };
 }
 
@@ -234,6 +290,8 @@ export function DetailBookingCourtResponseToJSONTyped(value?: DetailBookingCourt
         'totalHours': value['totalHours'],
         'customer': CustomerDtoToJSON(value['customer']),
         'payments': value['payments'] == null ? undefined : ((value['payments'] as Array<any>).map(PaymentDtoToJSON)),
+        'bookingServices': value['bookingServices'] == null ? undefined : ((value['bookingServices'] as Array<any>).map(BookingServiceDtoToJSON)),
+        'bookingCourtOccurrences': value['bookingCourtOccurrences'] == null ? undefined : ((value['bookingCourtOccurrences'] as Array<any>).map(BookingCourtOccurrenceDtoToJSON)),
         'totalAmount': value['totalAmount'],
         'paidAmount': value['paidAmount'],
         'remainingAmount': value['remainingAmount'],
@@ -243,6 +301,10 @@ export function DetailBookingCourtResponseToJSONTyped(value?: DetailBookingCourt
         'qrUrl': value['qrUrl'],
         'holdMinutes': value['holdMinutes'],
         'expiresAtUtc': value['expiresAtUtc'] === null ? null : ((value['expiresAtUtc'] as any)?.toISOString()),
+        'overdueMinutes': value['overdueMinutes'],
+        'overdueHours': value['overdueHours'],
+        'surchargeAmount': value['surchargeAmount'],
+        'lateFeePercentage': value['lateFeePercentage'],
     };
 }
 

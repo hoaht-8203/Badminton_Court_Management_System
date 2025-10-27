@@ -16,4 +16,6 @@ public class CreateBookingCourtRequest
     public bool? PayInFull { get; set; } // default false -> pay deposit
     public decimal? DepositPercent { get; set; } // default 0.3m if not provided
     public string? PaymentMethod { get; set; } // "Bank" | "Cash"
+
+    public bool? IsUserMode { get; set; } = false;
 }

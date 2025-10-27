@@ -19,7 +19,7 @@ namespace ApiApplication.Controllers
         [HttpGet("by-shift")]
         public async Task<
             ActionResult<ApiResponse<List<ScheduleByShiftResponse>>>
-        > GetScheduleOfWeekByShift([FromQuery] ScheduleRequest request)
+        > GetScheduleOfWeekByShift([FromQuery] WeeklyScheduleRequest request)
         {
             var result = await _scheduleService.GetScheduleOfWeekByShiftAsync(request);
             return Ok(
@@ -33,7 +33,7 @@ namespace ApiApplication.Controllers
         [HttpGet("by-staff")]
         public async Task<
             ActionResult<ApiResponse<List<ScheduleByStaffResponse>>>
-        > GetScheduleOfWeekByStaff([FromQuery] ScheduleRequest request)
+        > GetScheduleOfWeekByStaff([FromQuery] WeeklyScheduleRequest request)
         {
             var result = await _scheduleService.GetScheduleOfWeekByStaffAsync(request);
             return Ok(
@@ -43,6 +43,7 @@ namespace ApiApplication.Controllers
                 )
             );
         }
+
         [HttpGet("by-staff/{staffId}")]
         public async Task<
             ActionResult<ApiResponse<List<ScheduleResponse>>>

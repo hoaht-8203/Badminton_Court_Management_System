@@ -35,7 +35,10 @@ public class CategoryService(ApplicationDbContext context, IMapper mapper) : ICa
         var item = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
         if (item == null)
         {
-            throw new ApiException($"Nhóm hàng không tồn tại: {id}", System.Net.HttpStatusCode.NotFound);
+            throw new ApiException(
+                $"Nhóm hàng không tồn tại: {id}",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
         return _mapper.Map<DetailCategoryResponse>(item);
     }
@@ -52,10 +55,13 @@ public class CategoryService(ApplicationDbContext context, IMapper mapper) : ICa
         var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == request.Id);
         if (category == null)
         {
-            throw new ApiException($"Nhóm hàng không tồn tại: {request.Id}", System.Net.HttpStatusCode.NotFound);
+            throw new ApiException(
+                $"Nhóm hàng không tồn tại: {request.Id}",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
 
-        category.Name = request.Name;
+        category.Name = request.Name ?? string.Empty;
         await _context.SaveChangesAsync();
     }
 
@@ -64,14 +70,20 @@ public class CategoryService(ApplicationDbContext context, IMapper mapper) : ICa
         var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == request.Id);
         if (category == null)
         {
-            throw new ApiException($"Nhóm hàng không tồn tại: {request.Id}", System.Net.HttpStatusCode.NotFound);
+            throw new ApiException(
+                $"Nhóm hàng không tồn tại: {request.Id}",
+                System.Net.HttpStatusCode.NotFound
+            );
         }
 
         // Check if category has products
         var hasProducts = await _context.Products.AnyAsync(p => p.CategoryId == request.Id);
         if (hasProducts)
         {
-            throw new ApiException("Không thể xóa nhóm hàng vì còn sản phẩm thuộc nhóm này", System.Net.HttpStatusCode.BadRequest);
+            throw new ApiException(
+                "Không thể xóa nhóm hàng vì còn sản phẩm thuộc nhóm này",
+                System.Net.HttpStatusCode.BadRequest
+            );
         }
 
         _context.Categories.Remove(category);

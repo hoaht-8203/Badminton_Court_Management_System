@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
-import type { SetPriceTableProductItem } from './SetPriceTableProductItem';
+import type { PriceTableProductItem } from './PriceTableProductItem';
 import {
-    SetPriceTableProductItemFromJSON,
-    SetPriceTableProductItemFromJSONTyped,
-    SetPriceTableProductItemToJSON,
-    SetPriceTableProductItemToJSONTyped,
-} from './SetPriceTableProductItem';
+    PriceTableProductItemFromJSON,
+    PriceTableProductItemFromJSONTyped,
+    PriceTableProductItemToJSON,
+    PriceTableProductItemToJSONTyped,
+} from './PriceTableProductItem';
 
 /**
  * 
@@ -35,10 +35,10 @@ export interface SetPriceTableProductsRequest {
     priceTableId: number;
     /**
      * 
-     * @type {Array<SetPriceTableProductItem>}
+     * @type {Array<PriceTableProductItem>}
      * @memberof SetPriceTableProductsRequest
      */
-    items: Array<SetPriceTableProductItem>;
+    products: Array<PriceTableProductItem>;
 }
 
 /**
@@ -46,7 +46,7 @@ export interface SetPriceTableProductsRequest {
  */
 export function instanceOfSetPriceTableProductsRequest(value: object): value is SetPriceTableProductsRequest {
     if (!('priceTableId' in value) || value['priceTableId'] === undefined) return false;
-    if (!('items' in value) || value['items'] === undefined) return false;
+    if (!('products' in value) || value['products'] === undefined) return false;
     return true;
 }
 
@@ -61,7 +61,7 @@ export function SetPriceTableProductsRequestFromJSONTyped(json: any, ignoreDiscr
     return {
         
         'priceTableId': json['priceTableId'],
-        'items': ((json['items'] as Array<any>).map(SetPriceTableProductItemFromJSON)),
+        'products': ((json['products'] as Array<any>).map(PriceTableProductItemFromJSON)),
     };
 }
 
@@ -77,7 +77,7 @@ export function SetPriceTableProductsRequestToJSONTyped(value?: SetPriceTablePro
     return {
         
         'priceTableId': value['priceTableId'],
-        'items': ((value['items'] as Array<any>).map(SetPriceTableProductItemToJSON)),
+        'products': ((value['products'] as Array<any>).map(PriceTableProductItemToJSON)),
     };
 }
 

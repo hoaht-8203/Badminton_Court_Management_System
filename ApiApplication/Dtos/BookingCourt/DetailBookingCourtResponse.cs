@@ -1,3 +1,6 @@
+using ApiApplication.Dtos.Payment;
+using ApiApplication.Dtos.Service;
+
 namespace ApiApplication.Dtos.BookingCourt;
 
 public class DetailBookingCourtResponse
@@ -15,8 +18,10 @@ public class DetailBookingCourtResponse
     public decimal TotalHours { get; set; }
 
     // Extra info
-    public ApiApplication.Dtos.Customer.CustomerDto Customer { get; set; } = null!;
-    public List<ApiApplication.Dtos.Payment.PaymentDto> Payments { get; set; } = [];
+    public Customer.CustomerDto Customer { get; set; } = null!;
+    public List<PaymentDto> Payments { get; set; } = [];
+    public List<BookingServiceDto> BookingServices { get; set; } = [];
+    public List<BookingCourtOccurrenceDto> BookingCourtOccurrences { get; set; } = [];
 
     // Payment summary
     public decimal TotalAmount { get; set; }
@@ -30,4 +35,10 @@ public class DetailBookingCourtResponse
     public string? QrUrl { get; set; }
     public int? HoldMinutes { get; set; }
     public DateTime? ExpiresAtUtc { get; set; }
+
+    // Late info (for cashier UI)
+    public int OverdueMinutes { get; set; }
+    public decimal OverdueHours { get; set; }
+    public decimal SurchargeAmount { get; set; }
+    public decimal LateFeePercentage { get; set; } = 150m; // Default 150%
 }

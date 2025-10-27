@@ -21,6 +21,7 @@ export const CourtStatus = {
   Inactive: "Inactive",
   Deleted: "Deleted",
   Maintenance: "Maintenance",
+  InUse: "InUse",
 };
 
 export const BookingCourtStatus = {
@@ -28,6 +29,8 @@ export const BookingCourtStatus = {
   Cancelled: "Cancelled",
   Completed: "Completed",
   PendingPayment: "PendingPayment",
+  CheckedIn: "CheckedIn",
+  NoShow: "NoShow",
 };
 
 export const PaymentStatus = {
@@ -35,4 +38,19 @@ export const PaymentStatus = {
   Unpaid: "Unpaid",
   Paid: "Paid",
   Cancelled: "Cancelled",
+};
+
+export const ServiceStatus = {
+  Active: "Active",
+  Inactive: "Inactive",
+  Maintenance: "Maintenance",
+};
+
+export const BookingCourtOccurrenceStatus = {
+  PendingPayment: "PendingPayment",
+  Active: "Active",
+  Cancelled: "Cancelled",
+  Completed: "Completed",
+  CheckedIn: "CheckedIn",
+  NoShow: "NoShow",
 };

@@ -20,6 +20,13 @@ import {
     ApplicationUserTokenToJSON,
     ApplicationUserTokenToJSONTyped,
 } from './ApplicationUserToken';
+import type { Customer } from './Customer';
+import {
+    CustomerFromJSON,
+    CustomerFromJSONTyped,
+    CustomerToJSON,
+    CustomerToJSONTyped,
+} from './Customer';
 
 /**
  * 
@@ -173,6 +180,12 @@ export interface ApplicationUser {
     status: string | null;
     /**
      * 
+     * @type {Customer}
+     * @memberof ApplicationUser
+     */
+    customer?: Customer;
+    /**
+     * 
      * @type {Array<ApplicationUserToken>}
      * @memberof ApplicationUser
      */
@@ -247,6 +260,7 @@ export function ApplicationUserFromJSONTyped(json: any, ignoreDiscriminator: boo
         'note': json['note'] == null ? undefined : json['note'],
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'status': json['status'],
+        'customer': json['customer'] == null ? undefined : CustomerFromJSON(json['customer']),
         'userTokens': (json['userTokens'] == null ? null : (json['userTokens'] as Array<any>).map(ApplicationUserTokenFromJSON)),
         'createdAt': json['createdAt'] == null ? undefined : (new Date(json['createdAt'])),
         'updatedAt': json['updatedAt'] == null ? undefined : (new Date(json['updatedAt'])),
@@ -290,6 +304,7 @@ export function ApplicationUserToJSONTyped(value?: ApplicationUser | null, ignor
         'note': value['note'],
         'avatarUrl': value['avatarUrl'],
         'status': value['status'],
+        'customer': CustomerToJSON(value['customer']),
         'userTokens': (value['userTokens'] == null ? null : (value['userTokens'] as Array<any>).map(ApplicationUserTokenToJSON)),
         'createdAt': value['createdAt'] == null ? undefined : ((value['createdAt']).toISOString()),
         'updatedAt': value['updatedAt'] === null ? null : ((value['updatedAt'] as any)?.toISOString()),

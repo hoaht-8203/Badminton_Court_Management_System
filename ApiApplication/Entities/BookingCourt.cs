@@ -18,7 +18,7 @@ public class BookingCourt : BaseEntity
     public required Guid CourtId { get; set; }
 
     [ForeignKey(nameof(CourtId))]
-    public Court? Court { get; set; }
+    public Court Court { get; set; } = null!;
 
     public required DateOnly StartDate { get; set; }
     public required DateOnly EndDate { get; set; }
@@ -36,4 +36,5 @@ public class BookingCourt : BaseEntity
     public DateTime? HoldExpiresAtUtc { get; set; }
 
     public ICollection<Payment> Payments { get; set; } = [];
+    public ICollection<BookingCourtOccurrence> BookingCourtOccurrences { get; set; } = [];
 }

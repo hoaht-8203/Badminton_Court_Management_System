@@ -5,9 +5,11 @@ import {
   ForgotPasswordRequest,
   LoginRequest,
   MyProfileResponse,
+  RegisterRequest,
   UpdateMyProfileRequest,
   UpdatePasswordRequest,
   ValidateForgotPasswordRequest,
+  VerifyEmailRequest,
 } from "@/types-openapi/api";
 
 export const authService = {
@@ -45,6 +47,14 @@ export const authService = {
   },
   async validateForgotPassword(payload: ValidateForgotPasswordRequest): Promise<ApiResponse<null>> {
     const res = await axiosInstance.post<ApiResponse<null>>("/api/auth/validate-forgot-password", payload);
+    return res.data;
+  },
+  async signUp(payload: RegisterRequest): Promise<ApiResponse<CurrentUserResponse>> {
+    const res = await axiosInstance.post<ApiResponse<CurrentUserResponse>>("/api/auth/sign-up", payload);
+    return res.data;
+  },
+  async verifyEmail(payload: VerifyEmailRequest): Promise<ApiResponse<null>> {
+    const res = await axiosInstance.post<ApiResponse<null>>("/api/auth/verify-email", payload);
     return res.data;
   },
 };

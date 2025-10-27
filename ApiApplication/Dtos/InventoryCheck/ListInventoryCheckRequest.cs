@@ -7,4 +7,4 @@ public class ListInventoryCheckRequest
     public int? Id { get; set; }
     public string? Code { get; set; }
     public InventoryCheckStatus? Status { get; set; }
-} 
+}

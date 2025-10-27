@@ -1,26 +1,34 @@
-import { bookingCourtsKeys, useListBookingCourts } from "@/hooks/useBookingCourt";
-import { expandBookings, getDayOfWeekToVietnamese } from "@/lib/common";
+import { bookingCourtsKeys } from "@/hooks/useBookingCourt";
+import { bookingCourtOccurrenceKeys, useListBookingCourtOccurrences } from "@/hooks/useBookingCourtOccurrence";
+import { apiBaseUrl } from "@/lib/axios";
+import { convertOccurrencesToEvents, getDayOfWeekToVietnamese } from "@/lib/common";
 import { ListCourtGroupByCourtAreaResponse } from "@/types-openapi/api";
 import { BookingCourtStatus } from "@/types/commons";
-import { DayPilot, DayPilotScheduler } from "daypilot-pro-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { HubConnection, HubConnectionBuilder, LogLevel, ILogger } from "@microsoft/signalr";
+import { CalendarOutlined, TableOutlined } from "@ant-design/icons";
+import { HttpTransportType, HubConnection, HubConnectionBuilder, ILogger, LogLevel } from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
+import { Alert, Checkbox, message, Segmented } from "antd";
+import { DayPilot } from "daypilot-pro-react";
+import { PersonStandingIcon, UserCheckIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, memo } from "react";
+import dynamic from "next/dynamic";
+import BookingOccurrenceDetailDrawer from "./booking-occurrence-detail-drawer";
 import ModalCreateNewBooking from "./modal-create-new-booking";
 import PickCalendar from "./pick-calendar";
-import CourtScheduleTable from "./court-schedule-table";
-import { HttpTransportType } from "@microsoft/signalr";
-import { apiBaseUrl } from "@/lib/axios";
-import { Alert, message, Segmented, Checkbox } from "antd";
-import { CalendarOutlined, TableOutlined } from "@ant-design/icons";
-import BookingDetailDrawer from "./booking-detail-drawer";
+
+// Lazy load heavy components to improve initial page load
+const DayPilotScheduler = dynamic(() => import("daypilot-pro-react").then((mod) => ({ default: mod.DayPilotScheduler })), {
+  ssr: false, // DayPilot requires client-side rendering
+  loading: () => <div className="h-96 animate-pulse rounded bg-gray-200" />,
+}) as any; // Type assertion to fix ref issue
 
 interface CourtSchedulerProps {
   courts: ListCourtGroupByCourtAreaResponse[];
 }
 
 const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
-  const schedulerRef = useRef<DayPilotScheduler>(null);
+  const schedulerRef = useRef<any>(null);
+  // Removed unused activeTab state
   const [viewOption, setViewOption] = useState<"schedule" | "list">("schedule");
   const [open, setOpen] = useState(false);
   const [isSignalRConnected, setIsSignalRConnected] = useState<boolean | null>(null);
@@ -32,66 +40,125 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   } | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [openDetail, setOpenDetail] = useState(false);
-  const [statusFilter, setStatusFilter] = useState<string[]>([
-    BookingCourtStatus.Active,
-    BookingCourtStatus.PendingPayment,
-    BookingCourtStatus.Completed,
-  ]);
+
+  // Memoize initial status filter to prevent unnecessary re-renders
+  const initialStatusFilter = useMemo(
+    () => [
+      BookingCourtStatus.Active,
+      BookingCourtStatus.PendingPayment,
+      BookingCourtStatus.Completed,
+      BookingCourtStatus.CheckedIn,
+      BookingCourtStatus.Cancelled,
+      BookingCourtStatus.NoShow,
+    ],
+    [],
+  );
+
+  const [statusFilter, setStatusFilter] = useState<string[]>(initialStatusFilter);
   const queryClient = useQueryClient();
   const connectionRef = useRef<HubConnection | null>(null);
   const hasStartedRef = useRef(false);
   const unmountedRef = useRef(false);
 
-  const { data: bookingCourts, isFetching: loadingBookingCourts } = useListBookingCourts({
-    fromDate: selectedDate.toDate(),
-    toDate: selectedDate.toDate(),
+  // Memoize date conversion to prevent unnecessary API calls
+  const selectedDateObj = useMemo(() => selectedDate.toDate(), [selectedDate]);
+
+  const { data: bookingCourtOccurrences } = useListBookingCourtOccurrences({
+    fromDate: selectedDateObj,
+    toDate: selectedDateObj,
   });
 
-  const filteredBookings = useMemo(() => {
-    const all = bookingCourts?.data ?? [];
-    return all.filter((b) => statusFilter.includes(b.status as string));
-  }, [bookingCourts, statusFilter]);
+  // Memoize filtered occurrences to prevent unnecessary re-computations
+  const filteredOccurrences = useMemo(() => {
+    const all = bookingCourtOccurrences?.data ?? [];
+    return all.filter((o) => statusFilter.includes(o.status as string));
+  }, [bookingCourtOccurrences, statusFilter]);
 
+  // Memoize event conversion to prevent unnecessary re-renders
   const bookingCourtsEvent = useMemo(() => {
-    return expandBookings(filteredBookings);
-  }, [filteredBookings]);
+    return convertOccurrencesToEvents(filteredOccurrences);
+  }, [filteredOccurrences]);
 
-  // Compute totals only for bookings that actually occur on the selected date
-  const selectedCustomDow = useMemo(() => {
-    const jsDow = selectedDate.toDate().getDay(); // 0..6, Sunday=0
-    return jsDow === 0 ? 8 : jsDow + 1; // match backend convention 2..8 (Mon..Sun)
-  }, [selectedDate]);
+  // Memoize current time to prevent unnecessary recalculations
+  const now = useMemo(() => new Date(), []);
+  const nextHour = useMemo(() => new Date(now.getTime() + 60 * 60 * 1000), [now]);
 
-  const bookingsForSelectedDay = useMemo(() => {
-    const all = bookingCourts?.data ?? [];
-    const sel = selectedDate.toDate();
-    const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-    return all.filter((b: any) => {
-      const days: number[] | null | undefined = b.daysOfWeek;
-      if (!days || days.length === 0) {
-        // walk-in: only count if the booking date equals selected date
-        const start = new Date(b.startDate as any);
-        return sameDay(start, sel);
+  // Memoize same day comparison function to prevent recreation
+  const sameDay = useCallback(
+    (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(),
+    [],
+  );
+
+  // Upcoming customers within the next 1 hour (unique courts that have a start within 1 hour)
+  const upcomingWithinHourCount = useMemo(() => {
+    try {
+      const events: any[] = (bookingCourtsEvent as any[]) || [];
+      const sel = selectedDateObj;
+      const courts = new Set<string>();
+      for (const ev of events) {
+        if (!ev?.start || !ev?.resource) continue;
+        const start = new Date(ev.start);
+        if (!sameDay(start, sel)) continue;
+        if (start >= now && start <= nextHour) {
+          courts.add(String(ev.resource));
+        }
       }
-      // fixed: include only if the selected DOW is one of daysOfWeek
-      return (days as number[]).includes(selectedCustomDow);
+      return courts.size;
+    } catch {
+      return 0;
+    }
+  }, [bookingCourtsEvent, selectedDateObj, now, nextHour, sameDay]);
+
+  // Arrived but not checked-in yet: events whose start time has passed (and not ended) on selected date, status is Active (paid) and not CheckedIn
+  const arrivedNotCheckedInCount = useMemo(() => {
+    try {
+      const events: any[] = (bookingCourtsEvent as any[]) || [];
+      const sel = selectedDateObj;
+      let count = 0;
+      for (const ev of events) {
+        if (!ev?.start || !ev?.end) continue;
+        const start = new Date(ev.start);
+        const end = new Date(ev.end);
+        if (!sameDay(start, sel)) continue;
+        const status = ev?.status as string | undefined;
+        if (status === BookingCourtStatus.Active && start <= now && now < end) {
+          count += 1;
+        }
+      }
+      return count;
+    } catch {
+      return 0;
+    }
+  }, [bookingCourtsEvent, selectedDateObj, now, sameDay]);
+
+  // Removed unused selectedCustomDow computation
+
+  const occurrencesForSelectedDay = useMemo(() => {
+    const all = bookingCourtOccurrences?.data ?? [];
+    const sel = selectedDateObj;
+    return all.filter((o: any) => {
+      const occurrenceDate = new Date(o.startDate as any);
+      return sameDay(occurrenceDate, sel);
     });
-  }, [bookingCourts, selectedDate, selectedCustomDow]);
+  }, [bookingCourtOccurrences, selectedDateObj, sameDay]);
 
   const totalCancelled = useMemo(() => {
-    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Cancelled).length;
-  }, [bookingsForSelectedDay]);
+    return occurrencesForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Cancelled).length;
+  }, [occurrencesForSelectedDay]);
   const totalActive = useMemo(() => {
-    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Active).length;
-  }, [bookingsForSelectedDay]);
+    return occurrencesForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Active).length;
+  }, [occurrencesForSelectedDay]);
   const totalPendingPayment = useMemo(() => {
-    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.PendingPayment).length;
-  }, [bookingsForSelectedDay]);
+    return occurrencesForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.PendingPayment).length;
+  }, [occurrencesForSelectedDay]);
   const totalCompleted = useMemo(() => {
-    return bookingsForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Completed).length;
-  }, [bookingsForSelectedDay]);
+    return occurrencesForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.Completed).length;
+  }, [occurrencesForSelectedDay]);
+  const totalNoShow = useMemo(() => {
+    return occurrencesForSelectedDay.filter((event: any) => event.status === BookingCourtStatus.NoShow).length;
+  }, [occurrencesForSelectedDay]);
 
-  // Function để setup UI cho realtime connection dot
+  // Memoize setupSchedulerUI to prevent unnecessary re-creation
   const setupSchedulerUI = useCallback(() => {
     const corner = document.querySelector(".scheduler_default_corner") as HTMLElement | null;
     if (!corner) return;
@@ -233,28 +300,35 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
 
     conn.on("bookingCreated", (payload: any) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       invalidateDetailIfOpen(payload?.id);
     });
     conn.on("bookingUpdated", (bookingId: string) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
+      message.open({ type: "info", content: "Lịch đặt sân đã được cập nhật", key: "booking-updated", duration: 3 });
       invalidateDetailIfOpen(bookingId);
     });
     conn.on("paymentCreated", (payload: any) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       // payload from service includes bookingId
       invalidateDetailIfOpen(payload?.bookingId);
     });
     conn.on("paymentUpdated", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       // webhook also emits bookingUpdated separately; still refresh detail just in case
       invalidateDetailIfOpen();
     });
     conn.on("bookingCancelled", (bookingId: string) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       invalidateDetailIfOpen(bookingId);
     });
     conn.on("bookingsExpired", (bookingIds: string[]) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       if (Array.isArray(bookingIds)) {
         if (bookingIds.includes(detailId as string)) {
           invalidateDetailIfOpen(detailId as string);
@@ -263,6 +337,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     });
     conn.on("paymentsCancelled", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       invalidateDetailIfOpen();
     });
 
@@ -312,20 +387,68 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
     };
   }, [queryClient, openDetail, detailId]);
 
-  const handlePickDate = (date: string) => {
+  // Memoize date picker handler to prevent unnecessary re-renders
+  const handlePickDate = useCallback((date: string) => {
     setSelectedDate(new DayPilot.Date(date));
-  };
+  }, []);
 
-  const resources: DayPilot.ResourceData[] = courts.map((courtArea) => ({
-    name: courtArea.name ?? "",
-    id: courtArea.id,
-    expanded: true,
-    children:
-      courtArea.courts?.map((court) => ({
-        name: court.name ?? "",
-        id: court.id,
-      })) ?? [],
-  }));
+  // Memoize event handlers to prevent unnecessary re-renders
+  const handleTimeRangeSelected = useCallback(async (args: any) => {
+    const currentTime = new DayPilot.Date();
+    if (args.start.getTime() < currentTime.getTime()) {
+      message.warning("Lưu ý: Bạn đang đặt sân trong quá khứ");
+    }
+
+    setOpen(true);
+
+    setNewBooking({
+      start: args.start,
+      end: args.end,
+      resource: args.resource.toString(),
+    });
+  }, []);
+
+  const handleEventClick = useCallback(async (args: any) => {
+    const id = String(args.e.data.id ?? "");
+    if (!id) return;
+    if (id.includes("@")) {
+      setDetailId(id.split("@")[0]);
+    } else {
+      setDetailId(id);
+    }
+    setOpenDetail(true);
+  }, []);
+
+  const handleStatusFilterChange = useCallback((vals: any) => setStatusFilter(vals as string[]), []);
+  const handleViewOptionChange = useCallback((value: any) => {
+    setViewOption(value as "schedule" | "list");
+  }, []);
+
+  const handleModalClose = useCallback(() => {
+    setOpen(false);
+    setNewBooking(null);
+  }, []);
+
+  const handleDetailClose = useCallback(() => {
+    setOpenDetail(false);
+    setDetailId(null);
+  }, []);
+
+  // Memoize resources to prevent unnecessary re-computations
+  const resources: DayPilot.ResourceData[] = useMemo(
+    () =>
+      courts.map((courtArea) => ({
+        name: courtArea.name ?? "",
+        id: courtArea.id,
+        expanded: true,
+        children:
+          courtArea.courts?.map((court) => ({
+            name: court.name ?? "",
+            id: court.id,
+          })) ?? [],
+      })),
+    [courts],
+  );
 
   // const handleCreateBooking = () => {
   //   console.log("handleCreateBooking", newBooking);
@@ -352,24 +475,30 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-700">Lọc trạng thái:</span>
           <Checkbox.Group
-            options={[
-              { label: "Đã đặt & thanh toán", value: BookingCourtStatus.Active },
-              { label: "Đã đặt - chưa thanh toán", value: BookingCourtStatus.PendingPayment },
-              { label: "Hoàn tất", value: BookingCourtStatus.Completed },
-              { label: "Đã hủy", value: BookingCourtStatus.Cancelled },
-            ]}
+            options={useMemo(
+              () => [
+                { label: "Đã đặt & thanh toán", value: BookingCourtStatus.Active },
+                { label: "Đã đặt - chưa thanh toán", value: BookingCourtStatus.PendingPayment },
+                { label: "Đã check-in", value: BookingCourtStatus.CheckedIn },
+                { label: "Hoàn tất", value: BookingCourtStatus.Completed },
+                { label: "Đã hủy", value: BookingCourtStatus.Cancelled },
+                { label: "No-show", value: BookingCourtStatus.NoShow },
+              ],
+              [],
+            )}
             value={statusFilter}
-            onChange={(vals) => setStatusFilter(vals as string[])}
+            onChange={handleStatusFilterChange}
           />
         </div>
         <Segmented
-          options={[
-            { label: "Xem theo lịch", value: "schedule", icon: <CalendarOutlined /> },
-            { label: "Xem theo danh sách", value: "list", icon: <TableOutlined /> },
-          ]}
-          onChange={(value) => {
-            setViewOption(value as "schedule" | "list");
-          }}
+          options={useMemo(
+            () => [
+              { label: "Xem theo lịch", value: "schedule", icon: <CalendarOutlined /> },
+              { label: "Xem theo danh sách", value: "list", icon: <TableOutlined /> },
+            ],
+            [],
+          )}
+          onChange={handleViewOptionChange}
           size="large"
         />
       </div>
@@ -396,7 +525,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                     },
                   })
                 }
-                onBeforeGroupRender={(args) => {
+                onBeforeGroupRender={(args: any) => {
                   const totalCancelled = args.group.events.filter(
                     (event: DayPilot.Event) => event.data.status === BookingCourtStatus.Cancelled,
                   ).length;
@@ -434,7 +563,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                 days={1}
                 startDate={selectedDate}
                 resources={resources}
-                onBeforeRowHeaderRender={(args) => {
+                onBeforeRowHeaderRender={(args: any) => {
                   args.row.cssClass = "resource-css";
                   const hasExpanded = args.row.groups && args.row.groups.expanded && args.row.groups.expanded().length > 0;
                   const hasCollapsed = args.row.groups && args.row.groups.collapsed && args.row.groups.collapsed().length > 0;
@@ -506,13 +635,13 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                     ];
                   }
                 }}
-                onBeforeCellRender={(args) => {
+                onBeforeCellRender={(args: any) => {
                   if (args.cell.isParent) {
                     args.cell.properties.disabled = true;
                     args.cell.properties.backColor = "#f0f0f0";
                   }
                 }}
-                onBeforeEventRender={(args) => {
+                onBeforeEventRender={(args: any) => {
                   const eventStatus = args.data.status;
 
                   if (eventStatus === BookingCourtStatus.Active) {
@@ -529,6 +658,12 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
 
                   if (eventStatus === BookingCourtStatus.PendingPayment) {
                     args.data.barColor = "yellow";
+                  }
+                  if (eventStatus === BookingCourtStatus.CheckedIn) {
+                    args.data.barColor = "#3b82f6"; // tailwind blue-500
+                  }
+                  if (eventStatus === BookingCourtStatus.NoShow) {
+                    args.data.barColor = "#f97316"; // tailwind orange-500
                   }
 
                   // Customize event text with a status badge + customer name + time range
@@ -550,17 +685,23 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                   } else if (eventStatus === BookingCourtStatus.Cancelled) {
                     badgeText = "Đã hủy";
                     badgeClasses = "text-red-800";
+                  } else if (eventStatus === BookingCourtStatus.CheckedIn) {
+                    badgeText = "Đã check-in";
+                    badgeClasses = "text-blue-700";
+                  } else if (eventStatus === BookingCourtStatus.NoShow) {
+                    badgeText = "Không đến";
+                    badgeClasses = "text-orange-700";
                   }
 
                   const badgeHtml = badgeText ? `<span class="${badgeClasses}">${badgeText}</span>` : "";
 
                   args.data.html = `
-              <div class="flex flex-col gap-1">
-                ${badgeHtml}
-                <span class="font-semibold">${customerName}</span>
-                <span class="text-xs text-gray-700">(${startText} - ${endText})</span>
-              </div>
-            `;
+                    <div class="flex flex-col gap-1">
+                      ${badgeHtml}
+                      <span class="font-semibold">${customerName}</span>
+                      <span class="text-xs text-gray-700">(${startText} - ${endText})</span>
+                    </div>
+                  `;
 
                   // if (eventStart.getTime() < now.getTime()) {
                   //   args.data.barColor = "orange";
@@ -571,7 +712,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                   //     args.data.barColor = "orange"; // Màu cam cho sự kiện đang diễn ra
                   // }
                 }}
-                onBeforeTimeHeaderRender={(args) => {
+                onBeforeTimeHeaderRender={(args: any) => {
                   if (args.header.level === 0) {
                     const date = args.header.start;
                     const dayOfWeekText = date.toString("dddd");
@@ -593,35 +734,10 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                     setupSchedulerUI();
                   }, 0);
                 }}
-                onTimeRangeSelected={async (args) => {
-                  const scheduler = args.control;
-                  const currentTime = new DayPilot.Date();
-                  if (args.start.getTime() < currentTime.getTime()) {
-                    message.error("Không thể đặt sân trong quá khứ");
-                    scheduler.clearSelection();
-                    return;
-                  }
-
-                  setOpen(true);
-
-                  setNewBooking({
-                    start: args.start,
-                    end: args.end,
-                    resource: args.resource.toString(),
-                  });
-                }}
+                onTimeRangeSelected={handleTimeRangeSelected}
                 eventMoveHandling="Disabled"
                 eventResizeHandling="Disabled"
-                onEventClick={async (args) => {
-                  const id = String(args.e.data.id ?? "");
-                  if (!id) return;
-                  if (id.includes("@")) {
-                    setDetailId(id.split("@")[0]);
-                  } else {
-                    setDetailId(id);
-                  }
-                  setOpenDetail(true);
-                }}
+                onEventClick={handleEventClick}
                 treeEnabled={true}
                 events={bookingCourtsEvent}
                 allowEventOverlap={false}
@@ -630,39 +746,46 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                 rowEmptyHeight={50}
                 eventHeight={70}
               />
-              <div>
+              <div className="flex items-start justify-between">
                 <div className="flex gap-2 text-sm font-bold">
                   <span className="text-green-500">Đã đặt & thanh toán: {totalActive}</span> •
                   <span className="text-yellow-500">Đã đặt - chưa thanh toán: {totalPendingPayment}</span> •
-                  <span className="text-blue-500">Hoàn tất: {totalCompleted}</span> •<span className="text-red-500">Đã hủy: {totalCancelled}</span>
+                  <span className="text-blue-500">Hoàn tất: {totalCompleted}</span> •
+                  <span className="text-orange-500">Đã đặt - không đến: {totalNoShow}</span> •
+                  <span className="text-red-500">Đã hủy: {totalCancelled}</span>
+                </div>
+                <div className="mt-1 flex flex-col items-end gap-2 text-sm">
+                  <span className="flex items-center font-semibold text-green-500">
+                    <PersonStandingIcon className="mr-2 h-4 w-4" /> Lượt khách sắp tới (≤ 1 giờ): {upcomingWithinHourCount} lượt
+                  </span>
+                  <span className="flex items-center font-semibold text-orange-500">
+                    <UserCheckIcon className="mr-2 h-4 w-4" /> Đã đến nhưng chưa check-in: {arrivedNotCheckedInCount} lượt
+                  </span>
                 </div>
               </div>
             </>
           ) : (
-            <CourtScheduleTable data={filteredBookings} loading={loadingBookingCourts} />
+            // <CourtScheduleTable data={filteredOccurrences} loading={loadingBookingCourts} />
+            <></>
           )}
         </div>
 
-        <ModalCreateNewBooking
-          open={open}
-          onClose={() => {
-            setOpen(false);
-            setNewBooking(null);
-          }}
-          newBooking={newBooking}
-        />
+        <ModalCreateNewBooking open={open} onClose={handleModalClose} newBooking={newBooking} />
 
-        <BookingDetailDrawer
+        <BookingOccurrenceDetailDrawer occurrenceId={detailId} open={openDetail} onClose={handleDetailClose} />
+
+        {/* <BookingDetailDrawer
           bookingId={detailId}
           open={openDetail}
           onClose={() => {
             setOpenDetail(false);
             setDetailId(null);
           }}
-        />
+        /> */}
       </div>
     </>
   );
 };
 
-export default CourtScheduler;
+// Memoize the main component to prevent unnecessary re-renders when props haven't changed
+export default memo(CourtScheduler);

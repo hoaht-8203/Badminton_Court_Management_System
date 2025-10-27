@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using ApiApplication.Entities.Shared;
 
 namespace ApiApplication.Entities;
@@ -20,4 +21,9 @@ public class Customer : BaseEntity, IAuditableEntity
     public string? Note { get; set; }
     public required string Status { get; set; } = CustomerStatus.Active;
     public string? AvatarUrl { get; set; }
+
+    public Guid? UserId { get; set; }
+
+    [ForeignKey(nameof(UserId))]
+    public ApplicationUser? User { get; set; }
 }

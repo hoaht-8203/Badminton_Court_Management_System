@@ -21,10 +21,7 @@ const UpdateProductImages = ({ productId, onUpdated }: { productId: number; onUp
   const handleUpload = async () => {
     try {
       setLoading(true);
-      await productService.updateImages(
-        productId,
-        files.map((f) => f.originFileObj as File).filter(Boolean),
-      );
+      await productService.updateImages(productId, files.map((f) => f.originFileObj as File).filter(Boolean));
       message.success("Cập nhật ảnh thành công");
       // Refresh product detail and list so new images show up
       qc.invalidateQueries({ queryKey: ["product", { id: productId }] });
@@ -51,4 +48,4 @@ const UpdateProductImages = ({ productId, onUpdated }: { productId: number; onUp
   );
 };
 
-export default UpdateProductImages; 
+export default UpdateProductImages;

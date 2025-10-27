@@ -29,6 +29,8 @@ public class BookingHoldExpiryHostedService(
                     b.Status == BookingCourtStatus.PendingPayment
                     && b.HoldExpiresAtUtc != null
                     && b.HoldExpiresAtUtc <= now
+                    // Exclude bookings that have active orders (extended payments)
+                    && !db.Orders.Any(o => o.BookingId == b.Id && o.Status == "Pending")
                 );
 
                 var expiredIds = await expiredQuery.Select(b => b.Id).ToListAsync(stoppingToken);
@@ -39,6 +41,20 @@ public class BookingHoldExpiryHostedService(
                             setters
                                 .SetProperty(b => b.Status, BookingCourtStatus.Cancelled)
                                 .SetProperty(b => b.UpdatedAt, now),
+                        stoppingToken
+                    );
+
+                    // Cancel corresponding BookingCourtOccurrences
+                    var expiredOccurrencesQuery = db.BookingCourtOccurrences.Where(o =>
+                        expiredIds.Contains(o.BookingCourtId)
+                        && o.Status == BookingCourtOccurrenceStatus.PendingPayment
+                    );
+
+                    var rowsOccurrences = await expiredOccurrencesQuery.ExecuteUpdateAsync(
+                        setters =>
+                            setters
+                                .SetProperty(o => o.Status, BookingCourtOccurrenceStatus.Cancelled)
+                                .SetProperty(o => o.UpdatedAt, now),
                         stoppingToken
                     );
 
@@ -60,9 +76,11 @@ public class BookingHoldExpiryHostedService(
                     );
 
                     _logger.LogInformation(
-                        "Expired {Count} pending bookings. RowsAffectedBookings={RowsB}, RowsAffectedPayments={RowsP}. Ids=[{Ids}]",
+                        "Expired {Count} pending bookings and {OccurrenceCount} occurrences. RowsAffectedBookings={RowsB}, RowsAffectedOccurrences={RowsO}, RowsAffectedPayments={RowsP}. Ids=[{Ids}]",
                         expiredIds.Count,
+                        rowsOccurrences,
                         rowsBookings,
+                        rowsOccurrences,
                         rowsPayments,
                         string.Join(",", expiredIds)
                     );

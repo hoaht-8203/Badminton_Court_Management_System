@@ -27,6 +27,13 @@ import {
     CustomerToJSON,
     CustomerToJSONTyped,
 } from './Customer';
+import type { BookingCourtOccurrence } from './BookingCourtOccurrence';
+import {
+    BookingCourtOccurrenceFromJSON,
+    BookingCourtOccurrenceFromJSONTyped,
+    BookingCourtOccurrenceToJSON,
+    BookingCourtOccurrenceToJSONTyped,
+} from './BookingCourtOccurrence';
 import type { Court } from './Court';
 import {
     CourtFromJSON,
@@ -149,6 +156,12 @@ export interface BookingCourt {
      * @memberof BookingCourt
      */
     payments?: Array<Payment> | null;
+    /**
+     * 
+     * @type {Array<BookingCourtOccurrence>}
+     * @memberof BookingCourt
+     */
+    bookingCourtOccurrences?: Array<BookingCourtOccurrence> | null;
 }
 
 /**
@@ -193,6 +206,7 @@ export function BookingCourtFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'status': json['status'] == null ? undefined : json['status'],
         'holdExpiresAtUtc': json['holdExpiresAtUtc'] == null ? undefined : (new Date(json['holdExpiresAtUtc'])),
         'payments': json['payments'] == null ? undefined : ((json['payments'] as Array<any>).map(PaymentFromJSON)),
+        'bookingCourtOccurrences': json['bookingCourtOccurrences'] == null ? undefined : ((json['bookingCourtOccurrences'] as Array<any>).map(BookingCourtOccurrenceFromJSON)),
     };
 }
 
@@ -225,6 +239,7 @@ export function BookingCourtToJSONTyped(value?: BookingCourt | null, ignoreDiscr
         'status': value['status'],
         'holdExpiresAtUtc': value['holdExpiresAtUtc'] === null ? null : ((value['holdExpiresAtUtc'] as any)?.toISOString()),
         'payments': value['payments'] == null ? undefined : ((value['payments'] as Array<any>).map(PaymentToJSON)),
+        'bookingCourtOccurrences': value['bookingCourtOccurrences'] == null ? undefined : ((value['bookingCourtOccurrences'] as Array<any>).map(BookingCourtOccurrenceToJSON)),
     };
 }
 

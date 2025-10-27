@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ApiApplication.Data;
 using ApiApplication.Dtos.Payment;
 using ApiApplication.Entities;
@@ -5,6 +6,8 @@ using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
 using ApiApplication.SignalR;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,12 +16,16 @@ namespace ApiApplication.Services.Impl;
 public class PaymentService(
     ApplicationDbContext context,
     IMapper mapper,
-    IHubContext<BookingHub> hub
+    IHubContext<BookingHub> hub,
+    IHttpContextAccessor httpContextAccessor,
+    UserManager<ApplicationUser> userManager
 ) : IPaymentService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
     private readonly IHubContext<BookingHub> _hub = hub;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
 
     public async Task<DetailPaymentResponse> CreatePaymentAsync(CreatePaymentRequest request)
     {
@@ -125,7 +132,7 @@ public class PaymentService(
 
     private async Task<string> GenerateNextPaymentIdAsync()
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var prefix = $"PM-{now:ddMMyyyy}-";
         var lastId = await _context
             .Payments.AsNoTracking()
@@ -186,11 +193,12 @@ public class PaymentService(
             return totalForDay;
         }
 
-        // If fixed schedule: sum for each applicable date between StartDate..EndDate inclusive
+        // Calculate court rental cost
+        var courtCost = 0m;
         var daysArray = booking.DaysOfWeek ?? Array.Empty<int>();
         if (daysArray.Length > 0)
         {
-            var total = 0m;
+            // Fixed schedule: sum for each applicable date between StartDate..EndDate inclusive
             var cursor = booking.StartDate;
             var end = booking.EndDate;
             while (cursor <= end)
@@ -198,22 +206,95 @@ public class PaymentService(
                 var dow = GetCustomDayOfWeek(cursor);
                 if (daysArray.Contains(dow))
                 {
-                    total += await ComputePerDayAsync(dow);
+                    courtCost += await ComputePerDayAsync(dow);
                 }
                 cursor = cursor.AddDays(1);
             }
-            return Math.Round(total, 2);
+        }
+        else
+        {
+            // Walk-in: single day (StartDate)
+            var walkInDow = GetCustomDayOfWeek(booking.StartDate);
+            courtCost = await ComputePerDayAsync(walkInDow);
         }
 
-        // Walk-in: single day (StartDate)
-        var walkInDow = GetCustomDayOfWeek(booking.StartDate);
-        var walkInTotal = await ComputePerDayAsync(walkInDow);
-        return Math.Round(walkInTotal, 2);
+        // Calculate service costs
+        var serviceCost = 0m;
+        var bookingServices = await _context
+            .BookingServices.Include(bs => bs.BookingCourtOccurrence)
+            .Where(bs => bs.BookingCourtOccurrence.BookingCourtId == booking.Id)
+            .ToListAsync();
+
+        foreach (var bookingService in bookingServices)
+        {
+            serviceCost += bookingService.TotalPrice;
+        }
+
+        return Math.Round(courtCost + serviceCost, 2);
     }
 
     private static TimeOnly Max(TimeOnly a, TimeOnly b) => a > b ? a : b;
 
     private static TimeOnly Min(TimeOnly a, TimeOnly b) => a < b ? a : b;
+
+    public async Task<DetailPaymentResponse> CreatePaymentForOrderAsync(
+        CreatePaymentForOrderRequest request
+    )
+    {
+        // Kiểm tra Order có tồn tại không
+        var order = await _context
+            .Orders.Include(o => o.Booking)
+            .ThenInclude(b => b.Customer)
+            .Include(o => o.Booking)
+            .ThenInclude(b => b.Court)
+            .FirstOrDefaultAsync(o => o.Id == request.OrderId);
+
+        if (order == null)
+        {
+            throw new ApiException("Không tìm thấy đơn hàng", System.Net.HttpStatusCode.BadRequest);
+        }
+
+        // Kiểm tra Booking có tồn tại không
+        if (order.Booking == null)
+        {
+            throw new ApiException("Không tìm thấy đặt sân", System.Net.HttpStatusCode.BadRequest);
+        }
+
+        // Tạo Payment
+        var payment = new Payment
+        {
+            Id = await GenerateNextPaymentIdAsync(),
+            BookingId = request.BookingId,
+            BookingCourtOccurrenceId = request.BookingOccurrenceId,
+            OrderId = request.OrderId,
+            CustomerId = request.CustomerId,
+            Amount = request.Amount,
+            Status = "PendingPayment", // Mặc định là PendingPayment
+            Note = request.Note,
+            PaymentCreatedAt = DateTime.UtcNow,
+        };
+
+        await _context.Payments.AddAsync(payment);
+        await _context.SaveChangesAsync();
+
+        // Load lại payment với đầy đủ thông tin
+        var createdPayment = await _context
+            .Payments.Include(p => p.Booking)
+            .ThenInclude(b => b!.Court)
+            .Include(p => p.Customer)
+            .Include(p => p.Order)
+            .FirstOrDefaultAsync(p => p.Id == payment.Id);
+
+        if (createdPayment == null)
+        {
+            throw new ApiException(
+                "Lỗi khi tạo thanh toán",
+                System.Net.HttpStatusCode.InternalServerError
+            );
+        }
+
+        return _mapper.Map<DetailPaymentResponse>(createdPayment);
+    }
 
     private static int GetCustomDayOfWeek(DateOnly date)
     {

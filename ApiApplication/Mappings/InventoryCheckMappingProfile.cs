@@ -21,8 +21,32 @@ public class InventoryCheckMappingProfile : Profile
             .ForMember(d => d.CreatedBy, opt => opt.MapFrom(s => s.CreatedBy));
 
         CreateMap<InventoryCheck, ListInventoryCheckResponse>()
-            .ForMember(d => d.TotalDelta, opt => opt.MapFrom(s => (s.Items ?? new List<InventoryCheckItem>()).Sum(i => i.ActualQuantity - i.SystemQuantity)))
-            .ForMember(d => d.TotalDeltaIncrease, opt => opt.MapFrom(s => (s.Items ?? new List<InventoryCheckItem>()).Sum(i => Math.Max(0, i.ActualQuantity - i.SystemQuantity))))
-            .ForMember(d => d.TotalDeltaDecrease, opt => opt.MapFrom(s => (s.Items ?? new List<InventoryCheckItem>()).Sum(i => Math.Max(0, i.SystemQuantity - i.ActualQuantity))));
+            .ForMember(
+                d => d.TotalDelta,
+                opt =>
+                    opt.MapFrom(s =>
+                        (s.Items ?? new List<InventoryCheckItem>()).Sum(i =>
+                            i.ActualQuantity - i.SystemQuantity
+                        )
+                    )
+            )
+            .ForMember(
+                d => d.TotalDeltaIncrease,
+                opt =>
+                    opt.MapFrom(s =>
+                        (s.Items ?? new List<InventoryCheckItem>()).Sum(i =>
+                            Math.Max(0, i.ActualQuantity - i.SystemQuantity)
+                        )
+                    )
+            )
+            .ForMember(
+                d => d.TotalDeltaDecrease,
+                opt =>
+                    opt.MapFrom(s =>
+                        (s.Items ?? new List<InventoryCheckItem>()).Sum(i =>
+                            Math.Max(0, i.SystemQuantity - i.ActualQuantity)
+                        )
+                    )
+            );
     }
-} 
+}

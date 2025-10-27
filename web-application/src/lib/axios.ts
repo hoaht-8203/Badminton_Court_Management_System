@@ -104,7 +104,7 @@ axiosInstance.interceptors.response.use(
 
         const refreshErrorApiError = refreshError as ApiError;
         if (refreshErrorApiError.status === 400) {
-          return Promise.reject(new ApiError("Vui lòng đăng nhập để truy cập hệ thống.", null, false, 401));
+          return Promise.reject(new ApiError("Bạn chưa đăng nhập. Hãy đăng nhập để sử dụng dịch vụ", null, false, 401));
         }
 
         return Promise.reject(new ApiError("Refresh token đã hết hạn. Vui lòng đăng nhập lại.", null, false, 401));

@@ -6,6 +6,8 @@ import {
   DetailProductResponse,
   ListProductRequest,
   ListProductResponse,
+  ListProductsByPriceTableRequest,
+  ListProductsByPriceTableResponse,
   UpdateProductRequest,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
@@ -50,4 +52,9 @@ export const productService = {
     });
     return res.data;
   },
-}; 
+
+  async listByPriceTable(payload: ListProductsByPriceTableRequest): Promise<ApiResponse<ListProductsByPriceTableResponse[]>> {
+    const res = await axiosInstance.get<ApiResponse<ListProductsByPriceTableResponse[]>>("/api/Products/list-by-price-table", { params: payload });
+    return res.data;
+  },
+};

@@ -1,7 +1,9 @@
 using System.Net;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
+using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
+using ApiApplication.Enums;
 using ApiApplication.Exceptions;
 using ApiApplication.Extensions;
 using ApiApplication.Services;
@@ -101,26 +103,46 @@ public class PaymentWebhooksController(
         var payment =
             await _context
                 .Payments.Include(i => i.Booking)
+                .ThenInclude(i => i.BookingCourtOccurrences)
+                .Include(i => i.Order)
                 .FirstOrDefaultAsync(i => i.Id == paymentId)
             ?? throw new ApiException("Không tìm thấy thanh toán", HttpStatusCode.BadRequest);
 
         if (
             string.Equals(request.TransferType, "in", StringComparison.OrdinalIgnoreCase)
-            && request.TransferAmount >= (long)Math.Round(payment.Amount, 0)
+            && request.TransferAmount >= (long)Math.Ceiling(payment.Amount)
         )
         {
             payment.Status = PaymentStatus.Paid;
 
+            // Handle booking payment
             if (payment.Booking != null)
             {
                 if (payment.Booking.Status == BookingCourtStatus.PendingPayment)
                 {
                     payment.Booking.Status = BookingCourtStatus.Active;
+                    foreach (var occurrence in payment.Booking.BookingCourtOccurrences)
+                    {
+                        occurrence.Status = BookingCourtOccurrenceStatus.Active;
+                    }
                 }
                 else if (payment.Booking.Status == BookingCourtStatus.Cancelled)
                 {
                     payment.Note =
                         "Người dùng đã thanh toán sau khi đặt sân đã hủy bỏ hoặc hết hạn";
+                }
+            }
+
+            // Handle order payment
+            if (payment.Order != null)
+            {
+                if (payment.Order.Status == OrderStatus.Pending)
+                {
+                    payment.Order.Status = OrderStatus.Paid;
+                }
+                else if (payment.Order.Status == OrderStatus.Cancelled)
+                {
+                    payment.Note = "Người dùng đã thanh toán sau khi đơn hàng đã bị hủy";
                 }
             }
 
@@ -131,6 +153,10 @@ public class PaymentWebhooksController(
             if (payment.Booking != null)
             {
                 await _hubContext.Clients.All.SendAsync("bookingUpdated", payment.Booking.Id);
+            }
+            if (payment.Order != null)
+            {
+                await _hubContext.Clients.All.SendAsync("orderUpdated", payment.Order.Id);
             }
 
             // After successful payment, send booking confirmation email via template

@@ -8,7 +8,8 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class InventoryChecksController(IInventoryCheckService inventoryCheckService) : ControllerBase
+public class InventoryChecksController(IInventoryCheckService inventoryCheckService)
+    : ControllerBase
 {
     private readonly IInventoryCheckService _inventoryCheckService = inventoryCheckService;
 
@@ -44,12 +45,7 @@ public class InventoryChecksController(IInventoryCheckService inventoryCheckServ
     )
     {
         var result = await _inventoryCheckService.CreateAsync(request);
-        return Ok(
-            ApiResponse<int>.SuccessResponse(
-                result,
-                "Tạo kiểm kê kho thành công"
-            )
-        );
+        return Ok(ApiResponse<int>.SuccessResponse(result, "Tạo kiểm kê kho thành công"));
     }
 
     [HttpPut("{id}")]
@@ -59,37 +55,22 @@ public class InventoryChecksController(IInventoryCheckService inventoryCheckServ
     )
     {
         await _inventoryCheckService.UpdateAsync(id, request);
-        return Ok(
-            ApiResponse<object>.SuccessResponse(
-                new {},
-                "Cập nhật kiểm kê kho thành công"
-            )
-        );
+        return Ok(ApiResponse<object>.SuccessResponse(new { }, "Cập nhật kiểm kê kho thành công"));
     }
 
     [HttpPut("{id}/cancel")]
     public async Task<ActionResult<ApiResponse<object>>> Cancel(int id)
     {
         await _inventoryCheckService.CancelAsync(id);
-        return Ok(
-            ApiResponse<object>.SuccessResponse(
-                new {},
-                "Hủy phiếu kiểm kê kho thành công"
-            )
-        );
+        return Ok(ApiResponse<object>.SuccessResponse(new { }, "Hủy phiếu kiểm kê kho thành công"));
     }
 
     [HttpPost("bulk-cancel")]
-    public async Task<ActionResult<ApiResponse<List<int>>>> BulkCancel(
-        [FromBody] List<int> ids
-    )
+    public async Task<ActionResult<ApiResponse<List<int>>>> BulkCancel([FromBody] List<int> ids)
     {
         var result = await _inventoryCheckService.BulkCancelAsync(ids);
         return Ok(
-            ApiResponse<List<int>>.SuccessResponse(
-                result,
-                "Hủy nhiều phiếu kiểm kê kho thành công"
-            )
+            ApiResponse<List<int>>.SuccessResponse(result, "Hủy nhiều phiếu kiểm kê kho thành công")
         );
     }
 
@@ -98,10 +79,7 @@ public class InventoryChecksController(IInventoryCheckService inventoryCheckServ
     {
         await _inventoryCheckService.CompleteAsync(id);
         return Ok(
-            ApiResponse<object>.SuccessResponse(
-                new {},
-                "Hoàn thành kiểm kê kho thành công"
-            )
+            ApiResponse<object>.SuccessResponse(new { }, "Hoàn thành kiểm kê kho thành công")
         );
     }
 
@@ -111,11 +89,6 @@ public class InventoryChecksController(IInventoryCheckService inventoryCheckServ
     )
     {
         var result = await _inventoryCheckService.MergeAsync(request.InventoryCheckIds);
-        return Ok(
-            ApiResponse<int>.SuccessResponse(
-                result,
-                "Gộp phiếu kiểm kê kho thành công"
-            )
-        );
+        return Ok(ApiResponse<int>.SuccessResponse(result, "Gộp phiếu kiểm kê kho thành công"));
     }
 }

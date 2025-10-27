@@ -1,5 +1,6 @@
 using ApiApplication.Data;
 using ApiApplication.Dtos;
+using ApiApplication.Entities.Shared;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,11 +19,12 @@ namespace ApiApplication.Services.Impl
         }
 
         public async Task<List<ScheduleByShiftResponse>> GetScheduleOfWeekByShiftAsync(
-            ScheduleRequest request
+            WeeklyScheduleRequest request
         )
         {
             var startDate = DateOnly.FromDateTime(request.StartDate);
-            var endDate = request.EndDate.HasValue ? DateOnly.FromDateTime(request.EndDate.Value) : default;
+            var endDate = DateOnly.FromDateTime(request.EndDate);
+
             var notFixedSchedules = await _context
                 .Schedules.Where(s =>
                     !s.IsFixedShift && s.StartDate >= startDate && s.StartDate <= endDate
@@ -47,6 +49,10 @@ namespace ApiApplication.Services.Impl
                 _mapper
             );
 
+            var attendanceRecords = await _context
+                .AttendanceRecords.Where(ar => ar.Date >= startDate && ar.Date <= endDate)
+                .ToListAsync();
+
             // Group by Shift
             var grouped = standardizedSchedules
                 .GroupBy(s => s.Shift.Id)
@@ -58,7 +64,33 @@ namespace ApiApplication.Services.Impl
                         {
                             Date = dayGroup.Key,
                             DayOfWeek = dayGroup.First().DayOfWeek,
-                            Staffs = dayGroup.Select(x => x.Staff).ToList(),
+                            Staffs = dayGroup
+                                .Select(x =>
+                                {
+                                    var attendances = attendanceRecords
+                                        .Where(ar =>
+                                            ar.StaffId == x.Staff.Id
+                                            && ar.Date == DateOnly.FromDateTime(x.Date)
+                                        )
+                                        .ToList();
+                                    var statusByDate =
+                                        Helpers.AttendanceHelper.DetermineStatusOfShift(
+                                            attendances,
+                                            x.Shift
+                                        );
+                                    if (x.Date > DateTime.Now)
+                                    {
+                                        statusByDate = AttendanceStatus.NotYet;
+                                    }
+                                    return new StaffAttendanceResponse
+                                    {
+                                        Id = x.Staff.Id,
+                                        FullName = x.Staff.FullName,
+                                        AvatarUrl = x.Staff.AvatarUrl,
+                                        AttendanceStatus = statusByDate,
+                                    };
+                                })
+                                .ToList(),
                         })
                         .ToList(),
                 })
@@ -68,14 +100,14 @@ namespace ApiApplication.Services.Impl
         }
 
         public async Task<List<ScheduleByStaffResponse>> GetScheduleOfWeekByStaffAsync(
-            ScheduleRequest request
+            WeeklyScheduleRequest request
         )
         {
             var startDate = DateOnly.FromDateTime(request.StartDate);
-            var endDate = request.EndDate.HasValue ? DateOnly.FromDateTime(request.EndDate.Value) : default;
+            var endDate = DateOnly.FromDateTime(request.EndDate);
             var notFixedSchedules = await _context
                 .Schedules.Where(s =>
-                    !s.IsFixedShift && s.StartDate >= startDate && s.StartDate <= endDate   
+                    !s.IsFixedShift && s.StartDate >= startDate && s.StartDate <= endDate
                 )
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
@@ -114,26 +146,22 @@ namespace ApiApplication.Services.Impl
 
             return grouped;
         }
+
         public async Task<List<ScheduleResponse>> GetScheduleOfWeekByStaffIdAsync(
             ScheduleRequest request,
             int staffId
         )
         {
             var startDate = DateOnly.FromDateTime(request.StartDate);
-            var endDate = request.EndDate.HasValue ? DateOnly.FromDateTime(request.EndDate.Value) : default;
+            var endDate = request.EndDate.HasValue
+                ? DateOnly.FromDateTime(request.EndDate.Value)
+                : default;
             var result = await _context
-                .Schedules.Where(s =>
-                    s.StaffId == staffId
-                )
+                .Schedules.Where(s => s.StaffId == staffId)
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
                 .ToListAsync();
-            return Helpers.ScheduleHelper.StandardizeSchedule(
-                result,
-                startDate,
-                endDate,
-                _mapper
-            );
+            return Helpers.ScheduleHelper.StandardizeSchedule(result, startDate, endDate, _mapper);
         }
 
         public async Task<bool> RemoveStaffFromShiftAsync(ScheduleRequest request)

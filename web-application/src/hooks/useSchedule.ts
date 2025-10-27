@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { scheduleService } from "@/services/schechuleService";
-import { ScheduleRequest } from "@/types-openapi/api";
+import { courtScheduleService } from "@/services/courtScheduleService";
+import { ListUserBookingHistoryResponse, ScheduleRequest } from "@/types-openapi/api";
+import { ApiError } from "@/lib/axios";
+import { ApiResponse } from "@/types/api";
 
 export function useGetScheduleByShift(request: ScheduleRequest) {
   return useQuery({
@@ -36,5 +39,12 @@ export function useRemoveSchedule() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["schedule"] });
     },
+  });
+}
+
+export function useGetUserBookingHistory() {
+  return useQuery<ApiResponse<ListUserBookingHistoryResponse[]>, ApiError>({
+    queryKey: ["booking-history", "user"],
+    queryFn: () => courtScheduleService.getUserBookingHistory(),
   });
 }

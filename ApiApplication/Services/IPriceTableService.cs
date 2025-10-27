@@ -1,4 +1,5 @@
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.PriceTable;
 
 namespace ApiApplication.Services;
 

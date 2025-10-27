@@ -2,10 +2,12 @@
 
 import { useCancelBookingCourt, useDetailBookingCourt } from "@/hooks/useBookingCourt";
 import { DetailBookingCourtResponse, PaymentDto } from "@/types-openapi/api";
+import { BookingCourtStatus } from "@/types/commons";
+import { QrcodeOutlined } from "@ant-design/icons";
 import { Button, Descriptions, Divider, Drawer, Modal, Tabs, Tag } from "antd";
+import { TicketSlashIcon } from "lucide-react";
 import { useState } from "react";
 import QrPaymentDrawer from "./qr-payment-drawer";
-import { BookingCourtStatus } from "@/types/commons";
 
 interface BookingDetailDrawerProps {
   bookingId: string | null;
@@ -29,6 +31,14 @@ const vnBookingStatus: Record<string, { color: string; text: string }> = {
   Cancelled: {
     color: "red",
     text: "Đã hủy",
+  },
+  CheckedIn: {
+    color: "geekblue",
+    text: "Đã check-in",
+  },
+  NoShow: {
+    color: "volcano",
+    text: "No-show",
   },
 };
 
@@ -59,7 +69,7 @@ export default function BookingDetailDrawer({ bookingId, open, onClose }: Bookin
   const cancelMutation = useCancelBookingCourt();
 
   return (
-    <Drawer title="Chi tiết đặt sân" placement="right" width={1000} open={open} onClose={onClose} destroyOnClose>
+    <Drawer title="Chi tiết đặt sân" placement="right" width={1000} open={open} onClose={onClose}>
       {isFetching ? (
         <div>Đang tải...</div>
       ) : !bookingDetailData ? (
@@ -74,30 +84,33 @@ export default function BookingDetailDrawer({ bookingId, open, onClose }: Bookin
               children: (
                 <div className="flex flex-col gap-5">
                   <div className="flex justify-end gap-2">
-                    {bookingDetailData.status !== BookingCourtStatus.Cancelled && (
-                      <Button
-                        danger
-                        onClick={async () => {
-                          if (!bookingId) return;
-                          modal.confirm({
-                            title: "Xác nhận",
-                            content: "Bạn có chắc chắn muốn huỷ lịch đặt sân này? Tiền cọc (nếu có) sẽ không được hoàn lại.",
-                            okButtonProps: {
-                              loading: cancelMutation.isPending,
-                            },
-                            onOk: async () => {
-                              await cancelMutation.mutateAsync({ id: bookingId });
-                              onClose();
-                            },
-                            okText: "Huỷ lịch đặt sân",
-                            cancelText: "Bỏ qua",
-                          });
-                        }}
-                        loading={cancelMutation.isPending}
-                      >
-                        Huỷ lịch đặt sân
-                      </Button>
-                    )}
+                    <Button
+                      icon={<TicketSlashIcon className="h-4 w-4" />}
+                      danger
+                      style={{ width: "185px", height: "40px" }}
+                      disabled={
+                        bookingDetailData.status === BookingCourtStatus.Cancelled || bookingDetailData.status === BookingCourtStatus.Completed
+                      }
+                      onClick={async () => {
+                        if (!bookingId) return;
+                        modal.confirm({
+                          title: "Xác nhận",
+                          content: "Bạn có chắc chắn muốn huỷ lịch đặt sân này? Tiền cọc (nếu có) sẽ không được hoàn lại.",
+                          okButtonProps: {
+                            loading: cancelMutation.isPending,
+                          },
+                          onOk: async () => {
+                            await cancelMutation.mutateAsync({ id: bookingId });
+                            onClose();
+                          },
+                          okText: "Huỷ lịch đặt sân",
+                          cancelText: "Bỏ qua",
+                        });
+                      }}
+                      loading={cancelMutation.isPending}
+                    >
+                      Huỷ lịch đặt sân
+                    </Button>
                   </div>
                   <Descriptions
                     bordered
@@ -153,10 +166,11 @@ export default function BookingDetailDrawer({ bookingId, open, onClose }: Bookin
                         children: (
                           <Button
                             type="primary"
+                            icon={<QrcodeOutlined />}
                             onClick={() => setOpenQrPayment(true)}
                             disabled={!bookingDetailData.qrUrl && !bookingDetailData.paymentId}
                           >
-                            Xem thanh toán
+                            Xem QR thanh toán
                           </Button>
                         ),
                         span: 2,

@@ -57,6 +57,12 @@ export interface CurrentUserResponse {
     avatarUrl?: string | null;
     /**
      * 
+     * @type {string}
+     * @memberof CurrentUserResponse
+     */
+    phoneNumber?: string | null;
+    /**
+     * 
      * @type {Array<string>}
      * @memberof CurrentUserResponse
      */
@@ -89,6 +95,7 @@ export function CurrentUserResponseFromJSONTyped(json: any, ignoreDiscriminator:
         'email': json['email'],
         'emailConfirmed': json['emailConfirmed'] == null ? undefined : json['emailConfirmed'],
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
+        'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'roles': json['roles'] == null ? undefined : json['roles'],
     };
 }
@@ -110,6 +117,7 @@ export function CurrentUserResponseToJSONTyped(value?: CurrentUserResponse | nul
         'email': value['email'],
         'emailConfirmed': value['emailConfirmed'],
         'avatarUrl': value['avatarUrl'],
+        'phoneNumber': value['phoneNumber'],
         'roles': value['roles'],
     };
 }

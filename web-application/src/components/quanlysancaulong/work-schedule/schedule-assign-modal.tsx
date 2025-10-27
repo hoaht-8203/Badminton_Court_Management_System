@@ -1,4 +1,5 @@
 import { useAssignSchedule } from "@/hooks/useSchedule";
+import { message } from "antd";
 import React, { useState } from "react";
 import { Modal, Button, Checkbox, Switch, DatePicker, Select, Tag } from "antd";
 import dayjs from "dayjs";
@@ -47,7 +48,6 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
 
   const handleSave = async () => {
     if (!staff?.id || !date) return;
-    // Xử lý lặp lại
     let isFixedShift = false;
     let byDay: string[] | undefined = undefined;
     if (repeatWeekly && repeatDays.length > 0) {
@@ -57,12 +57,11 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
         return `T${d + 1}`;
       });
     }
-    // Xác định endDate
     let endDateValue: string | undefined = undefined;
     if (repeatEnd && repeatEnd !== "unlimited") {
-      endDateValue = repeatEnd; // repeatEnd là ngày kết thúc do người dùng chọn
+      endDateValue = repeatEnd;
     }
-    // Gọi API cho từng ca
+    let successCount = 0;
     for (const shiftKey of selectedShifts) {
       const shiftObj = shiftList.find((s) => s.key === shiftKey);
       if (!shiftObj) continue;
@@ -75,6 +74,12 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
         byDay,
       };
       await assignMutation.mutateAsync(request);
+      successCount++;
+    }
+    if (successCount > 0) {
+      message.success("Xếp lịch làm việc thành công!");
+    } else {
+      message.warning("Không có ca nào được xếp!");
     }
     onSave?.({ selectedShifts, repeatWeekly, repeatDays, repeatEnd, workOnHoliday });
     onClose();

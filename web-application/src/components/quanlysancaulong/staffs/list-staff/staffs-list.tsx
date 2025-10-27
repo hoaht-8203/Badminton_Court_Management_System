@@ -14,7 +14,7 @@ const getColumns = (): ColumnsType<any> => [
     key: "id",
     render: (text: string, record: any) => (
       <div style={{ display: "flex", alignItems: "center" }}>
-  <Avatar src={record.avatarUrl ? record.avatarUrl : undefined} />
+        <Avatar src={record.avatarUrl ? record.avatarUrl : undefined} />
         <span style={{ marginLeft: 8 }}>{`NV${String(text).padStart(6, "0")}`}</span>
       </div>
     ),
@@ -55,15 +55,17 @@ const StaffList: React.FC<StaffListProps> = ({ staffList, onEditStaff, onChangeS
         dataSource={pagedData}
         rowKey="id"
         pagination={false}
+        bordered
         expandable={{
           expandedRowRender: (record) => (
-            <div style={{ background: "#fff", border: "1px solid #e0e0e0", margin: "16px 0", padding: 16 }}>
+            <div style={{ background: "#f9f9f9", border: "1px solid #e0e0e0", margin: "16px 0", padding: 24, borderRadius: 8 }}>
               <Tabs
                 defaultActiveKey="1"
+                type="line"
                 items={[
                   {
                     key: "1",
-                    label: "Thông tin",
+                    label: "Thông tin nhân viên",
                     children: <StaffInfoTab staff={record} onEditStaff={onEditStaff} onChangeStaffStatus={onChangeStaffStatus} />,
                   },
                   { key: "2", label: "Lịch làm việc", children: <WorkScheduleTab staff={record} /> },
@@ -90,7 +92,7 @@ const StaffList: React.FC<StaffListProps> = ({ staffList, onEditStaff, onChangeS
         pageSize={pageSize}
         total={staffList.length}
         onChange={setCurrentPage}
-        style={{ marginTop: 16, textAlign: "right" }}
+        style={{ marginTop: 24, textAlign: "right" }}
       />
     </div>
   );

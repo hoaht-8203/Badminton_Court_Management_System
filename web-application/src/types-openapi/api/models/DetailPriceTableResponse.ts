@@ -20,6 +20,13 @@ import {
     PriceTimeRangeDtoToJSON,
     PriceTimeRangeDtoToJSONTyped,
 } from './PriceTimeRangeDto';
+import type { PriceTableProductDto } from './PriceTableProductDto';
+import {
+    PriceTableProductDtoFromJSON,
+    PriceTableProductDtoFromJSONTyped,
+    PriceTableProductDtoToJSON,
+    PriceTableProductDtoToJSONTyped,
+} from './PriceTableProductDto';
 
 /**
  * 
@@ -63,6 +70,12 @@ export interface DetailPriceTableResponse {
      * @memberof DetailPriceTableResponse
      */
     timeRanges?: Array<PriceTimeRangeDto> | null;
+    /**
+     * 
+     * @type {Array<PriceTableProductDto>}
+     * @memberof DetailPriceTableResponse
+     */
+    priceTableProducts?: Array<PriceTableProductDto> | null;
 }
 
 /**
@@ -90,6 +103,7 @@ export function DetailPriceTableResponseFromJSONTyped(json: any, ignoreDiscrimin
         'effectiveFrom': json['effectiveFrom'] == null ? undefined : (new Date(json['effectiveFrom'])),
         'effectiveTo': json['effectiveTo'] == null ? undefined : (new Date(json['effectiveTo'])),
         'timeRanges': json['timeRanges'] == null ? undefined : ((json['timeRanges'] as Array<any>).map(PriceTimeRangeDtoFromJSON)),
+        'priceTableProducts': json['priceTableProducts'] == null ? undefined : ((json['priceTableProducts'] as Array<any>).map(PriceTableProductDtoFromJSON)),
     };
 }
 
@@ -110,6 +124,7 @@ export function DetailPriceTableResponseToJSONTyped(value?: DetailPriceTableResp
         'effectiveFrom': value['effectiveFrom'] === null ? null : ((value['effectiveFrom'] as any)?.toISOString()),
         'effectiveTo': value['effectiveTo'] === null ? null : ((value['effectiveTo'] as any)?.toISOString()),
         'timeRanges': value['timeRanges'] == null ? undefined : ((value['timeRanges'] as Array<any>).map(PriceTimeRangeDtoToJSON)),
+        'priceTableProducts': value['priceTableProducts'] == null ? undefined : ((value['priceTableProducts'] as Array<any>).map(PriceTableProductDtoToJSON)),
     };
 }
 

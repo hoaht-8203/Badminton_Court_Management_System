@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using ApiApplication.Entities.Shared;
 using Microsoft.AspNetCore.Identity;
 
@@ -15,6 +16,9 @@ public class ApplicationUser : IdentityUser<Guid>, IAuditableEntity
     public string? Note { get; set; }
     public string? AvatarUrl { get; set; }
     public required string Status { get; set; } = ApplicationUserStatus.Active;
+
+    public Customer? Customer { get; set; }
+
     public required ICollection<ApplicationUserToken> UserTokens { get; set; } = [];
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }

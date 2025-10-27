@@ -3,6 +3,7 @@
 import { ListProductRequest } from "@/types-openapi/api";
 import { ReloadOutlined, SearchOutlined } from "@ant-design/icons";
 import { Button, Card, Col, Form, FormProps, Input, Row, Select } from "antd";
+import { useListCategories } from "@/hooks/useCategories";
 
 interface ProductFilters extends ListProductRequest {
   priceSort?: "ascend" | "descend";
@@ -16,6 +17,7 @@ interface SearchProductsProps {
 
 const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
   const [form] = Form.useForm<ProductFilters>();
+  const { data: categoriesData } = useListCategories({});
 
   const handleSearch: FormProps<ProductFilters>["onFinish"] = (values) => {
     onSearch({
@@ -40,15 +42,19 @@ const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
         title="Lọc dữ liệu"
         extra={
           <div className="flex h-full items-center gap-2">
-            <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>Tìm kiếm</Button>
-            <Button icon={<ReloadOutlined />} onClick={handleReset}>Reset</Button>
+            <Button type="primary" htmlType="submit" icon={<SearchOutlined />}>
+              Tìm kiếm
+            </Button>
+            <Button icon={<ReloadOutlined />} onClick={handleReset}>
+              Reset
+            </Button>
           </div>
         }
       >
         <Row gutter={16}>
           <Col span={6}>
-            <Form.Item<ProductFilters> label="Tìm theo mã code" name="code">
-              <Input placeholder="Nhập mã code" />
+            <Form.Item<ProductFilters> label="Tìm theo mã hàng" name="code">
+              <Input placeholder="Nhập mã hàng" />
             </Form.Item>
           </Col>
           <Col span={6}>
@@ -58,7 +64,17 @@ const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
           </Col>
           <Col span={6}>
             <Form.Item<ProductFilters> label="Tìm theo nhóm hàng" name="category">
-              <Input placeholder="Nhập nhóm hàng" />
+              <Select
+                allowClear
+                showSearch
+                placeholder="Chọn nhóm hàng"
+                optionFilterProp="label"
+                filterOption={(input, option) => (option?.label ?? "").toLowerCase().includes(input.toLowerCase())}
+                options={(categoriesData?.data || []).map((c: any) => ({
+                  label: c.name,
+                  value: c.name,
+                }))}
+              />
             </Form.Item>
           </Col>
           <Col span={6}>
@@ -81,8 +97,8 @@ const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
           <Col span={6}>
             <Form.Item<ProductFilters> label="Trạng thái kinh doanh" name="isActive">
               <Select allowClear placeholder="Chọn trạng thái">
-                <Select.Option value={true as unknown as string}>Đang hoạt động</Select.Option>
-                <Select.Option value={false as unknown as string}>Ngừng hoạt động</Select.Option>
+                <Select.Option value={true as unknown as string}>Kinh doanh</Select.Option>
+                <Select.Option value={false as unknown as string}>Ngừng kinh doanh</Select.Option>
               </Select>
             </Form.Item>
           </Col>
@@ -92,4 +108,4 @@ const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
   );
 };
 
-export default SearchProducts; 
+export default SearchProducts;

@@ -1,8 +1,8 @@
+import { ApiError } from "@/lib/axios";
 import { productService } from "@/services/productService";
 import { CreateProductRequest, DeleteProductRequest, DetailProductRequest, ListProductRequest, UpdateProductRequest } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ApiError } from "@/lib/axios";
 
 export const useListProducts = (params: ListProductRequest) => {
   return useQuery({
@@ -60,4 +60,4 @@ export const useDeleteProduct = () => {
       qc.invalidateQueries({ queryKey: ["product"] });
     },
   });
-}; 
+};

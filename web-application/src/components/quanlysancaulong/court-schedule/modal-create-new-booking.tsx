@@ -20,6 +20,7 @@ interface ModelCreateNewBookingProps {
     end: DayPilot.Date;
     resource: string;
   } | null;
+  userMode?: boolean; // For user-only mode (only online payment)
 }
 
 interface CustomerOption {
@@ -45,7 +46,7 @@ const daysOfWeekOptions = [
   { label: "CN", value: 8 },
 ];
 
-const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBookingProps) => {
+const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: ModelCreateNewBookingProps) => {
   const [form] = Form.useForm();
   const startDateWatch = Form.useWatch("startDate", form);
   const dateRangeWatch = Form.useWatch(["_internal", "dateRange"], form);
@@ -54,7 +55,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
   const customerWatch = Form.useWatch("customerId", form);
   const courtWatch = Form.useWatch("courtId", form);
   const [payInFull, setPayInFull] = useState<boolean>(false);
-  const [paymentMethod, setPaymentMethod] = useState<"Bank" | "Cash">("Bank");
+  const [paymentMethod, setPaymentMethod] = useState<"Bank" | "Cash">(userMode ? "Bank" : "Bank");
   const totalHoursPlay = useMemo(() => {
     return (endTimeWatch?.diff(startTimeWatch, "hour") ?? 0).toFixed(1);
   }, [startTimeWatch, endTimeWatch]);
@@ -187,8 +188,14 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
     } = {
       ...values,
       customerId: customerWatch.value,
-      startDate: isFixedSchedule && dateRange?.[0] ? dayjs(dateRange[0]).toDate() : dayjs(values.startDate).toDate(),
-      endDate: isFixedSchedule && dateRange?.[1] ? dayjs(dateRange[1]).toDate() : dayjs(values.startDate).toDate(),
+      startDate:
+        isFixedSchedule && dateRange?.[0]
+          ? new Date(dayjs(dateRange[0]).format("YYYY-MM-DD"))
+          : new Date(dayjs(values.startDate).format("YYYY-MM-DD")),
+      endDate:
+        isFixedSchedule && dateRange?.[1]
+          ? new Date(dayjs(dateRange[1]).format("YYYY-MM-DD"))
+          : new Date(dayjs(values.startDate).format("YYYY-MM-DD")),
       startTime: dayjs(values.startTime).format("HH:mm:ss"),
       endTime: dayjs(values.endTime).format("HH:mm:ss"),
       daysOfWeek: isFixedSchedule ? values.daysOfWeek : undefined,
@@ -197,8 +204,6 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
       depositPercent: depositPercent,
       paymentMethod: paymentMethod,
     };
-
-    console.log("payload", payload);
 
     createMutation.mutate(payload, {
       onSuccess: (res) => {
@@ -396,9 +401,9 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
                                     return Promise.reject(new Error("Giờ bắt đầu phải trước giờ kết thúc"));
                                   }
                                   // prevent past time when selected date is today
-                                  if (value && startDateWatch && startDateWatch.isSame(dayjs(), "day") && value.isBefore(dayjs())) {
-                                    return Promise.reject(new Error("Giờ bắt đầu không được trong quá khứ hôm nay"));
-                                  }
+                                  // if (value && startDateWatch && startDateWatch.isSame(dayjs(), "day") && value.isBefore(dayjs())) {
+                                  //   return Promise.reject(new Error("Giờ bắt đầu không được trong quá khứ hôm nay"));
+                                  // }
                                   return Promise.resolve();
                                 },
                               },
@@ -429,9 +434,9 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
                                     return Promise.reject(new Error("Giờ kết thúc phải sau giờ bắt đầu"));
                                   }
                                   // prevent past time when selected date is today
-                                  if (value && startDateWatch && startDateWatch.isSame(dayjs(), "day") && value.isBefore(dayjs())) {
-                                    return Promise.reject(new Error("Giờ kết thúc không được trong quá khứ hôm nay"));
-                                  }
+                                  // if (value && startDateWatch && startDateWatch.isSame(dayjs(), "day") && value.isBefore(dayjs())) {
+                                  //   return Promise.reject(new Error("Giờ kết thúc không được trong quá khứ hôm nay"));
+                                  // }
                                   return Promise.resolve();
                                 },
                               },
@@ -477,7 +482,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
                                 validator: (_, value) => {
                                   const [rangeStart] = (dateRangeWatch || []) as [any, any];
                                   if (value && rangeStart && rangeStart.isSame(dayjs(), "day") && value.isBefore(dayjs())) {
-                                    return Promise.reject(new Error("Giờ bắt đầu không được trong quá khứ hôm nay"));
+                                    // return Promise.reject(new Error("Giờ bắt đầu không được trong quá khứ hôm nay"));
                                   }
                                   return Promise.resolve();
                                 },
@@ -697,10 +702,15 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
                           <Select
                             value={paymentMethod}
                             onChange={(val: "Bank" | "Cash") => setPaymentMethod(val)}
-                            options={[
-                              { value: "Bank", label: "Ngân hàng (chuyển khoản)" },
-                              { value: "Cash", label: "Tiền mặt" },
-                            ]}
+                            disabled={userMode}
+                            options={
+                              userMode
+                                ? [{ value: "Bank", label: "Ngân hàng (chuyển khoản)" }]
+                                : [
+                                    { value: "Bank", label: "Ngân hàng (chuyển khoản)" },
+                                    { value: "Cash", label: "Tiền mặt" },
+                                  ]
+                            }
                           />
                         </FormItem>
                       </Col>

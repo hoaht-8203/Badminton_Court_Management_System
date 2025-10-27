@@ -86,7 +86,7 @@ builder.Services.Configure<MinioOptions>(options =>
     options.PublicBaseUrl =
         builder.Configuration["Minio:PublicBaseUrl"]
         ?? Environment.GetEnvironmentVariable("MINIO_PUBLIC_BASE_URL")
-        ?? "http://localhost:9000";
+        ?? "https://minio.caulong365.store";
 });
 
 // Configure EmailOptions with fallback values

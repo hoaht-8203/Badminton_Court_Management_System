@@ -16,49 +16,49 @@ import { mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface CheckoutRequest
+ * @interface CheckoutBookingRequest
  */
-export interface CheckoutRequest {
+export interface CheckoutBookingRequest {
     /**
      * 
      * @type {string}
-     * @memberof CheckoutRequest
+     * @memberof CheckoutBookingRequest
      */
     bookingCourtOccurrenceId: string;
     /**
      * 
      * @type {number}
-     * @memberof CheckoutRequest
+     * @memberof CheckoutBookingRequest
      */
     lateFeePercentage?: number;
     /**
      * 
      * @type {string}
-     * @memberof CheckoutRequest
+     * @memberof CheckoutBookingRequest
      */
     paymentMethod: string;
     /**
      * 
      * @type {string}
-     * @memberof CheckoutRequest
+     * @memberof CheckoutBookingRequest
      */
     note?: string | null;
 }
 
 /**
- * Check if a given object implements the CheckoutRequest interface.
+ * Check if a given object implements the CheckoutBookingRequest interface.
  */
-export function instanceOfCheckoutRequest(value: object): value is CheckoutRequest {
+export function instanceOfCheckoutBookingRequest(value: object): value is CheckoutBookingRequest {
     if (!('bookingCourtOccurrenceId' in value) || value['bookingCourtOccurrenceId'] === undefined) return false;
     if (!('paymentMethod' in value) || value['paymentMethod'] === undefined) return false;
     return true;
 }
 
-export function CheckoutRequestFromJSON(json: any): CheckoutRequest {
-    return CheckoutRequestFromJSONTyped(json, false);
+export function CheckoutBookingRequestFromJSON(json: any): CheckoutBookingRequest {
+    return CheckoutBookingRequestFromJSONTyped(json, false);
 }
 
-export function CheckoutRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CheckoutRequest {
+export function CheckoutBookingRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CheckoutBookingRequest {
     if (json == null) {
         return json;
     }
@@ -71,11 +71,11 @@ export function CheckoutRequestFromJSONTyped(json: any, ignoreDiscriminator: boo
     };
 }
 
-export function CheckoutRequestToJSON(json: any): CheckoutRequest {
-    return CheckoutRequestToJSONTyped(json, false);
+export function CheckoutBookingRequestToJSON(json: any): CheckoutBookingRequest {
+    return CheckoutBookingRequestToJSONTyped(json, false);
 }
 
-export function CheckoutRequestToJSONTyped(value?: CheckoutRequest | null, ignoreDiscriminator: boolean = false): any {
+export function CheckoutBookingRequestToJSONTyped(value?: CheckoutBookingRequest | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }

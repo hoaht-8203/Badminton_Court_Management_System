@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ApiApplication.Dtos.Order;
 
-public class CheckoutRequest
+public class CheckoutBookingRequest
 {
     [Required]
     public Guid BookingCourtOccurrenceId { get; set; }

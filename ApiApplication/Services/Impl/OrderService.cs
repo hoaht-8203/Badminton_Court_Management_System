@@ -94,7 +94,7 @@ public class OrderService(
         };
     }
 
-    public async Task<CheckoutResponse> CheckoutAsync(CheckoutRequest request)
+    public async Task<CheckoutResponse> CheckoutAsync(CheckoutBookingRequest request)
     {
         // Lấy thông tin occurrence
         var occurrence = await _context

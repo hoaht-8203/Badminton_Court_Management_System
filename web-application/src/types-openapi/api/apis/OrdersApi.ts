@@ -16,7 +16,7 @@
 import * as runtime from '../runtime';
 import type {
   BooleanApiResponse,
-  CheckoutRequest,
+  CheckoutBookingRequest,
   CheckoutResponseApiResponse,
   ListOrderResponseListApiResponse,
   OrderResponseApiResponse,
@@ -25,8 +25,8 @@ import type {
 import {
     BooleanApiResponseFromJSON,
     BooleanApiResponseToJSON,
-    CheckoutRequestFromJSON,
-    CheckoutRequestToJSON,
+    CheckoutBookingRequestFromJSON,
+    CheckoutBookingRequestToJSON,
     CheckoutResponseApiResponseFromJSON,
     CheckoutResponseApiResponseToJSON,
     ListOrderResponseListApiResponseFromJSON,
@@ -46,7 +46,7 @@ export interface ApiOrdersCheckoutOrderIdGetRequest {
 }
 
 export interface ApiOrdersCheckoutPostRequest {
-    checkoutRequest?: CheckoutRequest;
+    checkoutBookingRequest?: CheckoutBookingRequest;
 }
 
 export interface ApiOrdersListGetRequest {
@@ -105,7 +105,7 @@ export interface OrdersApiInterface {
 
     /**
      * 
-     * @param {CheckoutRequest} [checkoutRequest] 
+     * @param {CheckoutBookingRequest} [checkoutBookingRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof OrdersApiInterface
@@ -267,7 +267,7 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: CheckoutRequestToJSON(requestParameters['checkoutRequest']),
+            body: CheckoutBookingRequestToJSON(requestParameters['checkoutBookingRequest']),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => CheckoutResponseApiResponseFromJSON(jsonValue));

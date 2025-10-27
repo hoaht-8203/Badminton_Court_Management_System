@@ -1,4 +1,4 @@
-import { CheckoutRequest, CheckoutResponse, ListOrderRequest, ListOrderResponse, OrderResponse } from "@/types-openapi/api";
+import { CheckoutBookingRequest as CheckoutRequest, CheckoutResponse, ListOrderRequest, ListOrderResponse, OrderResponse } from "@/types-openapi/api";
 import { axiosInstance } from "@/lib/axios";
 import { ApiResponse } from "@/types/api";
 import { PendingPaymentOrdersParams } from "@/hooks/useOrders";

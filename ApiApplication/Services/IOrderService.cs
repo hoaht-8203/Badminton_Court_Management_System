@@ -4,7 +4,7 @@ namespace ApiApplication.Services;
 
 public interface IOrderService
 {
-    Task<CheckoutResponse> CheckoutAsync(CheckoutRequest request);
+    Task<CheckoutResponse> CheckoutAsync(CheckoutBookingRequest request);
     Task<CheckoutResponse> GetCheckoutInfoAsync(Guid orderId);
     Task<OrderResponse> GetOrderByIdAsync(Guid orderId);
     Task<List<OrderResponse>> GetOrdersByBookingIdAsync(Guid bookingId);

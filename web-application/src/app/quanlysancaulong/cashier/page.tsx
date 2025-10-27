@@ -24,7 +24,7 @@ import { cashierService } from "@/services/cashierService";
 import { serviceService } from "@/services/serviceService";
 import { ordersService } from "@/services/ordersService";
 import {
-  CheckoutRequest,
+  CheckoutBookingRequest as CheckoutRequest,
   CheckoutResponse,
   DetailBookingCourtOccurrenceResponse,
   ListCourtResponse,

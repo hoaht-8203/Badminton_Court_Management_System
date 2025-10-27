@@ -16,7 +16,7 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     /// </summary>
     [HttpPost("checkout")]
     public async Task<ActionResult<ApiResponse<CheckoutResponse>>> CheckoutAsync(
-        [FromBody] CheckoutRequest request
+        [FromBody] CheckoutBookingRequest request
     )
     {
         var result = await _orderService.CheckoutAsync(request);

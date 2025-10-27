@@ -66,10 +66,18 @@ public class ApplicationDbContext(
     public DbSet<RelatedPerson> RelatedPeople { get; set; }
     public DbSet<BookingCourtOccurrence> BookingCourtOccurrences { get; set; }
     public DbSet<Blog> Blogs { get; set; }
+    public DbSet<Slider> Sliders { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder
+            .Entity<ApplicationUser>()
+            .HasOne(a => a.Customer)
+            .WithOne(c => c.User)
+            .HasForeignKey<Customer>(c => c.UserId);
+
         // Payment mappings
         builder.Entity<Payment>(entity =>
         {

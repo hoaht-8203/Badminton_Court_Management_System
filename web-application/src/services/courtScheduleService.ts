@@ -11,6 +11,7 @@ import {
   ListBookingCourtRequest,
   ListBookingCourtResponse,
   NoShowBookingCourtRequest,
+  UserCreateBookingCourtRequest,
 } from "@/types-openapi/api";
 import { axiosInstance } from "@/lib/axios";
 import { ApiResponse } from "@/types/api";
@@ -18,6 +19,11 @@ import { ApiResponse } from "@/types/api";
 export const courtScheduleService = {
   async createBooking(payload: CreateBookingCourtRequest): Promise<ApiResponse<DetailBookingCourtResponse>> {
     const response = await axiosInstance.post("api/BookingCourts/create", payload);
+    return response.data;
+  },
+
+  async userCreateBooking(payload: UserCreateBookingCourtRequest): Promise<ApiResponse<DetailBookingCourtResponse>> {
+    const response = await axiosInstance.post("api/BookingCourts/user/create", payload);
     return response.data;
   },
 

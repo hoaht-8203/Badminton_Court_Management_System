@@ -14,6 +14,7 @@ public class CourtsController(ICourtService courtService) : ControllerBase
 {
     private readonly ICourtService _courtService = courtService;
 
+    [AllowAnonymous]
     [HttpGet("list")]
     public async Task<ActionResult<ApiResponse<ListCourtResponse>>> ListCourts(
         [FromQuery] ListCourtRequest request
@@ -140,6 +141,7 @@ public class CourtsController(ICourtService courtService) : ControllerBase
         );
     }
 
+    [AllowAnonymous]
     [HttpGet("list-court-group-by-court-area")]
     public async Task<
         ActionResult<ApiResponse<List<ListCourtGroupByCourtAreaResponse>>>

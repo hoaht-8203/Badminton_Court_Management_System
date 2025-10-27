@@ -60,6 +60,9 @@ public class BookingCourtMappingProfile : Profile
         CreateMap<CreateBookingCourtRequest, BookingCourt>()
             .ForMember(d => d.Id, opt => opt.MapFrom(_ => Guid.NewGuid()));
 
+        CreateMap<UserCreateBookingCourtRequest, BookingCourt>()
+            .ForMember(d => d.Id, opt => opt.MapFrom(_ => Guid.NewGuid()));
+
         CreateMap<BookingCourtOccurrence, BookingCourtOccurrenceDto>()
             .ForMember(
                 d => d.Payments,

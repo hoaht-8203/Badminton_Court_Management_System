@@ -101,7 +101,9 @@ const ComponentLayout = ({ children }: { children: React.ReactNode }) => {
             borderBottom: "1px solid #e0e0e0",
           }}
         >
-          <div className="text-xl font-bold text-black">Caulong365</div>
+          <div className="cursor-pointer text-xl font-bold text-black" onClick={() => router.push("/homepage")}>
+            Caulong365
+          </div>
           <div>
             <Dropdown
               menu={{

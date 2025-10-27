@@ -3,13 +3,11 @@ import { courtScheduleService } from "@/services/courtScheduleService";
 import { paymentService, QrPaymentResponse } from "@/services/paymentService";
 import {
   CancelBookingCourtRequest,
-  CheckInBookingCourtRequest,
-  CheckOutBookingCourtRequest,
   CreateBookingCourtRequest,
   DetailBookingCourtResponse,
   ListBookingCourtRequest,
   ListBookingCourtResponse,
-  NoShowBookingCourtRequest,
+  UserCreateBookingCourtRequest,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -36,6 +34,16 @@ export const useCreateBookingCourt = () => {
   const queryClient = useQueryClient();
   return useMutation<ApiResponse<DetailBookingCourtResponse>, ApiError, CreateBookingCourtRequest>({
     mutationFn: (data: CreateBookingCourtRequest) => courtScheduleService.createBooking(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
+    },
+  });
+};
+
+export const useUserCreateBookingCourt = () => {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<DetailBookingCourtResponse>, ApiError, UserCreateBookingCourtRequest>({
+    mutationFn: (data: UserCreateBookingCourtRequest) => courtScheduleService.userCreateBooking(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtsKeys.lists() });
     },

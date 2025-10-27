@@ -13,6 +13,7 @@ public class BlogsController(IBlogService blogService) : ControllerBase
 {
     private readonly IBlogService _blogService = blogService;
 
+    [AllowAnonymous]
     [HttpGet("list")]
     public async Task<ActionResult<ApiResponse<List<ListBlogResponse>>>> GetBlogs(
         [FromQuery] ListBlogRequest request
@@ -27,6 +28,7 @@ public class BlogsController(IBlogService blogService) : ControllerBase
         );
     }
 
+    [AllowAnonymous]
     [HttpGet("detail")]
     public async Task<ActionResult<ApiResponse<DetailBlogResponse?>>> GetBlogById(
         [FromQuery] DetailBlogRequest request

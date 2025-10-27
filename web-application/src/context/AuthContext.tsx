@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleUnauthorized = React.useCallback(() => {
     setUser(null);
-    if (typeof window !== "undefined" && !window.location.href.includes("/quanlysancaulong/login")) {
+    if (typeof window !== "undefined" && !window.location.href.includes("/quanlysancaulong/login") && !window.location.href.includes("/homepage")) {
       router.push("/quanlysancaulong/login");
     }
   }, [router]);

@@ -1071,10 +1071,16 @@ namespace ApiApplication.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Ward")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Customers");
 
@@ -2182,6 +2188,49 @@ namespace ApiApplication.Migrations
                     b.ToTable("Shifts");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.Slider", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("BackLink")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Sliders");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Staff", b =>
                 {
                     b.Property<int>("Id")
@@ -2556,22 +2605,22 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 26, 4, 14, 3, 826, DateTimeKind.Utc).AddTicks(9630),
+                            CreatedAt = new DateTime(2025, 10, 27, 4, 43, 48, 429, DateTimeKind.Utc).AddTicks(9410),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 10, 26, 4, 14, 3, 826, DateTimeKind.Utc).AddTicks(9630),
+                            UpdatedAt = new DateTime(2025, 10, 27, 4, 43, 48, 429, DateTimeKind.Utc).AddTicks(9410),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 10, 26, 4, 14, 3, 826, DateTimeKind.Utc).AddTicks(9630),
+                            CreatedAt = new DateTime(2025, 10, 27, 4, 43, 48, 429, DateTimeKind.Utc).AddTicks(9410),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 10, 26, 4, 14, 3, 826, DateTimeKind.Utc).AddTicks(9630),
+                            UpdatedAt = new DateTime(2025, 10, 27, 4, 43, 48, 429, DateTimeKind.Utc).AddTicks(9410),
                             UpdatedBy = "System",
                             Value = ""
                         });
@@ -2870,6 +2919,15 @@ namespace ApiApplication.Migrations
                         .IsRequired();
 
                     b.Navigation("Court");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.Customer", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.ApplicationUser", "User")
+                        .WithOne("Customer")
+                        .HasForeignKey("ApiApplication.Entities.Customer", "UserId");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.InventoryCard", b =>
@@ -3225,6 +3283,8 @@ namespace ApiApplication.Migrations
 
             modelBuilder.Entity("ApiApplication.Entities.ApplicationUser", b =>
                 {
+                    b.Navigation("Customer");
+
                     b.Navigation("UserTokens");
                 });
 

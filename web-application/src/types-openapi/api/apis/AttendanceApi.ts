@@ -16,14 +16,28 @@
 import * as runtime from '../runtime';
 import type {
   AttendanceRequest,
+  CheckInRequest,
+  CheckOutRequest,
 } from '../models/index';
 import {
     AttendanceRequestFromJSON,
     AttendanceRequestToJSON,
+    CheckInRequestFromJSON,
+    CheckInRequestToJSON,
+    CheckOutRequestFromJSON,
+    CheckOutRequestToJSON,
 } from '../models/index';
 
 export interface ApiAttendanceAttendanceRecordIdDeleteRequest {
     attendanceRecordId: number;
+}
+
+export interface ApiAttendanceCheckinPostRequest {
+    checkInRequest?: CheckInRequest;
+}
+
+export interface ApiAttendanceCheckoutPostRequest {
+    checkOutRequest?: CheckOutRequest;
 }
 
 export interface ApiAttendancePostRequest {
@@ -58,6 +72,32 @@ export interface AttendanceApiInterface {
     /**
      */
     apiAttendanceAttendanceRecordIdDelete(requestParameters: ApiAttendanceAttendanceRecordIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
+
+    /**
+     * 
+     * @param {CheckInRequest} [checkInRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AttendanceApiInterface
+     */
+    apiAttendanceCheckinPostRaw(requestParameters: ApiAttendanceCheckinPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
+
+    /**
+     */
+    apiAttendanceCheckinPost(requestParameters: ApiAttendanceCheckinPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
+
+    /**
+     * 
+     * @param {CheckOutRequest} [checkOutRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AttendanceApiInterface
+     */
+    apiAttendanceCheckoutPostRaw(requestParameters: ApiAttendanceCheckoutPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
+
+    /**
+     */
+    apiAttendanceCheckoutPost(requestParameters: ApiAttendanceCheckoutPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
 
     /**
      * 
@@ -138,6 +178,64 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
      */
     async apiAttendanceAttendanceRecordIdDelete(requestParameters: ApiAttendanceAttendanceRecordIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.apiAttendanceAttendanceRecordIdDeleteRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async apiAttendanceCheckinPostRaw(requestParameters: ApiAttendanceCheckinPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Attendance/checkin`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CheckInRequestToJSON(requestParameters['checkInRequest']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiAttendanceCheckinPost(requestParameters: ApiAttendanceCheckinPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.apiAttendanceCheckinPostRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async apiAttendanceCheckoutPostRaw(requestParameters: ApiAttendanceCheckoutPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Attendance/checkout`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CheckOutRequestToJSON(requestParameters['checkOutRequest']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiAttendanceCheckoutPost(requestParameters: ApiAttendanceCheckoutPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.apiAttendanceCheckoutPostRaw(requestParameters, initOverrides);
     }
 
     /**

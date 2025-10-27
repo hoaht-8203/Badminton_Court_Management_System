@@ -20,6 +20,7 @@ interface ModelCreateNewBookingProps {
     end: DayPilot.Date;
     resource: string;
   } | null;
+  userMode?: boolean; // For user-only mode (only online payment)
 }
 
 interface CustomerOption {
@@ -45,7 +46,7 @@ const daysOfWeekOptions = [
   { label: "CN", value: 8 },
 ];
 
-const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBookingProps) => {
+const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: ModelCreateNewBookingProps) => {
   const [form] = Form.useForm();
   const startDateWatch = Form.useWatch("startDate", form);
   const dateRangeWatch = Form.useWatch(["_internal", "dateRange"], form);
@@ -54,7 +55,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
   const customerWatch = Form.useWatch("customerId", form);
   const courtWatch = Form.useWatch("courtId", form);
   const [payInFull, setPayInFull] = useState<boolean>(false);
-  const [paymentMethod, setPaymentMethod] = useState<"Bank" | "Cash">("Bank");
+  const [paymentMethod, setPaymentMethod] = useState<"Bank" | "Cash">(userMode ? "Bank" : "Bank");
   const totalHoursPlay = useMemo(() => {
     return (endTimeWatch?.diff(startTimeWatch, "hour") ?? 0).toFixed(1);
   }, [startTimeWatch, endTimeWatch]);
@@ -203,8 +204,6 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
       depositPercent: depositPercent,
       paymentMethod: paymentMethod,
     };
-
-    console.log("payload", payload);
 
     createMutation.mutate(payload, {
       onSuccess: (res) => {
@@ -703,10 +702,15 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking }: ModelCreateNewBook
                           <Select
                             value={paymentMethod}
                             onChange={(val: "Bank" | "Cash") => setPaymentMethod(val)}
-                            options={[
-                              { value: "Bank", label: "Ngân hàng (chuyển khoản)" },
-                              { value: "Cash", label: "Tiền mặt" },
-                            ]}
+                            disabled={userMode}
+                            options={
+                              userMode
+                                ? [{ value: "Bank", label: "Ngân hàng (chuyển khoản)" }]
+                                : [
+                                    { value: "Bank", label: "Ngân hàng (chuyển khoản)" },
+                                    { value: "Cash", label: "Tiền mặt" },
+                                  ]
+                            }
                           />
                         </FormItem>
                       </Col>

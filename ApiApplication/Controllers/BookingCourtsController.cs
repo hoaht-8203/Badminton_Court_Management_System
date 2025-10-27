@@ -107,6 +107,86 @@ public class BookingCourtsController(
         );
     }
 
+    [HttpPost("user/create")]
+    public async Task<ActionResult<ApiResponse<DetailBookingCourtResponse>>> UserCreate(
+        [FromBody] UserCreateBookingCourtRequest request
+    )
+    {
+        var result = await _service.UserCreateBookingCourtAsync(request);
+
+        // Gửi email theo phương thức thanh toán
+        var payment = await _paymentService.DetailByBookingIdAsync(
+            new Dtos.Payment.DetailPaymentByBookingIdRequest { BookingId = result.Id }
+        );
+        if (payment != null && !string.IsNullOrWhiteSpace(payment.CustomerEmail))
+        {
+            // Nếu thanh toán bằng tiền mặt (đã Paid ngay trong PaymentService) => gửi email xác nhận booking
+            if (
+                string.Equals(
+                    payment.Status,
+                    Entities.Shared.PaymentStatus.Paid,
+                    StringComparison.OrdinalIgnoreCase
+                )
+            )
+            {
+                _emailService.SendEmailFireAndForget(
+                    () =>
+                        _emailService.SendBookingConfirmationEmailAsync(
+                            new Dtos.Email.SendBookingConfirmationEmailAsyncRequest
+                            {
+                                To = payment.CustomerEmail!,
+                                ToName = payment.CustomerName,
+                                CustomerName = payment.CustomerName,
+                                CourtName = payment.CourtName,
+                                StartDate = result.StartDate.ToString(),
+                                StartTime = result.StartTime.ToString(),
+                                EndTime = result.EndTime.ToString(),
+                                PaidAmount = payment.Amount.ToString("N0"),
+                            }
+                        ),
+                    _logger,
+                    payment.Id
+                );
+            }
+            else
+            {
+                // Chuyển khoản => gửi email yêu cầu thanh toán + QR, kèm đếm ngược phút giữ chỗ
+                var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
+                var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
+                var amount = ((long)Math.Round(payment.Amount, 0)).ToString();
+                var des = Uri.EscapeDataString(payment.Id);
+                var qrUrl =
+                    $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
+                var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
+
+                _emailService.SendEmailFireAndForget(
+                    () =>
+                        _emailService.SendPaymentRequestEmailAsync(
+                            new Dtos.Email.SendPaymentRequestEmailAsyncRequest
+                            {
+                                To = payment.CustomerEmail!,
+                                ToName = payment.CustomerName,
+                                PaymentId = payment.Id,
+                                Amount = payment.Amount.ToString("N0"),
+                                CourtName = payment.CourtName,
+                                StartDate = result.StartDate.ToString(),
+                                StartTime = result.StartTime.ToString(),
+                                EndTime = result.EndTime.ToString(),
+                                QrUrl = qrUrl,
+                                HoldMinutes = holdMins,
+                            }
+                        ),
+                    _logger,
+                    payment.Id
+                );
+            }
+        }
+
+        return Ok(
+            ApiResponse<DetailBookingCourtResponse>.SuccessResponse(result, "Đặt sân thành công")
+        );
+    }
+
     [HttpGet("list")]
     public async Task<ActionResult<ApiResponse<List<ListBookingCourtResponse>>>> List(
         [FromQuery] ListBookingCourtRequest request
@@ -121,6 +201,7 @@ public class BookingCourtsController(
         );
     }
 
+    [AllowAnonymous]
     [HttpGet("occurrences")]
     public async Task<
         ActionResult<ApiResponse<List<ListBookingCourtOccurrenceResponse>>>

@@ -141,6 +141,10 @@ const sideBarItems: MenuProps["items"] = [
         key: "/quanlysancaulong/blogs",
         label: "Quản lý bài viết",
       },
+      {
+        key: "/quanlysancaulong/sliders",
+        label: "Quản lý slider",
+      },
     ],
   },
   {

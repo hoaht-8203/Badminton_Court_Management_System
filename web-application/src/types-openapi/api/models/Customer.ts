@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { ApplicationUser } from './ApplicationUser';
+import {
+    ApplicationUserFromJSON,
+    ApplicationUserFromJSONTyped,
+    ApplicationUserToJSON,
+    ApplicationUserToJSONTyped,
+} from './ApplicationUser';
+
 /**
  * 
  * @export
@@ -127,6 +135,18 @@ export interface Customer {
      * @memberof Customer
      */
     avatarUrl?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof Customer
+     */
+    userId?: string | null;
+    /**
+     * 
+     * @type {ApplicationUser}
+     * @memberof Customer
+     */
+    user?: ApplicationUser;
 }
 
 /**
@@ -168,6 +188,8 @@ export function CustomerFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'note': json['note'] == null ? undefined : json['note'],
         'status': json['status'],
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
+        'userId': json['userId'] == null ? undefined : json['userId'],
+        'user': json['user'] == null ? undefined : ApplicationUserFromJSON(json['user']),
     };
 }
 
@@ -200,6 +222,8 @@ export function CustomerToJSONTyped(value?: Customer | null, ignoreDiscriminator
         'note': value['note'],
         'status': value['status'],
         'avatarUrl': value['avatarUrl'],
+        'userId': value['userId'],
+        'user': ApplicationUserToJSON(value['user']),
     };
 }
 

@@ -153,6 +153,7 @@ const BlogsPage = () => {
         ]}
         width={800}
         style={{ top: 20 }}
+        maskClosable
       >
         {selectedBlog && (
           <div>
@@ -162,8 +163,8 @@ const BlogsPage = () => {
                 Tạo lúc: {selectedBlog.createdAt ? new Date(selectedBlog.createdAt).toLocaleString("vi-VN") : "-"}
               </p>
             </div>
-            <div className="simple-editor-content rounded bg-gray-50 p-4" style={{ border: "1px solid #e0e0e0" }}>
-              <div className="prose tiptap ProseMirror simple-editor max-w-none" dangerouslySetInnerHTML={{ __html: selectedBlog.content ?? "" }} />
+            <div className="rounded bg-gray-50 p-4" style={{ border: "1px solid #e0e0e0" }}>
+              <div className="prose blog-content max-w-none" dangerouslySetInnerHTML={{ __html: selectedBlog.content ?? "" }} />
             </div>
           </div>
         )}

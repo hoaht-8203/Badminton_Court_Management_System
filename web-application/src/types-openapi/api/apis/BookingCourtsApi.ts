@@ -28,6 +28,7 @@ import type {
   ListBookingCourtResponseListApiResponse,
   NoShowBookingCourtRequest,
   UpdateOrderItemRequest,
+  UserCreateBookingCourtRequest,
 } from '../models/index';
 import {
     AddOrderItemRequestFromJSON,
@@ -56,6 +57,8 @@ import {
     NoShowBookingCourtRequestToJSON,
     UpdateOrderItemRequestFromJSON,
     UpdateOrderItemRequestToJSON,
+    UserCreateBookingCourtRequestFromJSON,
+    UserCreateBookingCourtRequestToJSON,
 } from '../models/index';
 
 export interface ApiBookingCourtsCancelPostRequest {
@@ -111,6 +114,10 @@ export interface ApiBookingCourtsOrderListGetRequest {
 
 export interface ApiBookingCourtsOrderUpdateItemPostRequest {
     updateOrderItemRequest?: UpdateOrderItemRequest;
+}
+
+export interface ApiBookingCourtsUserCreatePostRequest {
+    userCreateBookingCourtRequest?: UserCreateBookingCourtRequest;
 }
 
 /**
@@ -282,6 +289,19 @@ export interface BookingCourtsApiInterface {
     /**
      */
     apiBookingCourtsOrderUpdateItemPost(requestParameters: ApiBookingCourtsOrderUpdateItemPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse>;
+
+    /**
+     * 
+     * @param {UserCreateBookingCourtRequest} [userCreateBookingCourtRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BookingCourtsApiInterface
+     */
+    apiBookingCourtsUserCreatePostRaw(requestParameters: ApiBookingCourtsUserCreatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DetailBookingCourtResponseApiResponse>>;
+
+    /**
+     */
+    apiBookingCourtsUserCreatePost(requestParameters: ApiBookingCourtsUserCreatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailBookingCourtResponseApiResponse>;
 
 }
 
@@ -694,6 +714,36 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
      */
     async apiBookingCourtsOrderUpdateItemPost(requestParameters: ApiBookingCourtsOrderUpdateItemPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse> {
         const response = await this.apiBookingCourtsOrderUpdateItemPostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiBookingCourtsUserCreatePostRaw(requestParameters: ApiBookingCourtsUserCreatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DetailBookingCourtResponseApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/BookingCourts/user/create`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: UserCreateBookingCourtRequestToJSON(requestParameters['userCreateBookingCourtRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => DetailBookingCourtResponseApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiBookingCourtsUserCreatePost(requestParameters: ApiBookingCourtsUserCreatePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailBookingCourtResponseApiResponse> {
+        const response = await this.apiBookingCourtsUserCreatePostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

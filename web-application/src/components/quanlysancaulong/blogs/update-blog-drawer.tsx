@@ -1,11 +1,11 @@
 "use client";
 
-import { useDetailBlog, useUpdateBlog } from "@/hooks/useBlogs";
-import { UpdateBlogRequest } from "@/types-openapi/api";
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
+import { useDetailBlog, useUpdateBlog } from "@/hooks/useBlogs";
 import { fileService } from "@/services/fileService";
+import { UpdateBlogRequest } from "@/types-openapi/api";
 import { DeleteOutlined, LoadingOutlined, UploadOutlined } from "@ant-design/icons";
-import { Button, Col, Drawer, Form, FormProps, Input, message, Row, Select, Space, Upload, Image, Spin } from "antd";
+import { Button, Col, Drawer, Form, FormProps, Image, Input, message, Row, Space, Spin, Upload } from "antd";
 import FormItem from "antd/es/form/FormItem";
 import { useEffect, useState } from "react";
 

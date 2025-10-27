@@ -85,6 +85,12 @@ export interface CreateBookingCourtRequest {
      * @memberof CreateBookingCourtRequest
      */
     paymentMethod?: string | null;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CreateBookingCourtRequest
+     */
+    isUserMode?: boolean | null;
 }
 
 /**
@@ -115,6 +121,7 @@ export function CreateBookingCourtRequestFromJSONTyped(json: any, ignoreDiscrimi
         'payInFull': json['payInFull'] == null ? undefined : json['payInFull'],
         'depositPercent': json['depositPercent'] == null ? undefined : json['depositPercent'],
         'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
+        'isUserMode': json['isUserMode'] == null ? undefined : json['isUserMode'],
     };
 }
 
@@ -140,6 +147,7 @@ export function CreateBookingCourtRequestToJSONTyped(value?: CreateBookingCourtR
         'payInFull': value['payInFull'],
         'depositPercent': value['depositPercent'],
         'paymentMethod': value['paymentMethod'],
+        'isUserMode': value['isUserMode'],
     };
 }
 

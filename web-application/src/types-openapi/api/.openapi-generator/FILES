@@ -27,6 +27,7 @@ apis/SalaryFormApi.ts
 apis/ScheduleApi.ts
 apis/ServicesApi.ts
 apis/ShiftApi.ts
+apis/SlidersApi.ts
 apis/StaffApi.ts
 apis/StockOutsApi.ts
 apis/StoreBankAccountsApi.ts
@@ -75,11 +76,13 @@ models/ChangeStaffStatusRequest.ts
 models/ChangeSupplierStatusRequest.ts
 models/ChangeUserStatusRequest.ts
 models/CheckInBookingCourtRequest.ts
+models/CheckInRequest.ts
 models/CheckOutBookingCourtRequest.ts
+models/CheckOutRequest.ts
 models/CheckoutEstimateRequest.ts
 models/CheckoutEstimateResponse.ts
 models/CheckoutItemInput.ts
-models/CheckoutRequest.ts
+models/CheckoutRequest0.ts
 models/CheckoutResponse.ts
 models/CheckoutResponseApiResponse.ts
 models/Court.ts
@@ -121,6 +124,7 @@ models/CreateReturnGoodsItem.ts
 models/CreateReturnGoodsRequest.ts
 models/CreateRoleRequest.ts
 models/CreateServiceRequest.ts
+models/CreateSliderRequest.ts
 models/CreateStockOutItem.ts
 models/CreateStockOutRequest.ts
 models/CreateStoreBankAccountRequest.ts
@@ -143,6 +147,7 @@ models/DeletePriceTimeRangeRequest.ts
 models/DeleteProductRequest.ts
 models/DeleteRoleRequest.ts
 models/DeleteServiceRequest.ts
+models/DeleteSliderRequest.ts
 models/DeleteSupplierRequest.ts
 models/Department.ts
 models/DetailAdministratorRequest.ts
@@ -193,6 +198,9 @@ models/DetailRoleResponseApiResponse.ts
 models/DetailServiceRequest.ts
 models/DetailServiceResponse.ts
 models/DetailServiceResponseApiResponse.ts
+models/DetailSliderRequest.ts
+models/DetailSliderResponse.ts
+models/DetailSliderResponseApiResponse.ts
 models/DetailStockOutItem.ts
 models/DetailStockOutResponse.ts
 models/DetailStockOutResponseApiResponse.ts
@@ -282,6 +290,9 @@ models/ListRoleResponseListApiResponse.ts
 models/ListServiceRequest.ts
 models/ListServiceResponse.ts
 models/ListServiceResponseListApiResponse.ts
+models/ListSliderRequest.ts
+models/ListSliderResponse.ts
+models/ListSliderResponseListApiResponse.ts
 models/ListStaffRequest.ts
 models/ListStockOutResponse.ts
 models/ListStockOutResponseListApiResponse.ts
@@ -366,6 +377,7 @@ models/ShiftRequest.ts
 models/ShiftResponse.ts
 models/ShiftResponseApiResponse.ts
 models/ShiftResponseListApiResponse.ts
+models/Slider.ts
 models/Staff.ts
 models/StaffAttendanceResponse.ts
 models/StaffRequest.ts
@@ -407,6 +419,7 @@ models/UpdateProductImagesRequest.ts
 models/UpdateProductRequest.ts
 models/UpdateRoleRequest.ts
 models/UpdateServiceRequest.ts
+models/UpdateSliderRequest.ts
 models/UpdateStockOutNoteRequest.ts
 models/UpdateSupplierRequest.ts
 models/UpdateUserRequest.ts
@@ -415,6 +428,7 @@ models/UploadFileRequest.ts
 models/UploadFileResponse.ts
 models/UploadFileResponseApiResponse.ts
 models/UpsertBankAccountRequest.ts
+models/UserCreateBookingCourtRequest.ts
 models/ValidateForgotPasswordRequest.ts
 models/VerifyEmailRequest.ts
 models/WaitHandle.ts

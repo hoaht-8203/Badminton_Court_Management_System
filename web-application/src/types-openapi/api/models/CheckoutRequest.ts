@@ -16,76 +16,50 @@ import { mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface CheckoutRequest
+ * @interface CheckOutRequest
  */
-export interface CheckoutRequest {
-    /**
-     * 
-     * @type {string}
-     * @memberof CheckoutRequest
-     */
-    bookingCourtOccurrenceId: string;
+export interface CheckOutRequest {
     /**
      * 
      * @type {number}
-     * @memberof CheckoutRequest
+     * @memberof CheckOutRequest
      */
-    lateFeePercentage?: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof CheckoutRequest
-     */
-    paymentMethod: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof CheckoutRequest
-     */
-    note?: string | null;
+    staffId?: number;
 }
 
 /**
- * Check if a given object implements the CheckoutRequest interface.
+ * Check if a given object implements the CheckOutRequest interface.
  */
-export function instanceOfCheckoutRequest(value: object): value is CheckoutRequest {
-    if (!('bookingCourtOccurrenceId' in value) || value['bookingCourtOccurrenceId'] === undefined) return false;
-    if (!('paymentMethod' in value) || value['paymentMethod'] === undefined) return false;
+export function instanceOfCheckOutRequest(value: object): value is CheckOutRequest {
     return true;
 }
 
-export function CheckoutRequestFromJSON(json: any): CheckoutRequest {
-    return CheckoutRequestFromJSONTyped(json, false);
+export function CheckOutRequestFromJSON(json: any): CheckOutRequest {
+    return CheckOutRequestFromJSONTyped(json, false);
 }
 
-export function CheckoutRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CheckoutRequest {
+export function CheckOutRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CheckOutRequest {
     if (json == null) {
         return json;
     }
     return {
         
-        'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'],
-        'lateFeePercentage': json['lateFeePercentage'] == null ? undefined : json['lateFeePercentage'],
-        'paymentMethod': json['paymentMethod'],
-        'note': json['note'] == null ? undefined : json['note'],
+        'staffId': json['staffId'] == null ? undefined : json['staffId'],
     };
 }
 
-export function CheckoutRequestToJSON(json: any): CheckoutRequest {
-    return CheckoutRequestToJSONTyped(json, false);
+export function CheckOutRequestToJSON(json: any): CheckOutRequest {
+    return CheckOutRequestToJSONTyped(json, false);
 }
 
-export function CheckoutRequestToJSONTyped(value?: CheckoutRequest | null, ignoreDiscriminator: boolean = false): any {
+export function CheckOutRequestToJSONTyped(value?: CheckOutRequest | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }
 
     return {
         
-        'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
-        'lateFeePercentage': value['lateFeePercentage'],
-        'paymentMethod': value['paymentMethod'],
-        'note': value['note'],
+        'staffId': value['staffId'],
     };
 }
 

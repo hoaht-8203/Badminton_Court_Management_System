@@ -11,7 +11,11 @@ import { useRouter } from "next/navigation";
 import React from "react";
 import ForgotPasswordForm from "./ForgotPasswordForm";
 
-const LoginForm = () => {
+interface LoginFormProps {
+  isUsersMode?: boolean;
+}
+
+const LoginForm = ({ isUsersMode = false }: LoginFormProps) => {
   const [form] = Form.useForm<LoginRequest>();
   const [submitting, setSubmitting] = React.useState(false);
   const { refresh, login } = useAuth();
@@ -28,7 +32,12 @@ const LoginForm = () => {
       });
       await refresh();
       message.success("Đăng nhập thành công");
-      router.push("/quanlysancaulong/dashboard");
+
+      if (isUsersMode) {
+        router.push("/homepage");
+      } else {
+        router.push("/quanlysancaulong/dashboard");
+      }
     } catch (err: unknown) {
       const apiErr = err as ApiError | undefined;
       const fieldErrors = apiErr?.errors;
@@ -47,7 +56,7 @@ const LoginForm = () => {
 
   return (
     <div>
-      <Card title="Đăng nhập vào hệ thống">
+      <Card title={isUsersMode ? "Đăng nhập" : "Đăng nhập vào hệ thống"}>
         <Form layout="vertical" onFinish={onFinish} form={form}>
           <FormItem<LoginRequest>
             label="Email"
@@ -69,10 +78,18 @@ const LoginForm = () => {
               </Button>
             </div>
           </FormItem>
-          <div>
+          <div className="flex flex-col gap-2">
             <Button block size="large" type="primary" className="w-full" htmlType="submit" loading={submitting}>
               Đăng nhập
             </Button>
+
+            {isUsersMode && (
+              <div className="text-center">
+                <Button className="w-full" size="large" variant="link" onClick={() => router.push("/homepage/sign-up")}>
+                  Đăng ký
+                </Button>
+              </div>
+            )}
           </div>
         </Form>
       </Card>

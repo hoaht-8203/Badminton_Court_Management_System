@@ -28,6 +28,7 @@ export * from './SalaryFormApi';
 export * from './ScheduleApi';
 export * from './ServicesApi';
 export * from './ShiftApi';
+export * from './SlidersApi';
 export * from './StaffApi';
 export * from './StockOutsApi';
 export * from './StoreBankAccountsApi';

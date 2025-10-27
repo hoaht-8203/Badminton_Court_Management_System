@@ -51,9 +51,107 @@ builder.Services.Configure<JwtOptions>(options =>
         ? exp
         : 15;
 });
-builder.Services.Configure<EmailOptions>(
-    builder.Configuration.GetSection(EmailOptions.EmailOptionsKey)
-);
+
+builder.Services.Configure<MinioOptions>(options =>
+{
+    options.Endpoint =
+        builder.Configuration["Minio:Endpoint"]
+        ?? Environment.GetEnvironmentVariable("MINIO_ENDPOINT")
+        ?? "localhost";
+    options.Port = int.TryParse(
+        builder.Configuration["Minio:Port"] ?? Environment.GetEnvironmentVariable("MINIO_PORT"),
+        out var port
+    )
+        ? port
+        : 9000;
+    options.UseSSL = bool.TryParse(
+        builder.Configuration["Minio:UseSSL"]
+            ?? Environment.GetEnvironmentVariable("MINIO_USE_SSL"),
+        out var useSSL
+    )
+        ? useSSL
+        : false;
+    options.AccessKey =
+        builder.Configuration["Minio:AccessKey"]
+        ?? Environment.GetEnvironmentVariable("MINIO_ACCESS_KEY")
+        ?? "minioadmin";
+    options.SecretKey =
+        builder.Configuration["Minio:SecretKey"]
+        ?? Environment.GetEnvironmentVariable("MINIO_SECRET_KEY")
+        ?? "minioadmin";
+    options.DefaultBucket =
+        builder.Configuration["Minio:DefaultBucket"]
+        ?? Environment.GetEnvironmentVariable("MINIO_DEFAULT_BUCKET")
+        ?? "bcms";
+    options.PublicBaseUrl =
+        builder.Configuration["Minio:PublicBaseUrl"]
+        ?? Environment.GetEnvironmentVariable("MINIO_PUBLIC_BASE_URL")
+        ?? "http://localhost:9000";
+});
+
+// Configure EmailOptions with fallback values
+builder.Services.Configure<EmailOptions>(options =>
+{
+    options.SmtpServer =
+        builder.Configuration["EmailOptions:SmtpServer"]
+        ?? Environment.GetEnvironmentVariable("EMAIL_SMTP_SERVER")
+        ?? "smtp.gmail.com";
+    options.SmtpPort = int.TryParse(
+        builder.Configuration["EmailOptions:SmtpPort"]
+            ?? Environment.GetEnvironmentVariable("EMAIL_SMTP_PORT"),
+        out var port
+    )
+        ? port
+        : 587;
+    options.EnableSsl = bool.TryParse(
+        builder.Configuration["EmailOptions:EnableSsl"]
+            ?? Environment.GetEnvironmentVariable("EMAIL_ENABLE_SSL"),
+        out var enableSsl
+    )
+        ? enableSsl
+        : true;
+    options.Username =
+        builder.Configuration["EmailOptions:Username"]
+        ?? Environment.GetEnvironmentVariable("EMAIL_USERNAME")
+        ?? "contact@caulong365.store";
+    options.Password =
+        builder.Configuration["EmailOptions:Password"]
+        ?? Environment.GetEnvironmentVariable("EMAIL_PASSWORD")
+        ?? "m0|AE!D?K";
+    options.FromEmail =
+        builder.Configuration["EmailOptions:FromEmail"]
+        ?? Environment.GetEnvironmentVariable("EMAIL_FROM_EMAIL")
+        ?? "contact@caulong365.store";
+    options.FromName =
+        builder.Configuration["EmailOptions:FromName"]
+        ?? Environment.GetEnvironmentVariable("EMAIL_FROM_NAME")
+        ?? "Hệ thống Quản lý Sân Cầu Lông";
+    options.Timeout = int.TryParse(
+        builder.Configuration["EmailOptions:Timeout"]
+            ?? Environment.GetEnvironmentVariable("EMAIL_TIMEOUT"),
+        out var timeout
+    )
+        ? timeout
+        : 30000;
+    options.UseDefaultCredentials = bool.TryParse(
+        builder.Configuration["EmailOptions:UseDefaultCredentials"]
+            ?? Environment.GetEnvironmentVariable("EMAIL_USE_DEFAULT_CREDENTIALS"),
+        out var useDefaultCredentials
+    )
+        ? useDefaultCredentials
+        : false;
+    options.RequireAuthentication = bool.TryParse(
+        builder.Configuration["EmailOptions:RequireAuthentication"]
+            ?? Environment.GetEnvironmentVariable("EMAIL_REQUIRE_AUTHENTICATION"),
+        out var requireAuth
+    )
+        ? requireAuth
+        : true;
+    options.ClientCertificatePath =
+        builder.Configuration["EmailOptions:ClientCertificatePath"]
+        ?? Environment.GetEnvironmentVariable("EMAIL_CLIENT_CERTIFICATE_PATH")
+        ?? null;
+});
 
 builder
     .Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(opt =>
@@ -134,9 +232,7 @@ builder.Services.AddAutoMapper(config => config.AddProfile<PayrollMappingProfile
 builder.Services.AddAutoMapper(config => config.AddProfile<NotificationMappingProfile>());
 
 builder.Services.AddAutoMapper(config => config.AddProfile<PaymentMappingProfile>());
-builder.Services.Configure<MinioOptions>(
-    builder.Configuration.GetSection(MinioOptions.MinioOptionsKey)
-);
+
 builder.Services.AddAutoMapper(config => config.AddProfile<CourtMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<CourtAreaMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<InventoryCheckMappingProfile>());

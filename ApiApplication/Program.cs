@@ -28,7 +28,29 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.JwtOptionsKey));
+// Configure JwtOptions with fallback values
+builder.Services.Configure<JwtOptions>(options =>
+{
+    options.Secret =
+        builder.Configuration["JwtOptions:Secret"]
+        ?? Environment.GetEnvironmentVariable("JWT_SECRET")
+        ?? "871ad85acb1a0faf58dfd9499624dc699e03f9bc";
+    options.Issuer =
+        builder.Configuration["JwtOptions:Issuer"]
+        ?? Environment.GetEnvironmentVariable("JWT_ISSUER")
+        ?? "https://caulong365-api.azurewebsites.net/";
+    options.Audience =
+        builder.Configuration["JwtOptions:Audience"]
+        ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+        ?? "https://caulong365-api.azurewebsites.net/";
+    options.ExpirationTimeInMinutes = int.TryParse(
+        builder.Configuration["JwtOptions:ExpirationTimeInMinutes"]
+            ?? Environment.GetEnvironmentVariable("JWT_EXPIRATION_MINUTES"),
+        out var exp
+    )
+        ? exp
+        : 15;
+});
 builder.Services.Configure<EmailOptions>(
     builder.Configuration.GetSection(EmailOptions.EmailOptionsKey)
 );

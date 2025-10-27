@@ -150,9 +150,15 @@ builder
     })
     .AddJwtBearer(options =>
     {
-        var jwtOptions =
-            builder.Configuration.GetSection(JwtOptions.JwtOptionsKey).Get<JwtOptions>()
-            ?? throw new ArgumentException(nameof(JwtOptions));
+        var jwtOptions = builder
+            .Configuration.GetSection(JwtOptions.JwtOptionsKey)
+            .Get<JwtOptions>();
+        if (jwtOptions == null)
+        {
+            throw new ArgumentException(
+                $"JwtOptions configuration not found. Please check appsettings.json for '{JwtOptions.JwtOptionsKey}' section."
+            );
+        }
 
         options.TokenValidationParameters = new TokenValidationParameters
         {

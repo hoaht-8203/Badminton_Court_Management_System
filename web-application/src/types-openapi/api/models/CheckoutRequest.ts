@@ -16,29 +16,29 @@ import { mapValues } from '../runtime';
 /**
  * 
  * @export
- * @interface CheckOutRequest
+ * @interface CheckoutRequest
  */
-export interface CheckOutRequest {
+export interface CheckoutRequest {
     /**
      * 
      * @type {number}
-     * @memberof CheckOutRequest
+     * @memberof CheckoutRequest
      */
     staffId?: number;
 }
 
 /**
- * Check if a given object implements the CheckOutRequest interface.
+ * Check if a given object implements the CheckoutRequest interface.
  */
-export function instanceOfCheckOutRequest(value: object): value is CheckOutRequest {
+export function instanceOfCheckoutRequest(value: object): value is CheckoutRequest {
     return true;
 }
 
-export function CheckOutRequestFromJSON(json: any): CheckOutRequest {
-    return CheckOutRequestFromJSONTyped(json, false);
+export function CheckoutRequestFromJSON(json: any): CheckoutRequest {
+    return CheckoutRequestFromJSONTyped(json, false);
 }
 
-export function CheckOutRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CheckOutRequest {
+export function CheckoutRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean): CheckoutRequest {
     if (json == null) {
         return json;
     }
@@ -48,11 +48,11 @@ export function CheckOutRequestFromJSONTyped(json: any, ignoreDiscriminator: boo
     };
 }
 
-export function CheckOutRequestToJSON(json: any): CheckOutRequest {
-    return CheckOutRequestToJSONTyped(json, false);
+export function CheckoutRequestToJSON(json: any): CheckoutRequest {
+    return CheckoutRequestToJSONTyped(json, false);
 }
 
-export function CheckOutRequestToJSONTyped(value?: CheckOutRequest | null, ignoreDiscriminator: boolean = false): any {
+export function CheckoutRequestToJSONTyped(value?: CheckoutRequest | null, ignoreDiscriminator: boolean = false): any {
     if (value == null) {
         return value;
     }

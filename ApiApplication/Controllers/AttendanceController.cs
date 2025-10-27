@@ -31,7 +31,7 @@ namespace ApiApplication.Controllers
 
         [HttpPost("checkout")]
         public async Task<IActionResult> CheckOut(
-            [FromBody] Dtos.Attendance.CheckOutRequest request
+            [FromBody] Dtos.Attendance.CheckoutRequest request
         )
         {
             var result = await _attendanceService.CheckOutAsync(request.StaffId);

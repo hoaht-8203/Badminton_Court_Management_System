@@ -17,15 +17,15 @@ import * as runtime from '../runtime';
 import type {
   AttendanceRequest,
   CheckInRequest,
-  CheckOutRequest,
+  CheckoutRequest,
 } from '../models/index';
 import {
     AttendanceRequestFromJSON,
     AttendanceRequestToJSON,
     CheckInRequestFromJSON,
     CheckInRequestToJSON,
-    CheckOutRequestFromJSON,
-    CheckOutRequestToJSON,
+    CheckoutRequestFromJSON,
+    CheckoutRequestToJSON,
 } from '../models/index';
 
 export interface ApiAttendanceAttendanceRecordIdDeleteRequest {
@@ -37,7 +37,7 @@ export interface ApiAttendanceCheckinPostRequest {
 }
 
 export interface ApiAttendanceCheckoutPostRequest {
-    checkOutRequest?: CheckOutRequest;
+    checkoutRequest?: CheckoutRequest;
 }
 
 export interface ApiAttendancePostRequest {
@@ -88,7 +88,7 @@ export interface AttendanceApiInterface {
 
     /**
      * 
-     * @param {CheckOutRequest} [checkOutRequest] 
+     * @param {CheckoutRequest} [checkoutRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AttendanceApiInterface
@@ -226,7 +226,7 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: CheckOutRequestToJSON(requestParameters['checkOutRequest']),
+            body: CheckoutRequestToJSON(requestParameters['checkoutRequest']),
         }, initOverrides);
 
         return new runtime.VoidApiResponse(response);

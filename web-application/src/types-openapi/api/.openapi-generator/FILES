@@ -78,11 +78,11 @@ models/ChangeUserStatusRequest.ts
 models/CheckInBookingCourtRequest.ts
 models/CheckInRequest.ts
 models/CheckOutBookingCourtRequest.ts
-models/CheckOutRequest.ts
 models/CheckoutBookingRequest.ts
 models/CheckoutEstimateRequest.ts
 models/CheckoutEstimateResponse.ts
 models/CheckoutItemInput.ts
+models/CheckoutRequest.ts
 models/CheckoutResponse.ts
 models/CheckoutResponseApiResponse.ts
 models/Court.ts

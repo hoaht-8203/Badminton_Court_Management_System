@@ -33,11 +33,7 @@ const LoginForm = ({ isUsersMode = false }: LoginFormProps) => {
       await refresh();
       message.success("Đăng nhập thành công");
 
-      if (isUsersMode) {
-        router.push("/homepage");
-      } else {
-        router.push("/quanlysancaulong/dashboard");
-      }
+      router.push("/homepage");
     } catch (err: unknown) {
       const apiErr = err as ApiError | undefined;
       const fieldErrors = apiErr?.errors;

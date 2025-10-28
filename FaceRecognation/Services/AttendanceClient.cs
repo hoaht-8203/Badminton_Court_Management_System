@@ -21,7 +21,12 @@ namespace FaceRecognation.Services
             var payload = new { StaffId = staffId };
             var resp = await _http.PostAsJsonAsync("/api/attendance/checkin", payload);
             var body = await resp.Content.ReadFromJsonAsync<ApiResponse<bool>>();
-            return body ?? new ApiResponse<bool> { Success = false, Message = $"HTTP {(int)resp.StatusCode}" };
+            return body
+                ?? new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = $"HTTP {(int)resp.StatusCode}",
+                };
         }
 
         public async Task<ApiResponse<bool>> CheckOutAsync(int staffId)
@@ -29,7 +34,12 @@ namespace FaceRecognation.Services
             var payload = new { StaffId = staffId };
             var resp = await _http.PostAsJsonAsync("/api/attendance/checkout", payload);
             var body = await resp.Content.ReadFromJsonAsync<ApiResponse<bool>>();
-            return body ?? new ApiResponse<bool> { Success = false, Message = $"HTTP {(int)resp.StatusCode}" };
+            return body
+                ?? new ApiResponse<bool>
+                {
+                    Success = false,
+                    Message = $"HTTP {(int)resp.StatusCode}",
+                };
         }
     }
 }

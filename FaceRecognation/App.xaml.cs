@@ -105,10 +105,12 @@ namespace FaceRecognation
 
             // Attendance client (calls ApiApplication attendance endpoints)
             services
-                .AddHttpClient<Services.Interfaces.IAttendanceClient, Services.AttendanceClient>(client =>
-                {
-                    client.BaseAddress = new Uri(apiBaseUrl);
-                })
+                .AddHttpClient<Services.Interfaces.IAttendanceClient, Services.AttendanceClient>(
+                    client =>
+                    {
+                        client.BaseAddress = new Uri(apiBaseUrl);
+                    }
+                )
                 .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
                 {
                     CookieContainer = sp.GetRequiredService<CookieContainer>(),

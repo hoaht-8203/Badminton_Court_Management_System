@@ -3,12 +3,12 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using System.Text.Json;
-using System.Threading.Tasks;
 using AForge.Video;
 using AForge.Video.DirectShow;
 using FaceRecognation.Dtos;
@@ -27,10 +27,15 @@ namespace FaceRecognation
         private readonly ICompreFaceService _compreFaceService;
         private readonly Services.Interfaces.IAttendanceClient _attendanceClient;
 
-        public AttendanceWindow(ICompreFaceService compreFaceService, Services.Interfaces.IAttendanceClient attendanceClient)
+        public AttendanceWindow(
+            ICompreFaceService compreFaceService,
+            Services.Interfaces.IAttendanceClient attendanceClient
+        )
         {
-            _compreFaceService = compreFaceService ?? throw new ArgumentNullException(nameof(compreFaceService));
-            _attendanceClient = attendanceClient ?? throw new ArgumentNullException(nameof(attendanceClient));
+            _compreFaceService =
+                compreFaceService ?? throw new ArgumentNullException(nameof(compreFaceService));
+            _attendanceClient =
+                attendanceClient ?? throw new ArgumentNullException(nameof(attendanceClient));
 
             InitializeComponent();
             InitializeWebcam();
@@ -87,13 +92,16 @@ namespace FaceRecognation
             {
                 if (videoDevices != null && videoDevices.Count > 0 && selectedDeviceIndex >= 0)
                 {
-                    videoSource = new VideoCaptureDevice(videoDevices[selectedDeviceIndex].MonikerString);
+                    videoSource = new VideoCaptureDevice(
+                        videoDevices[selectedDeviceIndex].MonikerString
+                    );
                     videoSource.NewFrame += VideoSource_NewFrame;
                     videoSource.Start();
                     System.Threading.Thread.Sleep(500);
                     if (videoSource.IsRunning)
                     {
-                        StatusText.Text = $"Webcam started: {videoDevices[selectedDeviceIndex].Name}";
+                        StatusText.Text =
+                            $"Webcam started: {videoDevices[selectedDeviceIndex].Name}";
                     }
                     else
                     {
@@ -116,11 +124,22 @@ namespace FaceRecognation
                     bitmap.RotateFlip(RotateFlipType.RotateNoneFlipX);
 
                 var bitmapSource = ConvertBitmapToBitmapSource(bitmap);
-                Dispatcher.BeginInvoke(new Action(() => { WebcamImage.Source = bitmapSource; StatusText.Text = "Webcam streaming..."; }));
+                Dispatcher.BeginInvoke(
+                    new Action(() =>
+                    {
+                        WebcamImage.Source = bitmapSource;
+                        StatusText.Text = "Webcam streaming...";
+                    })
+                );
             }
             catch (Exception ex)
             {
-                Dispatcher.BeginInvoke(new Action(() => { StatusText.Text = "Frame error: " + ex.Message; }));
+                Dispatcher.BeginInvoke(
+                    new Action(() =>
+                    {
+                        StatusText.Text = "Frame error: " + ex.Message;
+                    })
+                );
             }
         }
 
@@ -128,8 +147,22 @@ namespace FaceRecognation
         {
             try
             {
-                var bitmapData = bitmap.LockBits(new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadOnly, bitmap.PixelFormat);
-                var bitmapSource = BitmapSource.Create(bitmapData.Width, bitmapData.Height, bitmap.HorizontalResolution, bitmap.VerticalResolution, System.Windows.Media.PixelFormats.Bgr24, null, bitmapData.Scan0, bitmapData.Stride * bitmapData.Height, bitmapData.Stride);
+                var bitmapData = bitmap.LockBits(
+                    new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                    ImageLockMode.ReadOnly,
+                    bitmap.PixelFormat
+                );
+                var bitmapSource = BitmapSource.Create(
+                    bitmapData.Width,
+                    bitmapData.Height,
+                    bitmap.HorizontalResolution,
+                    bitmap.VerticalResolution,
+                    System.Windows.Media.PixelFormats.Bgr24,
+                    null,
+                    bitmapData.Scan0,
+                    bitmapData.Stride * bitmapData.Height,
+                    bitmapData.Stride
+                );
                 bitmap.UnlockBits(bitmapData);
                 bitmapSource.Freeze();
                 return bitmapSource;
@@ -160,7 +193,12 @@ namespace FaceRecognation
                     selectedDeviceIndex = DeviceComboBox.SelectedIndex;
                     if (videoSource != null && videoSource.IsRunning)
                     {
-                        try { videoSource.SignalToStop(); videoSource.WaitForStop(); } catch { }
+                        try
+                        {
+                            videoSource.SignalToStop();
+                            videoSource.WaitForStop();
+                        }
+                        catch { }
                         StartWebcam();
                     }
                 }
@@ -193,21 +231,34 @@ namespace FaceRecognation
                 var json = await _compreFaceService.RecognizeAsync(imageBytes);
                 using var doc = JsonDocument.Parse(json);
                 // Look for result[0].subjects or root.subjects
-                if (doc.RootElement.TryGetProperty("result", out var result) && result.ValueKind == JsonValueKind.Array && result.GetArrayLength() > 0)
+                if (
+                    doc.RootElement.TryGetProperty("result", out var result)
+                    && result.ValueKind == JsonValueKind.Array
+                    && result.GetArrayLength() > 0
+                )
                 {
                     var first = result[0];
-                    if (first.TryGetProperty("subjects", out var subjects) && subjects.ValueKind == JsonValueKind.Array)
+                    if (
+                        first.TryGetProperty("subjects", out var subjects)
+                        && subjects.ValueKind == JsonValueKind.Array
+                    )
                     {
                         foreach (var s in subjects.EnumerateArray())
                         {
-                            if (s.TryGetProperty("subject", out var subjName) && subjName.ValueKind == JsonValueKind.String)
+                            if (
+                                s.TryGetProperty("subject", out var subjName)
+                                && subjName.ValueKind == JsonValueKind.String
+                            )
                             {
                                 var name = subjName.GetString();
                                 if (!string.IsNullOrEmpty(name))
                                 {
                                     // expected subject format: "{id}-{name}". Extract leading integer id
                                     var idx = name.IndexOf('-');
-                                    if (idx > 0 && int.TryParse(name.Substring(0, idx), out var staffId))
+                                    if (
+                                        idx > 0
+                                        && int.TryParse(name.Substring(0, idx), out var staffId)
+                                    )
                                     {
                                         return staffId;
                                     }
@@ -218,17 +269,26 @@ namespace FaceRecognation
                 }
 
                 // fallback: root.subjects
-                if (doc.RootElement.TryGetProperty("subjects", out var rootSubjects) && rootSubjects.ValueKind == JsonValueKind.Array)
+                if (
+                    doc.RootElement.TryGetProperty("subjects", out var rootSubjects)
+                    && rootSubjects.ValueKind == JsonValueKind.Array
+                )
                 {
                     foreach (var s in rootSubjects.EnumerateArray())
                     {
-                        if (s.TryGetProperty("subject", out var subjName) && subjName.ValueKind == JsonValueKind.String)
+                        if (
+                            s.TryGetProperty("subject", out var subjName)
+                            && subjName.ValueKind == JsonValueKind.String
+                        )
                         {
                             var name = subjName.GetString();
                             if (!string.IsNullOrEmpty(name))
                             {
                                 var idx = name.IndexOf('-');
-                                if (idx > 0 && int.TryParse(name.Substring(0, idx), out var staffId))
+                                if (
+                                    idx > 0
+                                    && int.TryParse(name.Substring(0, idx), out var staffId)
+                                )
                                 {
                                     return staffId;
                                 }
@@ -252,7 +312,8 @@ namespace FaceRecognation
             var staffId = await RecognizeStaffIdFromCurrentFrameAsync();
             if (staffId == null)
             {
-                RecognitionInfoText.Text = "No recognized staff detected. Please ensure your face is visible and registered.";
+                RecognitionInfoText.Text =
+                    "No recognized staff detected. Please ensure your face is visible and registered.";
                 StatusText.Text = "Recognition failed";
                 return;
             }
@@ -285,7 +346,8 @@ namespace FaceRecognation
             var staffId = await RecognizeStaffIdFromCurrentFrameAsync();
             if (staffId == null)
             {
-                RecognitionInfoText.Text = "No recognized staff detected. Please ensure your face is visible and registered.";
+                RecognitionInfoText.Text =
+                    "No recognized staff detected. Please ensure your face is visible and registered.";
                 StatusText.Text = "Recognition failed";
                 return;
             }

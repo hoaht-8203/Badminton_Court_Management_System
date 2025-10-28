@@ -13,6 +13,11 @@ namespace ApiApplication.Dtos.ReturnGoods
         public decimal Discount { get; set; }
         public decimal SupplierNeedToPay { get; set; }
         public decimal SupplierPaid { get; set; }
+        public int PaymentMethod { get; set; }
+        public int? StoreBankAccountId { get; set; }
+        public string? StoreBankAccountNumber { get; set; }
+        public string? StoreBankAccountName { get; set; }
+        public string? StoreBankName { get; set; }
         public string? Note { get; set; }
         public int Status { get; set; }
         public List<DetailReturnGoodsItem> Items { get; set; } = new();

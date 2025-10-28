@@ -15,6 +15,7 @@
 
 import * as runtime from '../runtime';
 import type {
+  CancelReturnGoodsRequest,
   CreateReturnGoodsRequest,
   DetailReturnGoodsResponseApiResponse,
   Int32ApiResponse,
@@ -22,6 +23,8 @@ import type {
   ObjectApiResponse,
 } from '../models/index';
 import {
+    CancelReturnGoodsRequestFromJSON,
+    CancelReturnGoodsRequestToJSON,
     CreateReturnGoodsRequestFromJSON,
     CreateReturnGoodsRequestToJSON,
     DetailReturnGoodsResponseApiResponseFromJSON,
@@ -36,6 +39,7 @@ import {
 
 export interface ApiReturnGoodsCancelIdPostRequest {
     id: number;
+    cancelReturnGoodsRequest?: CancelReturnGoodsRequest;
 }
 
 export interface ApiReturnGoodsCompleteIdPostRequest {
@@ -48,6 +52,11 @@ export interface ApiReturnGoodsCreatePostRequest {
 
 export interface ApiReturnGoodsDetailIdGetRequest {
     id: number;
+}
+
+export interface ApiReturnGoodsIdNotePutRequest {
+    id: number;
+    cancelReturnGoodsRequest?: CancelReturnGoodsRequest;
 }
 
 export interface ApiReturnGoodsListGetRequest {
@@ -71,6 +80,7 @@ export interface ReturnGoodsApiInterface {
     /**
      * 
      * @param {number} id 
+     * @param {CancelReturnGoodsRequest} [cancelReturnGoodsRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ReturnGoodsApiInterface
@@ -122,6 +132,20 @@ export interface ReturnGoodsApiInterface {
 
     /**
      * 
+     * @param {number} id 
+     * @param {CancelReturnGoodsRequest} [cancelReturnGoodsRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ReturnGoodsApiInterface
+     */
+    apiReturnGoodsIdNotePutRaw(requestParameters: ApiReturnGoodsIdNotePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiReturnGoodsIdNotePut(requestParameters: ApiReturnGoodsIdNotePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
      * @param {Date} [from] 
      * @param {Date} [to] 
      * @param {number} [status] 
@@ -170,6 +194,8 @@ export class ReturnGoodsApi extends runtime.BaseAPI implements ReturnGoodsApiInt
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        headerParameters['Content-Type'] = 'application/json';
+
 
         let urlPath = `/api/ReturnGoods/cancel/{id}`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
@@ -179,6 +205,7 @@ export class ReturnGoodsApi extends runtime.BaseAPI implements ReturnGoodsApiInt
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
+            body: CancelReturnGoodsRequestToJSON(requestParameters['cancelReturnGoodsRequest']),
         }, initOverrides);
 
         return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
@@ -288,6 +315,44 @@ export class ReturnGoodsApi extends runtime.BaseAPI implements ReturnGoodsApiInt
      */
     async apiReturnGoodsDetailIdGet(requestParameters: ApiReturnGoodsDetailIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailReturnGoodsResponseApiResponse> {
         const response = await this.apiReturnGoodsDetailIdGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiReturnGoodsIdNotePutRaw(requestParameters: ApiReturnGoodsIdNotePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling apiReturnGoodsIdNotePut().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/ReturnGoods/{id}/note`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CancelReturnGoodsRequestToJSON(requestParameters['cancelReturnGoodsRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiReturnGoodsIdNotePut(requestParameters: ApiReturnGoodsIdNotePutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiReturnGoodsIdNotePutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

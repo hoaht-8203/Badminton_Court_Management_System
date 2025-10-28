@@ -95,6 +95,18 @@ export interface DetailReturnGoodsResponse {
     supplierPaid?: number;
     /**
      * 
+     * @type {number}
+     * @memberof DetailReturnGoodsResponse
+     */
+    paymentMethod?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailReturnGoodsResponse
+     */
+    storeBankAccountId?: number | null;
+    /**
+     * 
      * @type {string}
      * @memberof DetailReturnGoodsResponse
      */
@@ -141,6 +153,8 @@ export function DetailReturnGoodsResponseFromJSONTyped(json: any, ignoreDiscrimi
         'discount': json['discount'] == null ? undefined : json['discount'],
         'supplierNeedToPay': json['supplierNeedToPay'] == null ? undefined : json['supplierNeedToPay'],
         'supplierPaid': json['supplierPaid'] == null ? undefined : json['supplierPaid'],
+        'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
+        'storeBankAccountId': json['storeBankAccountId'] == null ? undefined : json['storeBankAccountId'],
         'note': json['note'] == null ? undefined : json['note'],
         'status': json['status'] == null ? undefined : json['status'],
         'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(DetailReturnGoodsItemFromJSON)),
@@ -169,6 +183,8 @@ export function DetailReturnGoodsResponseToJSONTyped(value?: DetailReturnGoodsRe
         'discount': value['discount'],
         'supplierNeedToPay': value['supplierNeedToPay'],
         'supplierPaid': value['supplierPaid'],
+        'paymentMethod': value['paymentMethod'],
+        'storeBankAccountId': value['storeBankAccountId'],
         'note': value['note'],
         'status': value['status'],
         'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(DetailReturnGoodsItemToJSON)),

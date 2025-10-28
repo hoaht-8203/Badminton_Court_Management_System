@@ -85,7 +85,11 @@ namespace FaceRecognation
                         _imagePaths[idx] = null;
 
                     // hide the remove button
-                    try { btn.Visibility = Visibility.Collapsed; } catch { }
+                    try
+                    {
+                        btn.Visibility = Visibility.Collapsed;
+                    }
+                    catch { }
                     UpdateActionButtons();
                 }
             }

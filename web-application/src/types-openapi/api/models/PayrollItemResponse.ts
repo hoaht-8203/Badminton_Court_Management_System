@@ -69,6 +69,36 @@ export interface PayrollItemResponse {
      * @memberof PayrollItemResponse
      */
     status?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof PayrollItemResponse
+     */
+    payrollId?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof PayrollItemResponse
+     */
+    payrollName?: string | null;
+    /**
+     * 
+     * @type {Date}
+     * @memberof PayrollItemResponse
+     */
+    payrollStartDate?: Date;
+    /**
+     * 
+     * @type {Date}
+     * @memberof PayrollItemResponse
+     */
+    payrollEndDate?: Date;
+    /**
+     * 
+     * @type {Date}
+     * @memberof PayrollItemResponse
+     */
+    payrollCreatedAt?: Date;
 }
 
 /**
@@ -95,6 +125,11 @@ export function PayrollItemResponseFromJSONTyped(json: any, ignoreDiscriminator:
         'paidAmount': json['paidAmount'] == null ? undefined : json['paidAmount'],
         'note': json['note'] == null ? undefined : json['note'],
         'status': json['status'] == null ? undefined : json['status'],
+        'payrollId': json['payrollId'] == null ? undefined : json['payrollId'],
+        'payrollName': json['payrollName'] == null ? undefined : json['payrollName'],
+        'payrollStartDate': json['payrollStartDate'] == null ? undefined : (new Date(json['payrollStartDate'])),
+        'payrollEndDate': json['payrollEndDate'] == null ? undefined : (new Date(json['payrollEndDate'])),
+        'payrollCreatedAt': json['payrollCreatedAt'] == null ? undefined : (new Date(json['payrollCreatedAt'])),
     };
 }
 
@@ -116,6 +151,11 @@ export function PayrollItemResponseToJSONTyped(value?: PayrollItemResponse | nul
         'paidAmount': value['paidAmount'],
         'note': value['note'],
         'status': value['status'],
+        'payrollId': value['payrollId'],
+        'payrollName': value['payrollName'],
+        'payrollStartDate': value['payrollStartDate'] == null ? undefined : ((value['payrollStartDate']).toISOString().substring(0,10)),
+        'payrollEndDate': value['payrollEndDate'] == null ? undefined : ((value['payrollEndDate']).toISOString().substring(0,10)),
+        'payrollCreatedAt': value['payrollCreatedAt'] == null ? undefined : ((value['payrollCreatedAt']).toISOString()),
     };
 }
 

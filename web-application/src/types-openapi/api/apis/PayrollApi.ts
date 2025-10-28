@@ -22,6 +22,10 @@ import {
     CreatePayrollRequestToJSON,
 } from '../models/index';
 
+export interface ApiPayrollItemsByStaffStaffIdGetRequest {
+    staffId: number;
+}
+
 export interface ApiPayrollPayItemPayrollItemIdPostRequest {
     payrollItemId: number;
     amount?: number;
@@ -57,6 +61,19 @@ export interface PayrollApiInterface {
     /**
      */
     apiPayrollGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
+
+    /**
+     * 
+     * @param {number} staffId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PayrollApiInterface
+     */
+    apiPayrollItemsByStaffStaffIdGetRaw(requestParameters: ApiPayrollItemsByStaffStaffIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
+
+    /**
+     */
+    apiPayrollItemsByStaffStaffIdGet(requestParameters: ApiPayrollItemsByStaffStaffIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
 
     /**
      * 
@@ -142,6 +159,40 @@ export class PayrollApi extends runtime.BaseAPI implements PayrollApiInterface {
      */
     async apiPayrollGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.apiPayrollGetRaw(initOverrides);
+    }
+
+    /**
+     */
+    async apiPayrollItemsByStaffStaffIdGetRaw(requestParameters: ApiPayrollItemsByStaffStaffIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['staffId'] == null) {
+            throw new runtime.RequiredError(
+                'staffId',
+                'Required parameter "staffId" was null or undefined when calling apiPayrollItemsByStaffStaffIdGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Payroll/items/by-staff/{staffId}`;
+        urlPath = urlPath.replace(`{${"staffId"}}`, encodeURIComponent(String(requestParameters['staffId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiPayrollItemsByStaffStaffIdGet(requestParameters: ApiPayrollItemsByStaffStaffIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.apiPayrollItemsByStaffStaffIdGetRaw(requestParameters, initOverrides);
     }
 
     /**

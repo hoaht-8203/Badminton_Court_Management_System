@@ -1,7 +1,6 @@
-import { Avatar, Pagination, Table, Tabs } from "antd";
+import { Avatar, Pagination, Table, Tabs, Tag } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import React, { useState } from "react";
-import DebtAdvanceTab from "./debt-advance-tab";
 import SalaryConfigTab from "./salary-config-tab";
 import SalarySlipTab from "./salary-slip-tab";
 import StaffInfoTab from "./staff-info-tab";
@@ -33,6 +32,26 @@ const getColumns = (): ColumnsType<any> => [
     title: "Số CMND/CCCD",
     dataIndex: "identificationNumber",
     key: "identificationNumber",
+  },
+  {
+    title: "Trạng thái",
+    dataIndex: "status",
+    key: "status",
+    render: (text: any, record: any) => {
+      // Prefer boolean isActive when available
+      if (record.isActive !== undefined) {
+        return record.isActive ? <Tag color="green">Đang làm việc</Tag> : <Tag color="red">Đã nghỉ việc</Tag>;
+      }
+
+      // Fallback to numeric status (1 = active, 2 = resigned)
+      if (typeof text === "number") {
+        // Backend may return 1 = active, 0 = inactive. Some clients use 2 = resigned.
+        if (text === 1) return <Tag color="green">Đang làm việc</Tag>;
+        if (text === 0 || text === 2) return <Tag color="red">Đã nghỉ việc</Tag>;
+      }
+
+      return <Tag>Không rõ</Tag>;
+    },
   },
 ];
 
@@ -71,7 +90,6 @@ const StaffList: React.FC<StaffListProps> = ({ staffList, onEditStaff, onChangeS
                   { key: "2", label: "Lịch làm việc", children: <WorkScheduleTab staff={record} /> },
                   { key: "3", label: "Thiết lập lương", children: <SalaryConfigTab staff={record} /> },
                   { key: "4", label: "Phiếu lương", children: <SalarySlipTab staff={record} /> },
-                  { key: "5", label: "Nợ và tạm ứng", children: <DebtAdvanceTab staff={record} /> },
                 ]}
               />
             </div>

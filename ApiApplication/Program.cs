@@ -57,28 +57,28 @@ builder.Services.Configure<MinioOptions>(options =>
     options.Endpoint =
         builder.Configuration["Minio:Endpoint"]
         ?? Environment.GetEnvironmentVariable("MINIO_ENDPOINT")
-        ?? "localhost";
+        ?? "minio.caulong365.store";
     options.Port = int.TryParse(
         builder.Configuration["Minio:Port"] ?? Environment.GetEnvironmentVariable("MINIO_PORT"),
         out var port
     )
         ? port
-        : 9000;
+        : 443;
     options.UseSSL = bool.TryParse(
         builder.Configuration["Minio:UseSSL"]
             ?? Environment.GetEnvironmentVariable("MINIO_USE_SSL"),
         out var useSSL
     )
         ? useSSL
-        : false;
+        : true;
     options.AccessKey =
         builder.Configuration["Minio:AccessKey"]
         ?? Environment.GetEnvironmentVariable("MINIO_ACCESS_KEY")
-        ?? "minioadmin";
+        ?? "77QqJm6CiR6YSFLa2FwC";
     options.SecretKey =
         builder.Configuration["Minio:SecretKey"]
         ?? Environment.GetEnvironmentVariable("MINIO_SECRET_KEY")
-        ?? "minioadmin";
+        ?? "9FDQeddUh1iA2AaNyX92l6MDUunw0hbJ0JtFDTVa";
     options.DefaultBucket =
         builder.Configuration["Minio:DefaultBucket"]
         ?? Environment.GetEnvironmentVariable("MINIO_DEFAULT_BUCKET")

@@ -73,6 +73,7 @@ const StockReturnPage = () => {
   }>({ statuses: [0, 1] });
 
   const [data, setData] = useState<ReturnGoodsRow[]>([]);
+  const [refreshToken, setRefreshToken] = useState(0);
   const [loading, setLoading] = useState(false);
   const { data: suppliersData } = useListSuppliers({});
 
@@ -318,7 +319,14 @@ const StockReturnPage = () => {
             expandRowByClick: true,
             expandedRowRender: (record: any) => {
               if (record.isSummaryRow) return null;
-              return <ReturnGoodsRowDetail record={record} onEdit={() => setEditingId(record.id)} onCancelled={load} />;
+              return (
+                <ReturnGoodsRowDetail
+                  record={record}
+                  refreshToken={refreshToken}
+                  onEdit={() => setEditingId(record.id)}
+                  onCancelled={load}
+                />
+              );
             },
             onExpand: (expanded, record: any) => {
               if (record.isSummaryRow) return false;
@@ -334,7 +342,10 @@ const StockReturnPage = () => {
           setOpen(false);
           setEditingId(null);
         }}
-        onChanged={() => load()}
+        onChanged={() => {
+          setRefreshToken((x) => x + 1);
+          load();
+        }}
         returnGoodsId={editingId ?? undefined}
       />
     </section>
@@ -343,7 +354,7 @@ const StockReturnPage = () => {
 
 export default StockReturnPage;
 
-const ReturnGoodsProducts = ({ returnGoodsId }: { returnGoodsId: number }) => {
+const ReturnGoodsProducts = ({ returnGoodsId, refreshToken }: { returnGoodsId: number; refreshToken: number }) => {
   const [rows, setRows] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
 
@@ -369,7 +380,7 @@ const ReturnGoodsProducts = ({ returnGoodsId }: { returnGoodsId: number }) => {
       }
     };
     run();
-  }, [returnGoodsId]);
+  }, [returnGoodsId, refreshToken]);
 
   return (
     <div className="max-h-96 overflow-y-auto">
@@ -394,7 +405,7 @@ const ReturnGoodsProducts = ({ returnGoodsId }: { returnGoodsId: number }) => {
   );
 };
 
-const ReturnGoodsRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdit: () => void; onCancelled: () => void }) => {
+const ReturnGoodsRowDetail = ({ record, refreshToken, onEdit, onCancelled }: { record: any; refreshToken: number; onEdit: () => void; onCancelled: () => void }) => {
   const [detail, setDetail] = React.useState<any | null>(null);
   const [note, setNote] = React.useState("");
   const [saving, setSaving] = React.useState(false);
@@ -410,7 +421,7 @@ const ReturnGoodsRowDetail = ({ record, onEdit, onCancelled }: { record: any; on
       }
     };
     run();
-  }, [record?.id]);
+  }, [record?.id, refreshToken]);
 
   const handleSaveNote = async () => {
     if (!detail) return;
@@ -455,7 +466,7 @@ const ReturnGoodsRowDetail = ({ record, onEdit, onCancelled }: { record: any; on
         method:
           methodLabel +
           (detail.paymentMethod === 1
-            ? ` (${detail.storeBankAccount?.accountNumber || ""}${detail.storeBankAccount?.accountName ? ` - ${detail.storeBankAccount.accountName}` : ""}${detail.storeBankAccount?.bankName ? ` - ${detail.storeBankAccount.bankName}` : ""})`
+            ? ` (${detail.storeBankAccountNumber || ""}${detail.storeBankAccountName ? ` - ${detail.storeBankAccountName}` : ""}${detail.storeBankName ? ` - ${detail.storeBankName}` : ""})`
             : ""),
         status: paymentStatus,
         amount: (detail.supplierPaid ?? 0).toLocaleString(),
@@ -555,7 +566,7 @@ const ReturnGoodsRowDetail = ({ record, onEdit, onCancelled }: { record: any; on
                 {/* Sản phẩm */}
                 <div>
                   <h3 className="mb-3 text-lg font-semibold">Sản phẩm</h3>
-                  <ReturnGoodsProducts returnGoodsId={record.id} />
+                  <ReturnGoodsProducts returnGoodsId={record.id} refreshToken={refreshToken} />
                 </div>
 
                 {/* Thông tin thanh toán */}
@@ -601,7 +612,7 @@ const ReturnGoodsRowDetail = ({ record, onEdit, onCancelled }: { record: any; on
                       dataIndex: "status",
                       key: "status",
                       width: 140,
-                      render: (t: string) => <Tag color={t === "Đã thanh toán" ? "green" : t === "Đã hủy" ? "red" : "orange"}>{t}</Tag>,
+                      render: (t: string) => <Tag color={t === "Đã thanh toán" ? "green" : t === "Đã hủy" ? "red" : "red"}>{t}</Tag>,
                     },
                     { title: "Tiền trả NCC", dataIndex: "amount", key: "amount", width: 140 },
                   ]}

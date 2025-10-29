@@ -233,13 +233,16 @@ namespace ApiApplication.Services.Impl
         {
             foreach (var item in stockOut.Items)
             {
-                // Update product stock (reduce quantity)
+                // Get product to calculate stock correctly
                 var product = await _context.Products.FindAsync(item.ProductId);
-                if (product != null)
+                if (product == null)
                 {
-                    product.Stock = Math.Max(0, product.Stock - item.Quantity);
-                    product.UpdatedAt = DateTime.UtcNow;
+                    throw new Exception($"Sản phẩm không tồn tại: {item.ProductId}");
                 }
+
+                // Calculate final stock
+                var currentStock = product.Stock;
+                var newStock = Math.Max(0, currentStock - item.Quantity);
 
                 // Create inventory card for stock out
                 var inventoryCard = new InventoryCard
@@ -250,10 +253,14 @@ namespace ApiApplication.Services.Impl
                     QuantityChange = -item.Quantity, // Negative quantity for stock out
                     CostPrice = item.CostPrice,
                     OccurredAt = DateTime.UtcNow,
-                    EndingStock = product?.Stock ?? 0,
+                    EndingStock = newStock,
                 };
 
                 _context.InventoryCards.Add(inventoryCard);
+
+                // Update product stock AFTER calculating EndingStock
+                product.Stock = newStock;
+                product.UpdatedAt = DateTime.UtcNow;
             }
 
             await _context.SaveChangesAsync();

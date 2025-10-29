@@ -95,7 +95,7 @@ builder.Services.Configure<EmailOptions>(options =>
     options.SmtpServer =
         builder.Configuration["EmailOptions:SmtpServer"]
         ?? Environment.GetEnvironmentVariable("EMAIL_SMTP_SERVER")
-        ?? "smtp.gmail.com";
+        ?? "smtp.hostinger.com";
     options.SmtpPort = int.TryParse(
         builder.Configuration["EmailOptions:SmtpPort"]
             ?? Environment.GetEnvironmentVariable("EMAIL_SMTP_PORT"),

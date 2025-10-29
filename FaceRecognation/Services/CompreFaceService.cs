@@ -46,7 +46,9 @@ namespace FaceRecognation.Services
             }
 
             // Provide the response body for easier debugging (CompreFace returns JSON errors)
-            throw new HttpRequestException($"CompreFace Recognize failed ({(int)response.StatusCode}) {body}");
+            throw new HttpRequestException(
+                $"CompreFace Recognize failed ({(int)response.StatusCode}) {body}"
+            );
         }
 
         public async Task<bool> VerifySubjectAsync(

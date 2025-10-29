@@ -38,12 +38,55 @@ namespace FaceRecognation
 
         private void FaceSlot_Click(object sender, MouseButtonEventArgs e)
         {
+            // When user clicks an image slot, open file dialog to choose an image for that slot
             if (sender is System.Windows.Controls.Image img && img.Tag != null)
             {
                 if (int.TryParse(img.Tag.ToString(), out var idx))
                 {
-                    currentFaceIndex = Math.Clamp(idx, 0, 4);
-                    // Optionally show which slot is active - for now we'll just set index
+                    var dialog = new OpenFileDialog();
+                    dialog.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp";
+                    if (dialog.ShowDialog() == true)
+                    {
+                        SetImageForIndex(idx, dialog.FileName);
+                        currentFaceIndex = Math.Min(4, idx + 1);
+                        UpdateActionButtons();
+                    }
+                }
+            }
+        }
+
+        private void RemoveImage_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button btn && btn.Tag != null)
+            {
+                if (int.TryParse(btn.Tag.ToString(), out var idx))
+                {
+                    // clear image and path
+                    switch (idx)
+                    {
+                        case 0:
+                            FaceImage1.Source = null;
+                            break;
+                        case 1:
+                            FaceImage2.Source = null;
+                            break;
+                        case 2:
+                            FaceImage3.Source = null;
+                            break;
+                        case 3:
+                            FaceImage4.Source = null;
+                            break;
+                        case 4:
+                            FaceImage5.Source = null;
+                            break;
+                    }
+
+                    if (idx >= 0 && idx < _imagePaths.Length)
+                        _imagePaths[idx] = null;
+
+                    // hide the remove button
+                    try { btn.Visibility = Visibility.Collapsed; } catch { }
+                    UpdateActionButtons();
                 }
             }
         }
@@ -129,6 +172,30 @@ namespace FaceRecognation
                 // store path so we can upload bytes later
                 if (idx >= 0 && idx < _imagePaths.Length)
                     _imagePaths[idx] = filePath;
+
+                // show the corresponding remove button
+                try
+                {
+                    switch (idx)
+                    {
+                        case 0:
+                            RemoveImage1.Visibility = Visibility.Visible;
+                            break;
+                        case 1:
+                            RemoveImage2.Visibility = Visibility.Visible;
+                            break;
+                        case 2:
+                            RemoveImage3.Visibility = Visibility.Visible;
+                            break;
+                        case 3:
+                            RemoveImage4.Visibility = Visibility.Visible;
+                            break;
+                        case 4:
+                            RemoveImage5.Visibility = Visibility.Visible;
+                            break;
+                    }
+                }
+                catch { }
             }
             catch (Exception ex)
             {

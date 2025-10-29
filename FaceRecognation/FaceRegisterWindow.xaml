@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
     Title="Đăng ký khuôn mặt" Height="420" Width="700"
-    WindowState="Maximized"
+    WindowState="Normal"
         FontFamily="Segoe UI"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
@@ -39,7 +39,10 @@
                     <!-- Face slot 1: Chính diện -->
                     <StackPanel Margin="8" Width="140">
                         <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="8" Width="140" Height="140">
-                            <Image x:Name="FaceImage1" Width="138" Height="138" Stretch="UniformToFill" MouseLeftButtonUp="FaceSlot_Click" Tag="0" />
+                            <Grid>
+                                <Image x:Name="FaceImage1" Width="138" Height="138" Stretch="UniformToFill" MouseLeftButtonUp="FaceSlot_Click" Tag="0" />
+                                <Button x:Name="RemoveImage1" Content="✕" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4" Click="RemoveImage_Click" Tag="0" Visibility="Collapsed" />
+                            </Grid>
                         </Border>
                         <TextBlock Text="Chính diện"
                    HorizontalAlignment="Center"
@@ -50,7 +53,10 @@
                     <!-- Face slot 2: Bên phải -->
                     <StackPanel Margin="8" Width="140">
                         <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="8" Width="140" Height="140">
-                            <Image x:Name="FaceImage2" Width="138" Height="138" Stretch="UniformToFill" MouseLeftButtonUp="FaceSlot_Click" Tag="1" />
+                            <Grid>
+                                <Image x:Name="FaceImage2" Width="138" Height="138" Stretch="UniformToFill" MouseLeftButtonUp="FaceSlot_Click" Tag="1" />
+                                <Button x:Name="RemoveImage2" Content="✕" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4" Click="RemoveImage_Click" Tag="1" Visibility="Collapsed" />
+                            </Grid>
                         </Border>
                         <TextBlock Text="Bên phải"
                    HorizontalAlignment="Center"
@@ -61,7 +67,10 @@
                     <!-- Face slot 3: Bên trái -->
                     <StackPanel Margin="8" Width="140">
                         <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="8" Width="140" Height="140">
-                            <Image x:Name="FaceImage3" Width="138" Height="138" Stretch="UniformToFill" MouseLeftButtonUp="FaceSlot_Click" Tag="2" />
+                            <Grid>
+                                <Image x:Name="FaceImage3" Width="138" Height="138" Stretch="UniformToFill" MouseLeftButtonUp="FaceSlot_Click" Tag="2" />
+                                <Button x:Name="RemoveImage3" Content="✕" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4" Click="RemoveImage_Click" Tag="2" Visibility="Collapsed" />
+                            </Grid>
                         </Border>
                         <TextBlock Text="Bên trái"
                    HorizontalAlignment="Center"
@@ -72,7 +81,10 @@
                     <!-- Face slot 4: Phía trên -->
                     <StackPanel Margin="8" Width="140">
                         <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="8" Width="140" Height="140">
-                            <Image x:Name="FaceImage4" Width="138" Height="138" Stretch="UniformToFill" MouseLeftButtonUp="FaceSlot_Click" Tag="3" />
+                            <Grid>
+                                <Image x:Name="FaceImage4" Width="138" Height="138" Stretch="UniformToFill" MouseLeftButtonUp="FaceSlot_Click" Tag="3" />
+                                <Button x:Name="RemoveImage4" Content="✕" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4" Click="RemoveImage_Click" Tag="3" Visibility="Collapsed" />
+                            </Grid>
                         </Border>
                         <TextBlock Text="Phía trên"
                    HorizontalAlignment="Center"
@@ -83,7 +95,10 @@
                     <!-- Face slot 5: Phía dưới -->
                     <StackPanel Margin="8" Width="140">
                         <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="8" Width="140" Height="140">
-                            <Image x:Name="FaceImage5" Width="138" Height="138" Stretch="UniformToFill" MouseLeftButtonUp="FaceSlot_Click" Tag="4" />
+                            <Grid>
+                                <Image x:Name="FaceImage5" Width="138" Height="138" Stretch="UniformToFill" MouseLeftButtonUp="FaceSlot_Click" Tag="4" />
+                                <Button x:Name="RemoveImage5" Content="✕" Width="26" Height="26" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4" Click="RemoveImage_Click" Tag="4" Visibility="Collapsed" />
+                            </Grid>
                         </Border>
                         <TextBlock Text="Phía dưới"
                    HorizontalAlignment="Center"

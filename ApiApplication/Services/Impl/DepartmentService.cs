@@ -6,10 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl
 {
-    public class DepartmentService(
-        ApplicationDbContext context,
-        IMapper mapper
-    ) : IDepartmentService
+    public class DepartmentService(ApplicationDbContext context, IMapper mapper)
+        : IDepartmentService
     {
         private readonly ApplicationDbContext _context = context;
         private readonly IMapper _mapper = mapper;
@@ -26,7 +24,10 @@ namespace ApiApplication.Services.Impl
             var dept = await _context.Departments.FindAsync(id);
             if (dept == null)
             {
-                throw new ApiException($"Phòng ban với Id {id} không tồn tại", HttpStatusCode.NotFound);
+                throw new ApiException(
+                    $"Phòng ban với Id {id} không tồn tại",
+                    HttpStatusCode.NotFound
+                );
             }
             _mapper.Map(request, dept);
             _context.Departments.Update(dept);
@@ -38,7 +39,10 @@ namespace ApiApplication.Services.Impl
             var dept = await _context.Departments.FindAsync(departmentId);
             if (dept == null)
             {
-                throw new ApiException($"Phòng ban với Id {departmentId} không tồn tại", HttpStatusCode.NotFound);
+                throw new ApiException(
+                    $"Phòng ban với Id {departmentId} không tồn tại",
+                    HttpStatusCode.NotFound
+                );
             }
             _context.Departments.Remove(dept);
             await _context.SaveChangesAsync();
@@ -47,11 +51,14 @@ namespace ApiApplication.Services.Impl
         public async Task<Dtos.DepartmentResponse?> GetDepartmentByIdAsync(int departmentId)
         {
             var dept = await _context.Departments.FindAsync(departmentId);
-            if (dept == null) return null;
+            if (dept == null)
+                return null;
             return _mapper.Map<Dtos.DepartmentResponse>(dept);
         }
 
-        public async Task<List<Dtos.DepartmentResponse>> GetAllDepartmentsAsync(Dtos.ListDepartmentRequest request)
+        public async Task<List<Dtos.DepartmentResponse>> GetAllDepartmentsAsync(
+            Dtos.ListDepartmentRequest request
+        )
         {
             var query = _context.Departments.AsQueryable();
             if (request.IsActive.HasValue)

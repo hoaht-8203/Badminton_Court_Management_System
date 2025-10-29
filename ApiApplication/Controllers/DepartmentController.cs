@@ -16,10 +16,17 @@ namespace ApiApplication.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ApiResponse<List<DepartmentResponse>>>> GetAll([FromQuery] ListDepartmentRequest request)
+        public async Task<ActionResult<ApiResponse<List<DepartmentResponse>>>> GetAll(
+            [FromQuery] ListDepartmentRequest request
+        )
         {
             var result = await _departmentService.GetAllDepartmentsAsync(request);
-            return Ok(ApiResponse<List<DepartmentResponse>>.SuccessResponse(result, "Lấy danh sách phòng ban thành công"));
+            return Ok(
+                ApiResponse<List<DepartmentResponse>>.SuccessResponse(
+                    result,
+                    "Lấy danh sách phòng ban thành công"
+                )
+            );
         }
 
         [HttpGet("{id}")]
@@ -27,19 +34,33 @@ namespace ApiApplication.Controllers
         {
             var result = await _departmentService.GetDepartmentByIdAsync(id);
             if (result == null)
-                return NotFound(ApiResponse<DepartmentResponse>.ErrorResponse($"Phòng ban với id {id} không tìm thấy"));
-            return Ok(ApiResponse<DepartmentResponse>.SuccessResponse(result, "Lấy phòng ban theo id thành công"));
+                return NotFound(
+                    ApiResponse<DepartmentResponse>.ErrorResponse(
+                        $"Phòng ban với id {id} không tìm thấy"
+                    )
+                );
+            return Ok(
+                ApiResponse<DepartmentResponse>.SuccessResponse(
+                    result,
+                    "Lấy phòng ban theo id thành công"
+                )
+            );
         }
 
         [HttpPost]
-        public async Task<ActionResult<ApiResponse<object?>>> Create([FromBody] DepartmentRequest request)
+        public async Task<ActionResult<ApiResponse<object?>>> Create(
+            [FromBody] DepartmentRequest request
+        )
         {
             await _departmentService.CreateDepartmentAsync(request);
             return Ok(ApiResponse<object?>.SuccessResponse(null, "Tạo phòng ban thành công"));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApiResponse<object?>>> Update(int id, [FromBody] DepartmentRequest request)
+        public async Task<ActionResult<ApiResponse<object?>>> Update(
+            int id,
+            [FromBody] DepartmentRequest request
+        )
         {
             await _departmentService.UpdateDepartmentAsync(request, id);
             return Ok(ApiResponse<object?>.SuccessResponse(null, "Cập nhật phòng ban thành công"));

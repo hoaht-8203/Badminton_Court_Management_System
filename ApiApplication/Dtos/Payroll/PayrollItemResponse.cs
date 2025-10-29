@@ -12,6 +12,7 @@ public class PayrollItemResponse
     public decimal PaidAmount { get; set; } = 0;
     public string? Note { get; set; }
     public string Status { get; set; } = PayrollStatus.Pending;
+
     // Payroll related info
     public int PayrollId { get; set; }
     public string? PayrollName { get; set; }

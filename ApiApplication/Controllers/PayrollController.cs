@@ -87,7 +87,12 @@ namespace ApiApplication.Controllers
         public async Task<IActionResult> GetPayrollItemsByStaffId(int staffId)
         {
             var result = await _payrollService.GetPayrollItemsByStaffIdAsync(staffId);
-            return Ok(ApiResponse<List<PayrollItemResponse>>.SuccessResponse(result, "Lấy phiếu lương theo nhân viên thành công"));
+            return Ok(
+                ApiResponse<List<PayrollItemResponse>>.SuccessResponse(
+                    result,
+                    "Lấy phiếu lương theo nhân viên thành công"
+                )
+            );
         }
     }
 }

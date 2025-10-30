@@ -263,6 +263,11 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
     public async Task<List<ListCourtGroupByCourtAreaResponse>> ListCourtGroupByCourtAreaAsync()
     {
         var courtAreas = await _context.CourtAreas.Include(c => c.Courts).ToListAsync();
+
+        foreach (var courtArea in courtAreas)
+        {
+            courtArea.Courts = courtArea.Courts.OrderByDescending(c => c.CreatedAt).ToList();
+        }
         return _mapper.Map<List<ListCourtGroupByCourtAreaResponse>>(courtAreas);
     }
 

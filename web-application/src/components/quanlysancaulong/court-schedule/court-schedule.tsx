@@ -3,7 +3,7 @@ import { bookingCourtOccurrenceKeys, useListBookingCourtOccurrences } from "@/ho
 import { apiBaseUrl } from "@/lib/axios";
 import { convertOccurrencesToEvents, getDayOfWeekToVietnamese } from "@/lib/common";
 import { ListCourtGroupByCourtAreaResponse } from "@/types-openapi/api";
-import { BookingCourtStatus } from "@/types/commons";
+import { BookingCourtStatus, CourtStatus } from "@/types/commons";
 import { CalendarOutlined, TableOutlined } from "@ant-design/icons";
 import { HttpTransportType, HubConnection, HubConnectionBuilder, ILogger, LogLevel } from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
@@ -445,6 +445,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
           courtArea.courts?.map((court) => ({
             name: court.name ?? "",
             id: court.id,
+            status: court.status,
           })) ?? [],
       })),
     [courts],
@@ -563,8 +564,30 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                 days={1}
                 startDate={selectedDate}
                 resources={resources}
+                onBefore
                 onBeforeRowHeaderRender={(args: any) => {
                   args.row.cssClass = "resource-css";
+
+                  if (args.row.Rw.data.status === CourtStatus.Active) {
+                    args.row.cssClass = "resource-css !text-green-500";
+                  }
+
+                  if (args.row.Rw.data.status === CourtStatus.Inactive) {
+                    args.row.cssClass = "resource-css !text-gray-500";
+                  }
+
+                  if (args.row.Rw.data.status === CourtStatus.Deleted) {
+                    args.row.cssClass = "resource-css !text-red-500";
+                  }
+
+                  if (args.row.Rw.data.status === CourtStatus.Maintenance) {
+                    args.row.cssClass = "resource-css !text-yellow-500";
+                  }
+
+                  if (args.row.Rw.data.status === CourtStatus.InUse) {
+                    args.row.cssClass = "resource-css !text-blue-500";
+                  }
+
                   const hasExpanded = args.row.groups && args.row.groups.expanded && args.row.groups.expanded().length > 0;
                   const hasCollapsed = args.row.groups && args.row.groups.collapsed && args.row.groups.collapsed().length > 0;
 

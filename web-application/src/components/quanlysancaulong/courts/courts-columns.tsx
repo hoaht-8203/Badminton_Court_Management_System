@@ -8,12 +8,19 @@ import dayjs from "dayjs";
 export const columns: TableProps<ListCourtResponse>["columns"] = [
   { title: "Tên sân", dataIndex: "name", key: "name", width: 200, fixed: "left" },
   { title: "Khu vực", dataIndex: "courtAreaName", key: "courtAreaName", width: 160, render: (v) => v || "-" },
-  { title: "Ghi chú", dataIndex: "note", key: "note", width: 220, render: (v) => v || "-" },
+  {
+    title: "Ghi chú",
+    dataIndex: "note",
+    key: "note",
+    width: 220,
+    render: (v: string | null) => v?.substring(0, 100) + (v && v.length > 100 ? "..." : "") || "-",
+  },
   {
     title: "Trạng thái",
     dataIndex: "status",
     key: "status",
     width: 150,
+    fixed: "right",
     render: (status?: string | null) =>
       status === CourtStatus.Active ? (
         <span className="font-bold text-green-500">Đang hoạt động</span>

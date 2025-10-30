@@ -1111,8 +1111,8 @@ public class BookingCourtService(
         }
 
         // Validate time window: only check-in during valid time
-        var now = DateTime.Now;
-        var occurrenceDate = occurrence.Date.ToDateTime(TimeOnly.MinValue);
+        var now = DateTime.UtcNow;
+        var occurrenceDate = occurrence.Date.ToDateTime(TimeOnly.MinValue).ToUniversalTime();
 
         // Create full DateTime objects for comparison
         var startDateTime = occurrenceDate.Add(occurrence.StartTime.ToTimeSpan());

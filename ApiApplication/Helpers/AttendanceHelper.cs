@@ -12,35 +12,53 @@ public static class AttendanceHelper
         ShiftResponse shift
     )
     {
-        // Giả sử shift có StartTime, EndTime kiểu TimeSpan hoặc DateTime
-        // AttendanceRecord có CheckInTime, CheckOutTime kiểu DateTime?
-        var shiftStart = shift.StartTime;
-        var shiftEnd = shift.EndTime;
-        // Tìm bản ghi có thời gian giao với ca làm việc
-        var relevantRecord = attendanceRecords
-            .Where(a => a.CheckInTime <= shiftEnd && a.CheckOutTime >= shiftStart)
-            .FirstOrDefault();
+        // Normalize comparisons by converting TimeOnly -> DateTime using the attendance record's date.
+        // This also properly handles overnight shifts (shift.EndTime <= shift.StartTime -> end is next day).
 
-        if (relevantRecord == null)
+        foreach (var a in attendanceRecords)
         {
-            var missingRecord = attendanceRecords
-                .Where(a => a.CheckInTime <= shiftEnd && a.CheckOutTime == null)
-                .FirstOrDefault();
-            if (missingRecord != null)
+            // Build DateTime for record's checkin/checkout and shift start/end on that date
+            var recordCheckIn = a.Date.ToDateTime(a.CheckInTime);
+            DateTime? recordCheckOut = a.CheckOutTime.HasValue
+                ? a.Date.ToDateTime(a.CheckOutTime.Value)
+                : (DateTime?)null;
+
+            var shiftStartDt = a.Date.ToDateTime(shift.StartTime);
+            var shiftEndDt = a.Date.ToDateTime(shift.EndTime);
+
+            // If shift wraps to next day (overnight), move shiftEnd to next day
+            if (shiftEndDt <= shiftStartDt)
             {
-                return AttendanceStatus.Missing;
+                shiftEndDt = shiftEndDt.AddDays(1);
             }
-            return AttendanceStatus.Absent;
+
+            // If record checkout exists but is earlier than checkin (cross-midnight), move it to next day
+            if (recordCheckOut.HasValue && recordCheckOut.Value < recordCheckIn)
+            {
+                recordCheckOut = recordCheckOut.Value.AddDays(1);
+            }
+
+            // Check if this attendance record overlaps the shift interval
+            var overlaps = recordCheckIn <= shiftEndDt && (recordCheckOut == null || recordCheckOut >= shiftStartDt);
+            if (overlaps)
+            {
+                // If there's no checkout, it's a missing checkout
+                if (recordCheckOut == null)
+                {
+                    return AttendanceStatus.Missing;
+                }
+
+                // Late if checked in after shift start OR checked out before shift end (strict > or <)
+                if (recordCheckIn > shiftStartDt || recordCheckOut.Value < shiftEndDt)
+                {
+                    return AttendanceStatus.Late;
+                }
+
+                return AttendanceStatus.Attended;
+            }
         }
 
-        if (
-            relevantRecord.CheckInTime > shiftStart
-            || (relevantRecord.CheckOutTime.HasValue && relevantRecord.CheckOutTime < shiftEnd)
-        )
-        {
-            return AttendanceStatus.Late;
-        }
-
-        return AttendanceStatus.Attended;
+        // No overlapping records found -> absent
+        return AttendanceStatus.Absent;
     }
 }

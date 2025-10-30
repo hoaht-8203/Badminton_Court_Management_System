@@ -124,7 +124,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         });
         setPaymentMethod(d?.paymentMethod === 1 ? "transfer" : "cash");
         // Prefill selected bank info when editing a transfer payment
-        if ((d?.paymentMethod === 1) && d?.storeBankAccountId) {
+        if (d?.paymentMethod === 1 && d?.storeBankAccountId) {
           try {
             const listRes = await storeBankAccountsService.list();
             const data = (listRes as any)?.data;

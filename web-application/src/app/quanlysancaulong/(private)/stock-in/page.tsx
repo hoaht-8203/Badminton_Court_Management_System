@@ -379,14 +379,7 @@ const StockInPage = () => {
             expandRowByClick: true,
             expandedRowRender: (record: any) => {
               if (record.isSummaryRow) return null;
-              return (
-                <ReceiptRowDetail
-                  record={record}
-                  refreshToken={refreshToken}
-                  onEdit={() => setEditingId(record.id)}
-                  onCancelled={load}
-                />
-              );
+              return <ReceiptRowDetail record={record} refreshToken={refreshToken} onEdit={() => setEditingId(record.id)} onCancelled={load} />;
             },
             onExpand: (expanded, record: any) => {
               if (record.isSummaryRow) return false;
@@ -414,7 +407,17 @@ const StockInPage = () => {
 
 export default StockInPage;
 
-const ReceiptRowDetail = ({ record, refreshToken, onEdit, onCancelled }: { record: any; refreshToken: number; onEdit: () => void; onCancelled: () => void }) => {
+const ReceiptRowDetail = ({
+  record,
+  refreshToken,
+  onEdit,
+  onCancelled,
+}: {
+  record: any;
+  refreshToken: number;
+  onEdit: () => void;
+  onCancelled: () => void;
+}) => {
   const [detail, setDetail] = React.useState<any | null>(null);
   const [note, setNote] = React.useState("");
   const [saving, setSaving] = React.useState(false);

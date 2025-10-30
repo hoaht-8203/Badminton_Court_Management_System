@@ -319,14 +319,7 @@ const StockReturnPage = () => {
             expandRowByClick: true,
             expandedRowRender: (record: any) => {
               if (record.isSummaryRow) return null;
-              return (
-                <ReturnGoodsRowDetail
-                  record={record}
-                  refreshToken={refreshToken}
-                  onEdit={() => setEditingId(record.id)}
-                  onCancelled={load}
-                />
-              );
+              return <ReturnGoodsRowDetail record={record} refreshToken={refreshToken} onEdit={() => setEditingId(record.id)} onCancelled={load} />;
             },
             onExpand: (expanded, record: any) => {
               if (record.isSummaryRow) return false;
@@ -405,7 +398,17 @@ const ReturnGoodsProducts = ({ returnGoodsId, refreshToken }: { returnGoodsId: n
   );
 };
 
-const ReturnGoodsRowDetail = ({ record, refreshToken, onEdit, onCancelled }: { record: any; refreshToken: number; onEdit: () => void; onCancelled: () => void }) => {
+const ReturnGoodsRowDetail = ({
+  record,
+  refreshToken,
+  onEdit,
+  onCancelled,
+}: {
+  record: any;
+  refreshToken: number;
+  onEdit: () => void;
+  onCancelled: () => void;
+}) => {
   const [detail, setDetail] = React.useState<any | null>(null);
   const [note, setNote] = React.useState("");
   const [saving, setSaving] = React.useState(false);

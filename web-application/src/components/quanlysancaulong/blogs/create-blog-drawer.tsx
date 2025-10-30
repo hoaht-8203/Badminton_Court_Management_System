@@ -99,20 +99,20 @@ const CreateBlogDrawer = ({ open, onClose }: CreateBlogDrawerProps) => {
 
   return (
     <Drawer
+      forceRender
       title="Tạo blog mới"
       placement="right"
       size="large"
       open={open}
       onClose={handleClose}
       extra={
-        <Button type="primary" htmlType="submit" form="create-blog-form" loading={loading}>
+        <Button type="primary" loading={loading} onClick={() => form.submit()}>
           Tạo blog
         </Button>
       }
       width={1700}
     >
       <Form
-        id="create-blog-form"
         form={form}
         layout="vertical"
         onFinish={handleSubmit}

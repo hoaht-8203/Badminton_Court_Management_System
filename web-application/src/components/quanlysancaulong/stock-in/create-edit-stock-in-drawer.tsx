@@ -118,9 +118,9 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
         setPaymentMethod((d?.paymentMethod || "cash") as any);
         setDiscount(Number(d?.discount || 0));
         setPaymentAmount(Number(d?.paymentAmount || 0));
-        
+
         // Prefill supplier bank info when payment method is transfer
-        if ((d?.paymentMethod === "transfer") && d?.supplierBankAccountId) {
+        if (d?.paymentMethod === "transfer" && d?.supplierBankAccountId) {
           try {
             const bankListRes = await supplierBankAccountsService.list({ supplierId: Number(d.supplierId) });
             const data = (bankListRes as any)?.data;

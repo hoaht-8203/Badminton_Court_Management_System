@@ -26,8 +26,9 @@ const UpdateBlogDrawer = ({ open, onClose, blogId }: UpdateBlogDrawerProps) => {
   const { data: blogData, isLoading: loadingBlog } = useDetailBlog({ id: blogId });
   const updateBlogMutation = useUpdateBlog();
 
+  // Always hydrate fields when open changes to true and blogData loaded
   useEffect(() => {
-    if (blogData?.data) {
+    if (open && blogData?.data) {
       const blog = blogData.data;
       form.setFieldsValue({
         title: blog.title,
@@ -35,10 +36,20 @@ const UpdateBlogDrawer = ({ open, onClose, blogId }: UpdateBlogDrawerProps) => {
       });
       setContent(blog.content ?? "");
       setImageUrl(blog.imageUrl ?? null);
-      // Note: We don't have fileName from API, so we can't set imageFileName
-      // This means we can't delete the old image when updating
+      // Note: cannot set imageFileName from API!
     }
-  }, [blogData, form]);
+  }, [open, blogData, form]);
+
+  // Reset state to empty when drawer closes
+  useEffect(() => {
+    if (!open) {
+      setContent("");
+      setImageUrl(null);
+      setImageFileName(null);
+      setUploading(false);
+      form.resetFields();
+    }
+  }, [open, form]);
 
   const handleSubmit: FormProps<UpdateBlogRequest>["onFinish"] = async (values) => {
     if (!content.trim()) {
@@ -125,19 +136,20 @@ const UpdateBlogDrawer = ({ open, onClose, blogId }: UpdateBlogDrawerProps) => {
 
   return (
     <Drawer
+      forceRender
       title="Cập nhật blog"
       placement="right"
       size="large"
       open={open}
       onClose={handleClose}
+      width={1700}
       extra={
-        <Button type="primary" htmlType="submit" form="update-blog-form" loading={loading}>
+        <Button type="primary" onClick={() => form.submit()} loading={loading}>
           Cập nhật blog
         </Button>
       }
-      width={1700}
     >
-      <Form id="update-blog-form" form={form} layout="vertical" onFinish={handleSubmit}>
+      <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Row gutter={16}>
           <Col span={8}>
             <FormItem<UpdateBlogRequest> label="Tiêu đề blog" name="title" rules={[{ required: true, message: "Vui lòng nhập tiêu đề blog" }]}>
@@ -182,7 +194,7 @@ const UpdateBlogDrawer = ({ open, onClose, blogId }: UpdateBlogDrawerProps) => {
 
           <Col span={16}>
             <FormItem<UpdateBlogRequest> label="Nội dung blog" required>
-              <SimpleEditor className="!h-[770px] !w-full" content={content} onChange={(content) => setContent(content)} />
+              <SimpleEditor key={blogId} className="!h-[770px] !w-full" content={content} onChange={(content) => setContent(content)} />
             </FormItem>
           </Col>
         </Row>

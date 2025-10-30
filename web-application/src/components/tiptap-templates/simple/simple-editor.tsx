@@ -198,6 +198,13 @@ export function SimpleEditor({ className, content, onChange }: { className?: str
     },
   });
 
+  // NEW: Whenever content prop changes, update the tiptap editor content too.
+  React.useEffect(() => {
+    if (editor && typeof content === "string" && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
+
   const rect = useCursorVisibility({
     editor,
     overlayHeight: toolbarRef.current?.getBoundingClientRect().height ?? 0,

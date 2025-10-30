@@ -1,10 +1,10 @@
 "use client";
 
-import { ApiError, setOnUnauthorized } from "@/lib/axios";
+import { ApiError, setOnForbidden, setOnUnauthorized } from "@/lib/axios";
 import { authService } from "@/services/authService";
 import { CurrentUserResponse, LoginRequest } from "@/types-openapi/api";
 import { message } from "antd";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
 type AuthContextState = {
@@ -21,6 +21,7 @@ const AuthContext = React.createContext<AuthContextState | undefined>(undefined)
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = React.useState<CurrentUserResponse | null>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
 
@@ -33,6 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   React.useEffect(() => {
     setOnUnauthorized(() => handleUnauthorized());
+    setOnForbidden(() => handleUnauthorized());
     return () => setOnUnauthorized(undefined);
   }, [handleUnauthorized]);
 
@@ -58,6 +60,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false);
     })();
   }, [fetchCurrentUser]);
+
+  // Route guard: block users with only role "User" from accessing /quanlysancaulong/**
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isStaffRoute = pathname?.startsWith("/quanlysancaulong");
+    const roles = (user?.roles || []) as string[];
+    const isOnlyUser = roles.length > 0 && roles.every((r) => r === "User");
+    if (isStaffRoute && isOnlyUser) {
+      message.warning("Bạn không có quyền truy cập khu vực quản lý");
+      router.replace("/homepage");
+    }
+  }, [pathname, user, router]);
 
   const login = React.useCallback(async (payload: LoginRequest) => {
     const res = await authService.login(payload);

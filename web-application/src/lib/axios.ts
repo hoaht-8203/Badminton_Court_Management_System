@@ -21,6 +21,12 @@ export const setOnUnauthorized = (cb: (() => void) | undefined) => {
   onUnauthorized = cb;
 };
 
+// Allow consumer to register forbidden callback
+let onForbidden: (() => void) | undefined;
+export const setOnForbidden = (cb: (() => void) | undefined) => {
+  onForbidden = cb;
+};
+
 export const apiBaseUrl = "http://localhost:5039";
 
 export const axiosInstance = axios.create({
@@ -111,6 +117,10 @@ axiosInstance.interceptors.response.use(
       } finally {
         isRefreshing = false;
       }
+    }
+
+    if (status === 403) {
+      onForbidden?.();
     }
 
     // Otherwise, normalize error to ApiError

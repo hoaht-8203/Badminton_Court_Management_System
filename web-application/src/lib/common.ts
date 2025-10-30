@@ -1,6 +1,7 @@
 import { ListBookingCourtOccurrenceResponse, ListBookingCourtResponse } from "@/types-openapi/api";
 import dayjs from "dayjs";
 import { DayPilot } from "daypilot-pro-react";
+import { axiosInstance } from "@/lib/axios";
 
 interface BookingCourtEvent extends DayPilot.EventData, Omit<ListBookingCourtResponse, "id"> {}
 
@@ -106,3 +107,35 @@ export function getDayOfWeekToVietnamese(dayOfWeek: string) {
 }
 
 export const toTimeString = (d: Date) => d.toTimeString().split(" ")[0];
+
+export async function downloadFileFromEndpoint(endpoint: string, fallbackFilename: string) {
+  const response = await axiosInstance.get(endpoint, { responseType: "blob" });
+
+  const contentDisposition = (response.headers["content-disposition"] || response.headers["Content-Disposition"]) as string | undefined;
+  let filename = fallbackFilename;
+  if (contentDisposition) {
+    const match = /filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i.exec(contentDisposition);
+    const name = match?.[1] || match?.[2];
+    if (name) {
+      try {
+        filename = decodeURIComponent(name);
+      } catch {
+        filename = name;
+      }
+    }
+  }
+
+  const contentType = (response.headers["content-type"] || response.headers["Content-Type"]) as string | undefined;
+  const blob = new Blob([response.data], {
+    type: contentType || "application/octet-stream",
+  });
+
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}

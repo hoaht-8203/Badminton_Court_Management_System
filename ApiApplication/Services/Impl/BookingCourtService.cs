@@ -1111,7 +1111,7 @@ public class BookingCourtService(
         }
 
         // Validate time window: only check-in during valid time
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
         var occurrenceDate = occurrence.Date.ToDateTime(TimeOnly.MinValue);
 
         // Create full DateTime objects for comparison

@@ -24,9 +24,15 @@ public class AutoCheckoutHostedService(
             {
                 using var scope = _sp.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow.AddHours(7);
                 var today = DateOnly.FromDateTime(now);
                 var nowTime = TimeOnly.FromDateTime(now);
+
+                System.Console.WriteLine("--------------------------------");
+                System.Console.WriteLine("now: " + now);
+                System.Console.WriteLine("today: " + today);
+                System.Console.WriteLine("nowTime: " + nowTime);
+                System.Console.WriteLine("--------------------------------");
 
                 var overdueToNoShow = await db
                     .BookingCourtOccurrences.Where(o =>

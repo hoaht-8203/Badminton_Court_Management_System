@@ -34,8 +34,12 @@ public class AutoCheckoutHostedService(
                             o.Status == BookingCourtOccurrenceStatus.Active
                             || o.Status == BookingCourtOccurrenceStatus.PendingPayment
                         )
-                        && o.Date == today
-                        && o.EndTime < nowTime
+                        && (
+                            // Quá hạn trong ngày hiện tại: đã qua giờ kết thúc
+                            (o.Date == today && o.EndTime < nowTime)
+                            // Hoặc các ngày trước đó: coi như đã quá hạn
+                            || (o.Date < today)
+                        )
                     )
                     .Include(o => o.BookingCourt)
                     .ToListAsync(stoppingToken);

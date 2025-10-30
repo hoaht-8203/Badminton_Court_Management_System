@@ -76,6 +76,7 @@ const StockInPage = () => {
   });
 
   const [data, setData] = useState<Receipt[]>([]);
+  const [refreshToken, setRefreshToken] = useState(0);
   const [loading, setLoading] = useState(false);
   const { data: suppliersData } = useListSuppliers({});
   const [productMatchIds, setProductMatchIds] = useState<Set<number> | null>(null);
@@ -378,7 +379,14 @@ const StockInPage = () => {
             expandRowByClick: true,
             expandedRowRender: (record: any) => {
               if (record.isSummaryRow) return null;
-              return <ReceiptRowDetail record={record} onEdit={() => setEditingId(record.id)} onCancelled={load} />;
+              return (
+                <ReceiptRowDetail
+                  record={record}
+                  refreshToken={refreshToken}
+                  onEdit={() => setEditingId(record.id)}
+                  onCancelled={load}
+                />
+              );
             },
             onExpand: (expanded, record: any) => {
               if (record.isSummaryRow) return false;
@@ -394,7 +402,10 @@ const StockInPage = () => {
           setOpen(false);
           setEditingId(null);
         }}
-        onChanged={() => load()}
+        onChanged={() => {
+          setRefreshToken((x) => x + 1);
+          load();
+        }}
         receiptId={editingId ?? undefined}
       />
     </section>
@@ -403,7 +414,7 @@ const StockInPage = () => {
 
 export default StockInPage;
 
-const ReceiptRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdit: () => void; onCancelled: () => void }) => {
+const ReceiptRowDetail = ({ record, refreshToken, onEdit, onCancelled }: { record: any; refreshToken: number; onEdit: () => void; onCancelled: () => void }) => {
   const [detail, setDetail] = React.useState<any | null>(null);
   const [note, setNote] = React.useState("");
   const [saving, setSaving] = React.useState(false);
@@ -419,7 +430,7 @@ const ReceiptRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdit
       }
     };
     run();
-  }, [record?.id]);
+  }, [record?.id, refreshToken]);
   const methodLabel = React.useMemo(() => {
     const m = detail?.paymentMethod || record?.paymentMethod;
     return m === "transfer" ? "Chuyển khoản" : "Tiền mặt";
@@ -582,7 +593,7 @@ const ReceiptRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdit
                 {/* Sản phẩm */}
                 <div>
                   <h3 className="mb-3 text-lg font-semibold">Sản phẩm</h3>
-                  <ReceiptProducts receiptId={record.id} />
+                  <ReceiptProducts receiptId={record.id} refreshToken={refreshToken} />
                 </div>
 
                 {/* Thông tin thanh toán */}
@@ -648,7 +659,7 @@ const ReceiptRowDetail = ({ record, onEdit, onCancelled }: { record: any; onEdit
   );
 };
 
-const ReceiptProducts = ({ receiptId }: { receiptId: number }) => {
+const ReceiptProducts = ({ receiptId, refreshToken }: { receiptId: number; refreshToken: number }) => {
   const [rows, setRows] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
   React.useEffect(() => {
@@ -673,7 +684,7 @@ const ReceiptProducts = ({ receiptId }: { receiptId: number }) => {
       }
     };
     run();
-  }, [receiptId]);
+  }, [receiptId, refreshToken]);
   return (
     <div className="max-h-96 overflow-y-auto">
       <Table

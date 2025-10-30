@@ -369,14 +369,15 @@ const ProductInventoryCards = ({ productId }: { productId: number }) => {
   }, [productId]);
 
   return (
-    <Table
-      size="small"
-      rowKey={(r) => `${r.code}-${r.occurredAt}`}
-      loading={loading}
-      dataSource={data}
-      pagination={false}
-      scroll={{ x: 800 }}
-      bordered
+    <div className="max-h-96 overflow-y-auto">
+      <Table
+        size="small"
+        rowKey={(r) => `${r.code}-${r.occurredAt}`}
+        loading={loading}
+        dataSource={data}
+        pagination={false}
+        scroll={{ x: 800 }}
+        bordered
       locale={{
         emptyText: (
           <div className="py-8 text-center text-gray-500">
@@ -442,6 +443,7 @@ const ProductInventoryCards = ({ productId }: { productId: number }) => {
         },
       ]}
     />
+    </div>
   );
 };
 

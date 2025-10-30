@@ -90,6 +90,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<ICashflowTypeService, CashFlowTypeService>();
 builder.Services.AddScoped<ISliderService, SliderService>();
+builder.Services.AddScoped<IExportService, ExportService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());

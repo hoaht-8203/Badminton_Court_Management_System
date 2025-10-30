@@ -123,6 +123,23 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
           note: d?.note,
         });
         setPaymentMethod(d?.paymentMethod === 1 ? "transfer" : "cash");
+        // Prefill selected bank info when editing a transfer payment
+        if ((d?.paymentMethod === 1) && d?.storeBankAccountId) {
+          try {
+            const listRes = await storeBankAccountsService.list();
+            const data = (listRes as any)?.data;
+            setBanks(Array.isArray(data) ? data : []); // Set banks state for display
+            const found = data?.find((b: any) => Number(b.id) === Number(d.storeBankAccountId));
+            if (found) {
+              form.setFieldsValue({
+                storeBankAccountId: found.id,
+                storeBankAccountNumber: found.accountNumber,
+                storeBankAccountName: found.accountName,
+                storeBankName: found.bankName,
+              });
+            }
+          } catch {}
+        }
         setDiscount(Number(d?.discount || 0));
         setSupplierPaid(Number(d?.supplierPaid || 0));
         setCurrentStatus(d?.status || 0);
@@ -443,12 +460,9 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });
       } catch {}
 
-      // Call onChanged to refresh parent component data
+      // Call onChanged to refresh parent component data immediately
       if (onChanged) {
-        // Add longer delay to ensure API changes are committed
-        setTimeout(() => {
-          onChanged();
-        }, 500);
+        onChanged();
       }
 
       // Reset all filter states
@@ -487,12 +501,9 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });
       } catch {}
 
-      // Call onChanged to refresh parent component data
+      // Call onChanged to refresh parent component data immediately
       if (onChanged) {
-        // Add longer delay to ensure API changes are committed
-        setTimeout(() => {
-          onChanged();
-        }, 500);
+        onChanged();
       }
 
       // Reset all filter states

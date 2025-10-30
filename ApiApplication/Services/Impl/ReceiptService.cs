@@ -41,6 +41,9 @@ public class ReceiptService(ApplicationDbContext context) : IReceiptService
 
     public async Task<int> CreateAsync(CreateReceiptRequest req)
     {
+        // Calculate total payment amount
+        var totalAmount = req.Items.Sum(i => i.Quantity * i.CostPrice) - req.Discount;
+        
         var entity = new Receipt
         {
             SupplierId = req.SupplierId,
@@ -61,6 +64,13 @@ public class ReceiptService(ApplicationDbContext context) : IReceiptService
                 CostPrice = i.CostPrice,
             })
             .ToList();
+        
+        // Auto set payment amount when completing with cash payment
+        if (req.Complete && req.PaymentMethod == "cash")
+        {
+            entity.PaymentAmount = totalAmount;
+        }
+        
         _context.Receipts.Add(entity);
 
         if (req.Complete)
@@ -197,6 +207,13 @@ public class ReceiptService(ApplicationDbContext context) : IReceiptService
             return;
 
         r.Status = ReceiptStatus.Completed;
+
+        // Auto set payment amount when completing with cash payment
+        if (r.PaymentMethod == "cash")
+        {
+            var totalAmount = r.Items.Sum(i => i.Quantity * i.CostPrice) - r.Discount;
+            r.PaymentAmount = totalAmount;
+        }
 
         // Update product stock and create inventory cards
         var productIds = r.Items.Select(i => i.ProductId).Distinct().ToList();

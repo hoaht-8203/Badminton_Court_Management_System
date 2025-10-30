@@ -68,9 +68,22 @@ public class ReturnGoodsController(IReturnGoodsService returnGoodsService) : Con
     }
 
     [HttpPost("cancel/{id}")]
-    public async Task<ActionResult<ApiResponse<object?>>> Cancel(int id)
+    public async Task<ActionResult<ApiResponse<object?>>> Cancel(
+        int id,
+        [FromBody] CancelReturnGoodsRequest? request = null
+    )
     {
-        await _returnGoodsService.CancelAsync(id);
+        await _returnGoodsService.CancelAsync(id, request?.Note);
         return Ok(ApiResponse<object?>.SuccessResponse(null, "Hủy phiếu trả hàng thành công"));
+    }
+
+    [HttpPut("{id}/note")]
+    public async Task<ActionResult<ApiResponse<object?>>> UpdateNote(
+        int id,
+        [FromBody] CancelReturnGoodsRequest request
+    )
+    {
+        await _returnGoodsService.UpdateNoteAsync(id, request.Note ?? string.Empty);
+        return Ok(ApiResponse<object?>.SuccessResponse(null, "Cập nhật ghi chú thành công"));
     }
 }

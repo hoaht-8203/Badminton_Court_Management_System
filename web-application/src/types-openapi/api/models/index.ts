@@ -24,6 +24,7 @@ export * from './BookingServiceDtoListApiResponse';
 export * from './BooleanApiResponse';
 export * from './Branch';
 export * from './CancelBookingCourtRequest';
+export * from './CancelReturnGoodsRequest';
 export * from './CancellationToken';
 export * from './CancelledShift';
 export * from './Cashflow';

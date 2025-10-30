@@ -7,18 +7,23 @@ import dayjs from "dayjs";
 
 export const columns: TableProps<ListBlogResponse>["columns"] = [
   {
+    title: "Hình ảnh",
+    dataIndex: "imageUrl",
+    key: "imageUrl",
+    width: 200,
+    render: (imageUrl) => {
+      if (!imageUrl) return <span className="text-gray-500">Không có hình</span>;
+      return <Image src={imageUrl} alt="Blog" width={200} className="rounded object-cover" preview={false} />;
+    },
+  },
+  {
     title: "Tiêu đề",
     dataIndex: "title",
     key: "title",
-    width: 300,
+    width: 400,
     fixed: "left",
-    render: (_, { title, imageUrl }) => (
+    render: (title) => (
       <div className="flex items-center gap-3">
-        {imageUrl ? (
-          <Image src={imageUrl} alt={title ?? ""} width={300} className="flex-shrink-0 rounded object-cover" preview={false} />
-        ) : (
-          <Avatar icon={<FileTextOutlined />} size={40} className="flex-shrink-0" />
-        )}
         <span className="font-medium">{title ?? "-"}</span>
       </div>
     ),

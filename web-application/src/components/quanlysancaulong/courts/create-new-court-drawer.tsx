@@ -253,8 +253,23 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
 
   const carouselRef = useRef<CarouselRef>(null);
 
-  const handleRemoveCourtImageUrl = () => {
-    setCourtImageUrl(null);
+  const handleRemoveCourtImageUrl = async () => {
+    if (!courtImageFileName) {
+      setCourtImageUrl(null);
+      setCourtImageFileName(null);
+      return;
+    }
+    setUploading(true);
+    try {
+      await fileService.deleteFile({ fileName: courtImageFileName });
+      setCourtImageUrl(null);
+      setCourtImageFileName(null);
+      message.success("Xóa ảnh thành công!");
+    } catch (error) {
+      message.error("Xóa ảnh thất bại: " + (error as Error).message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleUpload = async (file: File) => {

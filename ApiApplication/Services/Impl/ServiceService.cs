@@ -176,6 +176,14 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
             await _context.Services.FirstOrDefaultAsync(s => s.Id == request.ServiceId)
             ?? throw new ApiException("Không tìm thấy dịch vụ", HttpStatusCode.BadRequest);
 
+        if (service.Status != Constants.ServiceStatus.Active)
+        {
+            throw new ApiException(
+                "Dịch vụ này đã dừng hoạt động, không thể sử dụng",
+                HttpStatusCode.BadRequest
+            );
+        }
+
         // Get occurrence directly by ID
         var occurrence =
             await _context

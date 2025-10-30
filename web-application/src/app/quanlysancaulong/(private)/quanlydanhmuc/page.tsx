@@ -378,71 +378,71 @@ const ProductInventoryCards = ({ productId }: { productId: number }) => {
         pagination={false}
         scroll={{ x: 800 }}
         bordered
-      locale={{
-        emptyText: (
-          <div className="py-8 text-center text-gray-500">
-            <div className="mb-2 text-4xl">📋</div>
-            <div>Chưa có thẻ kho nào</div>
-            <div className="text-sm">Thẻ kho sẽ được tạo tự động khi có giao dịch tồn kho</div>
-          </div>
-        ),
-      }}
-      columns={[
-        {
-          title: "Chứng từ",
-          dataIndex: "code",
-          key: "code",
-          width: 120,
-          fixed: "left",
-        },
-        {
-          title: "Phương thức",
-          dataIndex: "method",
-          key: "method",
-          width: 160,
-          ellipsis: true,
-        },
-        {
-          title: "Thời gian",
-          dataIndex: "occurredAt",
-          key: "occurredAt",
-          width: 160,
-          render: (d: any) => (d ? new Date(d).toLocaleString("vi-VN") : "-"),
-        },
-        {
-          title: "Giá vốn",
-          dataIndex: "costPrice",
-          key: "costPrice",
-          width: 120,
-          align: "right",
-          render: (v: any) => (Number(v) || 0).toLocaleString("vi-VN") + " đ",
-        },
-        {
-          title: "Số lượng",
-          dataIndex: "quantityChange",
-          key: "quantityChange",
-          width: 100,
-          align: "right",
-          render: (v: any) => {
-            const num = Number(v) || 0;
-            return (
-              <span className={num > 0 ? "text-green-600" : num < 0 ? "text-red-600" : ""}>
-                {num > 0 ? "+" : ""}
-                {num.toLocaleString("vi-VN")}
-              </span>
-            );
+        locale={{
+          emptyText: (
+            <div className="py-8 text-center text-gray-500">
+              <div className="mb-2 text-4xl">📋</div>
+              <div>Chưa có thẻ kho nào</div>
+              <div className="text-sm">Thẻ kho sẽ được tạo tự động khi có giao dịch tồn kho</div>
+            </div>
+          ),
+        }}
+        columns={[
+          {
+            title: "Chứng từ",
+            dataIndex: "code",
+            key: "code",
+            width: 120,
+            fixed: "left",
           },
-        },
-        {
-          title: "Tồn cuối",
-          dataIndex: "endingStock",
-          key: "endingStock",
-          width: 100,
-          align: "right",
-          render: (v: any) => (Number(v) || 0).toLocaleString("vi-VN"),
-        },
-      ]}
-    />
+          {
+            title: "Phương thức",
+            dataIndex: "method",
+            key: "method",
+            width: 160,
+            ellipsis: true,
+          },
+          {
+            title: "Thời gian",
+            dataIndex: "occurredAt",
+            key: "occurredAt",
+            width: 160,
+            render: (d: any) => (d ? new Date(d).toLocaleString("vi-VN") : "-"),
+          },
+          {
+            title: "Giá vốn",
+            dataIndex: "costPrice",
+            key: "costPrice",
+            width: 120,
+            align: "right",
+            render: (v: any) => (Number(v) || 0).toLocaleString("vi-VN") + " đ",
+          },
+          {
+            title: "Số lượng",
+            dataIndex: "quantityChange",
+            key: "quantityChange",
+            width: 100,
+            align: "right",
+            render: (v: any) => {
+              const num = Number(v) || 0;
+              return (
+                <span className={num > 0 ? "text-green-600" : num < 0 ? "text-red-600" : ""}>
+                  {num > 0 ? "+" : ""}
+                  {num.toLocaleString("vi-VN")}
+                </span>
+              );
+            },
+          },
+          {
+            title: "Tồn cuối",
+            dataIndex: "endingStock",
+            key: "endingStock",
+            width: 100,
+            align: "right",
+            render: (v: any) => (Number(v) || 0).toLocaleString("vi-VN"),
+          },
+        ]}
+      />
     </div>
   );
 };

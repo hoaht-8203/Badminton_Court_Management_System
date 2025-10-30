@@ -41,6 +41,26 @@ public class BookingCourtService(
         CreateBookingCourtRequest request
     )
     {
+        var court =
+            await _context.Courts.FirstOrDefaultAsync(c => c.Id == request.CourtId)
+            ?? throw new ApiException("Sân này không tồn tại.", HttpStatusCode.BadRequest);
+        if (court.Status == CourtStatus.Inactive)
+        {
+            throw new ApiException("Sân này không khả dụng.", HttpStatusCode.BadRequest);
+        }
+        if (court.Status == CourtStatus.Maintenance)
+        {
+            throw new ApiException("Sân này đang được bảo trì.", HttpStatusCode.BadRequest);
+        }
+        if (court.Status == CourtStatus.Deleted)
+        {
+            throw new ApiException("Sân này đã bị xóa.", HttpStatusCode.BadRequest);
+        }
+        if (court.Status == CourtStatus.InUse)
+        {
+            throw new ApiException("Sân này đang được sử dụng.", HttpStatusCode.BadRequest);
+        }
+
         var startDate = DateOnly.FromDateTime(request.StartDate);
         var endDate = DateOnly.FromDateTime(request.EndDate);
 
@@ -127,18 +147,6 @@ public class BookingCourtService(
                     );
                 }
             }
-        }
-
-        var court =
-            await _context.Courts.FirstOrDefaultAsync(c => c.Id == request.CourtId)
-            ?? throw new ApiException("Sân này không tồn tại.", HttpStatusCode.BadRequest);
-        if (court.Status == CourtStatus.Inactive)
-        {
-            throw new ApiException("Sân này không khả dụng.", HttpStatusCode.BadRequest);
-        }
-        if (court.Status == CourtStatus.Maintenance)
-        {
-            throw new ApiException("Sân này đang được bảo trì.", HttpStatusCode.BadRequest);
         }
 
         // Kiểm tra cấu hình giá/khung giờ: nếu sân chưa cấu hình cho khoảng giờ đặt → chặn
@@ -278,6 +286,26 @@ public class BookingCourtService(
         UserCreateBookingCourtRequest request
     )
     {
+        var court =
+            await _context.Courts.FirstOrDefaultAsync(c => c.Id == request.CourtId)
+            ?? throw new ApiException("Sân này không tồn tại.", HttpStatusCode.BadRequest);
+        if (court.Status == CourtStatus.Inactive)
+        {
+            throw new ApiException("Sân này không khả dụng.", HttpStatusCode.BadRequest);
+        }
+        if (court.Status == CourtStatus.Maintenance)
+        {
+            throw new ApiException("Sân này đang được bảo trì.", HttpStatusCode.BadRequest);
+        }
+        if (court.Status == CourtStatus.Deleted)
+        {
+            throw new ApiException("Sân này đã bị xóa.", HttpStatusCode.BadRequest);
+        }
+        if (court.Status == CourtStatus.InUse)
+        {
+            throw new ApiException("Sân này đang được sử dụng.", HttpStatusCode.BadRequest);
+        }
+
         var user =
             await _context
                 .Users.Include(u => u.Customer)
@@ -387,18 +415,6 @@ public class BookingCourtService(
                     );
                 }
             }
-        }
-
-        var court =
-            await _context.Courts.FirstOrDefaultAsync(c => c.Id == request.CourtId)
-            ?? throw new ApiException("Sân này không tồn tại.", HttpStatusCode.BadRequest);
-        if (court.Status == CourtStatus.Inactive)
-        {
-            throw new ApiException("Sân này không khả dụng.", HttpStatusCode.BadRequest);
-        }
-        if (court.Status == CourtStatus.Maintenance)
-        {
-            throw new ApiException("Sân này đang được bảo trì.", HttpStatusCode.BadRequest);
         }
 
         // Kiểm tra cấu hình giá/khung giờ: nếu sân chưa cấu hình cho khoảng giờ đặt → chặn

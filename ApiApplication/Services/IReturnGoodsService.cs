@@ -9,6 +9,7 @@ namespace ApiApplication.Services
         Task<int> CreateAsync(CreateReturnGoodsRequest request);
         Task UpdateAsync(int id, CreateReturnGoodsRequest request);
         Task CompleteAsync(int id);
-        Task CancelAsync(int id);
+        Task CancelAsync(int id, string? note = null);
+        Task UpdateNoteAsync(int id, string note);
     }
 }

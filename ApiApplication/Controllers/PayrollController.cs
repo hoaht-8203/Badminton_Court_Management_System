@@ -81,5 +81,18 @@ namespace ApiApplication.Controllers
                 )
             );
         }
+
+        // GET: api/Payroll/items/by-staff/{staffId}
+        [HttpGet("items/by-staff/{staffId}")]
+        public async Task<IActionResult> GetPayrollItemsByStaffId(int staffId)
+        {
+            var result = await _payrollService.GetPayrollItemsByStaffIdAsync(staffId);
+            return Ok(
+                ApiResponse<List<PayrollItemResponse>>.SuccessResponse(
+                    result,
+                    "Lấy phiếu lương theo nhân viên thành công"
+                )
+            );
+        }
     }
 }

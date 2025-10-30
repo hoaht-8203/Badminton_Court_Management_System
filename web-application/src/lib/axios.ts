@@ -22,6 +22,11 @@ export const setOnUnauthorized = (cb: (() => void) | undefined) => {
 };
 
 export const apiBaseUrl = "https://caulong365-api.azurewebsites.net";
+// Allow consumer to register forbidden callback
+let onForbidden: (() => void) | undefined;
+export const setOnForbidden = (cb: (() => void) | undefined) => {
+  onForbidden = cb;
+};
 
 export const axiosInstance = axios.create({
   baseURL: apiBaseUrl,
@@ -111,6 +116,10 @@ axiosInstance.interceptors.response.use(
       } finally {
         isRefreshing = false;
       }
+    }
+
+    if (status === 403) {
+      onForbidden?.();
     }
 
     // Otherwise, normalize error to ApiError

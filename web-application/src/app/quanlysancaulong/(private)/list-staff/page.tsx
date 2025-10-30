@@ -8,10 +8,6 @@ import { ListStaffRequest, ListStaffRequestFromJSON, StaffRequest } from "@/type
 import { FileExcelOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Card, Col, Form, Input, Radio, Row, Select, message } from "antd";
 // Dummy roles and status for filter
-const branches = [
-  { value: 1, label: "Chi nhánh A" },
-  { value: 2, label: "Chi nhánh B" },
-];
 const departments = [
   { value: 1, label: "Phòng ban A" },
   { value: 2, label: "Phòng ban B" },
@@ -28,7 +24,8 @@ export default function ListStaffPage() {
   const { data: staffsData, isFetching: loadingStaffs, refetch: refetchStaffs } = useListStaffs(searchParams);
   const [openStaffModal, setOpenStaffModal] = useState(false);
   const [editingStaff, setEditingStaff] = useState<any | null>(null);
-  const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);
+  // show advanced filter by default (no branch filter available yet)
+  const [showAdvancedFilter] = useState(true);
 
   // CRUD hooks
   const createStaff = useCreateStaff();
@@ -45,9 +42,12 @@ export default function ListStaffPage() {
   };
 
   const handleSearch = (values: ListStaffRequest) => {
+    // Backend expects: 1 = active, 0 = inactive. UI uses 2 = "Đã nghỉ việc".
+    // Map UI value 2 -> backend 0. Keep 0 as 'all' -> null.
+    const mappedStatus = values.status === 0 ? null : values.status === 2 ? 0 : values.status;
     setSearchParams({
       keyword: values.keyword ?? null,
-      status: values.status !== 0 ? values.status : null,
+      status: mappedStatus,
       // departmentIds, branchIds nếu có
     });
   };
@@ -109,9 +109,7 @@ export default function ListStaffPage() {
             <Button icon={<ReloadOutlined />} onClick={handleReset} style={{ marginRight: 8 }}>
               Reset
             </Button>
-            <Button type="dashed" onClick={() => setShowAdvancedFilter((f) => !f)}>
-              {showAdvancedFilter ? "Ẩn lọc nâng cao" : "Lọc nâng cao"}
-            </Button>
+            {/* Advanced filter always shown */}
           </Form>
         }
         style={{ marginBottom: 16 }}
@@ -120,17 +118,12 @@ export default function ListStaffPage() {
         {showAdvancedFilter && (
           <Form form={form} layout="vertical" onFinish={handleSearch} initialValues={{ status: 0 }}>
             <Row gutter={28} align="middle">
-              <Col span={8}>
-                <Form.Item label="Chi nhánh" name="branchId">
-                  <Select options={branches} allowClear showSearch placeholder="Chọn chi nhánh" />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item label="Phòng ban" name="departmentId">
                   <Select options={departments} allowClear showSearch placeholder="Chọn phòng ban" />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col span={12}>
                 <Form.Item label="Trạng thái" name="status">
                   <Radio.Group options={statusOptions} optionType="button" />
                 </Form.Item>

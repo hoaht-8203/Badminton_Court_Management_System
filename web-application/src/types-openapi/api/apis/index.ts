@@ -10,6 +10,7 @@ export * from './CategoriesApi';
 export * from './CourtAreasApi';
 export * from './CourtsApi';
 export * from './CustomersApi';
+export * from './DepartmentApi';
 export * from './EmailApi';
 export * from './FilesApi';
 export * from './InventoryCardsApi';

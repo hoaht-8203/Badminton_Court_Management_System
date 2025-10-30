@@ -77,6 +77,7 @@ namespace ApiApplication.Services.Impl
         {
             var returnGoods = await _context
                 .ReturnGoods.Include(x => x.Supplier)
+                .Include(x => x.StoreBankAccount)
                 .Include(x => x.Items)
                 .ThenInclude(x => x.Product)
                 .FirstOrDefaultAsync(x => x.Id == id);
@@ -99,6 +100,11 @@ namespace ApiApplication.Services.Impl
                 Discount = returnGoods.Discount,
                 SupplierNeedToPay = returnGoods.SupplierNeedToPay,
                 SupplierPaid = returnGoods.SupplierPaid,
+                PaymentMethod = returnGoods.PaymentMethod,
+                StoreBankAccountId = returnGoods.StoreBankAccountId,
+                StoreBankAccountNumber = returnGoods.StoreBankAccount?.AccountNumber,
+                StoreBankAccountName = returnGoods.StoreBankAccount?.AccountName,
+                StoreBankName = returnGoods.StoreBankAccount?.BankName,
                 Note = returnGoods.Note,
                 Status = (int)returnGoods.Status,
                 Items = returnGoods
@@ -221,6 +227,12 @@ namespace ApiApplication.Services.Impl
                 returnGoods.TotalValue = totalValue;
                 returnGoods.SupplierNeedToPay = totalValue - request.Discount;
 
+                // Auto set payment amount when completing with cash payment
+                if (request.Complete && request.PaymentMethod == 0) // 0 = cash
+                {
+                    returnGoods.SupplierPaid = returnGoods.SupplierNeedToPay;
+                }
+
                 _context.ReturnGoods.Add(returnGoods);
 
                 if (request.Complete)
@@ -267,6 +279,8 @@ namespace ApiApplication.Services.Impl
             returnGoods.Note = request.Note ?? string.Empty;
             returnGoods.Discount = request.Discount;
             returnGoods.SupplierPaid = request.SupplierPaid;
+            returnGoods.PaymentMethod = request.PaymentMethod;
+            returnGoods.StoreBankAccountId = request.StoreBankAccountId;
             returnGoods.UpdatedAt = DateTime.UtcNow;
 
             // Remove existing items
@@ -319,11 +333,17 @@ namespace ApiApplication.Services.Impl
             returnGoods.Status = ReturnGoodsStatus.Completed;
             returnGoods.UpdatedAt = DateTime.UtcNow;
 
+            // Auto set payment amount when completing with cash payment
+            if (returnGoods.PaymentMethod == 0) // 0 = cash
+            {
+                returnGoods.SupplierPaid = returnGoods.SupplierNeedToPay;
+            }
+
             await ProcessReturnGoodsAsync(returnGoods);
             await _context.SaveChangesAsync();
         }
 
-        public async Task CancelAsync(int id)
+        public async Task CancelAsync(int id, string? note = null)
         {
             var returnGoods = await _context.ReturnGoods.FirstOrDefaultAsync(x => x.Id == id);
 
@@ -338,6 +358,26 @@ namespace ApiApplication.Services.Impl
             }
 
             returnGoods.Status = ReturnGoodsStatus.Cancelled;
+            if (!string.IsNullOrEmpty(note))
+            {
+                returnGoods.Note = note;
+            }
+            returnGoods.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateNoteAsync(int id, string note)
+        {
+            var returnGoods = await _context.ReturnGoods.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (returnGoods == null)
+            {
+                throw new ApiException("Không tìm thấy phiếu trả hàng");
+            }
+
+            // Cho phép cập nhật note ở mọi trạng thái, đặc biệt là Cancelled
+            returnGoods.Note = note ?? string.Empty;
             returnGoods.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -365,29 +405,32 @@ namespace ApiApplication.Services.Impl
                     Method = "Trả hàng nhà cung cấp",
                     OccurredAt = returnGoods.ReturnTime,
                     CostPrice = item.ReturnPrice,
-                    QuantityChange = -item.Quantity,
-                    EndingStock = 0,
+                    QuantityChange = -item.Quantity
                 };
 
-                // Calculate final inventory
-                var lastCard = await _context
-                    .InventoryCards.Where(x => x.ProductId == item.ProductId)
-                    .OrderByDescending(x => x.OccurredAt)
-                    .FirstOrDefaultAsync();
+                // Get product để lấy stock hiện tại
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product == null)
+                {
+                    throw new ApiException(
+                        $"Sản phẩm không tồn tại: {item.ProductId}",
+                        HttpStatusCode.NotFound
+                    );
+                }
 
-                inventoryCard.EndingStock =
-                    (lastCard?.EndingStock ?? 0) + inventoryCard.QuantityChange;
+                // Calculate final inventory stock
+                var currentStock = product.Stock;
+                var newStock = currentStock - item.Quantity;
+                if (newStock < 0)
+                {
+                    newStock = 0;
+                }
 
+                inventoryCard.EndingStock = newStock;
                 _context.InventoryCards.Add(inventoryCard);
 
                 // Update product stock
-                var product = await _context.Products.FindAsync(item.ProductId);
-                if (product != null)
-                {
-                    product.Stock -= item.Quantity;
-                    if (product.Stock < 0)
-                        product.Stock = 0;
-                }
+                product.Stock = newStock;
             }
 
             // Create inventory check
@@ -409,16 +452,22 @@ namespace ApiApplication.Services.Impl
                 var product = await _context.Products.FindAsync(item.ProductId);
                 if (product != null)
                 {
-                    inventoryCheck.Items.Add(
-                        new InventoryCheckItem
-                        {
-                            ProductId = item.ProductId,
-                            ActualQuantity = product.Stock,
-                            SystemQuantity = product.Stock, // Should be the same after return
-                            CreatedAt = DateTime.UtcNow,
-                            UpdatedAt = DateTime.UtcNow,
-                        }
-                    );
+                // System quantity = stock BEFORE return
+                // Actual quantity = stock AFTER return  
+                // For return goods: stock decreases, so SystemQuantity > ActualQuantity
+                var systemQuantity = product.Stock + item.Quantity; // Stock before return
+                var actualQuantity = product.Stock; // Stock after return
+                
+                inventoryCheck.Items.Add(
+                    new InventoryCheckItem
+                    {
+                        ProductId = item.ProductId,
+                        SystemQuantity = systemQuantity, // Stock before return
+                        ActualQuantity = actualQuantity, // Stock after return
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow,
+                    }
+                );
                 }
             }
 

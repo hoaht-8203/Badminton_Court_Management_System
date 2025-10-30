@@ -118,6 +118,24 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
         setPaymentMethod((d?.paymentMethod || "cash") as any);
         setDiscount(Number(d?.discount || 0));
         setPaymentAmount(Number(d?.paymentAmount || 0));
+        
+        // Prefill supplier bank info when payment method is transfer
+        if ((d?.paymentMethod === "transfer") && d?.supplierBankAccountId) {
+          try {
+            const bankListRes = await supplierBankAccountsService.list({ supplierId: Number(d.supplierId) });
+            const data = (bankListRes as any)?.data;
+            setBanks(Array.isArray(data) ? data : []); // Set banks state for display
+            const found = data?.find((b: any) => Number(b.id) === Number(d.supplierBankAccountId));
+            if (found) {
+              form.setFieldsValue({
+                supplierBankAccountId: found.id,
+                supplierBankAccountNumber: found.accountNumber,
+                supplierBankAccountName: found.accountName,
+                supplierBankName: found.bankName,
+              });
+            }
+          } catch {}
+        }
         const loadedItems: StockInItem[] = (d?.items || []).map((i: any) => ({
           productId: i.productId,
           code: String(i.productId),
@@ -732,7 +750,7 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                       <div className="text-sm text-gray-600">Thông tin ngân hàng đã chọn:</div>
                       <div className="text-sm font-medium">
                         {(() => {
-                          const selectedBank = banks.find((bank) => bank.id === supplierBankAccountId);
+                          const selectedBank = banks.find((bank) => Number(bank.id) === Number(supplierBankAccountId));
                           console.log("Debug - supplierBankAccountId:", supplierBankAccountId, typeof supplierBankAccountId);
                           console.log("Debug - banks:", banks);
                           console.log(
@@ -745,7 +763,7 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                       </div>
                       <div className="text-sm text-gray-500">
                         {(() => {
-                          const selectedBank = banks.find((bank) => bank.id === supplierBankAccountId);
+                          const selectedBank = banks.find((bank) => Number(bank.id) === Number(supplierBankAccountId));
                           return selectedBank?.bankName || "";
                         })()}
                       </div>

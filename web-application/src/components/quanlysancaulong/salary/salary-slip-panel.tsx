@@ -5,7 +5,6 @@ import BulkPayDrawer from "./bulk-pay-drawer";
 
 export default function SalarySlipPanel({
   items,
-  onPay,
   onBulkPay,
   payrollName,
   payrollStartDate,

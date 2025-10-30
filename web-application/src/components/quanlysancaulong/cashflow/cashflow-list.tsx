@@ -16,8 +16,6 @@ const tableProps: TableProps<CashflowResponse> = {
 export default function CashflowList({
   data,
   loading,
-  onRefresh,
-  modal,
   contextHolder,
   onOpenDrawer,
 }: {

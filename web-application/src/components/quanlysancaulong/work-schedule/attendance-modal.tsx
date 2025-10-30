@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Drawer, Button, Input, Tag, message } from "antd";
 import dayjs from "dayjs";
 import { attendanceService } from "@/services/attendanceService";
@@ -25,7 +25,7 @@ const AttendanceDrawer: React.FC<AttendanceModalProps> = ({ open, onClose, onSav
   const [attendanceList, setAttendanceList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const fetchAttendance = async () => {
+  const fetchAttendance = useCallback(async () => {
     if (staff?.id && date) {
       setLoading(true);
       const res = await attendanceService.getAttendanceRecordsByStaffId(staff.id, date);
@@ -34,7 +34,7 @@ const AttendanceDrawer: React.FC<AttendanceModalProps> = ({ open, onClose, onSav
     } else {
       setAttendanceList([]);
     }
-  };
+  }, [staff?.id, date]);
 
   useEffect(() => {
     if (open) {
@@ -42,7 +42,7 @@ const AttendanceDrawer: React.FC<AttendanceModalProps> = ({ open, onClose, onSav
     } else {
       setAttendanceList([]);
     }
-  }, [open, staff?.id, date]);
+  }, [open, staff?.id, date, fetchAttendance]);
 
   const handleChange = (idx: number, field: string, value: any) => {
     const newList = [...attendanceList];

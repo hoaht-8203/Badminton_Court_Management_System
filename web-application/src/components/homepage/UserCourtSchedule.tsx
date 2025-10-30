@@ -133,23 +133,23 @@ const UserCourtScheduler = ({ courts }: UserCourtSchedulerProps) => {
       .build();
     connectionRef.current = conn;
 
-    conn.on("bookingCreated", (payload: any) => {
+    conn.on("bookingCreated", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
     });
-    conn.on("bookingUpdated", (bookingId: string) => {
+    conn.on("bookingUpdated", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       message.open({ type: "info", content: "Lịch đặt sân đã được cập nhật", key: "booking-updated", duration: 3 });
     });
-    conn.on("paymentCreated", (payload: any) => {
+    conn.on("paymentCreated", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
     });
     conn.on("paymentUpdated", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
     });
-    conn.on("bookingCancelled", (bookingId: string) => {
+    conn.on("bookingCancelled", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
     });
-    conn.on("bookingsExpired", (bookingIds: string[]) => {
+    conn.on("bookingsExpired", () => {
       queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
     });
     conn.on("paymentsCancelled", () => {

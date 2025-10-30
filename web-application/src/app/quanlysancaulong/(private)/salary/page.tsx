@@ -4,7 +4,7 @@ import SalaryFilter from "@/components/quanlysancaulong/salary/salary-filter";
 import SalaryTabs from "@/components/quanlysancaulong/salary/salary-tabs";
 import { useListPayrolls, useRefreshPayroll } from "@/hooks/usePayroll";
 import { FileExcelOutlined, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
-import { Breadcrumb, Button, Form, message, Table } from "antd";
+import { Breadcrumb, Button, message, Table } from "antd";
 import { useState } from "react";
 
 export default function SalaryPage() {

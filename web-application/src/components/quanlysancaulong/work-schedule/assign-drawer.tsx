@@ -126,7 +126,7 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                     <div style={{ fontWeight: 600 }}>{staff.fullName}</div>
                     <div style={{ fontSize: 13, color: "#888" }}>{`NV${String(staff.id).padStart(6, "0")}`}</div>
                   </td>
-                  {weekDays.map((d, idx) => {
+                  {weekDays.map((d) => {
                     // shiftList: [{key, label}], staffScheduleMap lưu theo shift.name
                     // Để map màu đúng, cần lấy shiftId từ shiftList dựa vào tên ca
                     const shiftsOfDay = staffScheduleMap[staff.id]?.[d.value] || [];
@@ -215,7 +215,7 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
         staff={modalStaff ?? undefined}
         date={modalDate}
         shiftList={shiftList}
-        onSave={(values) => {
+        onSave={() => {
           // TODO: Xử lý lưu lịch làm việc
           setModalOpen(false);
         }}

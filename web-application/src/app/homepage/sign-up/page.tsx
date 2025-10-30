@@ -5,7 +5,7 @@ const SignUpPage = () => {
   return (
     <div>
       <section className="container mx-auto mt-10 w-[500px]">
-        <SignUpForm isUsersMode={true} />
+        <SignUpForm />
       </section>
     </div>
   );

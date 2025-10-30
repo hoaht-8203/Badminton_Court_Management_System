@@ -31,7 +31,7 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
   const [selectedShifts, setSelectedShifts] = useState<string[]>([]);
   const [repeatWeekly, setRepeatWeekly] = useState(false);
   const [repeatDays, setRepeatDays] = useState<number[]>([]);
-  const [repeatEnd, setRepeatEnd] = useState<string | null>(null);
+  const [repeatEnd] = useState<string | null>(null);
   const [workOnHoliday, setWorkOnHoliday] = useState(false);
 
   const handleShiftChange = (key: string, checked: boolean) => {

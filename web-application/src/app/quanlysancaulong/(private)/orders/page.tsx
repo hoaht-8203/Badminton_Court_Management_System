@@ -3,7 +3,7 @@
 import { columns, SearchOrders } from "@/components/quanlysancaulong/orders";
 import { useOrders } from "@/hooks/useOrders";
 import { ListOrderRequest, ListOrderResponse } from "@/types-openapi/api";
-import { EyeOutlined, ReloadOutlined, StopOutlined } from "@ant-design/icons";
+import { ReloadOutlined, StopOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Col, Descriptions, Empty, Image, List, message, Modal, Row, Table, TableProps, Tabs, Tag } from "antd";
 import { useMemo, useState } from "react";
 
@@ -26,11 +26,6 @@ const OrdersPage = () => {
   const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
 
   const { data: ordersData, isFetching: loadingOrders, refetch } = useOrders(searchParams);
-
-  const handleClickViewOrder = (record: ListOrderResponse) => {
-    // TODO: Implement view order details
-    message.info(`Xem chi tiết đơn hàng: ${record.id}`);
-  };
 
   const handleClickExtendPayment = (record: ListOrderResponse) => {
     modal.confirm({
@@ -81,11 +76,7 @@ const OrdersPage = () => {
             },
             expandedRowRender: (record) => (
               <div>
-                <OrderInformation
-                  record={record}
-                  handleClickViewOrder={() => handleClickViewOrder(record)}
-                  handleClickExtendPayment={() => handleClickExtendPayment(record)}
-                />
+                <OrderInformation record={record} handleClickExtendPayment={() => handleClickExtendPayment(record)} />
               </div>
             ),
           }}
@@ -112,15 +103,7 @@ const OrdersPage = () => {
   );
 };
 
-const OrderInformation = ({
-  record,
-  handleClickViewOrder,
-  handleClickExtendPayment,
-}: {
-  record: ListOrderResponse;
-  handleClickViewOrder: () => void;
-  handleClickExtendPayment: () => void;
-}) => {
+const OrderInformation = ({ record, handleClickExtendPayment }: { record: ListOrderResponse; handleClickExtendPayment: () => void }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Pending":

@@ -26,12 +26,12 @@ const allFields = [
 
 const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff }) => {
   const [salaryData, setSalaryData] = React.useState<any>({});
-  const [salarySettingsLoaded, setSalarySettingsLoaded] = useState(false);
+  const [, setSalarySettingsLoaded] = useState(false);
   const [form] = Form.useForm();
   const [salaryForm] = Form.useForm(); // Ensure SalarySetupForm always receives a connected form instance
   const [expanded, setExpanded] = useState(false);
-  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
-  const [fileList, setFileList] = useState<any[]>([]);
+  const [, setAvatarPreview] = useState<string | undefined>(undefined);
+  const [, setFileList] = useState<any[]>([]);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarFileName, setAvatarFileName] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -137,12 +137,12 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
     }
   };
 
-  const handleAvatarChange = (info: any) => {
-    const file = info.file;
-    if (file) {
-      handleUpload(file);
-    }
-  };
+  // const handleAvatarChange = (info: any) => {
+  //   const file = info.file;
+  //   if (file) {
+  //     handleUpload(file);
+  //   }
+  // };
 
   const renderBasicFields = () => (
     <Row gutter={24}>

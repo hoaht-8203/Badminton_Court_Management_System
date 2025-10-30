@@ -85,7 +85,7 @@ const ShiftTable = ({
   modalLoading?: boolean;
   onChangeStatus?: (record: any) => void;
 }) => {
-  const { show, ModalComponent } = useShiftModal();
+  const { ModalComponent } = useShiftModal();
 
   // Gắn hàm onEdit, onDelete, onChangeStatus vào từng record
   const dataWithActions = shiftData.map((item) => ({ ...item, onEdit, onDelete, onChangeStatus }));

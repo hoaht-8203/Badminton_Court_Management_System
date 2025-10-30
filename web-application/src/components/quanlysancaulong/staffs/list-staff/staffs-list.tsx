@@ -71,7 +71,7 @@ const StaffList: React.FC<StaffListProps> = ({ staffList, onEditStaff, onChangeS
                   { key: "2", label: "Lịch làm việc", children: <WorkScheduleTab staff={record} /> },
                   { key: "3", label: "Thiết lập lương", children: <SalaryConfigTab staff={record} /> },
                   { key: "4", label: "Phiếu lương", children: <SalarySlipTab staff={record} /> },
-                  { key: "5", label: "Nợ và tạm ứng", children: <DebtAdvanceTab staff={record} /> },
+                  { key: "5", label: "Nợ và tạm ứng", children: <DebtAdvanceTab /> },
                 ]}
               />
             </div>

@@ -1,42 +1,42 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  Button,
-  Col,
-  Drawer,
-  Form,
-  Input,
-  Row,
-  Divider,
-  message,
-  Space,
-  DatePicker,
-  Table,
-  InputNumber,
-  Modal,
-  Card,
-  List,
-  Checkbox,
-  Image,
-  Tabs,
-  Select,
-} from "antd";
-import { SaveOutlined, CloseOutlined, DeleteOutlined, SearchOutlined, EditOutlined, DeleteFilled } from "@ant-design/icons";
-import {
-  useCreateInventoryCheck,
-  useUpdateInventoryCheck,
-  useDetailInventoryCheck,
-  useDeleteInventoryCheck,
-  useCompleteInventoryCheck,
-} from "@/hooks/useInventory";
-import { CreateInventoryCheckRequest } from "@/types-openapi/api";
-import { useListProducts } from "@/hooks/useProducts";
-import type { TableColumnsType } from "antd";
-import dayjs from "dayjs";
 import { useAuth } from "@/context/AuthContext";
 import { useListCategories } from "@/hooks/useCategories";
+import {
+  useCompleteInventoryCheck,
+  useCreateInventoryCheck,
+  useDeleteInventoryCheck,
+  useDetailInventoryCheck,
+  useUpdateInventoryCheck,
+} from "@/hooks/useInventory";
+import { useListProducts } from "@/hooks/useProducts";
+import { CreateInventoryCheckRequest } from "@/types-openapi/api";
+import { CloseOutlined, DeleteFilled, DeleteOutlined, EditOutlined, SaveOutlined, SearchOutlined } from "@ant-design/icons";
 import { useQueryClient } from "@tanstack/react-query";
+import type { TableColumnsType } from "antd";
+import {
+  Button,
+  Card,
+  Checkbox,
+  Col,
+  DatePicker,
+  Divider,
+  Drawer,
+  Form,
+  Image,
+  Input,
+  InputNumber,
+  List,
+  message,
+  Modal,
+  Row,
+  Select,
+  Space,
+  Table,
+  Tabs,
+} from "antd";
+import dayjs from "dayjs";
+import React, { useEffect, useMemo, useState } from "react";
 
 interface CreateEditInventoryDrawerProps {
   open: boolean;
@@ -463,7 +463,7 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
     };
     // Trigger only when toggles are on
     if (onlyActive || onlyInStock || selectAllCategories || selectedCategories.length > 0) run();
-  }, [onlyActive, onlyInStock, selectAllCategories, selectedCategories, query, categoriesData?.data]);
+  }, [onlyActive, onlyInStock, selectAllCategories, selectedCategories, query, categoriesData?.data, items]);
 
   return (
     <>

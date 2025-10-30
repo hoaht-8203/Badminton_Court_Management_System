@@ -25,7 +25,7 @@ const statusOptions = [
 export default function ListStaffPage() {
   const [form] = Form.useForm();
   const [searchParams, setSearchParams] = useState(ListStaffRequestFromJSON({}));
-  const { data: staffsData, isFetching: loadingStaffs, refetch: refetchStaffs } = useListStaffs(searchParams);
+  const { data: staffsData, refetch: refetchStaffs } = useListStaffs(searchParams);
   const [openStaffModal, setOpenStaffModal] = useState(false);
   const [editingStaff, setEditingStaff] = useState<any | null>(null);
   const [showAdvancedFilter, setShowAdvancedFilter] = useState(false);

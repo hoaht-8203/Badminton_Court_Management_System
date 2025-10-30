@@ -16,14 +16,12 @@ import type { FormInstance } from "antd/es/form";
 
 interface SalarySetupFormProps {
   staff?: any;
-  onSubmit?: (values: any) => void;
-  onCancel?: () => void;
   form: FormInstance<any>;
   onSalaryDataChange?: (data: any) => void;
   salarySettingsLoaded?: boolean;
 }
 
-export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryDataChange, staff }: SalarySetupFormProps) {
+export default function SalarySetupForm({ form, onSalaryDataChange, staff }: SalarySetupFormProps) {
   // State declarations
   const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [shiftOptions, setShiftOptions] = React.useState<{ value: string; label: string }[]>([]);
@@ -86,7 +84,7 @@ export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryData
         salaryObj.deductionEarlyParam;
       setShowDeductionConfig(!!hasDeduction);
     }
-  }, [staff?.salarySettings, shiftOptions]);
+  }, [staff?.salarySettings, shiftOptions, staff]);
   // Khi staff.salarySettings thay đổi, đồng bộ lại state nâng cao
   React.useEffect(() => {
     if (staff && staff.salarySettings) {
@@ -103,7 +101,7 @@ export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryData
         }
       }
     }
-  }, [staff?.salarySettings]);
+  }, [staff?.salarySettings, staff]);
   if (!form) {
     throw new Error("SalarySetupForm requires a connected form instance via the 'form' prop.");
   }
@@ -111,15 +109,15 @@ export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryData
   // Remove duplicate declarations and useEffect
   const [showDeductionConfig, setShowDeductionConfig] = React.useState(false);
   // Hàm lấy dữ liệu submit
-  const getSalaryData = () => {
-    if (showAdvanced) {
-      // Nếu dùng nâng cao, chỉ lấy advancedRows
-      return { advancedRows };
-    } else {
-      // Nếu không, chỉ lấy salaryAmount
-      return { salaryAmount: form?.getFieldValue("salaryAmount") };
-    }
-  };
+  // const getSalaryData = () => {
+  //   if (showAdvanced) {
+  //     // Nếu dùng nâng cao, chỉ lấy advancedRows
+  //     return { advancedRows };
+  //   } else {
+  //     // Nếu không, chỉ lấy salaryAmount
+  //     return { salaryAmount: form?.getFieldValue("salaryAmount") };
+  //   }
+  // };
   type AdvancedRow = {
     shiftId: string | number;
     shiftName: string;

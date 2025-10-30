@@ -4,7 +4,7 @@ import React from "react";
 
 import { useAuth } from "@/context/AuthContext";
 import { CurrentUserResponse } from "@/types-openapi/api";
-import { HistoryOutlined, LoginOutlined, LogoutOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
+import { LoginOutlined, LogoutOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Avatar, Button, Dropdown, Layout } from "antd";
 import { Content } from "antd/es/layout/layout";

@@ -15,7 +15,7 @@ export default function CashflowFilter({ onSearch, onReset }: { onSearch: (param
   const typeValue = Form.useWatch("type", form);
 
   // fetch cashflow types for selected type (receipt/payment). Map to Select options.
-  const { data: typesData, isLoading: typesLoading } = useCashflowTypes(typeValue === "payment" ? true : typeValue === "receipt" ? false : undefined);
+  const { data: typesData } = useCashflowTypes(typeValue === "payment" ? true : typeValue === "receipt" ? false : undefined);
 
   const cashflowTypeOptions = useMemo(() => {
     if (!typesData?.data) return [];

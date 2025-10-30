@@ -29,15 +29,9 @@ export default function BulkPayDrawer({
   payrollEndDate?: string | Date;
   payrollStatus?: string;
 }) {
-  const [method, setMethod] = useState<string>("cash");
   const [note, setNote] = useState<string>("");
-  const [searchCode, setSearchCode] = useState<string>("");
-  const [searchStaff, setSearchStaff] = useState<string>("");
-
-  const totalToPay = useMemo(() => {
-    // sum of amounts values for selected items
-    return Object.values(amounts || {}).reduce((s, v) => s + (v || 0), 0);
-  }, [amounts]);
+  const [searchCode] = useState<string>("");
+  const [searchStaff] = useState<string>("");
 
   const totalUnpaid = useMemo(() => {
     return selectedItems.reduce((s, r) => s + ((r.netSalary ?? 0) - (r.paidAmount ?? 0)), 0);

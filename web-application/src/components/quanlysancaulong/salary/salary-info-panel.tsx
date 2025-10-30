@@ -1,6 +1,6 @@
-import { Descriptions, Button, Row, Col, Tooltip } from "antd";
-import { DeleteOutlined, ReloadOutlined, FileExcelOutlined, InfoCircleOutlined, EyeOutlined } from "@ant-design/icons";
 import { PayrollDetailResponse } from "@/types-openapi/api";
+import { DeleteOutlined, FileExcelOutlined, ReloadOutlined } from "@ant-design/icons";
+import { Button, Col, Descriptions, Row } from "antd";
 
 export default function SalaryInfoPanel({
   payroll,

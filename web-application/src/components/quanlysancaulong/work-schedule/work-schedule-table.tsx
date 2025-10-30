@@ -41,9 +41,9 @@ const WorkScheduleTable: React.FC = () => {
     const today = dayjs();
     return today.day() === 0 ? today.subtract(6, "day") : today.day(1);
   });
-  const [searchParams, setSearchParams] = useState(ListStaffRequestFromJSON({}));
-  const { data: staffs, isFetching: loadingStaffs, refetch: refetchStaffs } = useListStaffs(searchParams);
-  const { data: shifts, isFetching } = useListShifts();
+  const [searchParams] = useState(ListStaffRequestFromJSON({}));
+  const { data: staffs } = useListStaffs(searchParams);
+  const { data: shifts } = useListShifts();
 
   // State cho modal chấm công
   const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
@@ -59,7 +59,7 @@ const WorkScheduleTable: React.FC = () => {
   const startDate = weekStart.toDate();
   const endDate = weekStart.add(6, "day").toDate();
   // Lấy lịch làm việc theo ca cho tuần hiện tại
-  const { data: scheduleByShiftRaw, isFetching: loadingSchedule, refetch } = useGetScheduleByShift({ startDate, endDate });
+  const { data: scheduleByShiftRaw, refetch } = useGetScheduleByShift({ startDate, endDate });
 
   // Format lại dữ liệu trả về từ API thành dạng { [shiftId]: { [dayOfWeek]: ScheduleCell[] } }
   const scheduleByShift: Record<string, Record<number, ScheduleCell[]>> = React.useMemo(() => {

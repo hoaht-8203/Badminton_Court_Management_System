@@ -11,11 +11,7 @@ import { useRouter } from "next/navigation";
 import React from "react";
 import VerifyEmailForm from "./VerifyEmailForm";
 
-interface SignUpFormProps {
-  isUsersMode?: boolean;
-}
-
-const SignUpForm = ({ isUsersMode = false }: SignUpFormProps) => {
+const SignUpForm = () => {
   const [form] = Form.useForm<RegisterRequest>();
   const [submitting, setSubmitting] = React.useState(false);
   const router = useRouter();

@@ -61,6 +61,7 @@ builder.Services.AddScoped<IActivityService, ActivityService>();
 builder.Services.AddScoped<IActivityHelperService, ActivityHelperService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
+builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
 builder.Services.AddScoped<IShiftService, ShiftService>();
 builder.Services.AddScoped<ISalaryFormService, SalaryFormService>();
@@ -106,6 +107,7 @@ builder.Services.AddAutoMapper(config => config.AddProfile<SupplierMappingProfil
 builder.Services.AddAutoMapper(config => config.AddProfile<ProductMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<CategoryMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<PriceTableMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<DepartmentMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<BookingCourtMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<AttendanceRecordMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<ServiceMappingProfile>());

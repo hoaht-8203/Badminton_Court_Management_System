@@ -1,5 +1,5 @@
 import { payrollService } from "@/services/payrollService";
-import { CreatePayrollRequest, PayrollDetailResponse } from "@/types-openapi/api";
+import { CreatePayrollRequest, PayrollDetailResponse, PayrollItemResponse } from "@/types-openapi/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useListPayrolls(params: any) {
@@ -48,5 +48,17 @@ export function usePayPayrollItem() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payrolls"] });
     },
+  });
+}
+
+export function useGetPayrollItemsByStaff(staffId?: number) {
+  return useQuery<PayrollItemResponse[] | null>({
+    queryKey: ["payrollItems", staffId],
+    queryFn: async () => {
+      if (!staffId) return null;
+      const res = await payrollService.getItemsByStaff(staffId);
+      return res.data;
+    },
+    enabled: !!staffId,
   });
 }

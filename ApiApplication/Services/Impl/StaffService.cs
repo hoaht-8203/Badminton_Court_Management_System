@@ -153,12 +153,14 @@ namespace ApiApplication.Services.Impl
             // }
             if (!string.IsNullOrWhiteSpace(request.Keyword))
             {
+                // Use case-insensitive search. For PostgreSQL/Npgsql this translates to ILIKE via EF.Functions.ILike
+                var kw = $"%{request.Keyword}%";
                 query = query.Where(s =>
-                    (s.FullName != null && s.FullName.Contains(request.Keyword))
-                    || (s.PhoneNumber != null && s.PhoneNumber.Contains(request.Keyword))
+                    (s.FullName != null && EF.Functions.ILike(s.FullName, kw))
+                    || (s.PhoneNumber != null && EF.Functions.ILike(s.PhoneNumber, kw))
                     || (
                         s.IdentificationNumber != null
-                        && s.IdentificationNumber.Contains(request.Keyword)
+                        && EF.Functions.ILike(s.IdentificationNumber, kw)
                     )
                 );
             }

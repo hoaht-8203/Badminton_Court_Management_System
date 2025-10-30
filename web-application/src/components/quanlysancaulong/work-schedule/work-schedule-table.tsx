@@ -3,8 +3,8 @@ import { useGetScheduleByShift } from "@/hooks/useSchedule";
 import { useListShifts } from "@/hooks/useShift";
 import { useListStaffs } from "@/hooks/useStaffs";
 import { ListStaffRequestFromJSON } from "@/types-openapi/api/models/ListStaffRequest";
-import { FileExcelOutlined } from "@ant-design/icons";
-import { Button, Input, Tag } from "antd";
+import { FileExcelOutlined, SearchOutlined } from "@ant-design/icons";
+import { Button, Select, Tag } from "antd";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import React, { useState } from "react";
@@ -43,6 +43,18 @@ const WorkScheduleTable: React.FC = () => {
   });
   const [searchParams, setSearchParams] = useState(ListStaffRequestFromJSON({}));
   const { data: staffs, isFetching: loadingStaffs, refetch: refetchStaffs } = useListStaffs(searchParams);
+  // For AJAX search box
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
+  const [appliedSelectedStaffIds, setAppliedSelectedStaffIds] = useState<number[]>([]);
+
+  // Debounce searchQuery into searchParams.keyword
+  React.useEffect(() => {
+    const t = setTimeout(() => {
+      setSearchParams((prev) => ({ ...prev, keyword: searchQuery || null }));
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
   const { data: shifts, isFetching } = useListShifts();
 
   // State cho modal chấm công
@@ -106,20 +118,34 @@ const WorkScheduleTable: React.FC = () => {
     <div style={{ background: "#fff", borderRadius: 8, padding: 16 }}>
       <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
         <span style={{ fontWeight: 700, fontSize: 20, marginRight: 16 }}>Bảng chấm công</span>
-        <Input placeholder="Tìm kiếm nhân viên" style={{ width: 240, marginRight: 8 }} />
-
-        {/* Custom week selector giống drawer */}
-        <div style={{ display: "flex", alignItems: "center", marginRight: 8 }}>
-          <Button type="default" onClick={() => setWeekStart(weekStart.subtract(1, "week"))}>
-            {"<"}
-          </Button>
-          <span style={{ fontWeight: 500, fontSize: 16, margin: "0 8px" }}>
-            Tuần {weekStart.week()} - Th.{weekStart.month() + 1} {weekStart.year()}
-          </span>
-          <Button type="default" onClick={() => setWeekStart(weekStart.add(1, "week"))}>
-            {">"}
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <Select
+            showSearch
+            mode="multiple"
+            placeholder="Tìm kiếm nhân viên"
+            style={{ width: 360, marginRight: 8 }}
+            value={selectedStaffIds.map(String)}
+            onSearch={(val) => setSearchQuery(val)}
+            onChange={(values) => setSelectedStaffIds(values.map((v) => Number(v)))}
+            filterOption={false}
+            options={staffs?.data?.map((s: any) => ({ label: s.fullName ?? s.id?.toString(), value: String(s.id) })) || []}
+            notFoundContent={loadingStaffs ? "Đang tìm..." : "Không tìm thấy"}
+          />
+          <Button
+            type="primary"
+            icon={<SearchOutlined />}
+            onClick={() => {
+              // Placeholder: capture current selection. Actual filtering logic to be implemented later.
+              setAppliedSelectedStaffIds(selectedStaffIds);
+              console.log("Apply staff search", { selectedStaffIds, searchQuery });
+            }}
+            style={{ marginLeft: 8 }}
+          >
+            Tìm
           </Button>
         </div>
+
+        {/* week selector removed from top toolbar and moved to bottom center for better spacing */}
 
         <Button type="primary" icon={<FileExcelOutlined />} style={{ marginLeft: "auto" }}>
           Xuất file
@@ -127,6 +153,20 @@ const WorkScheduleTable: React.FC = () => {
         <Button type="primary" style={{ marginLeft: 8 }} onClick={() => setAssignDrawerOpen(true)}>
           Xếp lịch
         </Button>
+      </div>
+      {/* Centered week navigation placed above the status legend to free top toolbar space */}
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Button type="default" onClick={() => setWeekStart(weekStart.subtract(1, "week"))}>
+            {"<"}
+          </Button>
+          <span style={{ fontWeight: 500, fontSize: 16 }}>
+            Tuần {weekStart.week()} - Th.{weekStart.month() + 1} {weekStart.year()}
+          </span>
+          <Button type="default" onClick={() => setWeekStart(weekStart.add(1, "week"))}>
+            {">"}
+          </Button>
+        </div>
       </div>
       <div style={{ overflowX: "auto" }}>
         {(() => {

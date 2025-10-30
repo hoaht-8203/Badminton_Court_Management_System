@@ -9,6 +9,7 @@ apis/CategoriesApi.ts
 apis/CourtAreasApi.ts
 apis/CourtsApi.ts
 apis/CustomersApi.ts
+apis/DepartmentApi.ts
 apis/EmailApi.ts
 apis/FilesApi.ts
 apis/InventoryCardsApi.ts
@@ -151,6 +152,10 @@ models/DeleteServiceRequest.ts
 models/DeleteSliderRequest.ts
 models/DeleteSupplierRequest.ts
 models/Department.ts
+models/DepartmentRequest.ts
+models/DepartmentResponse.ts
+models/DepartmentResponseApiResponse.ts
+models/DepartmentResponseListApiResponse.ts
 models/DetailAdministratorRequest.ts
 models/DetailAdministratorResponse.ts
 models/DetailAdministratorResponseApiResponse.ts
@@ -260,6 +265,7 @@ models/ListCustomerResponse.ts
 models/ListCustomerResponseListApiResponse.ts
 models/ListCustomerResponsePagedResponse.ts
 models/ListCustomerResponsePagedResponseApiResponse.ts
+models/ListDepartmentRequest.ts
 models/ListInventoryCheckRequest.ts
 models/ListInventoryCheckResponse.ts
 models/ListInventoryCheckResponseListApiResponse.ts

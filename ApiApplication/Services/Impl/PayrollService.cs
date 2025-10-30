@@ -266,6 +266,17 @@ public class PayrollService : IPayrollService
         return _mapper.Map<List<PayrollItemResponse>>(payrollItems);
     }
 
+    public async Task<List<PayrollItemResponse>> GetPayrollItemsByStaffIdAsync(int staffId)
+    {
+        var payrollItems = await _context
+            .PayrollItems.Where(pi => pi.StaffId == staffId)
+            .Include(pi => pi.Staff)
+            .Include(pi => pi.Payroll)
+            .ToListAsync();
+
+        return _mapper.Map<List<PayrollItemResponse>>(payrollItems);
+    }
+
     public async Task<bool> PayPayrollItemAsync(int payrollItemId, decimal amount)
     {
         var payrollItem = await _context

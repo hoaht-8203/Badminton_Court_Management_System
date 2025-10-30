@@ -32,10 +32,10 @@ const MenuTab = memo(function MenuTab({ data, loading, onAdd }: MenuTabProps) {
                 cover={
                   <div className="relative">
                     <Image
-                      style={{ width: "100%", height: "150px", objectFit: "cover" }}
+                      style={{ width: "100%", height: "150px", objectFit: "contain" }}
                       draggable={false}
                       alt={`Thực đơn ${index + 1}`}
-                      src={product.images?.[0] || "/placeholder/product-image-placeholder.jpg"}
+                      src={product.images?.[0] || "/placeholder/product-image-placeholder-v2.jpg"}
                       width={100}
                       height={100}
                     />

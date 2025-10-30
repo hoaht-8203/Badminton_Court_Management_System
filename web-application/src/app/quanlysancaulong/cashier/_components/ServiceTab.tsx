@@ -41,10 +41,10 @@ const ServiceTab = memo(function ServiceTab({ data, loading, onAdd }: ServiceTab
                   cover={
                     <div className="relative">
                       <Image
-                        style={{ width: "100%", height: "150px", objectFit: "cover" }}
+                        style={{ width: "100%", height: "150px", objectFit: "contain" }}
                         draggable={false}
                         alt={`Dịch vụ ${index + 1}`}
-                        src={service.imageUrl || "/placeholder/product-image-placeholder.jpg"}
+                        src={service.imageUrl || "/placeholder/product-image-placeholder-v2.jpg"}
                         width={100}
                         height={100}
                       />

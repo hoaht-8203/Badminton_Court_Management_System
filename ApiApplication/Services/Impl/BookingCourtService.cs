@@ -1127,12 +1127,21 @@ public class BookingCourtService(
         }
 
         // Validate time window: only check-in during valid time
-        var now = DateTime.Now.ToUniversalTime();
-        var occurrenceDate = occurrence.Date.ToDateTime(TimeOnly.MinValue).ToUniversalTime();
+        var now = DateTime.Now;
 
+        var occurrenceDate = DateTime.SpecifyKind(
+            occurrence.Date.ToDateTime(TimeOnly.MinValue),
+            DateTimeKind.Local
+        );
         // Create full DateTime objects for comparison
-        var startDateTime = occurrenceDate.Add(occurrence.StartTime.ToTimeSpan()).ToUniversalTime();
-        var endDateTime = occurrenceDate.Add(occurrence.EndTime.ToTimeSpan()).ToUniversalTime();
+        var startDateTime = DateTime.SpecifyKind(
+            occurrenceDate.Add(occurrence.StartTime.ToTimeSpan()),
+            DateTimeKind.Local
+        );
+        var endDateTime = DateTime.SpecifyKind(
+            occurrenceDate.Add(occurrence.EndTime.ToTimeSpan()),
+            DateTimeKind.Local
+        );
 
         // Allow 10 minutes before start time
         var earlyStartDateTime = startDateTime.AddMinutes(-10).ToUniversalTime();

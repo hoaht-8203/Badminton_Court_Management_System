@@ -56,10 +56,6 @@ public class BookingCourtService(
         {
             throw new ApiException("Sân này đã bị xóa.", HttpStatusCode.BadRequest);
         }
-        if (court.Status == CourtStatus.InUse)
-        {
-            throw new ApiException("Sân này đang được sử dụng.", HttpStatusCode.BadRequest);
-        }
 
         var startDate = DateOnly.FromDateTime(request.StartDate);
         var endDate = DateOnly.FromDateTime(request.EndDate);
@@ -1126,31 +1122,34 @@ public class BookingCourtService(
             throw new ApiException("Lịch sân đã được check-in", HttpStatusCode.BadRequest);
         }
 
-        // Validate time window: only check-in during valid time
-        var now = DateTime.Now;
+        // Validate time window using Vietnam time zone, then compare in UTC
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // Vietnam (UTC+7)
 
-        var occurrenceDate = DateTime.SpecifyKind(
+        // Build local datetime (unspecified kind), then convert to UTC
+        var localDate = DateTime.SpecifyKind(
             occurrence.Date.ToDateTime(TimeOnly.MinValue),
-            DateTimeKind.Local
+            DateTimeKind.Unspecified
         );
-        // Create full DateTime objects for comparison
-        var startDateTime = DateTime.SpecifyKind(
-            occurrenceDate.Add(occurrence.StartTime.ToTimeSpan()),
-            DateTimeKind.Local
+        var localStart = DateTime.SpecifyKind(
+            localDate.Add(occurrence.StartTime.ToTimeSpan()),
+            DateTimeKind.Unspecified
         );
-        var endDateTime = DateTime.SpecifyKind(
-            occurrenceDate.Add(occurrence.EndTime.ToTimeSpan()),
-            DateTimeKind.Local
+        var localEnd = DateTime.SpecifyKind(
+            localDate.Add(occurrence.EndTime.ToTimeSpan()),
+            DateTimeKind.Unspecified
         );
 
-        // Allow 10 minutes before start time
-        var earlyStartDateTime = startDateTime.AddMinutes(-10).ToUniversalTime();
+        var startUtc = TimeZoneInfo.ConvertTimeToUtc(localStart, tz);
+        var endUtc = TimeZoneInfo.ConvertTimeToUtc(localEnd, tz);
+        var earlyStartUtc = startUtc.AddMinutes(-10);
 
-        // Check if current time is within the valid check-in window
-        if (!(earlyStartDateTime <= now && now <= endDateTime))
+        var nowUtc = DateTime.UtcNow;
+
+        // Check if current time (UTC) is within the valid check-in window (UTC)
+        if (!(earlyStartUtc <= nowUtc && nowUtc <= endUtc))
         {
             throw new ApiException(
-                $"Chỉ có thể check-in trong khung giờ đã đặt: {earlyStartDateTime} - {now} - {endDateTime}",
+                $"Chỉ có thể check-in trong khung giờ đã đặt: {earlyStartUtc} - {nowUtc} - {endUtc}",
                 HttpStatusCode.BadRequest
             );
         }

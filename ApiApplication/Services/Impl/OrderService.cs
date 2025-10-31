@@ -234,7 +234,7 @@ public class OrderService(
             var amount = ((long)Math.Ceiling(totalAmount)).ToString();
             var des = Uri.EscapeDataString(order.Id.ToString());
             qrUrl = $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
-            holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 15;
+            holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
 
             System.Console.WriteLine($"QR URL created: {qrUrl}");
         }

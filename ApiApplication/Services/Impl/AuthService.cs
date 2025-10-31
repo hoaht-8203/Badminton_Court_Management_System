@@ -437,11 +437,20 @@ public class AuthService(
 
         if (userExists)
         {
-            throw new ApiException("Email đã tồn tại", HttpStatusCode.BadRequest);
+            throw new ApiException(
+                "Email hoặc tên đăng nhập đã tồn tại",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        var userNameExists = await _userManager.FindByNameAsync(registerRequest.UserName) != null;
+        if (userNameExists)
+        {
+            throw new ApiException("Tên đăng nhập đã tồn tại", HttpStatusCode.BadRequest);
         }
 
         var user = _mapper.Map<ApplicationUser>(registerRequest);
-        user.UserName = registerRequest.Email.Split('@')[0];
+        user.UserName = registerRequest.UserName;
         user.PasswordHash = _userManager.PasswordHasher.HashPassword(
             user,
             registerRequest.Password
@@ -460,13 +469,14 @@ public class AuthService(
 
         await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.User));
 
-        var emailConfirmToken = Guid.NewGuid().ToString("N");
+        // gen otp with six number
+        var otp = new Random().Next(100000, 999999).ToString();
 
         _context.ApplicationUserTokens.Add(
             new ApplicationUserToken
             {
                 UserId = user.Id,
-                Token = emailConfirmToken,
+                Token = otp,
                 TokenType = TokenType.EmailConfirm,
                 ExpiresAtUtc = DateTime.UtcNow.AddDays(1),
             }
@@ -482,7 +492,7 @@ public class AuthService(
                         To = user.Email!,
                         ToName = user.FullName,
                         FullName = user.FullName,
-                        Token = emailConfirmToken,
+                        Token = otp,
                         ExpiresAt = "24 giờ",
                     }
                 ),

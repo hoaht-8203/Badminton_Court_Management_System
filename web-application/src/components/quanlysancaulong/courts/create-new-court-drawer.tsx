@@ -44,7 +44,7 @@ import {
 import { CarouselRef } from "antd/es/carousel";
 import FormItem from "antd/es/form/FormItem";
 import dayjs, { Dayjs } from "dayjs";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
@@ -110,6 +110,7 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
   const [courtImageUrl, setCourtImageUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [courtImageFileName, setCourtImageFileName] = useState<string | null>(null);
+  const [activeSegment, setActiveSegment] = useState(0);
 
   const daysOptions = useMemo(
     () => [
@@ -133,6 +134,17 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
     isFetching: loadingCourtPricingRuleTemplates,
     refetch: refetchCourtPricingRuleTemplates,
   } = useListCourtPricingRuleTemplates();
+
+  // Reset core states whenever drawer opens to avoid stale image/form state
+  useEffect(() => {
+    if (open) {
+      formCreateBasicInfoOfCourt.resetFields();
+      formCreateCourtPriceRule.resetFields();
+      setCourtImageUrl(null);
+      setCourtImageFileName(null);
+      setUploading(false);
+    }
+  }, [open, formCreateBasicInfoOfCourt, formCreateCourtPriceRule]);
 
   const handleSubmit: FormProps<CreateCourtRequest>["onFinish"] = (values) => {
     if (!courtPricingRules.length) {
@@ -177,6 +189,9 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
       order: courtPricingRules.length + 1,
     };
     setCourtPricingRules((prev) => [...prev, rule]);
+
+    // Clear both UI state and form store fields
+    formCreateCourtPriceRule.resetFields(["daysOfWeek", "startTime", "pricePerHour"]);
     setNewRuleDaysOfWeek([]);
     setNewRuleStartTime(null);
     setNewRuleEndTime(null);
@@ -193,6 +208,7 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
     setNewRulePricePerHour(null);
     setIsUsingPricingRuleTemplate(false);
     carouselRef.current?.goTo(0);
+    setActiveSegment(0);
 
     try {
       if (courtImageFileName) {
@@ -301,40 +317,30 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
             <Button onClick={handleClose} icon={<CloseOutlined />}>
               Hủy
             </Button>
-            <Button
-              type="primary"
-              onClick={() => formCreateBasicInfoOfCourt.submit()}
-              htmlType="submit"
-              icon={<PlusOutlined />}
-              loading={createMutation.isPending}
-            >
+            <Button type="primary" onClick={() => formCreateBasicInfoOfCourt.submit()} icon={<PlusOutlined />} loading={createMutation.isPending}>
               Thêm sân
             </Button>
           </Space>
         }
       >
         <Segmented
-          defaultValue={1}
+          value={activeSegment}
           options={[
             {
               label: "Cấu hình thông tin sân cầu lông",
-              value: 1,
+              value: 0,
               icon: <InfoCircleOutlined />,
             },
             {
               label: "Cấu hình giá sân cầu lông theo khung giờ",
-              value: 2,
+              value: 1,
               icon: <CalendarOutlined />,
             },
           ]}
           block
           onChange={(value: number) => {
-            if (value === 1) {
-              carouselRef.current?.goTo(0);
-            } else {
-              carouselRef.current?.goTo(1);
-            }
-            return value;
+            setActiveSegment(value);
+            carouselRef.current?.goTo(value);
           }}
         />
         <Carousel infinite={false} ref={carouselRef} dots={false} draggable={false}>
@@ -433,6 +439,7 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
                         value={newRuleDaysOfWeek}
                         options={daysOptions}
                         onChange={(vals) => setNewRuleDaysOfWeek(vals)}
+                        allowClear
                       />
                     </FormItem>
                   </Col>
@@ -445,11 +452,16 @@ const CreateNewCourtDrawer = ({ open, onClose }: CreateNewCourtDrawerProps) => {
                       <TimePicker.RangePicker
                         value={[newRuleStartTime, newRuleEndTime]}
                         onChange={(vals) => {
-                          if (!vals) return;
+                          if (!vals) {
+                            setNewRuleStartTime(null);
+                            setNewRuleEndTime(null);
+                            return;
+                          }
                           setNewRuleStartTime(vals[0]);
                           setNewRuleEndTime(vals[1]);
                         }}
                         style={{ width: "100%" }}
+                        allowClear
                       />
                     </FormItem>
                   </Col>

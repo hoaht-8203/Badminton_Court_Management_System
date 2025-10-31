@@ -1127,7 +1127,7 @@ public class BookingCourtService(
         }
 
         // Validate time window: only check-in during valid time
-        var now = DateTime.Now.AddHours(7);
+        var now = DateTime.Now.ToUniversalTime();
         var occurrenceDate = occurrence.Date.ToDateTime(TimeOnly.MinValue).ToUniversalTime();
 
         // Create full DateTime objects for comparison
@@ -1141,7 +1141,7 @@ public class BookingCourtService(
         if (!(earlyStartDateTime <= now && now <= endDateTime))
         {
             throw new ApiException(
-                "Chỉ có thể check-in trong khung giờ đã đặt",
+                $"Chỉ có thể check-in trong khung giờ đã đặt: {earlyStartDateTime} - {now} - {endDateTime}",
                 HttpStatusCode.BadRequest
             );
         }

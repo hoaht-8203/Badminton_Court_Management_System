@@ -58,7 +58,8 @@ public class OrderService(
             var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
             var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
             var amount = ((long)Math.Ceiling(order.TotalAmount)).ToString();
-            var des = Uri.EscapeDataString(order.Id.ToString());
+            var paymentIdForQr = order.Payments.FirstOrDefault()?.Id ?? string.Empty;
+            var des = Uri.EscapeDataString(paymentIdForQr);
             qrUrl = $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
             holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 15;
         }
@@ -232,7 +233,7 @@ public class OrderService(
             var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
             var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
             var amount = ((long)Math.Ceiling(totalAmount)).ToString();
-            var des = Uri.EscapeDataString(order.Id.ToString());
+            var des = Uri.EscapeDataString(payment.Id);
             qrUrl = $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
             holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
 

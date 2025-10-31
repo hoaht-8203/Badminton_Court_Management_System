@@ -65,7 +65,7 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
     {
         if (
             await _context.Courts.AnyAsync(c =>
-                c.Name == request.Name && c.CourtAreaId == request.CourtAreaId
+                c.CourtAreaId == request.CourtAreaId && EF.Functions.ILike(c.Name, request.Name)
             )
         )
         {

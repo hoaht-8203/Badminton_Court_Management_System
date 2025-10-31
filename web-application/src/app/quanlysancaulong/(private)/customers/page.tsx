@@ -276,9 +276,6 @@ const CustomerInformation = ({
             </Button>
           </div>
           <div className="flex gap-2">
-            <Button danger icon={<DeleteOutlined />} onClick={handleClickDeleteCustomer}>
-              Xóa khách hàng
-            </Button>
             {record.status === CustomerStatus.Active && (
               <Button danger icon={<StopOutlined />} onClick={() => handleClickChangeCustomerStatus(CustomerStatus.Inactive)}>
                 Ngừng hoạt động

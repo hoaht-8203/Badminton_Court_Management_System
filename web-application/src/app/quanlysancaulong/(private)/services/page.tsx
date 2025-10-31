@@ -171,7 +171,17 @@ const ServiceInformation = ({
           <Col span={7}>
             <Row gutter={16}>
               <Col span={8}>Danh mục:</Col>
-              <Col span={16}>{record.category || "-"}</Col>
+              <Col span={16}>
+                {record.category === "Equipment"
+                  ? "Thiết bị"
+                  : record.category === "Referee"
+                    ? "Trọng tài"
+                    : record.category === "Clothing"
+                      ? "Quần áo"
+                      : record.category === "Other"
+                        ? "Khác"
+                        : record.category || "-"}
+              </Col>
               <Col span={24}>
                 <Divider size="small" />
               </Col>

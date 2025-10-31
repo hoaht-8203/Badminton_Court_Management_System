@@ -13,7 +13,7 @@ export const columns: TableProps<ListCourtResponse>["columns"] = [
     dataIndex: "note",
     key: "note",
     width: 220,
-    render: (v: string | null) => v?.substring(0, 100) + (v && v.length > 100 ? "..." : "") || "-",
+    render: (v: string | null) => (v !== null ? v.substring(0, 100) + (v && v.length > 100 ? "..." : "") : "-"),
   },
   {
     title: "Trạng thái",

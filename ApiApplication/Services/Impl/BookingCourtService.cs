@@ -1131,11 +1131,11 @@ public class BookingCourtService(
         var occurrenceDate = occurrence.Date.ToDateTime(TimeOnly.MinValue).ToUniversalTime();
 
         // Create full DateTime objects for comparison
-        var startDateTime = occurrenceDate.Add(occurrence.StartTime.ToTimeSpan());
-        var endDateTime = occurrenceDate.Add(occurrence.EndTime.ToTimeSpan());
+        var startDateTime = occurrenceDate.Add(occurrence.StartTime.ToTimeSpan()).ToUniversalTime();
+        var endDateTime = occurrenceDate.Add(occurrence.EndTime.ToTimeSpan()).ToUniversalTime();
 
         // Allow 10 minutes before start time
-        var earlyStartDateTime = startDateTime.AddMinutes(-10);
+        var earlyStartDateTime = startDateTime.AddMinutes(-10).ToUniversalTime();
 
         // Check if current time is within the valid check-in window
         if (!(earlyStartDateTime <= now && now <= endDateTime))

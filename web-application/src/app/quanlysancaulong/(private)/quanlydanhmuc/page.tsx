@@ -7,7 +7,7 @@ import UpdateProductDrawer from "@/components/quanlysancaulong/products/update-p
 import { useDeleteProduct, /* useUpdateProduct, */ useDetailProduct, useListProducts } from "@/hooks/useProducts";
 import { ApiError, axiosInstance } from "@/lib/axios";
 import { DetailProductResponse, ListProductRequest, ListProductResponse } from "@/types-openapi/api";
-import { CheckOutlined, DeleteOutlined, EditOutlined, PlusOutlined, ReloadOutlined, StopOutlined } from "@ant-design/icons";
+import { CheckOutlined, EditOutlined, PlusOutlined, ReloadOutlined, StopOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Col, Divider, Image, message, Modal, Row, Table, TableProps, Tabs, Tag } from "antd";
 import { useEffect, useMemo, useState } from "react";
 
@@ -94,7 +94,11 @@ const ProductCategoryPage = () => {
                 ...col,
                 render: (_, record) => {
                   if ((record as any).isSummaryRow) {
-                    return <StockSummaryCell productIds={tableData.filter((item) => !(item as any).isSummaryRow).map((item) => item.id!)} />;
+                    return (
+                      <StockSummaryCell
+                        productIds={tableData.filter((item) => !(item as any).isSummaryRow).map((item) => item.id!)}
+                      />
+                    );
                   }
                   return <StockCell productId={record.id!} />;
                 },
@@ -264,7 +268,7 @@ const ProductInformation = ({
                               className="max-h-32 flex-1 overflow-y-auto rounded border border-gray-200 px-2 py-1 text-sm"
                               style={{ minHeight: "32px" }}
                             >
-                              {d?.description || "-"}
+                              {d?.description || ""}
                             </div>
                           </div>
                           <Divider size="small" style={{ margin: "4px 0" }} />
@@ -318,9 +322,6 @@ const ProductInformation = ({
                     </Button>
                   </div>
                   <div className="flex gap-2">
-                    <Button danger icon={<DeleteOutlined />} onClick={onDelete}>
-                      Xóa hàng hóa
-                    </Button>
                     {isActive ? (
                       <Button danger icon={<StopOutlined />} onClick={() => onChangeStatus(false)}>
                         Ngừng kinh doanh
@@ -361,6 +362,15 @@ const ProductInventoryCards = ({ productId }: { productId: number }) => {
         const svc = await import("@/services/inventoryService");
         const res: any = await svc.inventoryService.listCardsByProduct(productId);
         setData(res?.data || []);
+      } catch (error: any) {
+        // If product has no inventory cards yet, treat as empty list (not an error)
+        if (error?.message?.includes("Không tìm thấy") || error?.status === 404) {
+          setData([]);
+        } else {
+          // Only log actual unexpected errors
+          console.error("Error loading inventory cards:", error);
+          setData([]);
+        }
       } finally {
         setLoading(false);
       }

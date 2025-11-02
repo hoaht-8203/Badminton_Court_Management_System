@@ -304,107 +304,148 @@ const PriceInformation = ({
   const CostCell = ({ productId }: { productId: number }) => {
     const { data: detail } = useDetailProduct({ id: productId }, true);
     const cost = (detail?.data as any)?.costPrice;
-    return <>{formatCurrency(cost)}</>;
+    return <span className="text-gray-600">{formatCurrency(cost)}</span>;
   };
 
   return (
-    <div>
-      <Row gutter={16} className="mb-3">
-        <Col span={12}>
-          <Row gutter={8}>
-            <Col span={8}>Tên bảng giá:</Col>
-            <Col span={16}>{record.name}</Col>
-            <Col span={24}>
-              <hr />
-            </Col>
-            <Col span={8}>Hiệu lực:</Col>
-            <Col span={16}>
-              {(record.effectiveFrom ? dayjs(record.effectiveFrom).format("DD/MM/YYYY") : "---") +
-                " - " +
-                (record.effectiveTo ? dayjs(record.effectiveTo).format("DD/MM/YYYY") : "---")}
-            </Col>
-            {record.effectiveFrom || record.effectiveTo ? (
-              <>
-                <Col span={8}></Col>
-                <Col span={16}>
-                  <small className="text-gray-500">
-                    (Từ {record.effectiveFrom ? dayjs(record.effectiveFrom).format("DD/MM/YYYY HH:mm") : "---"} đến{" "}
-                    {record.effectiveTo ? dayjs(record.effectiveTo).format("DD/MM/YYYY HH:mm") : "---"})
-                  </small>
-                </Col>
-              </>
-            ) : null}
-          </Row>
-        </Col>
-        <Col span={12}>
-          <Row gutter={8}>
-            <Col span={8}>Trạng thái:</Col>
-            <Col span={16}>
-              <Tag color={record.isActive ? "green" : "red"}>{record.isActive ? "Kích hoạt" : "Không kích hoạt"}</Tag>
-            </Col>
-          </Row>
-        </Col>
-      </Row>
+    <div className="p-4">
+      {/* Thông tin chung */}
+      <Card className="mb-4" title={<span className="text-lg font-semibold">Thông tin bảng giá</span>}>
+        <Row gutter={[24, 16]}>
+          <Col xs={24} sm={12} lg={8}>
+            <div className="space-y-1">
+              <div className="text-sm text-gray-500">Tên bảng giá</div>
+              <div className="text-base font-medium text-gray-900">{record.name}</div>
+            </div>
+          </Col>
+          <Col xs={24} sm={12} lg={8}>
+            <div className="space-y-1">
+              <div className="text-sm text-gray-500">Trạng thái</div>
+              <div>
+                <Tag color={record.isActive ? "green" : "red"} className="text-sm px-2 py-1">
+                  {record.isActive ? "Kích hoạt" : "Không kích hoạt"}
+                </Tag>
+              </div>
+            </div>
+          </Col>
+          <Col xs={24} sm={12} lg={8}>
+            <div className="space-y-1">
+              <div className="text-sm text-gray-500">Hiệu lực</div>
+              <div className="text-base text-gray-900">
+                {record.effectiveFrom || record.effectiveTo ? (
+                  <span>
+                    {record.effectiveFrom ? dayjs(record.effectiveFrom).format("DD/MM/YYYY") : "---"} -{" "}
+                    {record.effectiveTo ? dayjs(record.effectiveTo).format("DD/MM/YYYY") : "---"}
+                  </span>
+                ) : (
+                  <span className="text-gray-400">Không giới hạn</span>
+                )}
+              </div>
+              {(record.effectiveFrom || record.effectiveTo) && (
+                <div className="text-xs text-gray-400 mt-1">
+                  {record.effectiveFrom ? dayjs(record.effectiveFrom).format("DD/MM/YYYY HH:mm") : "---"} →{" "}
+                  {record.effectiveTo ? dayjs(record.effectiveTo).format("DD/MM/YYYY HH:mm") : "---"}
+                </div>
+              )}
+            </div>
+          </Col>
+        </Row>
+      </Card>
 
+      {/* Khung giờ */}
       {d?.timeRanges && d.timeRanges.length > 0 && (
-        <div className="mb-3">
-          <div className="mb-2 font-semibold">Khung giờ</div>
-          <List
-            bordered
-            dataSource={d.timeRanges}
-            renderItem={(it) => (
-              <List.Item>
-                <Space>
-                  <Tag>
-                    {it.startTime} - {it.endTime}
-                  </Tag>
-                </Space>
-              </List.Item>
-            )}
-          />
-        </div>
+        <Card className="mb-4" title={<span className="text-lg font-semibold">Khung giờ áp dụng</span>}>
+          <div className="flex flex-wrap gap-2">
+            {d.timeRanges.map((it, idx) => (
+              <Tag key={idx} color="blue" className="text-sm px-3 py-1 mb-2">
+                {it.startTime} - {it.endTime}
+              </Tag>
+            ))}
+          </div>
+        </Card>
       )}
 
-      <div className="mb-3">
-        <div className="mb-2 font-semibold">Sản phẩm áp dụng</div>
-        <Table
-          rowKey="id"
-          size="small"
-          pagination={false}
-          dataSource={products}
-          columns={[
-            { title: "Mã", dataIndex: "code", key: "code" },
-            { title: "Tên hàng", dataIndex: "name", key: "name" },
-            { title: "Nhóm", dataIndex: "category", key: "category" },
-            { title: "Giá vốn", key: "costPrice", render: (_: any, r: any) => <CostCell productId={r.id} /> },
-            { title: "Giá áp dụng", key: "override", render: (_: any, r: any) => formatCurrency(selectedIdToPrice.get(r.id) ?? r.salePrice) },
-          ]}
-        />
-      </div>
-
-      <div className="flex justify-between">
-        <div></div>
-        <div className="flex gap-2">
-          {record.isActive ? (
-            <Button danger icon={<StopOutlined />} onClick={() => onChangeStatus(false)}>
-              Ngừng áp dụng
-            </Button>
-          ) : (
-            <Button
-              className="!border-green-500 !bg-green-500 !text-white hover:!border-green-500 hover:!bg-green-500 hover:!text-white focus:!shadow-none active:!bg-green-500"
-              icon={<CheckOutlined />}
-              onClick={() => onChangeStatus(true)}
-            >
-              Kích hoạt
-            </Button>
-          )}
-          <Button type="primary" icon={<EditOutlined />} onClick={onEdit}>
-            Sửa bảng giá
-          </Button>
-          <Button danger icon={<DeleteOutlined />} onClick={onDelete}>
-            Xoá
-          </Button>
+      {/* Sản phẩm áp dụng */}
+      <Card
+        className="mb-4"
+        title={
+          <div className="flex items-center justify-between">
+            <span className="text-lg font-semibold">Sản phẩm áp dụng</span>
+            <Tag color="cyan" className="text-sm">{products.length} sản phẩm</Tag>
+          </div>
+        }
+      >
+        <div className="max-h-96 overflow-y-auto">
+          <Table
+            rowKey="id"
+            size="small"
+            pagination={false}
+            dataSource={products}
+            bordered
+            columns={[
+              {
+                title: "Mã sản phẩm",
+                dataIndex: "code",
+                key: "code",
+                width: 120,
+                fixed: "left",
+              },
+              {
+                title: "Tên hàng",
+                dataIndex: "name",
+                key: "name",
+                width: 200,
+                ellipsis: true,
+              },
+              {
+                title: "Nhóm hàng",
+                dataIndex: "category",
+                key: "category",
+                width: 150,
+              },
+              {
+                title: "Giá vốn",
+                key: "costPrice",
+                width: 120,
+                align: "right",
+                render: (_: any, r: any) => <CostCell productId={r.id} />,
+              },
+              {
+                title: "Giá áp dụng",
+                key: "override",
+                width: 150,
+                align: "right",
+                render: (_: any, r: any) => {
+                  const price = selectedIdToPrice.get(r.id) ?? r.salePrice;
+                  return <span className="font-semibold text-blue-600">{formatCurrency(price)} đ</span>;
+                },
+              },
+            ]}
+          />
         </div>
+      </Card>
+
+      {/* Actions */}
+      <div className="flex justify-end gap-2 pt-4 border-t">
+        {record.isActive ? (
+          <Button danger icon={<StopOutlined />} onClick={() => onChangeStatus(false)}>
+            Ngừng áp dụng
+          </Button>
+        ) : (
+          <Button
+            className="!border-green-500 !bg-green-500 !text-white hover:!border-green-500 hover:!bg-green-500 hover:!text-white focus:!shadow-none active:!bg-green-500"
+            icon={<CheckOutlined />}
+            onClick={() => onChangeStatus(true)}
+          >
+            Kích hoạt
+          </Button>
+        )}
+        <Button type="primary" icon={<EditOutlined />} onClick={onEdit}>
+          Sửa bảng giá
+        </Button>
+        <Button danger icon={<DeleteOutlined />} onClick={onDelete}>
+          Xoá
+        </Button>
       </div>
     </div>
   );

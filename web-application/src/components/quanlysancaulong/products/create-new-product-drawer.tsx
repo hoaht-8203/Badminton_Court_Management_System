@@ -9,6 +9,7 @@ import { Button, Checkbox, Col, Drawer, Form, Input, InputNumber, Row, Space, Up
 import { Tooltip } from "antd";
 import { InfoCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 type CreateNewProductDrawerProps = {
   open: boolean;
@@ -27,6 +28,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [uploading, setUploading] = useState(false);
   const [manageInventory, setManageInventory] = useState(false);
+  const qc = useQueryClient();
 
   const uploadProps: UploadProps = {
     beforeUpload: () => false,
@@ -88,8 +90,13 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
               setUploading(true);
               await productService.updateImages(productId, files.map((f) => f.originFileObj as File).filter(Boolean));
               message.success("Tải ảnh thành công");
+              // Ensure detail shows new images and lists refresh
+              qc.invalidateQueries({ queryKey: ["product", { id: productId }] });
+              qc.invalidateQueries({ queryKey: ["product", productId] });
             }
 
+            // Refresh product lists
+            qc.invalidateQueries({ queryKey: ["products"] });
             // FE không gọi tạo phiếu kiểm kho ở đây nữa
           } else if (files.length > 0) {
             message.warning("Đã tạo hàng. Vui lòng đặt mã code để tải ảnh ngay lần tới.");
@@ -111,7 +118,16 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
         form={form}
         layout="vertical"
         onFinish={onSubmit}
-        initialValues={{ isDirectSale: true, manageInventory: false, menuType: presetMenuType, maxStock: 999, stock: 0, minStock: 0 }}
+        initialValues={{
+          isDirectSale: true,
+          manageInventory: false,
+          menuType: presetMenuType,
+          maxStock: 999,
+          stock: 0,
+          minStock: 0,
+          costPrice: 0,
+          salePrice: 0,
+        }}
       >
         <Row gutter={16}>
           <Col span={12}>
@@ -157,7 +173,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
 
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item name="menuType" label="Loại thực đơn">
+            <Form.Item name="menuType" label="Loại thực đơn" rules={[{ required: true, message: "Vui lòng chọn loại thực đơn" }]}>
               <Select
                 options={[
                   { label: "Đồ ăn", value: "Đồ ăn" },
@@ -171,7 +187,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="categoryId" label="Nhóm hàng">
+            <Form.Item name="categoryId" label="Nhóm hàng" rules={[{ required: true, message: "Vui lòng chọn nhóm hàng" }]}>
               <Select
                 placeholder="Chọn nhóm hàng"
                 allowClear
@@ -229,7 +245,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="unit" label="Đơn vị tính">
+            <Form.Item name="unit" label="Đơn vị tính" rules={[{ required: true, message: "Vui lòng nhập đơn vị tính" }]}>
               <Input />
             </Form.Item>
           </Col>
@@ -252,6 +268,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
               name="salePrice"
               label="Giá bán"
               rules={[
+                { required: true, message: "Vui lòng nhập giá bán" },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
                     const cp = Number(getFieldValue("costPrice") || 0);

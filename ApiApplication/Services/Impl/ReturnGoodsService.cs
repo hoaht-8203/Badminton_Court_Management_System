@@ -190,10 +190,10 @@ namespace ApiApplication.Services.Impl
                     UpdatedAt = DateTime.UtcNow,
                 };
 
-                // Calculate totals
-                decimal totalValue = 0;
-                foreach (var item in request.Items)
-                {
+            // Calculate totals
+            decimal totalValue = 0;
+            foreach (var item in request.Items)
+            {
                     // Kiểm tra sản phẩm có tồn tại không
                     var product = await _context.Products.FirstOrDefaultAsync(p =>
                         p.Id == item.ProductId
@@ -207,25 +207,25 @@ namespace ApiApplication.Services.Impl
                         );
                     }
 
-                    var lineTotal = (item.Quantity * item.ReturnPrice) - item.Discount;
-                    totalValue += lineTotal;
+                var lineTotal = (item.Quantity * item.ReturnPrice) - item.Discount;
+                totalValue += lineTotal;
 
-                    returnGoods.Items.Add(
-                        new ReturnGoodsItem
-                        {
-                            ProductId = item.ProductId,
-                            Quantity = item.Quantity,
-                            ImportPrice = item.ImportPrice,
-                            ReturnPrice = item.ReturnPrice,
-                            Discount = item.Discount,
-                            LineTotal = lineTotal,
-                            Note = item.Note ?? string.Empty,
-                        }
-                    );
-                }
+                returnGoods.Items.Add(
+                    new ReturnGoodsItem
+                    {
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        ImportPrice = item.ImportPrice,
+                        ReturnPrice = item.ReturnPrice,
+                        Discount = item.Discount,
+                        LineTotal = lineTotal,
+                        Note = item.Note ?? string.Empty,
+                    }
+                );
+            }
 
-                returnGoods.TotalValue = totalValue;
-                returnGoods.SupplierNeedToPay = totalValue - request.Discount;
+            returnGoods.TotalValue = totalValue;
+            returnGoods.SupplierNeedToPay = totalValue - request.Discount;
 
                 // Auto set payment amount when completing with cash payment
                 if (request.Complete && request.PaymentMethod == 0) // 0 = cash
@@ -233,15 +233,15 @@ namespace ApiApplication.Services.Impl
                     returnGoods.SupplierPaid = returnGoods.SupplierNeedToPay;
                 }
 
-                _context.ReturnGoods.Add(returnGoods);
+            _context.ReturnGoods.Add(returnGoods);
 
-                if (request.Complete)
-                {
-                    await ProcessReturnGoodsAsync(returnGoods);
-                }
+            if (request.Complete)
+            {
+                await ProcessReturnGoodsAsync(returnGoods);
+            }
 
-                await _context.SaveChangesAsync();
-                return returnGoods.Id;
+            await _context.SaveChangesAsync();
+            return returnGoods.Id;
             }
             catch (ApiException)
             {
@@ -397,7 +397,7 @@ namespace ApiApplication.Services.Impl
             {
                 var inventoryCode =
                     await _inventoryCardService.GenerateNextInventoryCardCodeAsync();
-
+              
                 var inventoryCard = new InventoryCard
                 {
                     ProductId = item.ProductId,
@@ -458,16 +458,16 @@ namespace ApiApplication.Services.Impl
                 var systemQuantity = product.Stock + item.Quantity; // Stock before return
                 var actualQuantity = product.Stock; // Stock after return
                 
-                inventoryCheck.Items.Add(
-                    new InventoryCheckItem
-                    {
-                        ProductId = item.ProductId,
+                    inventoryCheck.Items.Add(
+                        new InventoryCheckItem
+                        {
+                            ProductId = item.ProductId,
                         SystemQuantity = systemQuantity, // Stock before return
                         ActualQuantity = actualQuantity, // Stock after return
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
-                    }
-                );
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow,
+                        }
+                    );
                 }
             }
 

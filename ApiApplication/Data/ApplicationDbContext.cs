@@ -67,6 +67,7 @@ public class ApplicationDbContext(
     public DbSet<BookingCourtOccurrence> BookingCourtOccurrences { get; set; }
     public DbSet<Blog> Blogs { get; set; }
     public DbSet<Slider> Sliders { get; set; }
+    public DbSet<Feedback> Feedbacks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

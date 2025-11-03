@@ -91,6 +91,7 @@ builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<ICashflowTypeService, CashFlowTypeService>();
 builder.Services.AddScoped<ISliderService, SliderService>();
 builder.Services.AddScoped<IExportService, ExportService>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -129,6 +130,7 @@ builder.Services.AddAutoMapper(config => config.AddProfile<CashflowMappingProfil
 builder.Services.AddAutoMapper(config => config.AddProfile<OrderMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<BlogMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<SliderMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<FeedbackMappingProfile>());
 
 // MinIO client
 builder.Services.AddSingleton<IMinioClient>(sp =>

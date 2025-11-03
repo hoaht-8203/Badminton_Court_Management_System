@@ -11,9 +11,11 @@ apis/CourtsApi.ts
 apis/CustomersApi.ts
 apis/DepartmentApi.ts
 apis/EmailApi.ts
+apis/ExportsApi.ts
 apis/FilesApi.ts
 apis/InventoryCardsApi.ts
 apis/InventoryChecksApi.ts
+apis/MembershipsApi.ts
 apis/NotificationsApi.ts
 apis/OrdersApi.ts
 apis/PaymentWebhooksApi.ts
@@ -34,6 +36,7 @@ apis/StockOutsApi.ts
 apis/StoreBankAccountsApi.ts
 apis/SupplierBankAccountsApi.ts
 apis/SuppliersApi.ts
+apis/UserMembershipsApi.ts
 apis/UsersApi.ts
 apis/index.ts
 index.ts
@@ -112,7 +115,9 @@ models/CreateInventoryCardForSaleRequest.ts
 models/CreateInventoryCardRequest.ts
 models/CreateInventoryCheckItem.ts
 models/CreateInventoryCheckRequest.ts
+models/CreateMembershipRequest.ts
 models/CreateOrderRequest.ts
+models/CreatePaymentForMembershipRequest.ts
 models/CreatePaymentForOrderRequest.ts
 models/CreatePaymentRequest.ts
 models/CreatePayrollRequest.ts
@@ -131,6 +136,9 @@ models/CreateStockOutItem.ts
 models/CreateStockOutRequest.ts
 models/CreateStoreBankAccountRequest.ts
 models/CreateSupplierRequest.ts
+models/CreateUserMembershipRequest.ts
+models/CreateUserMembershipResponse.ts
+models/CreateUserMembershipResponseApiResponse.ts
 models/CurrentUserResponse.ts
 models/CurrentUserResponseApiResponse.ts
 models/Customer.ts
@@ -143,6 +151,7 @@ models/DeleteCourtPricingRuleTemplateRequest.ts
 models/DeleteCourtRequest.ts
 models/DeleteCustomerRequest.ts
 models/DeleteFileRequest.ts
+models/DeleteMembershipRequest.ts
 models/DeletePriceTableProductRequest.ts
 models/DeletePriceTableRequest.ts
 models/DeletePriceTimeRangeRequest.ts
@@ -182,6 +191,9 @@ models/DetailCustomerResponse.ts
 models/DetailCustomerResponseApiResponse.ts
 models/DetailInventoryCheckResponse.ts
 models/DetailInventoryCheckResponseApiResponse.ts
+models/DetailMembershipRequest.ts
+models/DetailMembershipResponse.ts
+models/DetailMembershipResponseApiResponse.ts
 models/DetailPaymentByBookingIdRequest.ts
 models/DetailPaymentRequest.ts
 models/DetailPaymentResponse.ts
@@ -220,6 +232,7 @@ models/EmailResponseApiResponse.ts
 models/EmailTemplateRequest.ts
 models/EmailTemplateType.ts
 models/EndServiceRequest.ts
+models/ExtendPaymentRequest.ts
 models/ForgotPasswordRequest.ts
 models/Int32ApiResponse.ts
 models/Int32ListApiResponse.ts
@@ -269,6 +282,9 @@ models/ListDepartmentRequest.ts
 models/ListInventoryCheckRequest.ts
 models/ListInventoryCheckResponse.ts
 models/ListInventoryCheckResponseListApiResponse.ts
+models/ListMembershipRequest.ts
+models/ListMembershipResponse.ts
+models/ListMembershipResponseArrayApiResponse.ts
 models/ListNotificationRequestDto.ts
 models/ListOrderRequest.ts
 models/ListOrderResponse.ts
@@ -308,10 +324,12 @@ models/ListSupplierResponse.ts
 models/ListSupplierResponseListApiResponse.ts
 models/ListUserBookingHistoryResponse.ts
 models/ListUserBookingHistoryResponseListApiResponse.ts
+models/ListUserMembershipRequest.ts
 models/ListUserRoleItemResponse.ts
 models/ListUserRoleItemResponseListApiResponse.ts
 models/ListUserRolesRequest.ts
 models/LoginRequest.ts
+models/Membership.ts
 models/MergeInventoryChecksRequest.ts
 models/MyProfileResponse.ts
 models/MyProfileResponseApiResponse.ts
@@ -417,6 +435,8 @@ models/UpdateCustomerRequest.ts
 models/UpdateInventoryCardRequest.ts
 models/UpdateInventoryCardResponse.ts
 models/UpdateInventoryCardResponseApiResponse.ts
+models/UpdateMemberShipStatusRequest.ts
+models/UpdateMembershipRequest.ts
 models/UpdateMyProfileRequest.ts
 models/UpdateNoteRequest.ts
 models/UpdateOrderItemRequest.ts
@@ -431,6 +451,7 @@ models/UpdateServiceRequest.ts
 models/UpdateSliderRequest.ts
 models/UpdateStockOutNoteRequest.ts
 models/UpdateSupplierRequest.ts
+models/UpdateUserMembershipStatusRequest.ts
 models/UpdateUserRequest.ts
 models/UpdateUserRolesRequest.ts
 models/UploadFileRequest.ts
@@ -438,6 +459,10 @@ models/UploadFileResponse.ts
 models/UploadFileResponseApiResponse.ts
 models/UpsertBankAccountRequest.ts
 models/UserCreateBookingCourtRequest.ts
+models/UserMembership.ts
+models/UserMembershipResponse.ts
+models/UserMembershipResponseApiResponse.ts
+models/UserMembershipResponseArrayApiResponse.ts
 models/ValidateForgotPasswordRequest.ts
 models/VerifyEmailRequest.ts
 models/WaitHandle.ts

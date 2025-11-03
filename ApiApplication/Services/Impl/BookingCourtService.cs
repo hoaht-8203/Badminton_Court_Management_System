@@ -214,7 +214,7 @@ public class BookingCourtService(
         entity.DaysOfWeek = reqDaysArr;
         // For receptionist flow, create booking as PendingPayment until SePay confirms
         entity.Status = BookingCourtStatus.PendingPayment;
-        var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 15;
+        var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
         entity.HoldExpiresAtUtc = DateTime.UtcNow.AddMinutes(holdMins);
 
         await _context.BookingCourts.AddAsync(entity);
@@ -483,7 +483,7 @@ public class BookingCourtService(
         entity.DaysOfWeek = reqDaysArr;
         // For receptionist flow, create booking as PendingPayment until SePay confirms
         entity.Status = BookingCourtStatus.PendingPayment;
-        var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 15;
+        var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
         entity.HoldExpiresAtUtc = DateTime.UtcNow.AddMinutes(holdMins);
 
         await _context.BookingCourts.AddAsync(entity);

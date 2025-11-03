@@ -6,6 +6,9 @@ public interface IPaymentService
 {
     Task<DetailPaymentResponse> CreatePaymentAsync(CreatePaymentRequest request);
     Task<DetailPaymentResponse> CreatePaymentForOrderAsync(CreatePaymentForOrderRequest request);
+    Task<DetailPaymentResponse> CreatePaymentForMembershipAsync(
+        CreatePaymentForMembershipRequest request
+    );
     Task<DetailPaymentResponse?> DetailByBookingIdAsync(DetailPaymentByBookingIdRequest request);
     Task<DetailPaymentResponse?> DetailPaymentByIdAsync(DetailPaymentRequest request);
 }

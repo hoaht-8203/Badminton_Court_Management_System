@@ -60,7 +60,8 @@ public class BookingHoldExpiryHostedService(
 
                     // Cancel payments tied to these bookings that are still pending
                     var pendingPaymentQuery = db.Payments.Where(i =>
-                        expiredIds.Contains(i.BookingId) && i.Status == PaymentStatus.PendingPayment
+                        expiredIds.Contains(i.BookingId!.Value)
+                        && i.Status == PaymentStatus.PendingPayment
                     );
 
                     var cancelledPaymentIds = await pendingPaymentQuery

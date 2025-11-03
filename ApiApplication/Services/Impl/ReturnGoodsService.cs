@@ -405,7 +405,7 @@ namespace ApiApplication.Services.Impl
                     Method = "Trả hàng nhà cung cấp",
                     OccurredAt = returnGoods.ReturnTime,
                     CostPrice = item.ReturnPrice,
-                    QuantityChange = -item.Quantity
+                    QuantityChange = -item.Quantity,
                 };
 
                 // Get product để lấy stock hiện tại
@@ -452,22 +452,22 @@ namespace ApiApplication.Services.Impl
                 var product = await _context.Products.FindAsync(item.ProductId);
                 if (product != null)
                 {
-                // System quantity = stock BEFORE return
-                // Actual quantity = stock AFTER return  
-                // For return goods: stock decreases, so SystemQuantity > ActualQuantity
-                var systemQuantity = product.Stock + item.Quantity; // Stock before return
-                var actualQuantity = product.Stock; // Stock after return
-                
-                inventoryCheck.Items.Add(
-                    new InventoryCheckItem
-                    {
-                        ProductId = item.ProductId,
-                        SystemQuantity = systemQuantity, // Stock before return
-                        ActualQuantity = actualQuantity, // Stock after return
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow,
-                    }
-                );
+                    // System quantity = stock BEFORE return
+                    // Actual quantity = stock AFTER return
+                    // For return goods: stock decreases, so SystemQuantity > ActualQuantity
+                    var systemQuantity = product.Stock + item.Quantity; // Stock before return
+                    var actualQuantity = product.Stock; // Stock after return
+
+                    inventoryCheck.Items.Add(
+                        new InventoryCheckItem
+                        {
+                            ProductId = item.ProductId,
+                            SystemQuantity = systemQuantity, // Stock before return
+                            ActualQuantity = actualQuantity, // Stock after return
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow,
+                        }
+                    );
                 }
             }
 

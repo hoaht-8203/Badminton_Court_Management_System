@@ -58,9 +58,10 @@ public class OrderService(
             var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
             var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
             var amount = ((long)Math.Ceiling(order.TotalAmount)).ToString();
-            var des = Uri.EscapeDataString(order.Id.ToString());
+            var paymentIdForQr = order.Payments.FirstOrDefault()?.Id ?? string.Empty;
+            var des = Uri.EscapeDataString(paymentIdForQr);
             qrUrl = $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
-            holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 15;
+            holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
         }
 
         return new CheckoutResponse
@@ -232,9 +233,9 @@ public class OrderService(
             var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
             var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
             var amount = ((long)Math.Ceiling(totalAmount)).ToString();
-            var des = Uri.EscapeDataString(order.Id.ToString());
+            var des = Uri.EscapeDataString(payment.Id);
             qrUrl = $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
-            holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 15;
+            holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
 
             System.Console.WriteLine($"QR URL created: {qrUrl}");
         }
@@ -452,7 +453,6 @@ public class OrderService(
             payment.PaymentCreatedAt = DateTime.UtcNow; // Reset thời gian tạo payment
         }
 
-        // Cập nhật trạng thái booking và court về CheckedIn để có thể tiếp tục chơi
         if (order.Booking != null)
         {
             order.Booking.HoldExpiresAtUtc = DateTime.UtcNow.AddMinutes(5);

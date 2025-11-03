@@ -10,7 +10,7 @@ public class CreateCustomerRequest
 
     [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
     [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
-    [MaxLength(20, ErrorMessage = "Số điện thoại không được vượt quá 20 ký tự")]
+    [MaxLength(10, ErrorMessage = "Số điện thoại không được vượt quá 10 ký tự")]
     public required string PhoneNumber { get; set; }
 
     [Required(ErrorMessage = "Email là bắt buộc")]

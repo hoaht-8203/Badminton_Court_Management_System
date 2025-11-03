@@ -85,6 +85,10 @@ const sideBarItems: MenuProps["items"] = [
         label: "Quản lý khách hàng",
       },
       {
+        key: "/quanlysancaulong/memberships",
+        label: "Quản lý gói hội viên",
+      },
+      {
         key: "/quanlysancaulong/suppliers",
         label: "Quản lý nhà cung cấp",
       },

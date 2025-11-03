@@ -103,8 +103,9 @@ public class PaymentWebhooksController(
         var payment =
             await _context
                 .Payments.Include(i => i.Booking)
-                .ThenInclude(i => i.BookingCourtOccurrences)
+                .ThenInclude(i => i!.BookingCourtOccurrences)
                 .Include(i => i.Order)
+                .Include(i => i.UserMembership)
                 .FirstOrDefaultAsync(i => i.Id == paymentId)
             ?? throw new ApiException("Không tìm thấy thanh toán", HttpStatusCode.BadRequest);
 
@@ -144,6 +145,16 @@ public class PaymentWebhooksController(
                 {
                     payment.Note = "Người dùng đã thanh toán sau khi đơn hàng đã bị hủy";
                 }
+            }
+
+            // Handle membership payment
+            if (payment.UserMembership != null)
+            {
+                payment.UserMembership.Status = "Paid";
+                // Activate membership upon successful payment (respecting exact time window)
+                var nowUtc = DateTime.UtcNow;
+                var um = payment.UserMembership;
+                um.IsActive = um.StartDate <= nowUtc && nowUtc <= um.EndDate;
             }
 
             await _context.SaveChangesAsync();

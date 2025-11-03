@@ -110,6 +110,24 @@ export interface DetailReturnGoodsResponse {
      * @type {string}
      * @memberof DetailReturnGoodsResponse
      */
+    storeBankAccountNumber?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailReturnGoodsResponse
+     */
+    storeBankAccountName?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailReturnGoodsResponse
+     */
+    storeBankName?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailReturnGoodsResponse
+     */
     note?: string | null;
     /**
      * 
@@ -155,6 +173,9 @@ export function DetailReturnGoodsResponseFromJSONTyped(json: any, ignoreDiscrimi
         'supplierPaid': json['supplierPaid'] == null ? undefined : json['supplierPaid'],
         'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
         'storeBankAccountId': json['storeBankAccountId'] == null ? undefined : json['storeBankAccountId'],
+        'storeBankAccountNumber': json['storeBankAccountNumber'] == null ? undefined : json['storeBankAccountNumber'],
+        'storeBankAccountName': json['storeBankAccountName'] == null ? undefined : json['storeBankAccountName'],
+        'storeBankName': json['storeBankName'] == null ? undefined : json['storeBankName'],
         'note': json['note'] == null ? undefined : json['note'],
         'status': json['status'] == null ? undefined : json['status'],
         'items': json['items'] == null ? undefined : ((json['items'] as Array<any>).map(DetailReturnGoodsItemFromJSON)),
@@ -185,6 +206,9 @@ export function DetailReturnGoodsResponseToJSONTyped(value?: DetailReturnGoodsRe
         'supplierPaid': value['supplierPaid'],
         'paymentMethod': value['paymentMethod'],
         'storeBankAccountId': value['storeBankAccountId'],
+        'storeBankAccountNumber': value['storeBankAccountNumber'],
+        'storeBankAccountName': value['storeBankAccountName'],
+        'storeBankName': value['storeBankName'],
         'note': value['note'],
         'status': value['status'],
         'items': value['items'] == null ? undefined : ((value['items'] as Array<any>).map(DetailReturnGoodsItemToJSON)),

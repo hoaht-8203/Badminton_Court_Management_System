@@ -67,6 +67,8 @@ public class ApplicationDbContext(
     public DbSet<BookingCourtOccurrence> BookingCourtOccurrences { get; set; }
     public DbSet<Blog> Blogs { get; set; }
     public DbSet<Slider> Sliders { get; set; }
+    public DbSet<Membership> Memberships { get; set; }
+    public DbSet<UserMembership> UserMemberships { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -425,12 +427,47 @@ public class ApplicationDbContext(
             entity.Property(e => e.UserIds).HasColumnType("uuid[]");
         });
 
+        // Membership mappings
+        builder.Entity<Membership>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.DiscountPercent).HasColumnType("decimal(5,2)");
+        });
+
+        builder.Entity<UserMembership>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity
+                .HasIndex(e => new
+                {
+                    e.CustomerId,
+                    e.MembershipId,
+                    e.StartDate,
+                })
+                .IsUnique(false);
+            entity
+                .HasOne(e => e.Customer)
+                .WithMany(c => c.UserMemberships)
+                .HasForeignKey(e => e.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity
+                .HasOne(e => e.Membership)
+                .WithMany(m => m.UserMemberships)
+                .HasForeignKey(e => e.MembershipId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
         SeedAdministratorUser(builder);
         SeedCustomerData(builder);
         SeedSupplierData(builder);
         SeedCategoryData(builder);
         SeedSystemConfigData(builder);
         SeedCashflowTypeData(builder);
+        SeedMembershipData(builder);
     }
 
     private static void SeedSystemConfigData(ModelBuilder builder)
@@ -458,6 +495,56 @@ public class ApplicationDbContext(
                     CreatedAt = DateTime.UtcNow,
                     CreatedBy = "System",
                     UpdatedAt = DateTime.UtcNow,
+                    UpdatedBy = "System",
+                }
+            );
+    }
+
+    private static void SeedMembershipData(ModelBuilder builder)
+    {
+        builder
+            .Entity<Membership>()
+            .HasData(
+                new Membership
+                {
+                    Id = 1,
+                    Name = "Silver",
+                    Price = 199000,
+                    DiscountPercent = 5,
+                    Description = "Gói Silver: ưu đãi cơ bản khi đặt sân",
+                    DurationDays = 30,
+                    Status = "Active",
+                    CreatedAt = new DateTime(2025, 11, 1, 0, 0, 0, DateTimeKind.Utc),
+                    CreatedBy = "System",
+                    UpdatedAt = new DateTime(2025, 11, 1, 0, 0, 0, DateTimeKind.Utc),
+                    UpdatedBy = "System",
+                },
+                new Membership
+                {
+                    Id = 2,
+                    Name = "Gold",
+                    Price = 399000,
+                    DiscountPercent = 10,
+                    Description = "Gói Gold: ưu đãi tốt hơn, thời hạn 60 ngày",
+                    DurationDays = 60,
+                    Status = "Active",
+                    CreatedAt = new DateTime(2025, 10, 31, 0, 0, 0, DateTimeKind.Utc),
+                    CreatedBy = "System",
+                    UpdatedAt = new DateTime(2025, 10, 31, 0, 0, 0, DateTimeKind.Utc),
+                    UpdatedBy = "System",
+                },
+                new Membership
+                {
+                    Id = 3,
+                    Name = "Platinum",
+                    Price = 699000,
+                    DiscountPercent = 15,
+                    Description = "Gói Platinum: ưu đãi cao nhất, 90 ngày",
+                    DurationDays = 90,
+                    Status = "Active",
+                    CreatedAt = new DateTime(2025, 10, 30, 0, 0, 0, DateTimeKind.Utc),
+                    CreatedBy = "System",
+                    UpdatedAt = new DateTime(2025, 10, 30, 0, 0, 0, DateTimeKind.Utc),
                     UpdatedBy = "System",
                 }
             );

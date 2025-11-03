@@ -26,4 +26,6 @@ public class Customer : BaseEntity, IAuditableEntity
 
     [ForeignKey(nameof(UserId))]
     public ApplicationUser? User { get; set; }
+
+    public ICollection<UserMembership> UserMemberships { get; set; } = new List<UserMembership>();
 }

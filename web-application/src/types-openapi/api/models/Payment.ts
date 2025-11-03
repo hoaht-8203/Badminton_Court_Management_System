@@ -41,6 +41,13 @@ import {
     BookingCourtToJSON,
     BookingCourtToJSONTyped,
 } from './BookingCourt';
+import type { UserMembership } from './UserMembership';
+import {
+    UserMembershipFromJSON,
+    UserMembershipFromJSONTyped,
+    UserMembershipToJSON,
+    UserMembershipToJSONTyped,
+} from './UserMembership';
 
 /**
  * 
@@ -83,7 +90,7 @@ export interface Payment {
      * @type {string}
      * @memberof Payment
      */
-    bookingId: string;
+    bookingId?: string | null;
     /**
      * 
      * @type {BookingCourt}
@@ -114,6 +121,18 @@ export interface Payment {
      * @memberof Payment
      */
     order?: Order;
+    /**
+     * 
+     * @type {number}
+     * @memberof Payment
+     */
+    userMembershipId?: number | null;
+    /**
+     * 
+     * @type {UserMembership}
+     * @memberof Payment
+     */
+    userMembership?: UserMembership;
     /**
      * 
      * @type {Date}
@@ -157,7 +176,6 @@ export interface Payment {
  */
 export function instanceOfPayment(value: object): value is Payment {
     if (!('id' in value) || value['id'] === undefined) return false;
-    if (!('bookingId' in value) || value['bookingId'] === undefined) return false;
     if (!('customerId' in value) || value['customerId'] === undefined) return false;
     return true;
 }
@@ -177,12 +195,14 @@ export function PaymentFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
         'id': json['id'],
-        'bookingId': json['bookingId'],
+        'bookingId': json['bookingId'] == null ? undefined : json['bookingId'],
         'booking': json['booking'] == null ? undefined : BookingCourtFromJSON(json['booking']),
         'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'] == null ? undefined : json['bookingCourtOccurrenceId'],
         'bookingCourtOccurrence': json['bookingCourtOccurrence'] == null ? undefined : BookingCourtOccurrenceFromJSON(json['bookingCourtOccurrence']),
         'orderId': json['orderId'] == null ? undefined : json['orderId'],
         'order': json['order'] == null ? undefined : OrderFromJSON(json['order']),
+        'userMembershipId': json['userMembershipId'] == null ? undefined : json['userMembershipId'],
+        'userMembership': json['userMembership'] == null ? undefined : UserMembershipFromJSON(json['userMembership']),
         'paymentCreatedAt': json['paymentCreatedAt'] == null ? undefined : (new Date(json['paymentCreatedAt'])),
         'customerId': json['customerId'],
         'customer': json['customer'] == null ? undefined : CustomerFromJSON(json['customer']),
@@ -214,6 +234,8 @@ export function PaymentToJSONTyped(value?: Payment | null, ignoreDiscriminator: 
         'bookingCourtOccurrence': BookingCourtOccurrenceToJSON(value['bookingCourtOccurrence']),
         'orderId': value['orderId'],
         'order': OrderToJSON(value['order']),
+        'userMembershipId': value['userMembershipId'],
+        'userMembership': UserMembershipToJSON(value['userMembership']),
         'paymentCreatedAt': value['paymentCreatedAt'] == null ? undefined : ((value['paymentCreatedAt']).toISOString()),
         'customerId': value['customerId'],
         'customer': CustomerToJSON(value['customer']),

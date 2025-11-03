@@ -130,6 +130,59 @@ public class PaymentService(
         return dto;
     }
 
+    public async Task<DetailPaymentResponse> CreatePaymentForMembershipAsync(
+        CreatePaymentForMembershipRequest request
+    )
+    {
+        var userMembership = await _context.UserMemberships.FirstOrDefaultAsync(um =>
+            um.Id == request.UserMembershipId
+        );
+        if (userMembership == null)
+        {
+            throw new ApiException(
+                "Không tìm thấy thông tin hội viên của khách hàng",
+                System.Net.HttpStatusCode.BadRequest
+            );
+        }
+
+        var payment = new Payment
+        {
+            Id = await GenerateNextPaymentIdAsync(),
+            BookingId = null,
+            BookingCourtOccurrenceId = null,
+            OrderId = null,
+            UserMembershipId = request.UserMembershipId,
+            CustomerId = request.CustomerId,
+            Amount = request.Amount,
+            Status = string.Equals(
+                request.PaymentMethod,
+                "Cash",
+                StringComparison.OrdinalIgnoreCase
+            )
+                ? PaymentStatus.Paid
+                : PaymentStatus.PendingPayment,
+            Note = request.Note,
+            PaymentCreatedAt = DateTime.UtcNow,
+        };
+
+        await _context.Payments.AddAsync(payment);
+        await _context.SaveChangesAsync();
+
+        var createdPayment = await _context
+            .Payments.Include(p => p.UserMembership)
+            .FirstOrDefaultAsync(p => p.Id == payment.Id);
+
+        if (createdPayment == null)
+        {
+            throw new ApiException(
+                "Lỗi khi tạo thanh toán",
+                System.Net.HttpStatusCode.InternalServerError
+            );
+        }
+
+        return _mapper.Map<DetailPaymentResponse>(createdPayment);
+    }
+
     private async Task<string> GenerateNextPaymentIdAsync()
     {
         var now = DateTime.UtcNow;

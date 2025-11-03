@@ -1,7 +1,9 @@
+"use client";
+
 import { Button, Drawer, Tag } from "antd";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import ScheduleAssignModal from "./schedule-assign-modal";
 import { useGetScheduleByStaff } from "@/hooks/useSchedule";
 import { ScheduleRequest } from "@/types-openapi/api";
@@ -31,32 +33,46 @@ const shiftColors = ["#e6f7ff", "#e6ffed", "#fff7e6", "#f9e6ff", "#ffe6e6", "#e6
 
 const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, shiftList }) => {
   // Map shiftId với màu, shiftList lấy từ props
-  function getShiftColorById(shiftId: string) {
-    const idx = shiftList.findIndex((s: { key: string; label: string }) => String(s.key) === String(shiftId));
-    return shiftColors[idx >= 0 ? idx % shiftColors.length : 0];
-  }
+  const getShiftColorById = useCallback(
+    (shiftId: string) => {
+      const idx = shiftList.findIndex((s: { key: string; label: string }) => String(s.key) === String(shiftId));
+      return shiftColors[idx >= 0 ? idx % shiftColors.length : 0];
+    },
+    [shiftList],
+  );
+
   const [hoverCell, setHoverCell] = useState<{ staffId: number; day: number } | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalStaff, setModalStaff] = useState<{ id: number; fullName: string } | null>(null);
   const [modalDate, setModalDate] = useState<string>("");
-  // State tuần hiện tại
+  // selected day of week should persist when iterating weeks (0..6, 0 = Sunday)
+  const [selectedDay, setSelectedDay] = useState<number>(() => dayjs().day());
+
+  // State tuần hiện tại (monday start)
   const [weekStart, setWeekStart] = useState(() => {
     const today = dayjs();
     return today.day() === 0 ? today.subtract(6, "day") : today.day(1);
   });
+
   const monday = weekStart;
-  const weekDays = daysOfWeek.map((d, idx) => {
-    const day = monday.add(idx, "day");
-    return { ...d, date: day.date(), fullDate: day.format("YYYY-MM-DD") };
-  });
-  const startDate = weekStart.toDate();
-  const endDate = weekStart.add(6, "day").toDate();
-  const request: ScheduleRequest = { startDate, endDate };
+
+  const weekDays = useMemo(() => {
+    return daysOfWeek.map((d, idx) => {
+      const day = monday.add(idx, "day");
+      return { ...d, date: day.date(), fullDate: day.format("YYYY-MM-DD") };
+    });
+  }, [monday]);
+
+  const { startDate, endDate, request } = useMemo(() => {
+    const s = weekStart.toDate();
+    const e = weekStart.add(6, "day").toDate();
+    return { startDate: s, endDate: e, request: { startDate: s, endDate: e } as ScheduleRequest };
+  }, [weekStart]);
+
   // Lấy dữ liệu lịch làm việc của tất cả nhân viên trong tuần hiện tại
   const { data: scheduleByStaffRaw } = useGetScheduleByStaff(request);
-  console.log("scheduleByStaffRaw", scheduleByStaffRaw);
 
-  const staffScheduleMap: Record<number, Record<number, string[]>> = React.useMemo(() => {
+  const staffScheduleMap: Record<number, Record<number, string[]>> = useMemo(() => {
     const result: Record<number, Record<number, string[]>> = {};
     if (!scheduleByStaffRaw?.data) return result;
     for (const staffItem of scheduleByStaffRaw.data) {
@@ -72,7 +88,31 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
     return result;
   }, [scheduleByStaffRaw]);
 
-  console.log("staffScheduleMap", staffScheduleMap);
+  // map shift label to index for fast lookup when rendering (avoid find in loop)
+  const shiftLabelIndexMap = useMemo(() => {
+    const m = new Map<string, number>();
+    shiftList.forEach((s, i) => m.set(String(s.label), i));
+    return m;
+  }, [shiftList]);
+
+  const handlePrevWeek = useCallback(() => setWeekStart((ws) => ws.subtract(1, "week")), []);
+  const handleNextWeek = useCallback(() => setWeekStart((ws) => ws.add(1, "week")), []);
+
+  const handleMouseEnter = useCallback((staffId: number, day: number) => () => setHoverCell({ staffId, day }), []);
+  const handleMouseLeave = useCallback(() => setHoverCell(null), []);
+
+  const openAssignModal = useCallback(
+    (staff: { id: number; fullName: string } | null, fullDate: string, dayValue?: number) => {
+      if (typeof dayValue === "number") setSelectedDay(dayValue);
+      setModalStaff(staff);
+      setModalDate(fullDate);
+      setModalOpen(true);
+    },
+    [],
+  );
+
+  // allow selecting day-of-week header; persist selectedDay across week navigation
+  const selectDay = useCallback((dayValue: number) => setSelectedDay(dayValue), []);
   return (
     <>
       <Drawer
@@ -88,13 +128,13 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
         }
       >
         <div style={{ marginBottom: 24 }}>
-          <Button type="default" style={{ marginRight: 8 }} onClick={() => setWeekStart(weekStart.subtract(1, "week"))}>
+          <Button type="default" style={{ marginRight: 8 }} onClick={handlePrevWeek}>
             {"<"}
           </Button>
           <span style={{ fontWeight: 500, fontSize: 16 }}>
             Tuần {monday.week()} - Th.{monday.month() + 1} {monday.year()}
           </span>
-          <Button type="default" style={{ marginLeft: 8 }} onClick={() => setWeekStart(weekStart.add(1, "week"))}>
+          <Button type="default" style={{ marginLeft: 8 }} onClick={handleNextWeek}>
             {">"}
           </Button>
         </div>
@@ -106,15 +146,17 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                 {weekDays.map((d, idx) => (
                   <th
                     key={d.value}
+                    onClick={() => selectDay(d.value)}
                     style={{
                       minWidth: 120,
                       textAlign: "center",
                       padding: 8,
-                      background: idx === weekStart.day() - 1 ? "#e6f7ff" : "#f5f5f5",
+                      cursor: "pointer",
+                      background: d.value === selectedDay ? "#e6f7ff" : "#f5f5f5",
                       borderRight: "1px solid #f0f0f0",
                     }}
                   >
-                    {d.label} <span style={{ color: "#1890ff", fontWeight: idx === weekStart.day() - 1 ? 700 : 400 }}>{d.date}</span>
+                    {d.label} <span style={{ color: "#1890ff", fontWeight: d.value === selectedDay ? 700 : 400 }}>{d.date}</span>
                   </th>
                 ))}
               </tr>
@@ -142,13 +184,13 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                           boxSizing: "border-box",
                           background: "#fff",
                         }}
-                        onMouseEnter={() => setHoverCell({ staffId: staff.id, day: d.value })}
-                        onMouseLeave={() => setHoverCell(null)}
+                        onMouseEnter={handleMouseEnter(staff.id, d.value)}
+                        onMouseLeave={handleMouseLeave}
                       >
                         {shiftsOfDay.map((shiftName, idx2) => {
-                          // Tìm shiftId theo tên ca
-                          const shiftObj = shiftList.find((s) => s.label === shiftName);
-                          const shiftId = shiftObj ? shiftObj.key : String(idx2);
+                          // get color by label index
+                          const idxForLabel = shiftLabelIndexMap.get(String(shiftName));
+                          const shiftId = typeof idxForLabel === "number" ? String(shiftList[idxForLabel].key) : String(idx2);
                           return (
                             <div
                               key={idx2}
@@ -169,11 +211,7 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                           <Button
                             type="link"
                             style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)" }}
-                            onClick={() => {
-                              setModalStaff({ id: staff.id, fullName: staff.fullName });
-                              setModalDate(d.fullDate);
-                              setModalOpen(true);
-                            }}
+                            onClick={() => openAssignModal({ id: staff.id, fullName: staff.fullName }, d.fullDate, d.value)}
                           >
                             + Thêm lịch
                           </Button>
@@ -215,6 +253,7 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
         staff={modalStaff ?? undefined}
         date={modalDate}
         shiftList={shiftList}
+        initialSelectedDay={selectedDay}
         onSave={(values) => {
           // TODO: Xử lý lưu lịch làm việc
           setModalOpen(false);

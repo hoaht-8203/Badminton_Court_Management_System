@@ -1,13 +1,23 @@
-import WorkScheduleTable from "@/components/quanlysancaulong/work-schedule/work-schedule-table";
-import { Breadcrumb } from "antd";
+"use client";
 
-export default function WorkSchedulePage() {
+import dynamic from "next/dynamic";
+import React, { Suspense } from "react";
+import { Breadcrumb, Spin } from "antd";
+
+const WorkScheduleTable = dynamic(() => import("@/components/quanlysancaulong/work-schedule/work-schedule-table"), {
+  ssr: false,
+  loading: () => <Spin />,
+});
+
+export default React.memo(function WorkSchedulePage() {
   return (
     <>
       <div style={{ marginBottom: 16 }}>
         <Breadcrumb items={[{ title: "Quản lý sân cầu lông" }, { title: "Lịch làm việc" }]} />
       </div>
-      <WorkScheduleTable />
+      <Suspense fallback={<Spin />}>
+        <WorkScheduleTable />
+      </Suspense>
     </>
   );
-}
+});

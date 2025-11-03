@@ -1,12 +1,20 @@
 "use client";
-import StaffModal from "@/components/quanlysancaulong/staffs/list-staff/staff-modal";
-import StaffList from "@/components/quanlysancaulong/staffs/list-staff/staffs-list";
+import dynamic from "next/dynamic";
+import React, { useCallback, useMemo, useState, Suspense } from "react";
 import { useChangeStaffStatus, useCreateStaff, useListStaffs, useUpdateStaff } from "@/hooks/useStaffs";
-import { useState } from "react";
 
 import { ListStaffRequest, ListStaffRequestFromJSON, StaffRequest } from "@/types-openapi/api";
 import { FileExcelOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
-import { Breadcrumb, Button, Card, Col, Form, Input, Radio, Row, Select, message } from "antd";
+import { Breadcrumb, Button, Card, Col, Form, Input, Radio, Row, Select, message, Spin } from "antd";
+
+const StaffList = dynamic(() => import("@/components/quanlysancaulong/staffs/list-staff/staffs-list"), {
+  ssr: false,
+  loading: () => <Spin />,
+});
+const StaffModal = dynamic(() => import("@/components/quanlysancaulong/staffs/list-staff/staff-modal"), {
+  ssr: false,
+  loading: () => <Spin />,
+});
 // Dummy roles and status for filter
 const departments = [
   { value: 1, label: "Phòng ban A" },
@@ -18,7 +26,7 @@ const statusOptions = [
   { value: 2, label: "Đã nghỉ việc" },
 ];
 
-export default function ListStaffPage() {
+export default React.memo(function ListStaffPage() {
   const [form] = Form.useForm();
   const [searchParams, setSearchParams] = useState(ListStaffRequestFromJSON({}));
   const { data: staffsData, isFetching: loadingStaffs, refetch: refetchStaffs } = useListStaffs(searchParams);
@@ -32,16 +40,18 @@ export default function ListStaffPage() {
   const updateStaff = useUpdateStaff(editingStaff?.id);
   const changeStaffStatus = useChangeStaffStatus();
 
-  const handleChangeStaffStatus = async (staffId: number, isActive: boolean) => {
+  const staffList = useMemo(() => staffsData?.data ?? [], [staffsData]);
+
+  const handleChangeStaffStatus = useCallback(async (staffId: number, isActive: boolean) => {
     try {
       await changeStaffStatus.mutateAsync({ staffId, isActive });
       message.success("Đổi trạng thái nhân viên thành công");
     } catch (error: any) {
       message.error(error?.message || "Có lỗi xảy ra, vui lòng thử lại");
     }
-  };
+  }, [changeStaffStatus]);
 
-  const handleSearch = (values: ListStaffRequest) => {
+  const handleSearch = useCallback((values: ListStaffRequest) => {
     // Backend expects: 1 = active, 0 = inactive. UI uses 2 = "Đã nghỉ việc".
     // Map UI value 2 -> backend 0. Keep 0 as 'all' -> null.
     const mappedStatus = values.status === 0 ? null : values.status === 2 ? 0 : values.status;
@@ -50,29 +60,29 @@ export default function ListStaffPage() {
       status: mappedStatus,
       // departmentIds, branchIds nếu có
     });
-  };
+  }, []);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     form.resetFields();
     setSearchParams({});
-  };
+  }, [form]);
 
-  const handleAddStaff = () => {
+  const handleAddStaff = useCallback(() => {
     setEditingStaff(null);
     setOpenStaffModal(true);
-  };
+  }, []);
 
-  const handleEditStaff = (staff: StaffRequest) => {
+  const handleEditStaff = useCallback((staff: StaffRequest) => {
     setEditingStaff(staff);
     setOpenStaffModal(true);
-  };
+  }, []);
 
-  const handleStaffModalClose = () => {
+  const handleStaffModalClose = useCallback(() => {
     setOpenStaffModal(false);
     setEditingStaff(null);
-  };
+  }, []);
 
-  const handleStaffModalSubmit = async (values: StaffRequest) => {
+  const handleStaffModalSubmit = useCallback(async (values: StaffRequest) => {
     try {
       if (editingStaff && editingStaff.id) {
         await updateStaff.mutateAsync(values);
@@ -86,11 +96,12 @@ export default function ListStaffPage() {
     } catch (error: any) {
       message.error(error?.message || "Có lỗi xảy ra, vui lòng thử lại");
     }
-  };
+  }, [createStaff, updateStaff, editingStaff]);
 
-  const handleExportExcel = () => {
+  const handleExportExcel = useCallback(() => {
     message.success("Xuất Excel (demo)");
-  };
+  }, []);
+
   return (
     <section>
       <div style={{ marginBottom: 16 }}>
@@ -134,7 +145,7 @@ export default function ListStaffPage() {
       </Card>
 
       <div style={{ marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontWeight: 600, color: "#52c41a" }}>Tổng số nhân viên: {staffsData?.data?.length ?? 0}</span>
+        <span style={{ fontWeight: 600, color: "#52c41a" }}>Tổng số nhân viên: {staffList?.length ?? 0}</span>
         <div style={{ display: "flex", gap: 8 }}>
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAddStaff}>
             Thêm nhân viên
@@ -147,8 +158,12 @@ export default function ListStaffPage() {
           </Button>
         </div>
       </div>
-      <StaffList staffList={staffsData?.data ?? []} onEditStaff={handleEditStaff} onChangeStaffStatus={handleChangeStaffStatus} />
-      <StaffModal open={openStaffModal} onClose={handleStaffModalClose} onSubmit={handleStaffModalSubmit} staff={editingStaff} />
+      <Suspense fallback={<Spin />}>
+        <StaffList staffList={staffList} onEditStaff={handleEditStaff} onChangeStaffStatus={handleChangeStaffStatus} />
+      </Suspense>
+      <Suspense fallback={<Spin />}>
+        <StaffModal open={openStaffModal} onClose={handleStaffModalClose} onSubmit={handleStaffModalSubmit} staff={editingStaff} />
+      </Suspense>
     </section>
   );
-}
+});

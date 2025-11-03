@@ -1,13 +1,9 @@
 "use client";
 import { DebounceSelect } from "@/components/quanlysancaulong/court-schedule/DebounceSelect";
 import { columns } from "@/components/quanlysancaulong/memberships/columns";
-import dynamic from "next/dynamic";
-const CreateNewMembershipDrawer = dynamic(() => import("@/components/quanlysancaulong/memberships/create-new-membership-drawer"), { ssr: false });
-const MembershipQrPaymentDrawer = dynamic(() => import("@/components/quanlysancaulong/memberships/membership-qr-payment-drawer"), { ssr: false });
 import SearchMembership from "@/components/quanlysancaulong/memberships/search-memberships";
-const UpdateMembershipDrawer = dynamic(() => import("@/components/quanlysancaulong/memberships/update-membership-drawer"), { ssr: false });
 import { useListMemberships, useUpdateMembershipStatus } from "@/hooks/useMembership";
-import { useCreateUserMembership, useExtendUserMembershipPayment, useListUserMemberships } from "@/hooks/useUserMembershipService";
+import { useCreateUserMembership, useListUserMemberships } from "@/hooks/useUserMembershipService";
 import { ApiError } from "@/lib/axios";
 import { ListMembershipRequest, ListMembershipResponse, UserMembershipResponse } from "@/types-openapi/api";
 import { CheckOutlined, EditOutlined, PlusOutlined, ReloadOutlined, StopOutlined } from "@ant-design/icons";
@@ -31,7 +27,11 @@ import {
   message,
 } from "antd";
 import dayjs from "dayjs";
+import dynamic from "next/dynamic";
 import React, { useCallback, useMemo, useState } from "react";
+const CreateNewMembershipDrawer = dynamic(() => import("@/components/quanlysancaulong/memberships/create-new-membership-drawer"), { ssr: false });
+const MembershipQrPaymentDrawer = dynamic(() => import("@/components/quanlysancaulong/memberships/membership-qr-payment-drawer"), { ssr: false });
+const UpdateMembershipDrawer = dynamic(() => import("@/components/quanlysancaulong/memberships/update-membership-drawer"), { ssr: false });
 
 const tableProps: TableProps<ListMembershipResponse> = {
   rowKey: "id",
@@ -446,7 +446,6 @@ const MembershipInformation = React.memo(function MembershipInformation({
 });
 
 const UserMembershipExpanded = ({ record, onOpenQr }: { record: UserMembershipResponse; onOpenQr: (detail: any) => void }) => {
-  const extendPaymentMutation = useExtendUserMembershipPayment();
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PendingPayment":

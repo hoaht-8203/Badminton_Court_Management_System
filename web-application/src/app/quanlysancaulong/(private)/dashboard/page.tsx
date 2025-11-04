@@ -1,64 +1,87 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import React, { useMemo, Suspense } from "react";
-import { Row, Col, Spin } from "antd";
+import React, { Suspense } from "react";
+import { Row, Col, Spin, Card, Button } from "antd";
+import { useDashboardSummary, useDashboardRevenue, useDashboardHeatmap, useDashboardTopCourts, useDashboardRecent } from "@/hooks/useDashboard";
+import { RevenuePointDto, HeatmapCellDto, TopCourtDto, RecentTransactionDto } from "@/types-openapi/api";
 
 const KPIGrid = dynamic(() => import("@/components/quanlysancaulong/dashboard/kpi-grid"), { ssr: false, loading: () => <Spin /> });
 const RevenueChart = dynamic(() => import("@/components/quanlysancaulong/dashboard/revenue-chart"), { ssr: false, loading: () => <Spin /> });
 const BookingsHeatmap = dynamic(() => import("@/components/quanlysancaulong/dashboard/bookings-heatmap"), { ssr: false, loading: () => <Spin /> });
 const TopCourts = dynamic(() => import("@/components/quanlysancaulong/dashboard/top-courts"), { ssr: false, loading: () => <Spin /> });
-const RecentTransactions = dynamic(() => import("@/components/quanlysancaulong/dashboard/recent-transactions"), {
-  ssr: false,
-  loading: () => <Spin />,
-});
 
 const DashboardPage: React.FC = () => {
-  // mock data for prototype
-  const mock = useMemo(() => {
-    const series = Array.from({ length: 12 }).map((_, i) => ({
-      date: `2025-${String(i + 1).padStart(2, "0")}-01`,
-      revenue: Math.round(200000 + Math.random() * 800000),
-    }));
-    const heat = Array.from({ length: 7 }).map(() => Array.from({ length: 24 }).map(() => Math.floor(Math.random() * 6)));
-    const topCourts = Array.from({ length: 5 }).map((_, i) => ({ court: `Sân ${i + 1}`, count: Math.floor(Math.random() * 200) }));
-    const recent = Array.from({ length: 6 }).map((_, i) => ({
-      id: `CF${1000 + i}`,
-      date: `2025-11-${String(i + 1).padStart(2, "0")}`,
-      desc: `Giao dịch mẫu ${i + 1}`,
-      amount: Math.round(Math.random() * 500000),
-    }));
-    return { series, heat, topCourts, recent, revenue: series.reduce((s, x) => s + x.revenue, 0), bookings: 324, utilization: 64.2, customers: 215 };
-  }, []);
+  // Real data from backend
+  const summaryQ = useDashboardSummary();
+  const revenueQ = useDashboardRevenue();
+  const heatmapQ = useDashboardHeatmap();
+  const topQ = useDashboardTopCourts();
+
+  // Map DTOs to component props with safe defaults
+  const summary = summaryQ.data?.data;
+  const kpi = {
+    revenue: summary?.totalRevenue ?? 0,
+    bookings: summary?.totalBookings ?? 0,
+    utilization: summary?.utilizationRate ?? 0,
+    customers: summary?.activeCustomers ?? 0,
+  };
+
+  const series = (revenueQ.data?.data ?? []) as RevenuePointDto[];
+  const chartSeries = series.map((s) => ({ date: s.period ? new Date(s.period).toISOString().slice(0, 10) : "", revenue: s.value ?? 0 }));
+
+  const heatCells = (heatmapQ.data?.data ?? []) as HeatmapCellDto[];
+  const heatMatrix = Array.from({ length: 7 }).map(() => Array.from({ length: 24 }).map(() => 0));
+  heatCells.forEach((c) => {
+    if (!c) return;
+    const dow = (c.dayOfWeek ?? 0) >= 1 && (c.dayOfWeek ?? 0) <= 7 ? (c.dayOfWeek ?? 1) - 1 : (c.dayOfWeek ?? 0);
+    const hour = c.hour ?? 0;
+    if (dow >= 0 && dow < 7 && hour >= 0 && hour < 24) heatMatrix[dow][hour] = c.bookings ?? 0;
+  });
+
+  const topCourts = (topQ.data?.data ?? []) as TopCourtDto[];
+  const topItems = topCourts.map((t) => ({ court: t.courtName ?? t.courtId ?? "-", count: t.bookingCount ?? 0 }));
+
+  // Recent transactions with simple pagination (requests limit = page * pageSize)
+  const [page, setPage] = React.useState(1);
+  const [pageSize] = React.useState(5);
+
+  const recentQ = useDashboardRecent({ limit: page * pageSize });
+  const recent = (recentQ.data?.data ?? []) as RecentTransactionDto[];
+  // server returns newest-first; slice client-side for page window
+  const recentRows = (recent ?? []).slice((page - 1) * pageSize, page * pageSize).map((r) => ({
+    id: r.id ?? "",
+    date: r.createdAt ? new Date(r.createdAt).toISOString().slice(0, 19).replace("T", " ") : "",
+    type: r.type ?? "",
+    customer: r.customerName ?? "",
+    amount: r.amount ?? 0,
+  }));
+
+  const hasMore = (recent?.length ?? 0) > page * pageSize;
 
   return (
     <div>
       <h1 className="mb-4 text-2xl font-bold">Bảng điều khiển</h1>
 
       <Suspense fallback={<Spin />}>
-        <KPIGrid revenue={mock.revenue} bookings={mock.bookings} utilization={mock.utilization} customers={mock.customers} />
+        <KPIGrid revenue={kpi.revenue} bookings={kpi.bookings} utilization={kpi.utilization} customers={kpi.customers} />
       </Suspense>
 
       <Row gutter={16} style={{ marginTop: 16 }}>
         <Col xs={24} lg={16}>
           <Suspense fallback={<Spin />}>
-            <RevenueChart series={mock.series} />
+            <RevenueChart series={chartSeries} />
           </Suspense>
           <div style={{ marginTop: 16 }}>
             <Suspense fallback={<Spin />}>
-              <BookingsHeatmap matrix={mock.heat} />
+              <BookingsHeatmap matrix={heatMatrix} />
             </Suspense>
           </div>
         </Col>
         <Col xs={24} lg={8}>
           <Suspense fallback={<Spin />}>
-            <TopCourts items={mock.topCourts} />
+            <TopCourts items={topItems} />
           </Suspense>
-          <div style={{ marginTop: 16 }}>
-            <Suspense fallback={<Spin />}>
-              <RecentTransactions data={mock.recent} />
-            </Suspense>
-          </div>
         </Col>
       </Row>
     </div>

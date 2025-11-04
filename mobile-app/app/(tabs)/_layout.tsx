@@ -44,6 +44,19 @@ export default function TabsLayout() {
           ),
         }}
       />
+                  <Tabs.Screen
+                    name="booking"
+                    options={{
+                      title: "Đặt sân",
+                      tabBarIcon: ({ color, size, focused }) => (
+                        <Ionicons
+                          name={focused ? "calendar" : "calendar-outline"}
+                          color={color}
+                          size={size}
+                        />
+                      ),
+                    }}
+                  />
       <Tabs.Screen
         name="blogs"
         options={{

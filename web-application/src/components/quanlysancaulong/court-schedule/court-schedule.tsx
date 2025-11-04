@@ -515,7 +515,7 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
               <DayPilotScheduler
                 ref={schedulerRef}
                 cellWidthSpec={"Fixed"}
-                cellWidth={120}
+                cellWidth={30}
                 groupConcurrentEvents={true}
                 groupConcurrentEventsLimit={2}
                 groupBubble={
@@ -559,7 +559,8 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                 businessBeginsHour={0}
                 businessEndsHour={24}
                 businessWeekends={true}
-                scale={"Hour"}
+                scale="CellDuration"
+                cellDuration={15}
                 timeRangeSelectedHandling="Enabled"
                 days={1}
                 startDate={selectedDate}
@@ -682,9 +683,11 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
                   if (eventStatus === BookingCourtStatus.PendingPayment) {
                     args.data.barColor = "yellow";
                   }
+
                   if (eventStatus === BookingCourtStatus.CheckedIn) {
                     args.data.barColor = "#3b82f6"; // tailwind blue-500
                   }
+
                   if (eventStatus === BookingCourtStatus.NoShow) {
                     args.data.barColor = "#f97316"; // tailwind orange-500
                   }

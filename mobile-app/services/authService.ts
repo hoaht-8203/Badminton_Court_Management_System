@@ -9,7 +9,7 @@ export type RegisterRequest = {
   confirmPassword: string;
 };
 export type CurrentUserResponse = {
-  id: string;
+  userId: string;
   email: string;
   fullName: string;
   roles: string[];
@@ -91,28 +91,36 @@ export const authService = {
     );
     return res.data;
   },
-  async updateMyProfile(payload: UpdateMyProfileRequest): Promise<ApiResponse<null>> {
+  async updateMyProfile(
+    payload: UpdateMyProfileRequest
+  ): Promise<ApiResponse<null>> {
     const res = await axiosInstance.put<ApiResponse<null>>(
       "/api/auth/update-my-profile",
       payload
     );
     return res.data;
   },
-  async updatePassword(payload: UpdatePasswordRequest): Promise<ApiResponse<null>> {
+  async updatePassword(
+    payload: UpdatePasswordRequest
+  ): Promise<ApiResponse<null>> {
     const res = await axiosInstance.put<ApiResponse<null>>(
       "/api/auth/update-password",
       payload
     );
     return res.data;
   },
-  async forgotPassword(payload: ForgotPasswordRequest): Promise<ApiResponse<null>> {
+  async forgotPassword(
+    payload: ForgotPasswordRequest
+  ): Promise<ApiResponse<null>> {
     const res = await axiosInstance.post<ApiResponse<null>>(
       "/api/auth/forgot-password",
       payload
     );
     return res.data;
   },
-  async validateForgotPassword(payload: ValidateForgotPasswordRequest): Promise<ApiResponse<null>> {
+  async validateForgotPassword(
+    payload: ValidateForgotPasswordRequest
+  ): Promise<ApiResponse<null>> {
     const res = await axiosInstance.post<ApiResponse<null>>(
       "/api/auth/validate-forgot-password",
       payload

@@ -8,21 +8,32 @@ const KPIGrid = dynamic(() => import("@/components/quanlysancaulong/dashboard/kp
 const RevenueChart = dynamic(() => import("@/components/quanlysancaulong/dashboard/revenue-chart"), { ssr: false, loading: () => <Spin /> });
 const BookingsHeatmap = dynamic(() => import("@/components/quanlysancaulong/dashboard/bookings-heatmap"), { ssr: false, loading: () => <Spin /> });
 const TopCourts = dynamic(() => import("@/components/quanlysancaulong/dashboard/top-courts"), { ssr: false, loading: () => <Spin /> });
-const RecentTransactions = dynamic(() => import("@/components/quanlysancaulong/dashboard/recent-transactions"), { ssr: false, loading: () => <Spin /> });
+const RecentTransactions = dynamic(() => import("@/components/quanlysancaulong/dashboard/recent-transactions"), {
+  ssr: false,
+  loading: () => <Spin />,
+});
 
 const DashboardPage: React.FC = () => {
   // mock data for prototype
   const mock = useMemo(() => {
-    const series = Array.from({ length: 12 }).map((_, i) => ({ date: `2025-${String(i + 1).padStart(2, "0")}-01`, revenue: Math.round(200000 + Math.random() * 800000) }));
+    const series = Array.from({ length: 12 }).map((_, i) => ({
+      date: `2025-${String(i + 1).padStart(2, "0")}-01`,
+      revenue: Math.round(200000 + Math.random() * 800000),
+    }));
     const heat = Array.from({ length: 7 }).map(() => Array.from({ length: 24 }).map(() => Math.floor(Math.random() * 6)));
     const topCourts = Array.from({ length: 5 }).map((_, i) => ({ court: `Sân ${i + 1}`, count: Math.floor(Math.random() * 200) }));
-    const recent = Array.from({ length: 6 }).map((_, i) => ({ id: `CF${1000 + i}`, date: `2025-11-${String(i + 1).padStart(2, "0")}`, desc: `Giao dịch mẫu ${i + 1}`, amount: Math.round(Math.random() * 500000) }));
+    const recent = Array.from({ length: 6 }).map((_, i) => ({
+      id: `CF${1000 + i}`,
+      date: `2025-11-${String(i + 1).padStart(2, "0")}`,
+      desc: `Giao dịch mẫu ${i + 1}`,
+      amount: Math.round(Math.random() * 500000),
+    }));
     return { series, heat, topCourts, recent, revenue: series.reduce((s, x) => s + x.revenue, 0), bookings: 324, utilization: 64.2, customers: 215 };
   }, []);
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Bảng điều khiển</h1>
+      <h1 className="mb-4 text-2xl font-bold">Bảng điều khiển</h1>
 
       <Suspense fallback={<Spin />}>
         <KPIGrid revenue={mock.revenue} bookings={mock.bookings} utilization={mock.utilization} customers={mock.customers} />

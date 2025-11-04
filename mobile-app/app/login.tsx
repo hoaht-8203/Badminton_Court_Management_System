@@ -87,10 +87,10 @@ export default function Login() {
             color: textColor,
           }}
         >
-          Welcome back
+          Chào mừng đến với Caulong365.store
         </Text>
         <Text style={{ color: subTextColor, marginBottom: 32 }}>
-          Login to continue
+          Đăng nhập để tiếp tục
         </Text>
 
         <View className="gap-4">
@@ -129,7 +129,7 @@ export default function Login() {
 
           <View>
             <Text style={{ color: subTextColor, marginBottom: 8 }}>
-              Password
+              Mật khẩu
             </Text>
             <View style={{ position: "relative" }}>
               <TextInput
@@ -187,7 +187,7 @@ export default function Login() {
           <View className="items-end mt-1">
             <Pressable onPress={() => router.push("/forgot-password")}>
               <Text style={{ color: "#3b82f6", fontWeight: "500" }}>
-                Forgot password?
+                Quên mật khẩu?
               </Text>
             </Pressable>
           </View>
@@ -196,17 +196,17 @@ export default function Login() {
             onPress={onLogin}
             className="bg-blue-600 rounded-xl items-center justify-center py-4 mt-2"
           >
-            <Text className="text-white text-base font-semibold">Login</Text>
+            <Text className="text-white text-base font-semibold">
+              Đăng nhập
+            </Text>
           </Pressable>
 
           <View className="flex-row justify-center items-center mt-6 gap-1">
-            <Text style={{ color: subTextColor }}>
-              Don&apos;t have an account?
-            </Text>
+            <Text style={{ color: subTextColor }}>Bạn chưa có tài khoản?</Text>
             <Link href="/register" asChild>
               <Pressable>
                 <Text style={{ color: "#3b82f6", fontWeight: "600" }}>
-                  Register
+                  Đăng ký
                 </Text>
               </Pressable>
             </Link>

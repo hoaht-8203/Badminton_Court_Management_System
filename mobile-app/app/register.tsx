@@ -95,16 +95,16 @@ export default function Register() {
             color: textColor,
           }}
         >
-          Create account
+          Tạo tài khoản
         </Text>
         <Text style={{ color: subTextColor, marginBottom: 32 }}>
-          Sign up to get started
+          Đăng ký để tiếp tục
         </Text>
 
         <View className="gap-4">
           <View>
             <Text style={{ color: subTextColor, marginBottom: 8 }}>
-              Username
+              Tên đăng nhập
             </Text>
             <TextInput
               style={{
@@ -137,7 +137,7 @@ export default function Register() {
 
           <View>
             <Text style={{ color: subTextColor, marginBottom: 8 }}>
-              Full name
+              Họ và tên
             </Text>
             <TextInput
               style={{
@@ -201,7 +201,7 @@ export default function Register() {
 
           <View>
             <Text style={{ color: subTextColor, marginBottom: 8 }}>
-              Password
+              Mật khẩu
             </Text>
             <View style={{ position: "relative" }}>
               <TextInput
@@ -257,7 +257,7 @@ export default function Register() {
 
           <View>
             <Text style={{ color: subTextColor, marginBottom: 8 }}>
-              Confirm password
+              Xác nhận mật khẩu
             </Text>
             <View style={{ position: "relative" }}>
               <TextInput
@@ -317,19 +317,15 @@ export default function Register() {
             onPress={onRegister}
             className="bg-blue-600 rounded-xl items-center justify-center py-4 mt-2"
           >
-            <Text className="text-white text-base font-semibold">
-              Create account
-            </Text>
+            <Text className="text-white text-base font-semibold">Đăng ký</Text>
           </Pressable>
 
           <View className="flex-row justify-center items-center mt-6 gap-1">
-            <Text style={{ color: subTextColor }}>
-              Already have an account?
-            </Text>
+            <Text style={{ color: subTextColor }}>Bạn đã có tài khoản?</Text>
             <Link href="/login" asChild>
               <Pressable>
                 <Text style={{ color: "#3b82f6", fontWeight: "600" }}>
-                  Login
+                  Đăng nhập
                 </Text>
               </Pressable>
             </Link>

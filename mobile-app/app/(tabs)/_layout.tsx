@@ -10,7 +10,6 @@ export default function TabsLayout() {
   const inactiveTint = colorScheme === "dark" ? "#9ca3af" : "#6b7280";
   return (
     <Tabs
-      sceneContainerStyle={{ backgroundColor }}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: activeTint,
@@ -22,7 +21,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "Trang chủ",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "home" : "home-outline"}
@@ -33,9 +32,35 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="store"
+        options={{
+          title: "Cửa hàng",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "storefront" : "storefront-outline"}
+              color={color}
+              size={size}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="blogs"
+        options={{
+          title: "Bài viết",
+          tabBarIcon: ({ color, size, focused }) => (
+            <Ionicons
+              name={focused ? "document-text" : "document-text-outline"}
+              color={color}
+              size={size}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: "Hồ sơ",
           tabBarIcon: ({ color, size, focused }) => (
             <Ionicons
               name={focused ? "person" : "person-outline"}
@@ -48,4 +73,3 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
-

@@ -22,6 +22,10 @@ export default function RootLayout() {
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="register" options={{ headerShown: false }} />
           <Stack.Screen name="verify-email" options={{ headerShown: false }} />
+          <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
+          <Stack.Screen name="validate-forgot-password" options={{ headerShown: false }} />
+          <Stack.Screen name="blogs/[id]" options={{ headerShown: false }} />
+          <Stack.Screen name="booking-history" options={{ headerShown: false }} />
         </Stack>
       </View>
     </AuthProvider>

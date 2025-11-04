@@ -1315,6 +1315,98 @@ namespace ApiApplication.Migrations
                     b.ToTable("InventoryCheckItems");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.Membership", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<decimal>("DiscountPercent")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<int>("DurationDays")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Memberships");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 11, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            Description = "Gói Silver: ưu đãi cơ bản khi đặt sân",
+                            DiscountPercent = 5m,
+                            DurationDays = 30,
+                            Name = "Silver",
+                            Price = 199000m,
+                            Status = "Active",
+                            UpdatedAt = new DateTime(2025, 11, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 10, 31, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            Description = "Gói Gold: ưu đãi tốt hơn, thời hạn 60 ngày",
+                            DiscountPercent = 10m,
+                            DurationDays = 60,
+                            Name = "Gold",
+                            Price = 399000m,
+                            Status = "Active",
+                            UpdatedAt = new DateTime(2025, 10, 31, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "System"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 10, 30, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = "System",
+                            Description = "Gói Platinum: ưu đãi cao nhất, 90 ngày",
+                            DiscountPercent = 15m,
+                            DurationDays = 90,
+                            Name = "Platinum",
+                            Price = 699000m,
+                            Status = "Active",
+                            UpdatedAt = new DateTime(2025, 10, 30, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UpdatedBy = "System"
+                        });
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1454,7 +1546,7 @@ namespace ApiApplication.Migrations
                     b.Property<Guid?>("BookingCourtOccurrenceId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("BookingId")
+                    b.Property<Guid?>("BookingId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
@@ -1485,6 +1577,9 @@ namespace ApiApplication.Migrations
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("text");
 
+                    b.Property<int?>("UserMembershipId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BookingCourtOccurrenceId");
@@ -1497,6 +1592,8 @@ namespace ApiApplication.Migrations
                         .IsUnique();
 
                     b.HasIndex("OrderId");
+
+                    b.HasIndex("UserMembershipId");
 
                     b.ToTable("Payments");
                 });
@@ -2605,25 +2702,73 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 27, 4, 43, 48, 429, DateTimeKind.Utc).AddTicks(9410),
+                            CreatedAt = new DateTime(2025, 11, 3, 14, 11, 57, 924, DateTimeKind.Utc).AddTicks(9330),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 10, 27, 4, 43, 48, 429, DateTimeKind.Utc).AddTicks(9410),
+                            UpdatedAt = new DateTime(2025, 11, 3, 14, 11, 57, 924, DateTimeKind.Utc).AddTicks(9340),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 10, 27, 4, 43, 48, 429, DateTimeKind.Utc).AddTicks(9410),
+                            CreatedAt = new DateTime(2025, 11, 3, 14, 11, 57, 924, DateTimeKind.Utc).AddTicks(9340),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 10, 27, 4, 43, 48, 429, DateTimeKind.Utc).AddTicks(9410),
+                            UpdatedAt = new DateTime(2025, 11, 3, 14, 11, 57, 924, DateTimeKind.Utc).AddTicks(9340),
                             UpdatedBy = "System",
                             Value = ""
                         });
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.UserMembership", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MembershipId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MembershipId");
+
+                    b.HasIndex("CustomerId", "MembershipId", "StartDate");
+
+                    b.ToTable("UserMemberships");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -2994,9 +3139,7 @@ namespace ApiApplication.Migrations
 
                     b.HasOne("ApiApplication.Entities.BookingCourt", "Booking")
                         .WithMany("Payments")
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("BookingId");
 
                     b.HasOne("ApiApplication.Entities.Customer", "Customer")
                         .WithMany()
@@ -3009,6 +3152,10 @@ namespace ApiApplication.Migrations
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("ApiApplication.Entities.UserMembership", "UserMembership")
+                        .WithMany("Payments")
+                        .HasForeignKey("UserMembershipId");
+
                     b.Navigation("Booking");
 
                     b.Navigation("BookingCourtOccurrence");
@@ -3016,6 +3163,8 @@ namespace ApiApplication.Migrations
                     b.Navigation("Customer");
 
                     b.Navigation("Order");
+
+                    b.Navigation("UserMembership");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PayrollItem", b =>
@@ -3230,6 +3379,25 @@ namespace ApiApplication.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.UserMembership", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.Customer", "Customer")
+                        .WithMany("UserMemberships")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiApplication.Entities.Membership", "Membership")
+                        .WithMany("UserMemberships")
+                        .HasForeignKey("MembershipId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Membership");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -3324,9 +3492,19 @@ namespace ApiApplication.Migrations
                     b.Navigation("Courts");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.Customer", b =>
+                {
+                    b.Navigation("UserMemberships");
+                });
+
             modelBuilder.Entity("ApiApplication.Entities.InventoryCheck", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.Membership", b =>
+                {
+                    b.Navigation("UserMemberships");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Order", b =>
@@ -3374,6 +3552,11 @@ namespace ApiApplication.Migrations
             modelBuilder.Entity("ApiApplication.Entities.StockOut", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.UserMembership", b =>
+                {
+                    b.Navigation("Payments");
                 });
 #pragma warning restore 612, 618
         }

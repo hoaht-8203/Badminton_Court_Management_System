@@ -1,15 +1,26 @@
 "use client";
 
-import CashflowFilter from "@/components/quanlysancaulong/cashflow/cashflow-filter";
-import CashflowList from "@/components/quanlysancaulong/cashflow/cashflow-list";
-import CashflowDrawer from "@/components/quanlysancaulong/cashflow/cashflow-drawer";
+import dynamic from "next/dynamic";
+import React, { useState, useMemo, useCallback, Suspense } from "react";
 import { useListCashflow, useCreateCashflow, useUpdateCashflowFn } from "@/hooks/useCashflow";
 import { ListCashflowRequest } from "@/types-openapi/api";
-import { Breadcrumb, Button, Modal, message } from "antd";
+import { Breadcrumb, Button, Modal, message, Spin } from "antd";
 import { PlusOutlined, ReloadOutlined } from "@ant-design/icons";
-import { useState } from "react";
 
-const CashflowPage = () => {
+const CashflowFilter = dynamic(() => import("@/components/quanlysancaulong/cashflow/cashflow-filter"), {
+  ssr: false,
+  loading: () => <Spin />,
+});
+const CashflowList = dynamic(() => import("@/components/quanlysancaulong/cashflow/cashflow-list"), {
+  ssr: false,
+  loading: () => <Spin />,
+});
+const CashflowDrawer = dynamic(() => import("@/components/quanlysancaulong/cashflow/cashflow-drawer"), {
+  ssr: false,
+  loading: () => <Spin />,
+});
+
+const CashflowPage: React.FC = () => {
   const [searchParams, setSearchParams] = useState<ListCashflowRequest>({
     isPayment: undefined,
     from: undefined,
@@ -30,13 +41,45 @@ const CashflowPage = () => {
 
   const { data: cashflowData, isFetching: loadingCashflowData, refetch: refetchCashflow } = useListCashflow(searchParams);
 
-  // compute summary numbers
-  const items = cashflowData?.data ?? [];
-  const totalThu = items.filter((i) => !i.isPayment).reduce((s, it) => s + (it.value ?? 0), 0);
-  const totalChi = items.filter((i) => i.isPayment).reduce((s, it) => s + (it.value ?? 0), 0);
-  // represent totalChi as negative (payments are negative amounts)
-  // calculate balance by adding (receipts + negative payments)
-  const balance = totalThu + totalChi;
+  // compute summary numbers memoized
+  const items = useMemo(() => cashflowData?.data ?? [], [cashflowData]);
+  const totalThu = useMemo(() => items.filter((i) => !i.isPayment).reduce((s, it) => s + (it.value ?? 0), 0), [items]);
+  const totalChi = useMemo(() => items.filter((i) => i.isPayment).reduce((s, it) => s + (it.value ?? 0), 0), [items]);
+  const balance = useMemo(() => totalThu + totalChi, [totalThu, totalChi]);
+
+  const handleOpenCreate = useCallback(() => {
+    setDrawerMode("create");
+    setEditing(null);
+    setDrawerOpen(true);
+  }, []);
+
+  const handleOpenEdit = useCallback((record: any) => {
+    setEditing(record);
+    setDrawerMode("update");
+    setDrawerOpen(true);
+  }, []);
+
+  const handleSubmit = useCallback(
+    async (payload: any) => {
+      try {
+        setSubmitting(true);
+        if (drawerMode === "create") {
+          await createMutation.mutateAsync(payload);
+          message.success("Tạo phiếu thành công");
+        } else if (drawerMode === "update" && editing?.id) {
+          await updateFn(editing.id, payload);
+          message.success("Cập nhật phiếu thành công");
+        }
+        setDrawerOpen(false);
+        refetchCashflow();
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [drawerMode, createMutation, updateFn, editing, refetchCashflow],
+  );
+
+  const totalCount = items.length;
 
   return (
     <section>
@@ -54,10 +97,14 @@ const CashflowPage = () => {
           />
         </div>
         <div className="mb-2">
-          <CashflowFilter
-            onSearch={setSearchParams}
-            onReset={() => setSearchParams({ isPayment: undefined, from: undefined, to: undefined, cashflowTypeId: undefined, status: undefined })}
-          />
+          <Suspense fallback={<Spin />}>
+            <CashflowFilter
+              onSearch={setSearchParams}
+              onReset={() =>
+                setSearchParams({ isPayment: undefined, from: undefined, to: undefined, cashflowTypeId: undefined, status: undefined })
+              }
+            />
+          </Suspense>
         </div>
       </div>
       <div className="mb-2 flex items-center justify-between">
@@ -84,18 +131,10 @@ const CashflowPage = () => {
       <div>
         <div className="mb-2 flex items-center justify-between">
           <div>
-            <span className="font-bold text-green-500">Tổng số phiếu: {cashflowData?.data?.length ?? 0}</span>
+            <span className="font-bold text-green-500">Tổng số phiếu: {totalCount}</span>
           </div>
           <div className="flex gap-2">
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => {
-                setDrawerMode("create");
-                setEditing(null);
-                setDrawerOpen(true);
-              }}
-            >
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenCreate}>
               Lập phiếu mới
             </Button>
             <Button icon={<ReloadOutlined />} onClick={() => refetchCashflow()}>
@@ -104,46 +143,31 @@ const CashflowPage = () => {
           </div>
         </div>
 
-        <CashflowList
-          data={cashflowData?.data ?? []}
-          loading={loadingCashflowData}
-          onRefresh={() => refetchCashflow()}
-          modal={modal}
-          contextHolder={contextHolder}
-          // allow list/expanded to open drawer for edit
-          onOpenDrawer={(record: any) => {
-            setEditing(record);
-            setDrawerMode("update");
-            setDrawerOpen(true);
-          }}
-        />
+        <Suspense fallback={<Spin />}>
+          <CashflowList
+            data={items}
+            loading={loadingCashflowData}
+            onRefresh={() => refetchCashflow()}
+            modal={modal}
+            contextHolder={contextHolder}
+            // allow list/expanded to open drawer for edit
+            onOpenDrawer={handleOpenEdit}
+          />
+        </Suspense>
 
-        <CashflowDrawer
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          mode={drawerMode}
-          initialValues={editing}
-          submitting={submitting}
-          onSubmit={async (payload: any) => {
-            try {
-              setSubmitting(true);
-              if (drawerMode === "create") {
-                await createMutation.mutateAsync(payload);
-                message.success("Tạo phiếu thành công");
-              } else if (drawerMode === "update" && editing?.id) {
-                await updateFn(editing.id, payload);
-                message.success("Cập nhật phiếu thành công");
-              }
-              setDrawerOpen(false);
-              refetchCashflow();
-            } finally {
-              setSubmitting(false);
-            }
-          }}
-        />
+        <Suspense fallback={<Spin />}>
+          <CashflowDrawer
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            mode={drawerMode}
+            initialValues={editing}
+            submitting={submitting}
+            onSubmit={handleSubmit}
+          />
+        </Suspense>
       </div>
     </section>
   );
 };
 
-export default CashflowPage;
+export default React.memo(CashflowPage);

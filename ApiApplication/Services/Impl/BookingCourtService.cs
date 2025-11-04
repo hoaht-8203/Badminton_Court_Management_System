@@ -214,7 +214,7 @@ public class BookingCourtService(
         entity.DaysOfWeek = reqDaysArr;
         // For receptionist flow, create booking as PendingPayment until SePay confirms
         entity.Status = BookingCourtStatus.PendingPayment;
-        var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 15;
+        var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
         entity.HoldExpiresAtUtc = DateTime.UtcNow.AddMinutes(holdMins);
 
         await _context.BookingCourts.AddAsync(entity);
@@ -483,7 +483,7 @@ public class BookingCourtService(
         entity.DaysOfWeek = reqDaysArr;
         // For receptionist flow, create booking as PendingPayment until SePay confirms
         entity.Status = BookingCourtStatus.PendingPayment;
-        var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 15;
+        var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
         entity.HoldExpiresAtUtc = DateTime.UtcNow.AddMinutes(holdMins);
 
         await _context.BookingCourts.AddAsync(entity);
@@ -739,6 +739,7 @@ public class BookingCourtService(
             .BookingCourts.Include(x => x.Court)
             .Include(x => x.Customer)
             .Include(x => x.BookingCourtOccurrences)
+            .ThenInclude(x => x.Payments)
             .Where(x => x.CustomerId == customer.Id)
             .AsQueryable();
 
@@ -763,10 +764,18 @@ public class BookingCourtService(
                 totalAmount += occurrenceAmount;
             }
 
-            // Calculate paid amount from all payments
+            // Calculate paid amount from all payments (both booking-level and occurrence-level)
             var paidAmount = booking
                 .Payments.Where(p => p.Status == PaymentStatus.Paid)
                 .Sum(p => p.Amount);
+
+            // Add payments from occurrences
+            foreach (var occurrence in booking.BookingCourtOccurrences)
+            {
+                paidAmount += occurrence
+                    .Payments.Where(p => p.Status == PaymentStatus.Paid)
+                    .Sum(p => p.Amount);
+            }
 
             // Calculate remaining amount
             var remainingAmount = Math.Max(0, totalAmount - paidAmount);

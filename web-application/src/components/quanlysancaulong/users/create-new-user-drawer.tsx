@@ -64,6 +64,7 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
 
   return (
     <Drawer
+      forceRender
       title="Thêm người dùng"
       closable={{ "aria-label": "Close Button" }}
       onClose={() => {

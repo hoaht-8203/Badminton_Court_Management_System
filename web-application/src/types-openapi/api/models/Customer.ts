@@ -20,6 +20,13 @@ import {
     ApplicationUserToJSON,
     ApplicationUserToJSONTyped,
 } from './ApplicationUser';
+import type { UserMembership } from './UserMembership';
+import {
+    UserMembershipFromJSON,
+    UserMembershipFromJSONTyped,
+    UserMembershipToJSON,
+    UserMembershipToJSONTyped,
+} from './UserMembership';
 
 /**
  * 
@@ -147,6 +154,12 @@ export interface Customer {
      * @memberof Customer
      */
     user?: ApplicationUser;
+    /**
+     * 
+     * @type {Array<UserMembership>}
+     * @memberof Customer
+     */
+    userMemberships?: Array<UserMembership> | null;
 }
 
 /**
@@ -190,6 +203,7 @@ export function CustomerFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'userId': json['userId'] == null ? undefined : json['userId'],
         'user': json['user'] == null ? undefined : ApplicationUserFromJSON(json['user']),
+        'userMemberships': json['userMemberships'] == null ? undefined : ((json['userMemberships'] as Array<any>).map(UserMembershipFromJSON)),
     };
 }
 
@@ -224,6 +238,7 @@ export function CustomerToJSONTyped(value?: Customer | null, ignoreDiscriminator
         'avatarUrl': value['avatarUrl'],
         'userId': value['userId'],
         'user': ApplicationUserToJSON(value['user']),
+        'userMemberships': value['userMemberships'] == null ? undefined : ((value['userMemberships'] as Array<any>).map(UserMembershipToJSON)),
     };
 }
 

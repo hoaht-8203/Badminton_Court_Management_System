@@ -1,6 +1,6 @@
 import { useAssignSchedule } from "@/hooks/useSchedule";
 import { message } from "antd";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Button, Checkbox, Switch, DatePicker, Select, Tag } from "antd";
 import dayjs from "dayjs";
 import { ScheduleRequest } from "@/types-openapi/api";
@@ -23,16 +23,37 @@ interface ScheduleAssignModalProps {
   staff?: { id: number; fullName: string };
   date?: string;
   shiftList: Array<{ key: string; label: string; time?: string }>;
+  /** If provided, used as the default selected weekday when enabling weekly repeat */
+  initialSelectedDay?: number;
   onSave?: (values: any) => void;
 }
 
-const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose, staff, date, shiftList, onSave }) => {
+const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose, staff, date, shiftList, initialSelectedDay, onSave }) => {
   const assignMutation = useAssignSchedule();
   const [selectedShifts, setSelectedShifts] = useState<string[]>([]);
   const [repeatWeekly, setRepeatWeekly] = useState(false);
   const [repeatDays, setRepeatDays] = useState<number[]>([]);
   const [repeatEnd, setRepeatEnd] = useState<string | null>(null);
   const [workOnHoliday, setWorkOnHoliday] = useState(false);
+
+  // Reset modal state each time it is opened
+  useEffect(() => {
+    if (open) {
+      setSelectedShifts([]);
+      setRepeatWeekly(false);
+      setRepeatDays([]);
+      setRepeatEnd(null);
+      setWorkOnHoliday(false);
+    }
+  }, [open]);
+
+  // When user enables repeatWeekly, if there are no repeatDays selected and an initialSelectedDay
+  // is provided by the caller (cell that opened the modal), select it by default so user can add more
+  useEffect(() => {
+    if (repeatWeekly && repeatDays.length === 0 && typeof initialSelectedDay === "number") {
+      setRepeatDays([initialSelectedDay]);
+    }
+  }, [repeatWeekly, repeatDays.length, initialSelectedDay]);
 
   const handleShiftChange = (key: string, checked: boolean) => {
     setSelectedShifts((prev) => (checked ? [...prev, key] : prev.filter((k) => k !== key)));

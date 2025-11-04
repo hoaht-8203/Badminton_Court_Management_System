@@ -61,7 +61,7 @@ public class OrderService(
             var paymentIdForQr = order.Payments.FirstOrDefault()?.Id ?? string.Empty;
             var des = Uri.EscapeDataString(paymentIdForQr);
             qrUrl = $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
-            holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 15;
+            holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
         }
 
         return new CheckoutResponse
@@ -453,7 +453,6 @@ public class OrderService(
             payment.PaymentCreatedAt = DateTime.UtcNow; // Reset thời gian tạo payment
         }
 
-        // Cập nhật trạng thái booking và court về CheckedIn để có thể tiếp tục chơi
         if (order.Booking != null)
         {
             order.Booking.HoldExpiresAtUtc = DateTime.UtcNow.AddMinutes(5);

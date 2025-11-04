@@ -22,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Minio;
+using Npgsql;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -166,9 +167,16 @@ builder
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+// Configure Npgsql data source with dynamic JSON to support mapping jsonb <-> Dictionary<,>
+var npgsqlDataSourceBuilder = new NpgsqlDataSourceBuilder(
+    builder.Configuration.GetConnectionString("DbConnectionString")
+);
+npgsqlDataSourceBuilder.EnableDynamicJson();
+var npgsqlDataSource = npgsqlDataSourceBuilder.Build();
+
 builder.Services.AddDbContext<ApplicationDbContext>(opt =>
 {
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DbConnectionString"));
+    opt.UseNpgsql(npgsqlDataSource);
 });
 
 builder.Services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
@@ -211,6 +219,8 @@ builder.Services.AddScoped<IBlogService, BlogService>();
 builder.Services.AddScoped<ICashflowTypeService, CashFlowTypeService>();
 builder.Services.AddScoped<ISliderService, SliderService>();
 builder.Services.AddScoped<IExportService, ExportService>();
+builder.Services.AddScoped<IMembershipService, MembershipService>();
+builder.Services.AddScoped<IUserMembershipService, UserMembershipService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -247,6 +257,7 @@ builder.Services.AddAutoMapper(config => config.AddProfile<CashflowMappingProfil
 builder.Services.AddAutoMapper(config => config.AddProfile<OrderMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<BlogMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<SliderMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<MembershipMappingProfile>());
 
 // MinIO client
 builder.Services.AddSingleton<IMinioClient>(sp =>
@@ -376,6 +387,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddHostedService<BookingHoldExpiryHostedService>();
 builder.Services.AddHostedService<OrderExpiryHostedService>();
 builder.Services.AddHostedService<AutoCheckoutHostedService>();
+builder.Services.AddHostedService<MembershipStatusHostedService>();
+builder.Services.AddHostedService<MembershipPaymentExpiryHostedService>();
 builder.Services.AddSignalR(options =>
 {
     options.EnableDetailedErrors = true;

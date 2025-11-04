@@ -80,6 +80,7 @@ const UpdateUserDrawer = ({ open, onClose, userId }: UpdateUserDrawerProps) => {
 
   return (
     <Drawer
+      forceRender
       title="Cập nhật người dùng"
       closable={{ "aria-label": "Close Button" }}
       onClose={() => {

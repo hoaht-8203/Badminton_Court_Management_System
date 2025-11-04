@@ -43,7 +43,7 @@ public class ReceiptService(ApplicationDbContext context) : IReceiptService
     {
         // Calculate total payment amount
         var totalAmount = req.Items.Sum(i => i.Quantity * i.CostPrice) - req.Discount;
-        
+
         var entity = new Receipt
         {
             SupplierId = req.SupplierId,
@@ -64,13 +64,13 @@ public class ReceiptService(ApplicationDbContext context) : IReceiptService
                 CostPrice = i.CostPrice,
             })
             .ToList();
-        
+
         // Auto set payment amount when completing with cash payment
         if (req.Complete && req.PaymentMethod == "cash")
         {
             entity.PaymentAmount = totalAmount;
         }
-        
+
         _context.Receipts.Add(entity);
 
         if (req.Complete)

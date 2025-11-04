@@ -1,8 +1,7 @@
 "use client";
 
 import { ListBlogResponse } from "@/types-openapi/api";
-import { FileTextOutlined } from "@ant-design/icons";
-import { TableProps, Avatar, Image } from "antd";
+import { Image, TableProps } from "antd";
 import dayjs from "dayjs";
 
 export const columns: TableProps<ListBlogResponse>["columns"] = [

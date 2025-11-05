@@ -29,11 +29,27 @@ public class DashboardController(IDashboardService dashboardService) : Controlle
     public async Task<ApiResponse<RevenuePointDto[]>> Revenue(
         [FromQuery] DateTime? from,
         [FromQuery] DateTime? to,
-        [FromQuery] string granularity = "day",
+        [FromQuery] string granularity = "month",
         [FromQuery] int? branchId = null
     )
     {
-        var data = await _dashboardService.GetRevenueSeriesAsync(from, to, granularity, branchId);
+        // normalize granularity and validate
+        var g = (granularity ?? "month").Trim().ToLowerInvariant();
+        if (g != "day" && g != "month" && g != "quarter")
+        {
+            // default to month when unsupported value provided
+            g = "month";
+        }
+
+        // ensure query DateTimes are treated as UTC to avoid Npgsql Kind errors
+        DateTime? fromUtc = null;
+        DateTime? toUtc = null;
+        if (from.HasValue)
+            fromUtc = DateTime.SpecifyKind(from.Value, DateTimeKind.Utc);
+        if (to.HasValue)
+            toUtc = DateTime.SpecifyKind(to.Value, DateTimeKind.Utc);
+
+        var data = await _dashboardService.GetRevenueSeriesAsync(fromUtc, toUtc, g, branchId);
         return ApiResponse<RevenuePointDto[]>.SuccessResponse(data.ToArray());
     }
 
@@ -70,5 +86,16 @@ public class DashboardController(IDashboardService dashboardService) : Controlle
     {
         var data = await _dashboardService.GetRecentTransactionsAsync(from, to, limit, branchId);
         return ApiResponse<RecentTransactionDto[]>.SuccessResponse(data.ToArray());
+    }
+
+    [HttpGet("monthly-customer-types")]
+    public async Task<ApiResponse<MonthlyCustomerTypeDto[]>> MonthlyCustomerTypes(
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to,
+        [FromQuery] int? branchId = null
+    )
+    {
+        var data = await _dashboardService.GetMonthlyCustomerTypeAsync(from, to, branchId);
+        return ApiResponse<MonthlyCustomerTypeDto[]>.SuccessResponse(data.ToArray());
     }
 }

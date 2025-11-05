@@ -73,6 +73,8 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         {
             throw new ApiException("Thời gian phiếu quỹ không được lớn hơn thời gian hiện tại");
         }
+        // default Time to now when not provided
+        if (!request.Time.HasValue)
         {
             request.Time = DateTime.Now;
         }
@@ -95,9 +97,15 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         }
 
         // Dùng code của loại thu/chi
-        entity.ReferenceNumber = GenerateVoucherCode(type.Code, entity.Id);
         _context.Cashflows.Add(entity);
+        // persist to get DB-generated Id
         await _context.SaveChangesAsync();
+
+        // entity.Id should now be set by EF; update the reference number and save
+        entity.ReferenceNumber = GenerateVoucherCode(type.Code, entity.Id);
+        _context.Cashflows.Update(entity);
+        await _context.SaveChangesAsync();
+
         return entity.Id;
     }
 

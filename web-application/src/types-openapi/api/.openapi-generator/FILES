@@ -336,6 +336,8 @@ models/ListUserRolesRequest.ts
 models/LoginRequest.ts
 models/Membership.ts
 models/MergeInventoryChecksRequest.ts
+models/MonthlyCustomerTypeDto.ts
+models/MonthlyCustomerTypeDtoArrayApiResponse.ts
 models/MyProfileResponse.ts
 models/MyProfileResponseApiResponse.ts
 models/NoShowBookingCourtRequest.ts

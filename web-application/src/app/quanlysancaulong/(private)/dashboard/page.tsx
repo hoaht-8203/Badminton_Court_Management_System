@@ -14,7 +14,8 @@ const TopCourts = dynamic(() => import("@/components/quanlysancaulong/dashboard/
 const DashboardPage: React.FC = () => {
   // Real data from backend
   const summaryQ = useDashboardSummary();
-  const revenueQ = useDashboardRevenue();
+  const [granularity, setGranularity] = React.useState<"month" | "quarter">("month");
+  const revenueQ = useDashboardRevenue({ granularity });
   const heatmapQ = useDashboardHeatmap();
   const topQ = useDashboardTopCourts();
 
@@ -28,7 +29,11 @@ const DashboardPage: React.FC = () => {
   };
 
   const series = (revenueQ.data?.data ?? []) as RevenuePointDto[];
-  const chartSeries = series.map((s) => ({ date: s.period ? new Date(s.period).toISOString().slice(0, 10) : "", revenue: s.value ?? 0 }));
+  const chartSeries = series.map((s) => ({
+    date: s.label ?? (s.period ? new Date(s.period).toISOString().slice(0, 10) : ""),
+    revenue: s.value ?? 0,
+    profit: s.profit ?? 0,
+  }));
 
   const heatCells = (heatmapQ.data?.data ?? []) as HeatmapCellDto[];
   const heatMatrix = Array.from({ length: 7 }).map(() => Array.from({ length: 24 }).map(() => 0));
@@ -70,6 +75,19 @@ const DashboardPage: React.FC = () => {
       <Row gutter={16} style={{ marginTop: 16 }}>
         <Col xs={24} lg={16}>
           <Suspense fallback={<Spin />}>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+              <Button
+                type={granularity === "month" ? "primary" : "default"}
+                size="small"
+                onClick={() => setGranularity("month")}
+                style={{ marginRight: 8 }}
+              >
+                Tháng
+              </Button>
+              <Button type={granularity === "quarter" ? "primary" : "default"} size="small" onClick={() => setGranularity("quarter")}>
+                Quý
+              </Button>
+            </div>
             <RevenueChart series={chartSeries} />
           </Suspense>
           <div style={{ marginTop: 16 }}>

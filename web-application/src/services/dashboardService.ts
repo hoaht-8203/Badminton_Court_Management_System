@@ -17,8 +17,16 @@ export const dashboardService = {
   },
 
   async getRevenueSeries(params?: { from?: Date; to?: Date; granularity?: string; branchId?: number }): Promise<ApiResponse<RevenuePointDto[] | null>> {
+    // serialize dates to ISO strings for query params
+    const qp: Record<string, any> = {};
+    if (params) {
+      if (params.from) qp.from = params.from.toISOString();
+      if (params.to) qp.to = params.to.toISOString();
+      qp.granularity = params.granularity ?? "month";
+      if (params.branchId) qp.branchId = params.branchId;
+    }
     const res = await axiosInstance.get<ApiResponse<RevenuePointDto[] | null>>("/api/Dashboard/revenue", {
-      params: params ? { ...params, granularity: params.granularity } : undefined,
+      params: Object.keys(qp).length ? qp : undefined,
     });
     return res.data;
   },

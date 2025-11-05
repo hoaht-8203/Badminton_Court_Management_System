@@ -4,7 +4,7 @@ import React from "react";
 import { Card } from "antd";
 
 interface Props {
-  series?: Array<{ date: string; revenue: number }>;
+  series?: Array<{ date: string; revenue: number; profit?: number }>;
 }
 
 // Small SVG line chart with axes and simple ticks
@@ -17,9 +17,15 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
     );
   }
 
-  const values = series.map((s) => s.revenue ?? 0);
-  const max = Math.max(...values, 1);
-  const min = Math.min(...values, 0);
+  const revenueValues = series.map((s) => s.revenue ?? 0);
+  const profitValues = series.map((s) => s.profit ?? 0);
+  const allValues = [...revenueValues, ...profitValues];
+  // compute symmetric domain so that zero is centered
+  const rawMax = Math.max(...allValues, 0);
+  const rawMin = Math.min(...allValues, 0);
+  const maxAbs = Math.max(Math.abs(rawMin), Math.abs(rawMax), 1);
+  const max = maxAbs;
+  const min = -maxAbs;
 
   // SVG layout
   const width = 600; // logical width
@@ -30,7 +36,7 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
 
   const xStep = innerW / Math.max(1, series.length - 1);
 
-  const points = series
+  const revenuePoints = series
     .map((s, i) => {
       const x = margin.left + i * xStep;
       const v = s.revenue ?? 0;
@@ -39,10 +45,21 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
     })
     .join(" ");
 
-  // y ticks (3 ticks)
-  const yTicks = [0, 0.5, 1].map((t) => {
-    const value = min + t * (max - min);
-    const y = margin.top + innerH - t * innerH;
+  const profitPoints = series
+    .map((s, i) => {
+      const x = margin.left + i * xStep;
+      const v = s.profit ?? 0;
+      const y = margin.top + innerH - ((v - min) / Math.max(1, max - min)) * innerH;
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  // y ticks: symmetric around zero (5 ticks)
+  const yTicks = [ -1, -0.5, 0, 0.5, 1 ].map((t) => {
+    const value = t * max;
+    // t in [-1,1] -> position within domain
+    const norm = (value - min) / (max - min); // 0..1
+    const y = margin.top + innerH - norm * innerH;
     return { y, value };
   });
 
@@ -64,10 +81,13 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
             <g key={idx}>
               <line x1={margin.left - 6} x2={margin.left} y1={t.y} y2={t.y} stroke="#e8e8e8" />
               <text x={margin.left - 10} y={t.y + 4} fontSize={11} textAnchor="end" fill="#666">
-                {Math.round(t.value).toLocaleString()}
+                {t.value === 0 ? "0" : Math.round(t.value).toLocaleString()}
               </text>
             </g>
           ))}
+
+          {/* zero baseline */}
+          <line x1={margin.left} y1={yTicks.find((t) => t.value === 0)!.y} x2={margin.left + innerW} y2={yTicks.find((t) => t.value === 0)!.y} stroke="#999" strokeDasharray="4 4" />
 
           {/* x ticks and labels */}
           {xTicks.map((t, idx) => {
@@ -82,14 +102,37 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
             );
           })}
 
-          {/* area/line */}
-          <polyline fill="none" stroke="#1890ff" strokeWidth={2} points={points} />
-          {/* markers */}
+          {/* legend */}
+          <g transform={`translate(${width - margin.right - 140}, ${margin.top})`}>
+            <rect x={0} y={0} width={140} height={30} fill="transparent" />
+            <g transform={`translate(8,6)`}> 
+              <circle cx={6} cy={6} r={5} fill="#1890ff" />
+              <text x={18} y={10} fontSize={12} fill="#333">Doanh thu</text>
+            </g>
+            <g transform={`translate(80,6)`}>
+              <circle cx={6} cy={6} r={5} fill="#52c41a" />
+              <text x={18} y={10} fontSize={12} fill="#333">Lợi nhuận</text>
+            </g>
+          </g>
+
+          {/* revenue and profit lines */}
+          <polyline fill="none" stroke="#1890ff" strokeWidth={2} points={revenuePoints} />
+          <polyline fill="none" stroke="#52c41a" strokeWidth={2} points={profitPoints} />
+
+          {/* markers for revenue */}
           {series.map((s, i) => {
             const x = margin.left + i * xStep;
             const v = s.revenue ?? 0;
             const y = margin.top + innerH - ((v - min) / Math.max(1, max - min)) * innerH;
-            return <circle key={i} cx={x} cy={y} r={2.5} fill="#1890ff" />;
+            return <circle key={`r-${i}`} cx={x} cy={y} r={3} fill="#1890ff" />;
+          })}
+
+          {/* markers for profit */}
+          {series.map((s, i) => {
+            const x = margin.left + i * xStep;
+            const v = s.profit ?? 0;
+            const y = margin.top + innerH - ((v - min) / Math.max(1, max - min)) * innerH;
+            return <circle key={`p-${i}`} cx={x} cy={y} r={3} fill="#52c41a" />;
           })}
         </svg>
       </div>

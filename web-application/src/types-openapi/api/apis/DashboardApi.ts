@@ -17,6 +17,7 @@ import * as runtime from '../runtime';
 import type {
   DashboardSummaryResponseApiResponse,
   HeatmapCellDtoArrayApiResponse,
+  MonthlyCustomerTypeDtoArrayApiResponse,
   RecentTransactionDtoArrayApiResponse,
   RevenuePointDtoArrayApiResponse,
   TopCourtDtoArrayApiResponse,
@@ -26,6 +27,8 @@ import {
     DashboardSummaryResponseApiResponseToJSON,
     HeatmapCellDtoArrayApiResponseFromJSON,
     HeatmapCellDtoArrayApiResponseToJSON,
+    MonthlyCustomerTypeDtoArrayApiResponseFromJSON,
+    MonthlyCustomerTypeDtoArrayApiResponseToJSON,
     RecentTransactionDtoArrayApiResponseFromJSON,
     RecentTransactionDtoArrayApiResponseToJSON,
     RevenuePointDtoArrayApiResponseFromJSON,
@@ -35,6 +38,12 @@ import {
 } from '../models/index';
 
 export interface ApiDashboardBookingsHeatmapGetRequest {
+    from?: Date;
+    to?: Date;
+    branchId?: number;
+}
+
+export interface ApiDashboardMonthlyCustomerTypesGetRequest {
     from?: Date;
     to?: Date;
     branchId?: number;
@@ -88,6 +97,21 @@ export interface DashboardApiInterface {
     /**
      */
     apiDashboardBookingsHeatmapGet(requestParameters: ApiDashboardBookingsHeatmapGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<HeatmapCellDtoArrayApiResponse>;
+
+    /**
+     * 
+     * @param {Date} [from] 
+     * @param {Date} [to] 
+     * @param {number} [branchId] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof DashboardApiInterface
+     */
+    apiDashboardMonthlyCustomerTypesGetRaw(requestParameters: ApiDashboardMonthlyCustomerTypesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MonthlyCustomerTypeDtoArrayApiResponse>>;
+
+    /**
+     */
+    apiDashboardMonthlyCustomerTypesGet(requestParameters: ApiDashboardMonthlyCustomerTypesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MonthlyCustomerTypeDtoArrayApiResponse>;
 
     /**
      * 
@@ -195,6 +219,45 @@ export class DashboardApi extends runtime.BaseAPI implements DashboardApiInterfa
      */
     async apiDashboardBookingsHeatmapGet(requestParameters: ApiDashboardBookingsHeatmapGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<HeatmapCellDtoArrayApiResponse> {
         const response = await this.apiDashboardBookingsHeatmapGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiDashboardMonthlyCustomerTypesGetRaw(requestParameters: ApiDashboardMonthlyCustomerTypesGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<MonthlyCustomerTypeDtoArrayApiResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['from'] != null) {
+            queryParameters['from'] = (requestParameters['from'] as any).toISOString();
+        }
+
+        if (requestParameters['to'] != null) {
+            queryParameters['to'] = (requestParameters['to'] as any).toISOString();
+        }
+
+        if (requestParameters['branchId'] != null) {
+            queryParameters['branchId'] = requestParameters['branchId'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Dashboard/monthly-customer-types`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => MonthlyCustomerTypeDtoArrayApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiDashboardMonthlyCustomerTypesGet(requestParameters: ApiDashboardMonthlyCustomerTypesGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<MonthlyCustomerTypeDtoArrayApiResponse> {
+        const response = await this.apiDashboardMonthlyCustomerTypesGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

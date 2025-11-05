@@ -295,6 +295,8 @@ export * from './ListUserRolesRequest';
 export * from './LoginRequest';
 export * from './Membership';
 export * from './MergeInventoryChecksRequest';
+export * from './MonthlyCustomerTypeDto';
+export * from './MonthlyCustomerTypeDtoArrayApiResponse';
 export * from './MyProfileResponse';
 export * from './MyProfileResponseApiResponse';
 export * from './NoShowBookingCourtRequest';

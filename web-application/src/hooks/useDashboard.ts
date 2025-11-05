@@ -13,7 +13,7 @@ import { ApiResponse } from "@/types/api";
 export const dashboardKeys = {
   all: ["dashboard"] as const,
   summary: () => [...dashboardKeys.all, "summary"] as const,
-  revenue: () => [...dashboardKeys.all, "revenue"] as const,
+  revenue: (params?: { from?: Date; to?: Date; granularity?: string; branchId?: number }) => [...dashboardKeys.all, "revenue", params] as const,
   heatmap: () => [...dashboardKeys.all, "heatmap"] as const,
   topCourts: () => [...dashboardKeys.all, "topCourts"] as const,
   // include params in key so queries refetch when params change
@@ -30,7 +30,7 @@ export const useDashboardSummary = (params?: { from?: Date; to?: Date; branchId?
 
 export const useDashboardRevenue = (params?: { from?: Date; to?: Date; granularity?: string; branchId?: number }) => {
   return useQuery<ApiResponse<RevenuePointDto[] | null>, ApiError>({
-    queryKey: dashboardKeys.revenue(),
+    queryKey: dashboardKeys.revenue(params),
     queryFn: () => dashboardService.getRevenueSeries(params),
     enabled: true,
   });

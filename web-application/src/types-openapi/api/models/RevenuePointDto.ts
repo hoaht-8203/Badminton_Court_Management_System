@@ -31,6 +31,18 @@ export interface RevenuePointDto {
      * @memberof RevenuePointDto
      */
     value?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof RevenuePointDto
+     */
+    profit?: number;
+    /**
+     * 
+     * @type {string}
+     * @memberof RevenuePointDto
+     */
+    label?: string | null;
 }
 
 /**
@@ -52,6 +64,8 @@ export function RevenuePointDtoFromJSONTyped(json: any, ignoreDiscriminator: boo
         
         'period': json['period'] == null ? undefined : (new Date(json['period'])),
         'value': json['value'] == null ? undefined : json['value'],
+        'profit': json['profit'] == null ? undefined : json['profit'],
+        'label': json['label'] == null ? undefined : json['label'],
     };
 }
 
@@ -68,6 +82,8 @@ export function RevenuePointDtoToJSONTyped(value?: RevenuePointDto | null, ignor
         
         'period': value['period'] == null ? undefined : ((value['period']).toISOString()),
         'value': value['value'],
+        'profit': value['profit'],
+        'label': value['label'],
     };
 }
 

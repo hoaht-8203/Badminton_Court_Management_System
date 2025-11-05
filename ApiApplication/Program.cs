@@ -101,6 +101,7 @@ builder.Services.AddScoped<ISliderService, SliderService>();
 builder.Services.AddScoped<IExportService, ExportService>();
 builder.Services.AddScoped<IMembershipService, MembershipService>();
 builder.Services.AddScoped<IUserMembershipService, UserMembershipService>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -140,6 +141,7 @@ builder.Services.AddAutoMapper(config => config.AddProfile<OrderMappingProfile>(
 builder.Services.AddAutoMapper(config => config.AddProfile<BlogMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<SliderMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<MembershipMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<FeedbackMappingProfile>());
 
 // MinIO client
 builder.Services.AddSingleton<IMinioClient>(sp =>

@@ -1,10 +1,10 @@
 "use client";
 
+import { useDashboardHeatmap, useDashboardRecent, useDashboardRevenue, useDashboardSummary, useDashboardTopCourts } from "@/hooks/useDashboard";
+import { HeatmapCellDto, RecentTransactionDto, RevenuePointDto, TopCourtDto } from "@/types-openapi/api";
+import { Button, Col, Row, Spin } from "antd";
 import dynamic from "next/dynamic";
 import React, { Suspense } from "react";
-import { Row, Col, Spin, Card, Button } from "antd";
-import { useDashboardSummary, useDashboardRevenue, useDashboardHeatmap, useDashboardTopCourts, useDashboardRecent } from "@/hooks/useDashboard";
-import { RevenuePointDto, HeatmapCellDto, TopCourtDto, RecentTransactionDto } from "@/types-openapi/api";
 
 const KPIGrid = dynamic(() => import("@/components/quanlysancaulong/dashboard/kpi-grid"), { ssr: false, loading: () => <Spin /> });
 const RevenueChart = dynamic(() => import("@/components/quanlysancaulong/dashboard/revenue-chart"), { ssr: false, loading: () => <Spin /> });

@@ -102,7 +102,7 @@ public class DashboardService(ApplicationDbContext context) : IDashboardService
         {
             if (g == "month")
             {
-                // last 10 months (including current month)
+                // last 12 months (including current month)
                 var end = new DateTime(
                     nowUtc.Year,
                     nowUtc.Month,
@@ -111,7 +111,7 @@ public class DashboardService(ApplicationDbContext context) : IDashboardService
                     59,
                     59
                 );
-                var startMonth = end.AddMonths(-9);
+                var startMonth = end.AddMonths(-11);
                 var start = new DateTime(startMonth.Year, startMonth.Month, 1);
                 from = start;
                 to = end;
@@ -142,7 +142,7 @@ public class DashboardService(ApplicationDbContext context) : IDashboardService
         {
             var toRef = to ?? DateTime.UtcNow;
             if (g == "month")
-                from = new DateTime(toRef.AddMonths(-9).Year, toRef.AddMonths(-9).Month, 1);
+                from = new DateTime(toRef.AddMonths(-11).Year, toRef.AddMonths(-11).Month, 1);
             else if (g == "quarter")
                 from = new DateTime(toRef.AddMonths(-9 * 3).Year, toRef.AddMonths(-9 * 3).Month, 1);
             else
@@ -180,8 +180,10 @@ public class DashboardService(ApplicationDbContext context) : IDashboardService
                 {
                     Year = g.Key.Year,
                     Quarter = g.Key.Quarter,
-                    Revenue = g.Where(x => x.IsPayment).Sum(x => (decimal?)x.Value) ?? 0m,
-                    Expense = g.Where(x => !x.IsPayment).Sum(x => (decimal?)x.Value) ?? 0m,
+                    // In this system: cashflow with IsPayment == false represents incoming receipts (positive value),
+                    // and IsPayment == true represents outgoing payments (stored as negative values).
+                    Revenue = g.Where(x => !x.IsPayment).Sum(x => (decimal?)x.Value) ?? 0m,
+                    Expense = g.Where(x => x.IsPayment).Sum(x => (decimal?)x.Value) ?? 0m,
                 })
                 .ToListAsync();
 
@@ -217,7 +219,8 @@ public class DashboardService(ApplicationDbContext context) : IDashboardService
                             DateTimeKind.Utc
                         ),
                         Value = Math.Round(revenue, 2),
-                        Profit = Math.Round(revenue - expense, 2),
+                        // expense is stored as negative values for outgoing payments, so profit = revenue + expense
+                        Profit = Math.Round(revenue + expense, 2),
                         Label = $"Q{quarterNumber}/{dt.Year}",
                     }
                 );
@@ -258,8 +261,9 @@ public class DashboardService(ApplicationDbContext context) : IDashboardService
                 {
                     Year = gp.Key.Year,
                     Month = gp.Key.Month,
-                    Revenue = gp.Where(x => x.IsPayment).Sum(x => (decimal?)x.Value) ?? 0m,
-                    Expense = gp.Where(x => !x.IsPayment).Sum(x => (decimal?)x.Value) ?? 0m,
+                    // See note above: !IsPayment => incoming receipts
+                    Revenue = gp.Where(x => !x.IsPayment).Sum(x => (decimal?)x.Value) ?? 0m,
+                    Expense = gp.Where(x => x.IsPayment).Sum(x => (decimal?)x.Value) ?? 0m,
                 })
                 .ToListAsync();
 
@@ -281,17 +285,18 @@ public class DashboardService(ApplicationDbContext context) : IDashboardService
                             DateTimeKind.Utc
                         ),
                         Value = Math.Round(revenue, 2),
-                        Profit = Math.Round(revenue - expense, 2),
+                        // expense is stored as negative values for outgoing payments, so profit = revenue + expense
+                        Profit = Math.Round(revenue + expense, 2),
                         Label = $"T{dt.Month}/{dt.Year}",
                     }
                 );
             }
 
-            if (series.Count > 10)
-                series = series.Skip(series.Count - 10).ToList();
-            else if (series.Count < 10)
+            if (series.Count > 12)
+                series = series.Skip(series.Count - 12).ToList();
+            else if (series.Count < 12)
             {
-                var need = 10 - series.Count;
+                var need = 12 - series.Count;
                 for (int i = 1; i <= need; i++)
                 {
                     var dtPrev = cursor.AddMonths(-i);

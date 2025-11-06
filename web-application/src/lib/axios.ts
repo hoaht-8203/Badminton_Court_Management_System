@@ -21,13 +21,12 @@ export const setOnUnauthorized = (cb: (() => void) | undefined) => {
   onUnauthorized = cb;
 };
 
+export const apiBaseUrl = "https://caulong365-api.azurewebsites.net";
 // Allow consumer to register forbidden callback
 let onForbidden: (() => void) | undefined;
 export const setOnForbidden = (cb: (() => void) | undefined) => {
   onForbidden = cb;
 };
-
-export const apiBaseUrl = "http://localhost:5039";
 
 export const axiosInstance = axios.create({
   baseURL: apiBaseUrl,
@@ -61,7 +60,7 @@ const rejectQueue = (error: unknown) => {
 
 // A lightweight client to call refresh endpoint without causing interceptor recursion issues
 const refreshClient = axios.create({
-  baseURL: "http://localhost:5039/",
+  baseURL: "https://caulong365-api.azurewebsites.net/",
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });

@@ -13,5 +13,7 @@ public class CheckoutBookingRequest
     [Required]
     public string PaymentMethod { get; set; } = "Bank"; // "Cash" hoặc "Bank"
 
+    public int? VoucherId { get; set; } // Voucher được chọn (optional)
+
     public string? Note { get; set; }
 }

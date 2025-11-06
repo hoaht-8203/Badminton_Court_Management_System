@@ -13,14 +13,6 @@
  */
 
 import { mapValues } from '../runtime';
-import type { Cashflow } from './Cashflow';
-import {
-    CashflowFromJSON,
-    CashflowFromJSONTyped,
-    CashflowToJSON,
-    CashflowToJSONTyped,
-} from './Cashflow';
-
 /**
  * 
  * @export
@@ -99,12 +91,6 @@ export interface RelatedPerson {
      * @memberof RelatedPerson
      */
     isActive?: boolean;
-    /**
-     * 
-     * @type {Array<Cashflow>}
-     * @memberof RelatedPerson
-     */
-    cashflows?: Array<Cashflow> | null;
 }
 
 /**
@@ -137,7 +123,6 @@ export function RelatedPersonFromJSONTyped(json: any, ignoreDiscriminator: boole
         'company': json['company'] == null ? undefined : json['company'],
         'note': json['note'] == null ? undefined : json['note'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
-        'cashflows': json['cashflows'] == null ? undefined : ((json['cashflows'] as Array<any>).map(CashflowFromJSON)),
     };
 }
 
@@ -164,7 +149,6 @@ export function RelatedPersonToJSONTyped(value?: RelatedPerson | null, ignoreDis
         'company': value['company'],
         'note': value['note'],
         'isActive': value['isActive'],
-        'cashflows': value['cashflows'] == null ? undefined : ((value['cashflows'] as Array<any>).map(CashflowToJSON)),
     };
 }
 

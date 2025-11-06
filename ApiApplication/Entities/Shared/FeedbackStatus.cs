@@ -8,7 +8,5 @@ public static class FeedbackStatus
     public const string Inactive = "Inactive";
     public const string Deleted = "Deleted";
 
-    public static readonly string[] ValidStatuses = [Active, Inactive, Deleted];
+    public static readonly string[] ValidStatuses = { Active, Inactive, Deleted };
 }
-
-

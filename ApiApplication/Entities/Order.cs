@@ -43,6 +43,10 @@ public class Order : BaseEntity
     public decimal LateFeeAmount { get; set; }
     public int OverdueMinutes { get; set; }
 
+    // Thông tin voucher
+    public int? VoucherId { get; set; }
+    public decimal DiscountAmount { get; set; } = 0;
+
     // Tổng thanh toán
     public decimal TotalAmount { get; set; }
 
@@ -57,6 +61,9 @@ public class Order : BaseEntity
 
     // Navigation properties
     public ICollection<Payment> Payments { get; set; } = [];
+
+    [ForeignKey(nameof(VoucherId))]
+    public Voucher? Voucher { get; set; }
 }
 
 public static class OrderStatus

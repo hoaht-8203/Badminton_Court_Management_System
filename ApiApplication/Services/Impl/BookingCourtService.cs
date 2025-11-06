@@ -739,6 +739,7 @@ public class BookingCourtService(
             .BookingCourts.Include(x => x.Court)
             .Include(x => x.Customer)
             .Include(x => x.BookingCourtOccurrences)
+            .ThenInclude(x => x.Payments)
             .Where(x => x.CustomerId == customer.Id)
             .AsQueryable();
 
@@ -763,10 +764,18 @@ public class BookingCourtService(
                 totalAmount += occurrenceAmount;
             }
 
-            // Calculate paid amount from all payments
+            // Calculate paid amount from all payments (both booking-level and occurrence-level)
             var paidAmount = booking
                 .Payments.Where(p => p.Status == PaymentStatus.Paid)
                 .Sum(p => p.Amount);
+
+            // Add payments from occurrences
+            foreach (var occurrence in booking.BookingCourtOccurrences)
+            {
+                paidAmount += occurrence
+                    .Payments.Where(p => p.Status == PaymentStatus.Paid)
+                    .Sum(p => p.Amount);
+            }
 
             // Calculate remaining amount
             var remainingAmount = Math.Max(0, totalAmount - paidAmount);

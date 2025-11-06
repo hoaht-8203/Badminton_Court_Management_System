@@ -7,7 +7,7 @@ import dayjs from "dayjs";
 import Image from "next/image";
 import Link from "next/link";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 interface BlogsProps {
   blogs: ListBlogResponse[];

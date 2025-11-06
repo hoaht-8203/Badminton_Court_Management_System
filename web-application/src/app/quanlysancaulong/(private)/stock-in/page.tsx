@@ -5,6 +5,7 @@ import { Breadcrumb, Button, Card, Checkbox, Col, DatePicker, Form, Input, Row, 
 import { PlusOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import CreateEditStockInDrawer from "@/components/quanlysancaulong/stock-in/create-edit-stock-in-drawer";
+import CreateNewProductDrawer from "@/components/quanlysancaulong/products/create-new-product-drawer";
 import { receiptsService } from "@/services/receiptsService";
 import { useListSuppliers } from "@/hooks/useSuppliers";
 import { CreateReceiptRequest } from "@/types-openapi/api";
@@ -63,6 +64,7 @@ const statusLabels = { 0: "Phiếu tạm", 1: "Đã nhập hàng", 2: "Đã hủ
 const StockInPage = () => {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [openProductDrawer, setOpenProductDrawer] = useState(false);
   const [searchForm] = Form.useForm();
   const [filters, setFilters] = useState<{
     code?: string;
@@ -316,6 +318,9 @@ const StockInPage = () => {
           <Button icon={<ReloadOutlined />} onClick={() => load()}>
             Tải lại
           </Button>
+          <Button onClick={() => setOpenProductDrawer(true)}>
+            Thêm sản phẩm mới
+          </Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>
             Nhập hàng
           </Button>
@@ -400,6 +405,12 @@ const StockInPage = () => {
           load();
         }}
         receiptId={editingId ?? undefined}
+      />
+
+      <CreateNewProductDrawer
+        open={openProductDrawer}
+        onClose={() => setOpenProductDrawer(false)}
+        title="Thêm sản phẩm mới"
       />
     </section>
   );

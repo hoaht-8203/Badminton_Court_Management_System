@@ -69,6 +69,7 @@ public class ApplicationDbContext(
     public DbSet<Slider> Sliders { get; set; }
     public DbSet<Membership> Memberships { get; set; }
     public DbSet<UserMembership> UserMemberships { get; set; }
+    public DbSet<Feedback> Feedbacks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

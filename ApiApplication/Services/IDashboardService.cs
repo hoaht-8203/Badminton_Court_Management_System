@@ -28,5 +28,9 @@ public interface IDashboardService
         int? branchId
     );
 
-    Task<List<MonthlyCustomerTypeDto>> GetMonthlyCustomerTypeAsync(DateTime? from, DateTime? to, int? branchId);
+    Task<List<MonthlyCustomerTypeDto>> GetMonthlyCustomerTypeAsync(
+        DateTime? from,
+        DateTime? to,
+        int? branchId
+    );
 }

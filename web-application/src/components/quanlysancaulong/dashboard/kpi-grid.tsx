@@ -25,12 +25,17 @@ const KPIGrid: React.FC<KPIProps> = ({ revenue, bookings, utilization, customers
   return (
     <Row gutter={16}>
       <Col xs={24} sm={12} md={6}>
-        <Card style={cardStyles.revenue} styles={{ body: { position: "relative", padding: 20, minHeight: 120, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }}>
+        <Card
+          style={cardStyles.revenue}
+          styles={{
+            body: { position: "relative", padding: 20, minHeight: 120, display: "flex", flexDirection: "column", justifyContent: "space-between" },
+          }}
+        >
           <div style={iconStyle}>
             <DollarSign size={36} />
           </div>
           <Statistic
-            title={<span style={{ fontWeight: 700, fontSize: 16, color: '#2b2b2b' }}>Tổng doanh thu</span>}
+            title={<span style={{ fontWeight: 700, fontSize: 16, color: "#2b2b2b" }}>Tổng doanh thu</span>}
             value={revenue}
             precision={0}
             formatter={(value) => (Number(value) || 0).toLocaleString()}
@@ -39,29 +44,48 @@ const KPIGrid: React.FC<KPIProps> = ({ revenue, bookings, utilization, customers
       </Col>
 
       <Col xs={24} sm={12} md={6}>
-        <Card style={cardStyles.bookings} styles={{ body: { position: "relative", padding: 20, minHeight: 120, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }}>
+        <Card
+          style={cardStyles.bookings}
+          styles={{
+            body: { position: "relative", padding: 20, minHeight: 120, display: "flex", flexDirection: "column", justifyContent: "space-between" },
+          }}
+        >
           <div style={iconStyle}>
             <Calendar size={36} />
           </div>
-          <Statistic title={<span style={{ fontWeight: 700, fontSize: 16, color: '#2b2b2b' }}>Số lượt đặt</span>} value={bookings} />
+          <Statistic title={<span style={{ fontWeight: 700, fontSize: 16, color: "#2b2b2b" }}>Số lượt đặt</span>} value={bookings} />
         </Card>
       </Col>
 
       <Col xs={24} sm={12} md={6}>
-        <Card style={cardStyles.utilization} styles={{ body: { position: "relative", padding: 20, minHeight: 120, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }}>
+        <Card
+          style={cardStyles.utilization}
+          styles={{
+            body: { position: "relative", padding: 20, minHeight: 120, display: "flex", flexDirection: "column", justifyContent: "space-between" },
+          }}
+        >
           <div style={iconStyle}>
             <BarChart2 size={36} />
           </div>
-          <Statistic title={<span style={{ fontWeight: 700, fontSize: 16, color: '#2b2b2b' }}>Tỷ lệ lấp đầy</span>} value={Math.round(utilization)} suffix="%" />
+          <Statistic
+            title={<span style={{ fontWeight: 700, fontSize: 16, color: "#2b2b2b" }}>Tỷ lệ lấp đầy</span>}
+            value={Math.round(utilization)}
+            suffix="%"
+          />
         </Card>
       </Col>
 
       <Col xs={24} sm={12} md={6}>
-        <Card style={cardStyles.customers} styles={{ body: { position: "relative", padding: 20, minHeight: 120, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } }}>
+        <Card
+          style={cardStyles.customers}
+          styles={{
+            body: { position: "relative", padding: 20, minHeight: 120, display: "flex", flexDirection: "column", justifyContent: "space-between" },
+          }}
+        >
           <div style={iconStyle}>
             <Users size={36} />
           </div>
-          <Statistic title={<span style={{ fontWeight: 700, fontSize: 16, color: '#2b2b2b' }}>Khách hàng</span>} value={customers} />
+          <Statistic title={<span style={{ fontWeight: 700, fontSize: 16, color: "#2b2b2b" }}>Khách hàng</span>} value={customers} />
         </Card>
       </Col>
     </Row>

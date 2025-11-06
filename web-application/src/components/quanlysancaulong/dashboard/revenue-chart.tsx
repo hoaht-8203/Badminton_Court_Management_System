@@ -69,8 +69,6 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
     return { y, value };
   });
 
-  
-
   // x ticks - render a tick for every adjusted slot so full months are shown (empty padded slots render blank)
   const labelPositions = adjustedSeries.map((_, i) => i);
   const tickIndices = labelPositions; // show all positions (usually 12)
@@ -91,7 +89,7 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
           {yTicks.map((t, idx) => (
             <g key={idx}>
               <line x1={margin.left - 6} x2={margin.left} y1={t.y} y2={t.y} stroke="#e8e8e8" />
-                <text x={margin.left - 10} y={t.y + 4} fontSize={11} textAnchor="end" fill="#666">
+              <text x={margin.left - 10} y={t.y + 4} fontSize={11} textAnchor="end" fill="#666">
                 {/* display values in millions (divide by 1,000,000) to drop last 6 digits */}
                 {Math.round(t.value / 1000000).toLocaleString()}
               </text>
@@ -110,18 +108,14 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
             Tiền (triệu)
           </text>
 
-          
-
           {/* zero baseline (render only if zero is inside domain) */}
-          {min <= 0 && max >= 0 ? (
-            (() => {
-              const norm0 = (0 - min) / (max - min);
-              const yZeroPos = margin.top + innerH - norm0 * innerH;
-              return (
-                <line x1={margin.left} y1={yZeroPos} x2={margin.left + innerW} y2={yZeroPos} stroke="#999" strokeDasharray="4 4" />
-              );
-            })()
-          ) : null}
+          {min <= 0 && max >= 0
+            ? (() => {
+                const norm0 = (0 - min) / (max - min);
+                const yZeroPos = margin.top + innerH - norm0 * innerH;
+                return <line x1={margin.left} y1={yZeroPos} x2={margin.left + innerW} y2={yZeroPos} stroke="#999" strokeDasharray="4 4" />;
+              })()
+            : null}
 
           {/* x ticks and labels */}
           {xTicks.map((t, idx) => {
@@ -140,9 +134,7 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
 
           {/* grouped bars: revenue & profit */}
           {(() => {
-            const yZero = min <= 0 && max >= 0
-              ? margin.top + innerH - ((0 - min) / (max - min)) * innerH
-              : yTicks[Math.floor(yTicks.length / 2)].y;
+            const yZero = min <= 0 && max >= 0 ? margin.top + innerH - ((0 - min) / (max - min)) * innerH : yTicks[Math.floor(yTicks.length / 2)].y;
             // spacing between the two bars inside a group (small)
             const spacingBetween = Math.max(4, barWidth * 0.18);
             const totalBarsWidth = 2 * barWidth + spacingBetween;
@@ -183,7 +175,8 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
                   );
                 })}
                 {/* tooltip for hovered month */}
-                {hovered !== null && adjustedSeries[hovered] && (
+                {hovered !== null &&
+                  adjustedSeries[hovered] &&
                   (() => {
                     const s = adjustedSeries[hovered];
                     const tx = margin.left + (hovered + 0.5) * xStep;
@@ -207,8 +200,7 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
                         ))}
                       </g>
                     );
-                  })()
-                )}
+                  })()}
               </g>
             );
           })()}

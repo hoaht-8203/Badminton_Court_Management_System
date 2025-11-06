@@ -1,12 +1,6 @@
 import { axiosInstance } from "@/lib/axios";
 import { ApiResponse } from "@/types/api";
-import {
-  DashboardSummaryResponse,
-  HeatmapCellDto,
-  RecentTransactionDto,
-  RevenuePointDto,
-  TopCourtDto,
-} from "@/types-openapi/api";
+import { DashboardSummaryResponse, HeatmapCellDto, RecentTransactionDto, RevenuePointDto, TopCourtDto } from "@/types-openapi/api";
 
 export const dashboardService = {
   async getSummary(params?: { from?: Date; to?: Date; branchId?: number }): Promise<ApiResponse<DashboardSummaryResponse | null>> {
@@ -16,7 +10,12 @@ export const dashboardService = {
     return res.data;
   },
 
-  async getRevenueSeries(params?: { from?: Date; to?: Date; granularity?: string; branchId?: number }): Promise<ApiResponse<RevenuePointDto[] | null>> {
+  async getRevenueSeries(params?: {
+    from?: Date;
+    to?: Date;
+    granularity?: string;
+    branchId?: number;
+  }): Promise<ApiResponse<RevenuePointDto[] | null>> {
     // serialize dates to ISO strings for query params
     const qp: Record<string, any> = {};
     if (params) {
@@ -45,7 +44,12 @@ export const dashboardService = {
     return res.data;
   },
 
-  async getRecentTransactions(params?: { from?: Date; to?: Date; limit?: number; branchId?: number }): Promise<ApiResponse<RecentTransactionDto[] | null>> {
+  async getRecentTransactions(params?: {
+    from?: Date;
+    to?: Date;
+    limit?: number;
+    branchId?: number;
+  }): Promise<ApiResponse<RecentTransactionDto[] | null>> {
     const res = await axiosInstance.get<ApiResponse<RecentTransactionDto[] | null>>("/api/Dashboard/recent-transactions", {
       params: params ? { ...params } : undefined,
     });

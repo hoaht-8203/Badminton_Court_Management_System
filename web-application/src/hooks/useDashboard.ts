@@ -1,12 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { dashboardService } from "@/services/dashboardService";
-import {
-  DashboardSummaryResponse,
-  HeatmapCellDto,
-  RecentTransactionDto,
-  RevenuePointDto,
-  TopCourtDto,
-} from "@/types-openapi/api";
+import { DashboardSummaryResponse, HeatmapCellDto, RecentTransactionDto, RevenuePointDto, TopCourtDto } from "@/types-openapi/api";
 import { ApiError } from "@/lib/axios";
 import { ApiResponse } from "@/types/api";
 

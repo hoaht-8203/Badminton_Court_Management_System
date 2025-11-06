@@ -248,7 +248,7 @@ public class PayrollService : IPayrollService
         response.Cashflows = await _context
             .Cashflows.Where(c =>
                 c.RelatedId != null
-                && payrollItemIds.Contains(c.RelatedId.Value)
+                && payrollItemIds.Contains(Int32.Parse(c.RelatedId))
                 && c.PersonType == RelatedPeopleGroup.Staff
                 && c.CashflowTypeId == CashflowTypeIdMapping.PayStaff
             )
@@ -310,7 +310,7 @@ public class PayrollService : IPayrollService
                 IsPayment = true,
                 Value = amount,
                 Note = $"Thanh toán phiếu lương cho nhân viên {payrollItem.Staff?.FullName ?? ""}",
-                RelatedId = payrollItem.Id,
+                RelatedId = payrollItem.Id.ToString(),
                 PersonType = RelatedPeopleGroup.Staff,
                 RelatedPerson = payrollItem.Staff?.FullName,
             };

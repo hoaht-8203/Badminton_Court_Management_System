@@ -12,7 +12,7 @@ public class CreateCashflowRequest
     public decimal Value { get; set; }
     public bool IsPayment { get; set; }
 
-    public int? RelatedId { get; set; }
+    public string? RelatedId { get; set; }
     public string? PersonType { get; set; }
     public string? RelatedPerson { get; set; }
     public string? Note { get; set; }

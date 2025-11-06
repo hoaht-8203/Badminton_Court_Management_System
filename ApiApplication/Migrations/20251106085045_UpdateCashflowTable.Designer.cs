@@ -3,6 +3,7 @@ using System;
 using ApiApplication.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251106085045_UpdateCashflowTable")]
+    partial class UpdateCashflowTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -624,11 +627,13 @@ namespace ApiApplication.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("RelatedId")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("RelatedPerson")
                         .HasColumnType("text");
+
+                    b.Property<int?>("RelatedPersonId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -650,6 +655,8 @@ namespace ApiApplication.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CashflowTypeId");
+
+                    b.HasIndex("RelatedPersonId");
 
                     b.HasIndex("Status");
 
@@ -2698,22 +2705,22 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 11, 6, 9, 6, 31, 184, DateTimeKind.Utc).AddTicks(978),
+                            CreatedAt = new DateTime(2025, 11, 6, 8, 50, 44, 226, DateTimeKind.Utc).AddTicks(9423),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 11, 6, 9, 6, 31, 184, DateTimeKind.Utc).AddTicks(979),
+                            UpdatedAt = new DateTime(2025, 11, 6, 8, 50, 44, 226, DateTimeKind.Utc).AddTicks(9425),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 11, 6, 9, 6, 31, 184, DateTimeKind.Utc).AddTicks(981),
+                            CreatedAt = new DateTime(2025, 11, 6, 8, 50, 44, 226, DateTimeKind.Utc).AddTicks(9430),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 11, 6, 9, 6, 31, 184, DateTimeKind.Utc).AddTicks(981),
+                            UpdatedAt = new DateTime(2025, 11, 6, 8, 50, 44, 226, DateTimeKind.Utc).AddTicks(9431),
                             UpdatedBy = "System",
                             Value = ""
                         });
@@ -3032,6 +3039,10 @@ namespace ApiApplication.Migrations
                         .HasForeignKey("CashflowTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("ApiApplication.Entities.RelatedPerson", null)
+                        .WithMany("Cashflows")
+                        .HasForeignKey("RelatedPersonId");
 
                     b.Navigation("CashflowType");
                 });
@@ -3524,6 +3535,11 @@ namespace ApiApplication.Migrations
             modelBuilder.Entity("ApiApplication.Entities.Receipt", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.RelatedPerson", b =>
+                {
+                    b.Navigation("Cashflows");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.ReturnGoods", b =>

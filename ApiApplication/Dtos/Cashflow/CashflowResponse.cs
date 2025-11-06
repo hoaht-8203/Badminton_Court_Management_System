@@ -9,7 +9,7 @@ public class CashflowResponse
     public bool IsPayment { get; set; }
     public int CashflowTypeId { get; set; }
     public string CashflowTypeName { get; set; } = string.Empty;
-    public int? RelatedId { get; set; }
+    public string? RelatedId { get; set; }
     public string? PersonType { get; set; }
     public string? RelatedPerson { get; set; }
     public decimal Value { get; set; }

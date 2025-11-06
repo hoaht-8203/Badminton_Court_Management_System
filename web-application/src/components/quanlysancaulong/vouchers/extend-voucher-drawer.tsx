@@ -15,7 +15,7 @@ interface ExtendVoucherDrawerProps {
   voucherId: number | null;
 }
 
-const { TabPane } = (Tabs as any);
+// Use Tabs items API (TabPane is deprecated)
 
 const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerProps) => {
   const [form] = Form.useForm<UpdateVoucherRequest>();
@@ -76,51 +76,65 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
         </div>
       }
     >
-      <Tabs defaultActiveKey="1">
-        <TabPane tab="Thông tin cơ bản" key="1">
-          <Form form={form} onFinish={handleSubmit} layout="vertical">
-            <FormItem name="endAt" label="Ngày kết thúc mới" rules={[{ required: true }]}>
-              <DatePicker showTime style={{ width: "100%" }} format="DD/MM/YYYY HH:mm" />
-            </FormItem>
+      {
+        (() => {
+          const items = [
+            {
+              key: "1",
+              label: "Thông tin cơ bản",
+              children: (
+                <Form form={form} onFinish={handleSubmit} layout="vertical">
+                  <FormItem name="endAt" label="Ngày kết thúc mới" rules={[{ required: true }]}>
+                    <DatePicker showTime style={{ width: "100%" }} format="DD/MM/YYYY HH:mm" />
+                  </FormItem>
 
-            <FormItem name="usageLimitTotal" label="Giới hạn sử dụng tổng" initialValue={0}>
-              <InputNumber min={0} style={{ width: "100%" }} placeholder="0 = không giới hạn" />
-            </FormItem>
+                  <FormItem name="usageLimitTotal" label="Giới hạn sử dụng tổng" initialValue={0}>
+                    <InputNumber min={0} style={{ width: "100%" }} placeholder="0 = không giới hạn" />
+                  </FormItem>
 
-            <FormItem name="usageLimitPerUser" label="Giới hạn sử dụng mỗi user" initialValue={1}>
-              <InputNumber min={0} style={{ width: "100%" }} />
-            </FormItem>
-          </Form>
-        </TabPane>
-        <TabPane tab="Đối tượng áp dụng" key="2">
-          <div>
-            <Divider>Quy tắc thời gian</Divider>
-            {(detailResp?.data?.timeRules ?? []).length === 0 ? (
-              <div>-</div>
-            ) : (
-              (detailResp?.data?.timeRules ?? []).map((r: any, i: number) => (
-                <div key={i} style={{ marginBottom: 8 }}>
-                  {r.dayOfWeek != null ? <div>Thứ: {String(r.dayOfWeek)}</div> : null}
-                  {r.specificDate ? <div>Ngày: {dayjs(r.specificDate).format("DD/MM/YYYY")}</div> : null}
-                  {(r.startTime || r.endTime) && <div>Giờ: {r.startTime ?? "-"} - {r.endTime ?? "-"}</div>}
+                  <FormItem name="usageLimitPerUser" label="Giới hạn sử dụng mỗi user" initialValue={1}>
+                    <InputNumber min={0} style={{ width: "100%" }} />
+                  </FormItem>
+                </Form>
+              ),
+            },
+            {
+              key: "2",
+              label: "Đối tượng áp dụng",
+              children: (
+                <div>
+                  <Divider>Quy tắc thời gian</Divider>
+                  {(detailResp?.data?.timeRules ?? []).length === 0 ? (
+                    <div>-</div>
+                  ) : (
+                    (detailResp?.data?.timeRules ?? []).map((r: any, i: number) => (
+                      <div key={i} style={{ marginBottom: 8 }}>
+                        {r.dayOfWeek != null ? <div>Thứ: {String(r.dayOfWeek)}</div> : null}
+                        {r.specificDate ? <div>Ngày: {dayjs(r.specificDate).format("DD/MM/YYYY")}</div> : null}
+                        {(r.startTime || r.endTime) && <div>Giờ: {r.startTime ?? "-"} - {r.endTime ?? "-"}</div>}
+                      </div>
+                    ))
+                  )}
+
+                  <Divider>Quy tắc người dùng</Divider>
+                  {(detailResp?.data?.userRules ?? []).length === 0 ? (
+                    <div>-</div>
+                  ) : (
+                    (detailResp?.data?.userRules ?? []).map((u: any, i: number) => (
+                      <div key={i} style={{ marginBottom: 8 }}>
+                        {u.isNewCustomer != null ? <div>Khách hàng mới: {u.isNewCustomer ? "Có" : "Không"}</div> : null}
+                        {u.userType ? <div>Loại người dùng: {u.userType}</div> : null}
+                      </div>
+                    ))
+                  )}
                 </div>
-              ))
-            )}
+              ),
+            },
+          ];
 
-            <Divider>Quy tắc người dùng</Divider>
-            {(detailResp?.data?.userRules ?? []).length === 0 ? (
-              <div>-</div>
-            ) : (
-              (detailResp?.data?.userRules ?? []).map((u: any, i: number) => (
-                <div key={i} style={{ marginBottom: 8 }}>
-                  {u.isNewCustomer != null ? <div>Khách hàng mới: {u.isNewCustomer ? "Có" : "Không"}</div> : null}
-                  {u.userType ? <div>Loại người dùng: {u.userType}</div> : null}
-                </div>
-              ))
-            )}
-          </div>
-        </TabPane>
-      </Tabs>
+          return <Tabs defaultActiveKey="1" items={items} />;
+        })()
+      }
     </Drawer>
   );
 };

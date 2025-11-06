@@ -5,9 +5,6 @@ namespace ApiApplication.Dtos.Feedback;
 public class CreateFeedbackRequest
 {
     [Required]
-    public int CustomerId { get; set; }
-
-    [Required]
     public Guid BookingCourtOccurrenceId { get; set; }
 
     [Range(1, 5)]

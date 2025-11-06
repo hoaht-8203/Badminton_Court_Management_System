@@ -5,17 +5,30 @@ using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using ApiApplication.Sessions;
 
 namespace ApiApplication.Services.Impl;
 
-public class FeedbackService(ApplicationDbContext context, IMapper mapper) : IFeedbackService
+public class FeedbackService(
+    ApplicationDbContext context,
+    IMapper mapper,
+    ICurrentUser currentUser
+) : IFeedbackService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
+    private readonly ICurrentUser _currentUser = currentUser;
+
 
     public async Task<DetailFeedbackResponse> CreateFeedBackAsync(CreateFeedbackRequest request)
     {
-        // Validate booking occurrence exists and is Completed
+        if (_currentUser.UserId == Guid.Empty)
+        {
+            throw new ApiException("Không được phép truy cập", System.Net.HttpStatusCode.Unauthorized);
+        }
+        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == _currentUser.UserId);
+
+        // Xác thực sự tồn tại và đã hoàn thành việc đặt chỗ
         var occurrence = await _context
             .BookingCourtOccurrences.Include(x => x.BookingCourt)
             .FirstOrDefaultAsync(x => x.Id == request.BookingCourtOccurrenceId);
@@ -28,26 +41,30 @@ public class FeedbackService(ApplicationDbContext context, IMapper mapper) : IFe
             throw new ApiException("Chỉ có thể đánh giá khi lịch đã Completed", System.Net.HttpStatusCode.BadRequest);
         }
 
-        // Validate customer
-        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == request.CustomerId);
+        // Dự phòng: nếu người dùng hiện tại không được liên kết với khách hàng (ví dụ: nhân viên), hãy sử dụng khách hàng của đơn đặt phòng
         if (customer == null)
         {
-            throw new ApiException($"Khách hàng không tồn tại: {request.CustomerId}", System.Net.HttpStatusCode.NotFound);
+            if (occurrence.BookingCourt == null)
+            {
+                throw new ApiException("Không xác định được khách hàng của lịch đặt", System.Net.HttpStatusCode.BadRequest);
+            }
+            customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == occurrence.BookingCourt.CustomerId)
+                ?? throw new ApiException("Khách hàng của lịch đặt không tồn tại", System.Net.HttpStatusCode.NotFound);
         }
+
         if (!string.Equals(customer.Status, CustomerStatus.Active, StringComparison.Ordinal))
         {
             throw new ApiException("Tài khoản khách hàng không hoạt động", System.Net.HttpStatusCode.Forbidden);
         }
-
-        // Validate that the feedback creator is the owner of this booking occurrence
-        if (occurrence.BookingCourt == null || occurrence.BookingCourt.CustomerId != request.CustomerId)
+        // Xác thực rằng người tạo phản hồi là chủ sở hữu của lần đặt phòng này
+        if (occurrence.BookingCourt == null || occurrence.BookingCourt.CustomerId != customer.Id)
         {
             throw new ApiException("Khách hàng không sở hữu lịch đặt này", System.Net.HttpStatusCode.Forbidden);
         }
 
         // Prevent duplicate feedback for the same (CustomerId, BookingCourtOccurrenceId)
         var duplicated = await _context.Feedbacks.AnyAsync(f =>
-            f.CustomerId == request.CustomerId && f.BookingCourtOccurrenceId == request.BookingCourtOccurrenceId && f.Status != FeedbackStatus.Deleted
+            f.CustomerId == customer.Id && f.BookingCourtOccurrenceId == request.BookingCourtOccurrenceId && f.Status != FeedbackStatus.Deleted
         );
         if (duplicated)
         {
@@ -93,6 +110,7 @@ public class FeedbackService(ApplicationDbContext context, IMapper mapper) : IFe
         var entity = _mapper.Map<Feedback>(request);
         entity.AdminReply = null; // AdminReply không được set khi tạo bởi khách hàng
         entity.Status = FeedbackStatus.Active;
+        entity.CustomerId = customer.Id;
         _context.Feedbacks.Add(entity);
         await _context.SaveChangesAsync();
 

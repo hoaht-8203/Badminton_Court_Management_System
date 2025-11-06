@@ -80,7 +80,7 @@ public class AuthTokenProcessor(
                 Expires = expiration,
                 IsEssential = true,
                 Secure = true,
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Strict,
             }
         );
     }

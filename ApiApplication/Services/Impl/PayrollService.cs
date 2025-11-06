@@ -308,7 +308,8 @@ public class PayrollService : IPayrollService
             {
                 CashflowTypeId = CashflowTypeIdMapping.PayStaff, // Set appropriate CashflowTypeId for payroll payment
                 IsPayment = true,
-                Value = amount,
+                // payroll payment is an outflow -> send negative value
+                Value = -Math.Abs(amount),
                 Note = $"Thanh toán phiếu lương cho nhân viên {payrollItem.Staff?.FullName ?? ""}",
                 RelatedId = payrollItem.Id.ToString(),
                 PersonType = RelatedPeopleGroup.Staff,

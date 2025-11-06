@@ -65,9 +65,10 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
 
     public async Task<int> CreateCashflowAsync(CreateCashflowRequest request)
     {
-        if (request.Value <= 0)
+        // Accept either positive or negative value in request; ensure absolute value > 0
+        if (Math.Abs(request.Value) <= 0)
         {
-            throw new ApiException("Giá trị phiếu quỹ phải lớn hơn 0");
+            throw new ApiException("Giá trị phiếu quỹ phải khác 0");
         }
         if (request.Time.HasValue && request.Time.Value > DateTime.Now)
         {
@@ -87,9 +88,10 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         }
 
         var entity = _mapper.Map<Cashflow>(request);
+        // Normalize stored value: payments are negative, receipts positive
         if (request.IsPayment)
         {
-            entity.Value = -Math.Abs(entity.Value);
+            entity.Value = -Math.Abs(request.Value);
         }
         else
         {
@@ -111,9 +113,9 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
 
     public async Task UpdateAsync(int id, UpdateCashflowRequest request)
     {
-        if (request.Value <= 0)
+        if (Math.Abs(request.Value) <= 0)
         {
-            throw new ApiException("Giá trị phiếu quỹ phải lớn hơn 0");
+            throw new ApiException("Giá trị phiếu quỹ phải khác 0");
         }
         if (request.Time.HasValue && request.Time.Value > DateTime.Now)
         {
@@ -137,7 +139,7 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         entity.ReferenceNumber = GenerateVoucherCode(type.Code, entity.Id);
         if (request.IsPayment)
         {
-            entity.Value = -Math.Abs(entity.Value);
+            entity.Value = -Math.Abs(request.Value);
         }
         else
         {

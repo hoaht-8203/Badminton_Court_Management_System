@@ -8,9 +8,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
 
-public class ReceiptService(ApplicationDbContext context) : IReceiptService
+public class ReceiptService : IReceiptService
 {
-    private readonly ApplicationDbContext _context = context;
+    private readonly ApplicationDbContext _context;
+    private readonly ICashflowService _cashflowService;
+
+    public ReceiptService(ApplicationDbContext context, ICashflowService cashflowService)
+    {
+        _context = context;
+        _cashflowService = cashflowService;
+    }
 
     public async Task<List<ListReceiptResponse>> ListAsync(
         DateTime? from,
@@ -238,6 +245,32 @@ public class ReceiptService(ApplicationDbContext context) : IReceiptService
 
         // Tạo phiếu kiểm kho tự động khi hoàn thành phiếu nhập
         await CreateInventoryCheckForReceiptAsync(r);
+        // Create cashflow entry for this receipt (payment to supplier)
+        try
+        {
+            var amount = r.PaymentAmount;
+            if (amount > 0)
+            {
+                var cashflowReq = new ApiApplication.Dtos.Cashflow.CreateCashflowRequest
+                {
+                    CashflowTypeId = CashflowTypeIdMapping.StockInPayment,
+                    // For payments we send negative value as requested
+                    Value = -Math.Abs(amount),
+                    IsPayment = true,
+                    RelatedPerson = r.Supplier != null ? r.Supplier.Name : string.Empty,
+                    PersonType = RelatedPeopleGroup.Supplier,
+                    RelatedId = r.Id.ToString(),
+                    Note = $"Chi nhập kho {r.Code}",
+                    Time = DateTime.UtcNow,
+                };
+
+                await _cashflowService.CreateCashflowAsync(cashflowReq);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to create cashflow for receipt {r.Id}: {ex.Message}");
+        }
     }
 
     public async Task CancelAsync(int id)

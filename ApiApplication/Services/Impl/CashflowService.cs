@@ -65,14 +65,17 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
 
     public async Task<int> CreateCashflowAsync(CreateCashflowRequest request)
     {
-        if (request.Value <= 0)
+        // Accept either positive or negative value in request; ensure absolute value > 0
+        if (Math.Abs(request.Value) <= 0)
         {
-            throw new ApiException("Giá trị phiếu quỹ phải lớn hơn 0");
+            throw new ApiException("Giá trị phiếu quỹ phải khác 0");
         }
         if (request.Time.HasValue && request.Time.Value > DateTime.Now)
         {
             throw new ApiException("Thời gian phiếu quỹ không được lớn hơn thời gian hiện tại");
         }
+        // default Time to now when not provided
+        if (!request.Time.HasValue)
         {
             request.Time = DateTime.Now;
         }
@@ -85,9 +88,10 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         }
 
         var entity = _mapper.Map<Cashflow>(request);
+        // Normalize stored value: payments are negative, receipts positive
         if (request.IsPayment)
         {
-            entity.Value = -Math.Abs(entity.Value);
+            entity.Value = -Math.Abs(request.Value);
         }
         else
         {
@@ -95,17 +99,23 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         }
 
         // Dùng code của loại thu/chi
-        entity.ReferenceNumber = GenerateVoucherCode(type.Code, entity.Id);
         _context.Cashflows.Add(entity);
+        // persist to get DB-generated Id
         await _context.SaveChangesAsync();
+
+        // entity.Id should now be set by EF; update the reference number and save
+        entity.ReferenceNumber = GenerateVoucherCode(type.Code, entity.Id);
+        _context.Cashflows.Update(entity);
+        await _context.SaveChangesAsync();
+
         return entity.Id;
     }
 
     public async Task UpdateAsync(int id, UpdateCashflowRequest request)
     {
-        if (request.Value <= 0)
+        if (Math.Abs(request.Value) <= 0)
         {
-            throw new ApiException("Giá trị phiếu quỹ phải lớn hơn 0");
+            throw new ApiException("Giá trị phiếu quỹ phải khác 0");
         }
         if (request.Time.HasValue && request.Time.Value > DateTime.Now)
         {
@@ -129,7 +139,7 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         entity.ReferenceNumber = GenerateVoucherCode(type.Code, entity.Id);
         if (request.IsPayment)
         {
-            entity.Value = -Math.Abs(entity.Value);
+            entity.Value = -Math.Abs(request.Value);
         }
         else
         {

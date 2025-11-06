@@ -16,16 +16,19 @@ namespace ApiApplication.Services.Impl
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUser _currentUser;
         private readonly IInventoryCardService _inventoryCardService;
+        private readonly ICashflowService _cashflowService;
 
         public ReturnGoodsService(
             ApplicationDbContext context,
             ICurrentUser currentUser,
-            IInventoryCardService inventoryCardService
+            IInventoryCardService inventoryCardService,
+            ICashflowService cashflowService
         )
         {
             _context = context;
             _currentUser = currentUser;
             _inventoryCardService = inventoryCardService;
+            _cashflowService = cashflowService;
         }
 
         public async Task<List<ListReturnGoodsResponse>> ListAsync(
@@ -340,6 +343,34 @@ namespace ApiApplication.Services.Impl
             }
 
             await ProcessReturnGoodsAsync(returnGoods);
+
+            // Create cashflow entry for this return goods (payment to supplier)
+            try
+            {
+                var amount = returnGoods.SupplierPaid;
+                if (amount > 0)
+                {
+                    var cashflowReq = new ApiApplication.Dtos.Cashflow.CreateCashflowRequest
+                    {
+                        CashflowTypeId = CashflowTypeIdMapping.OtherPayments,
+                        // Send negative value for outflow
+                        Value = -Math.Abs(amount),
+                        IsPayment = true,
+                        RelatedPerson = returnGoods.Supplier != null ? returnGoods.Supplier.Name : string.Empty,
+                        PersonType = RelatedPeopleGroup.Supplier,
+                        RelatedId = returnGoods.Id.ToString(),
+                        Note = $"Chi trả trả hàng {returnGoods.Code}",
+                        Time = DateTime.UtcNow,
+                    };
+
+                    await _cashflowService.CreateCashflowAsync(cashflowReq);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to create cashflow for return goods {returnGoods.Id}: {ex.Message}");
+            }
+
             await _context.SaveChangesAsync();
         }
 

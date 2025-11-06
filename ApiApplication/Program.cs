@@ -101,6 +101,7 @@ builder.Services.AddScoped<ISliderService, SliderService>();
 builder.Services.AddScoped<IExportService, ExportService>();
 builder.Services.AddScoped<IMembershipService, MembershipService>();
 builder.Services.AddScoped<IUserMembershipService, UserMembershipService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());

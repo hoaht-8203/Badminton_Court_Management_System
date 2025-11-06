@@ -30,5 +30,5 @@ public class RelatedPerson : BaseEntity
     public bool IsActive { get; set; } = true;
 
     // Navigation properties
-    public ICollection<Cashflow> Cashflows { get; set; } = [];
+    // public ICollection<Cashflow> Cashflows { get; set; } = [];
 }

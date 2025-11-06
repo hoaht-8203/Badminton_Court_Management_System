@@ -3,6 +3,7 @@ using System;
 using ApiApplication.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251106085609_UpdateCashflowTable2")]
+    partial class UpdateCashflowTable2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -630,6 +633,9 @@ namespace ApiApplication.Migrations
                     b.Property<string>("RelatedPerson")
                         .HasColumnType("text");
 
+                    b.Property<int?>("RelatedPersonId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -650,6 +656,8 @@ namespace ApiApplication.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CashflowTypeId");
+
+                    b.HasIndex("RelatedPersonId");
 
                     b.HasIndex("Status");
 
@@ -1170,75 +1178,6 @@ namespace ApiApplication.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Departments");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.Feedback", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AdminReply")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("AdminReplyAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("BookingCourtOccurrenceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Cleanliness")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Comment")
-                        .HasColumnType("text");
-
-                    b.Property<int>("CourtQuality")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Lighting")
-                        .HasColumnType("integer");
-
-                    b.Property<string[]>("MediaUrl")
-                        .HasColumnType("text[]");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("StaffService")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
-
-                    b.Property<int>("ValueForMoney")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookingCourtOccurrenceId");
-
-                    b.HasIndex("CustomerId");
-
-                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.InventoryCard", b =>
@@ -2767,22 +2706,22 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 11, 6, 9, 6, 31, 184, DateTimeKind.Utc).AddTicks(978),
+                            CreatedAt = new DateTime(2025, 11, 6, 8, 56, 8, 458, DateTimeKind.Utc).AddTicks(7582),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 11, 6, 9, 6, 31, 184, DateTimeKind.Utc).AddTicks(979),
+                            UpdatedAt = new DateTime(2025, 11, 6, 8, 56, 8, 458, DateTimeKind.Utc).AddTicks(7583),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 11, 6, 9, 6, 31, 184, DateTimeKind.Utc).AddTicks(981),
+                            CreatedAt = new DateTime(2025, 11, 6, 8, 56, 8, 458, DateTimeKind.Utc).AddTicks(7584),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 11, 6, 9, 6, 31, 184, DateTimeKind.Utc).AddTicks(981),
+                            UpdatedAt = new DateTime(2025, 11, 6, 8, 56, 8, 458, DateTimeKind.Utc).AddTicks(7585),
                             UpdatedBy = "System",
                             Value = ""
                         });
@@ -3102,6 +3041,10 @@ namespace ApiApplication.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ApiApplication.Entities.RelatedPerson", null)
+                        .WithMany("Cashflows")
+                        .HasForeignKey("RelatedPersonId");
+
                     b.Navigation("CashflowType");
                 });
 
@@ -3134,25 +3077,6 @@ namespace ApiApplication.Migrations
                         .HasForeignKey("ApiApplication.Entities.Customer", "UserId");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("ApiApplication.Entities.Feedback", b =>
-                {
-                    b.HasOne("ApiApplication.Entities.BookingCourtOccurrence", "BookingCourtOccurrence")
-                        .WithMany()
-                        .HasForeignKey("BookingCourtOccurrenceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ApiApplication.Entities.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BookingCourtOccurrence");
-
-                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.InventoryCard", b =>
@@ -3612,6 +3536,11 @@ namespace ApiApplication.Migrations
             modelBuilder.Entity("ApiApplication.Entities.Receipt", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.RelatedPerson", b =>
+                {
+                    b.Navigation("Cashflows");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.ReturnGoods", b =>

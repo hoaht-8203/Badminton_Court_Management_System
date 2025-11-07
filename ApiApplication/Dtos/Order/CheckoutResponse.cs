@@ -27,6 +27,10 @@ public class CheckoutResponse
     public int OverdueMinutes { get; set; }
     public string OverdueDisplay { get; set; } = string.Empty;
 
+    // Thông tin voucher
+    public int? VoucherId { get; set; }
+    public decimal DiscountAmount { get; set; }
+
     // Tổng thanh toán
     public decimal TotalAmount { get; set; }
 

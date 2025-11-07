@@ -149,7 +149,13 @@ const sideBarItems: MenuProps["items"] = [
         key: "/quanlysancaulong/sliders",
         label: "Quản lý slider",
       },
+      // vouchers moved to top-level menu
     ],
+  },
+  {
+    key: "/quanlysancaulong/vouchers",
+    label: "Quản lý voucher",
+    icon: <FileText className="h-4 w-4" />,
   },
   {
     key: "cashflow",

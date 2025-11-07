@@ -41,3 +41,4 @@ export * from './SupplierBankAccountsApi';
 export * from './SuppliersApi';
 export * from './UserMembershipsApi';
 export * from './UsersApi';
+export * from './VouchersApi';

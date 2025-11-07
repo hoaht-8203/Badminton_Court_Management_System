@@ -71,6 +71,12 @@ public class ApplicationDbContext(
     public DbSet<UserMembership> UserMemberships { get; set; }
     public DbSet<Feedback> Feedbacks { get; set; }
 
+    // Voucher entities
+    public DbSet<Voucher> Vouchers { get; set; }
+    public DbSet<VoucherTimeRule> VoucherTimeRules { get; set; }
+    public DbSet<VoucherUsage> VoucherUsages { get; set; }
+    public DbSet<VoucherUserRule> VoucherUserRules { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

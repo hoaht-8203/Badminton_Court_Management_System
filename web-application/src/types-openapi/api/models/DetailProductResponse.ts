@@ -51,6 +51,12 @@ export interface DetailProductResponse {
     category?: string | null;
     /**
      * 
+     * @type {number}
+     * @memberof DetailProductResponse
+     */
+    categoryId?: number | null;
+    /**
+     * 
      * @type {string}
      * @memberof DetailProductResponse
      */
@@ -159,6 +165,7 @@ export function DetailProductResponseFromJSONTyped(json: any, ignoreDiscriminato
         'name': json['name'],
         'menuType': json['menuType'] == null ? undefined : json['menuType'],
         'category': json['category'] == null ? undefined : json['category'],
+        'categoryId': json['categoryId'] == null ? undefined : json['categoryId'],
         'position': json['position'] == null ? undefined : json['position'],
         'costPrice': json['costPrice'] == null ? undefined : json['costPrice'],
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
@@ -192,6 +199,7 @@ export function DetailProductResponseToJSONTyped(value?: DetailProductResponse |
         'name': value['name'],
         'menuType': value['menuType'],
         'category': value['category'],
+        'categoryId': value['categoryId'],
         'position': value['position'],
         'costPrice': value['costPrice'],
         'salePrice': value['salePrice'],

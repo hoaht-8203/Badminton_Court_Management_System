@@ -85,6 +85,7 @@ function BookingCard({
   cardBg,
   cardBorder,
   onViewDetails,
+  onViewQr,
 }: {
   booking: ListUserBookingHistoryResponse;
   colorScheme: "light" | "dark" | null | undefined;
@@ -93,8 +94,11 @@ function BookingCard({
   cardBg: string;
   cardBorder: string;
   onViewDetails: () => void;
+  onViewQr?: () => void;
 }) {
   const statusColor = getStatusColor(booking.status);
+  const isPendingPayment = booking.status === "PendingPayment";
+  const hasQrUrl = booking.qrUrl && booking.paymentId;
 
   return (
     <View
@@ -176,15 +180,26 @@ function BookingCard({
             </Text>
           </View>
         </View>
-        <Pressable
-          onPress={onViewDetails}
-          style={{
-            padding: 8,
-            marginLeft: 8,
-          }}
-        >
-          <Ionicons name="eye-outline" size={20} color={subTextColor} />
-        </Pressable>
+        <View style={{ flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <Pressable
+            onPress={onViewDetails}
+            style={{
+              padding: 8,
+            }}
+          >
+            <Ionicons name="eye-outline" size={20} color={subTextColor} />
+          </Pressable>
+          {isPendingPayment && hasQrUrl && onViewQr && (
+            <Pressable
+              onPress={onViewQr}
+              style={{
+                padding: 8,
+              }}
+            >
+              <Ionicons name="qr-code-outline" size={20} color="#3b82f6" />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       <View
@@ -561,6 +576,28 @@ export default function Index() {
                       cardBg={cardBg}
                       cardBorder={cardBorder}
                       onViewDetails={() => handleOpenDetailDrawer(booking)}
+                      onViewQr={() => {
+                        setBookingDetail(booking);
+                        if (booking.expiresAtUtc) {
+                          const expiry = new Date(
+                            booking.expiresAtUtc as any
+                          ).getTime();
+                          setRemainingMs(Math.max(0, expiry - Date.now()));
+                        }
+                        setQrDrawerVisible(true);
+                        Animated.parallel([
+                          Animated.timing(qrSlide, {
+                            toValue: 0,
+                            duration: 300,
+                            useNativeDriver: true,
+                          }),
+                          Animated.timing(qrFade, {
+                            toValue: 1,
+                            duration: 300,
+                            useNativeDriver: true,
+                          }),
+                        ]).start();
+                      }}
                     />
                   ))}
                   {remainingCount > 0 && (

@@ -39,10 +39,10 @@ export interface CreateCashflowRequest {
     isPayment?: boolean;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof CreateCashflowRequest
      */
-    relatedId?: number | null;
+    relatedId?: string | null;
     /**
      * 
      * @type {string}

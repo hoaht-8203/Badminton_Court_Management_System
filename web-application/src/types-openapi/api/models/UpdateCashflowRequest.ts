@@ -45,10 +45,10 @@ export interface UpdateCashflowRequest {
     time?: Date | null;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof UpdateCashflowRequest
      */
-    relatedId?: number | null;
+    relatedId?: string | null;
     /**
      * 
      * @type {string}

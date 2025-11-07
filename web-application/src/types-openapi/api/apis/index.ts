@@ -14,6 +14,7 @@ export * from './DashboardApi';
 export * from './DepartmentApi';
 export * from './EmailApi';
 export * from './ExportsApi';
+export * from './FeedbacksApi';
 export * from './FilesApi';
 export * from './InventoryCardsApi';
 export * from './InventoryChecksApi';

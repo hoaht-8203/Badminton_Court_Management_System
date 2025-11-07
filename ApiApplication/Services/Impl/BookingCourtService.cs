@@ -785,6 +785,30 @@ public class BookingCourtService(
             dto.PaidAmount = Math.Ceiling(paidAmount);
             dto.RemainingAmount = Math.Ceiling(remainingAmount);
 
+            // Generate QR info for pending payment (similar to DetailBookingCourtAsync)
+            // Only consider booking-level payments (not occurrence-specific payments)
+            if (booking.Payments.Count > 0)
+            {
+                var first = booking.Payments.OrderBy(p => p.PaymentCreatedAt).First();
+                // Inline QR info for transfer (pending) case
+                if (
+                    !string.Equals(first.Status, PaymentStatus.Paid, StringComparison.OrdinalIgnoreCase)
+                )
+                {
+                    dto.PaymentId = first.Id;
+                    dto.PaymentAmount = first.Amount;
+                    var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
+                    var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
+                    var amount = ((long)Math.Ceiling(first.Amount)).ToString();
+                    var des = Uri.EscapeDataString(first.Id);
+                    dto.QrUrl =
+                        $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
+                    var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
+                    dto.HoldMinutes = holdMins;
+                    dto.ExpiresAtUtc = first.PaymentCreatedAt.AddMinutes(holdMins);
+                }
+            }
+
             result.Add(dto);
         }
 

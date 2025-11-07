@@ -13,6 +13,7 @@ apis/DashboardApi.ts
 apis/DepartmentApi.ts
 apis/EmailApi.ts
 apis/ExportsApi.ts
+apis/FeedbacksApi.ts
 apis/FilesApi.ts
 apis/InventoryCardsApi.ts
 apis/InventoryChecksApi.ts
@@ -111,6 +112,7 @@ models/CreateCourtPricingRuleTemplateRequest.ts
 models/CreateCourtPricingRulesRequest.ts
 models/CreateCourtRequest.ts
 models/CreateCustomerRequest.ts
+models/CreateFeedbackRequest.ts
 models/CreateInventoryCardForPurchaseRequest.ts
 models/CreateInventoryCardForSaleRequest.ts
 models/CreateInventoryCardRequest.ts
@@ -153,6 +155,7 @@ models/DeleteCategoryRequest.ts
 models/DeleteCourtPricingRuleTemplateRequest.ts
 models/DeleteCourtRequest.ts
 models/DeleteCustomerRequest.ts
+models/DeleteFeedbackRequest.ts
 models/DeleteFileRequest.ts
 models/DeleteMembershipRequest.ts
 models/DeletePriceTableProductRequest.ts
@@ -192,6 +195,9 @@ models/DetailCourtResponseApiResponse.ts
 models/DetailCustomerRequest.ts
 models/DetailCustomerResponse.ts
 models/DetailCustomerResponseApiResponse.ts
+models/DetailFeedbackRequest.ts
+models/DetailFeedbackResponse.ts
+models/DetailFeedbackResponseApiResponse.ts
 models/DetailInventoryCheckResponse.ts
 models/DetailInventoryCheckResponseApiResponse.ts
 models/DetailMembershipRequest.ts
@@ -236,6 +242,7 @@ models/EmailTemplateRequest.ts
 models/EmailTemplateType.ts
 models/EndServiceRequest.ts
 models/ExtendPaymentRequest.ts
+models/Feedback.ts
 models/ForgotPasswordRequest.ts
 models/HeatmapCellDto.ts
 models/HeatmapCellDtoArrayApiResponse.ts
@@ -284,6 +291,11 @@ models/ListCustomerResponseListApiResponse.ts
 models/ListCustomerResponsePagedResponse.ts
 models/ListCustomerResponsePagedResponseApiResponse.ts
 models/ListDepartmentRequest.ts
+models/ListFeedbackByBookingRequest.ts
+models/ListFeedbackByCustomerRequest.ts
+models/ListFeedbackRequest.ts
+models/ListFeedbackResponse.ts
+models/ListFeedbackResponseListApiResponse.ts
 models/ListInventoryCheckRequest.ts
 models/ListInventoryCheckResponse.ts
 models/ListInventoryCheckResponseListApiResponse.ts
@@ -445,6 +457,7 @@ models/UpdateCourtAreaRequest.ts
 models/UpdateCourtPricingRuleTemplateRequest.ts
 models/UpdateCourtRequest.ts
 models/UpdateCustomerRequest.ts
+models/UpdateFeedbackRequest.ts
 models/UpdateInventoryCardRequest.ts
 models/UpdateInventoryCardResponse.ts
 models/UpdateInventoryCardResponseApiResponse.ts

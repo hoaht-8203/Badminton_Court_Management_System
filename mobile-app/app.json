@@ -44,6 +44,19 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a9765fc9-92eb-4892-93a2-944d00c50fe0"
+      }
+    },
+    "owner": "hoahtdev.test",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a9765fc9-92eb-4892-93a2-944d00c50fe0"
     }
   }
 }

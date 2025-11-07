@@ -623,14 +623,12 @@ namespace ApiApplication.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<int?>("RelatedId")
-                        .HasColumnType("integer");
+                    b.Property<string>("RelatedId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("RelatedPerson")
                         .HasColumnType("text");
-
-                    b.Property<int?>("RelatedPersonId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -652,8 +650,6 @@ namespace ApiApplication.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CashflowTypeId");
-
-                    b.HasIndex("RelatedPersonId");
 
                     b.HasIndex("Status");
 
@@ -1174,6 +1170,75 @@ namespace ApiApplication.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Departments");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.Feedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AdminReply")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("AdminReplyAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("BookingCourtOccurrenceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Cleanliness")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<int>("CourtQuality")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Lighting")
+                        .HasColumnType("integer");
+
+                    b.Property<string[]>("MediaUrl")
+                        .HasColumnType("text[]");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StaffService")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("ValueForMoney")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingCourtOccurrenceId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("Feedbacks");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.InventoryCard", b =>
@@ -2702,22 +2767,22 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 11, 3, 14, 11, 57, 924, DateTimeKind.Utc).AddTicks(9330),
+                            CreatedAt = new DateTime(2025, 11, 6, 17, 55, 42, 497, DateTimeKind.Utc).AddTicks(2575),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 11, 3, 14, 11, 57, 924, DateTimeKind.Utc).AddTicks(9340),
+                            UpdatedAt = new DateTime(2025, 11, 6, 17, 55, 42, 497, DateTimeKind.Utc).AddTicks(2576),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 11, 3, 14, 11, 57, 924, DateTimeKind.Utc).AddTicks(9340),
+                            CreatedAt = new DateTime(2025, 11, 6, 17, 55, 42, 497, DateTimeKind.Utc).AddTicks(2580),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 11, 3, 14, 11, 57, 924, DateTimeKind.Utc).AddTicks(9340),
+                            UpdatedAt = new DateTime(2025, 11, 6, 17, 55, 42, 497, DateTimeKind.Utc).AddTicks(2581),
                             UpdatedBy = "System",
                             Value = ""
                         });
@@ -2769,6 +2834,159 @@ namespace ApiApplication.Migrations
                     b.HasIndex("CustomerId", "MembershipId", "StartDate");
 
                     b.ToTable("UserMemberships");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.Voucher", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("DiscountPercentage")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DiscountType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<decimal>("DiscountValue")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("EndAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal?>("MaxDiscountValue")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("MinOrderValue")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("StartAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<int>("UsageLimitPerUser")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UsageLimitTotal")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UsedCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Vouchers");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.VoucherTimeRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<TimeSpan?>("EndTime")
+                        .HasColumnType("interval");
+
+                    b.Property<DateTime?>("SpecificDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<TimeSpan?>("StartTime")
+                        .HasColumnType("interval");
+
+                    b.Property<int>("VoucherId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VoucherId");
+
+                    b.ToTable("VoucherTimeRules");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.VoucherUsage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("DiscountApplied")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("VoucherId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("VoucherId");
+
+                    b.ToTable("VoucherUsages");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.VoucherUserRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<bool?>("IsNewCustomer")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("UserType")
+                        .HasColumnType("text");
+
+                    b.Property<int>("VoucherId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VoucherId");
+
+                    b.ToTable("VoucherUserRules");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
@@ -3037,10 +3255,6 @@ namespace ApiApplication.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ApiApplication.Entities.RelatedPerson", null)
-                        .WithMany("Cashflows")
-                        .HasForeignKey("RelatedPersonId");
-
                     b.Navigation("CashflowType");
                 });
 
@@ -3073,6 +3287,25 @@ namespace ApiApplication.Migrations
                         .HasForeignKey("ApiApplication.Entities.Customer", "UserId");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.Feedback", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.BookingCourtOccurrence", "BookingCourtOccurrence")
+                        .WithMany()
+                        .HasForeignKey("BookingCourtOccurrenceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiApplication.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BookingCourtOccurrence");
+
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.InventoryCard", b =>
@@ -3398,6 +3631,47 @@ namespace ApiApplication.Migrations
                     b.Navigation("Membership");
                 });
 
+            modelBuilder.Entity("ApiApplication.Entities.VoucherTimeRule", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.Voucher", "Voucher")
+                        .WithMany("TimeRules")
+                        .HasForeignKey("VoucherId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Voucher");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.VoucherUsage", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiApplication.Entities.Voucher", "Voucher")
+                        .WithMany()
+                        .HasForeignKey("VoucherId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Voucher");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.VoucherUserRule", b =>
+                {
+                    b.HasOne("ApiApplication.Entities.Voucher", "Voucher")
+                        .WithMany("UserRules")
+                        .HasForeignKey("VoucherId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Voucher");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -3534,11 +3808,6 @@ namespace ApiApplication.Migrations
                     b.Navigation("Items");
                 });
 
-            modelBuilder.Entity("ApiApplication.Entities.RelatedPerson", b =>
-                {
-                    b.Navigation("Cashflows");
-                });
-
             modelBuilder.Entity("ApiApplication.Entities.ReturnGoods", b =>
                 {
                     b.Navigation("Items");
@@ -3557,6 +3826,13 @@ namespace ApiApplication.Migrations
             modelBuilder.Entity("ApiApplication.Entities.UserMembership", b =>
                 {
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("ApiApplication.Entities.Voucher", b =>
+                {
+                    b.Navigation("TimeRules");
+
+                    b.Navigation("UserRules");
                 });
 #pragma warning restore 612, 618
         }

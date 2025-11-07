@@ -14,13 +14,15 @@ public class OrderService(
     ApplicationDbContext context,
     IMapper mapper,
     IPaymentService paymentService,
-    IConfiguration configuration
+    IConfiguration configuration,
+    IVoucherService voucherService
 ) : IOrderService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
     private readonly IPaymentService _paymentService = paymentService;
     private readonly IConfiguration _configuration = configuration;
+    private readonly IVoucherService _voucherService = voucherService;
 
     public async Task<CheckoutResponse> GetCheckoutInfoAsync(Guid orderId)
     {
@@ -82,6 +84,8 @@ public class OrderService(
             LateFeeAmount = order.LateFeeAmount,
             OverdueMinutes = order.OverdueMinutes,
             OverdueDisplay = FormatOverdueTime(order.OverdueMinutes),
+            VoucherId = order.VoucherId,
+            DiscountAmount = order.DiscountAmount,
             TotalAmount = order.TotalAmount,
             PaymentId = order.Payments.FirstOrDefault()?.Id ?? string.Empty,
             PaymentAmount = order.TotalAmount,
@@ -150,10 +154,40 @@ public class OrderService(
         var overdueMinutes = lateFeeResult.overdueMinutes;
         var lateFeeAmount = lateFeeResult.lateFeeAmount;
 
-        // Tổng thanh toán
-        var totalAmount = Math.Ceiling(
+        // Tính tổng tiền trước khi áp dụng voucher
+        var subtotalBeforeDiscount = Math.Ceiling(
             courtRemainingAmount + itemsSubtotal + servicesSubtotal + lateFeeAmount
         );
+
+        // Validate and apply voucher if provided
+        decimal discountAmount = 0;
+        int? voucherId = null;
+
+        if (request.VoucherId.HasValue)
+        {
+            var validateResult = await _voucherService.ValidateAndCalculateDiscountAsync(
+                new Dtos.Voucher.ValidateVoucherRequest
+                {
+                    VoucherId = request.VoucherId.Value,
+                    OrderTotalAmount = subtotalBeforeDiscount,
+                },
+                booking.CustomerId
+            );
+
+            if (!validateResult.IsValid)
+            {
+                throw new ApiException(
+                    validateResult.ErrorMessage ?? "Voucher không hợp lệ",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            discountAmount = validateResult.DiscountAmount;
+            voucherId = request.VoucherId.Value;
+        }
+
+        // Tổng thanh toán sau khi áp dụng voucher
+        var totalAmount = Math.Max(0, subtotalBeforeDiscount - discountAmount);
 
         // Xác định trạng thái order và payment dựa trên phương thức thanh toán
         var isCashPayment = string.Equals(
@@ -181,6 +215,8 @@ public class OrderService(
             LateFeePercentage = request.LateFeePercentage,
             LateFeeAmount = lateFeeAmount,
             OverdueMinutes = overdueMinutes,
+            VoucherId = voucherId,
+            DiscountAmount = discountAmount,
             TotalAmount = totalAmount,
             Status = orderStatus,
             PaymentMethod = request.PaymentMethod,
@@ -224,6 +260,17 @@ public class OrderService(
             await _context.SaveChangesAsync();
         }
 
+        // Record voucher usage if voucher was used and payment is successful
+        if (voucherId.HasValue && (isCashPayment || paymentStatus == "Paid"))
+        {
+            await _voucherService.RecordVoucherUsageAsync(
+                voucherId.Value,
+                booking.CustomerId,
+                order.Id,
+                discountAmount
+            );
+        }
+
         // Tạo QR URL cho thanh toán (chỉ khi thanh toán chuyển khoản)
         string qrUrl = string.Empty;
         var holdMins = 0;
@@ -264,6 +311,8 @@ public class OrderService(
             LateFeeAmount = Math.Ceiling(lateFeeAmount),
             OverdueMinutes = overdueMinutes,
             OverdueDisplay = FormatOverdueTime(overdueMinutes),
+            VoucherId = voucherId,
+            DiscountAmount = discountAmount,
             TotalAmount = totalAmount,
             PaymentId = payment.Id,
             PaymentAmount = totalAmount,

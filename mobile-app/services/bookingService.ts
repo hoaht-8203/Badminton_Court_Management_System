@@ -28,6 +28,11 @@ export type ListUserBookingHistoryResponse = {
   }> | null;
   payments?: Array<PaymentDto> | null;
   customer?: any;
+  // Inline QR/payment info for quick checkout (when transfer method)
+  paymentAmount?: number | null;
+  qrUrl?: string | null;
+  holdMinutes?: number | null;
+  expiresAtUtc?: Date | null;
 };
 
 export type PaymentDto = {

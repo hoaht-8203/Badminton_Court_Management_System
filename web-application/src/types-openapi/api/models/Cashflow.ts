@@ -83,10 +83,10 @@ export interface Cashflow {
     cashflowType?: CashflowType;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof Cashflow
      */
-    relatedId?: number | null;
+    relatedId?: string | null;
     /**
      * 
      * @type {string}

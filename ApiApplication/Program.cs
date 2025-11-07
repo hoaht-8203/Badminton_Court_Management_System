@@ -29,130 +29,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-// Configure JwtOptions with fallback values
-builder.Services.Configure<JwtOptions>(options =>
-{
-    options.Secret =
-        builder.Configuration["JwtOptions:Secret"]
-        ?? Environment.GetEnvironmentVariable("JWT_SECRET")
-        ?? "871ad85acb1a0faf58dfd9499624dc699e03f9bc";
-    options.Issuer =
-        builder.Configuration["JwtOptions:Issuer"]
-        ?? Environment.GetEnvironmentVariable("JWT_ISSUER")
-        ?? "https://caulong365-api.azurewebsites.net/";
-    options.Audience =
-        builder.Configuration["JwtOptions:Audience"]
-        ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE")
-        ?? "https://caulong365-api.azurewebsites.net/";
-    options.ExpirationTimeInMinutes = int.TryParse(
-        builder.Configuration["JwtOptions:ExpirationTimeInMinutes"]
-            ?? Environment.GetEnvironmentVariable("JWT_EXPIRATION_MINUTES"),
-        out var exp
-    )
-        ? exp
-        : 15;
-});
-
-builder.Services.Configure<MinioOptions>(options =>
-{
-    options.Endpoint =
-        builder.Configuration["Minio:Endpoint"]
-        ?? Environment.GetEnvironmentVariable("MINIO_ENDPOINT")
-        ?? "minio.caulong365.store";
-    options.Port = int.TryParse(
-        builder.Configuration["Minio:Port"] ?? Environment.GetEnvironmentVariable("MINIO_PORT"),
-        out var port
-    )
-        ? port
-        : 443;
-    options.UseSSL = bool.TryParse(
-        builder.Configuration["Minio:UseSSL"]
-            ?? Environment.GetEnvironmentVariable("MINIO_USE_SSL"),
-        out var useSSL
-    )
-        ? useSSL
-        : true;
-    options.AccessKey =
-        builder.Configuration["Minio:AccessKey"]
-        ?? Environment.GetEnvironmentVariable("MINIO_ACCESS_KEY")
-        ?? "77QqJm6CiR6YSFLa2FwC";
-    options.SecretKey =
-        builder.Configuration["Minio:SecretKey"]
-        ?? Environment.GetEnvironmentVariable("MINIO_SECRET_KEY")
-        ?? "9FDQeddUh1iA2AaNyX92l6MDUunw0hbJ0JtFDTVa";
-    options.DefaultBucket =
-        builder.Configuration["Minio:DefaultBucket"]
-        ?? Environment.GetEnvironmentVariable("MINIO_DEFAULT_BUCKET")
-        ?? "bcms";
-    options.PublicBaseUrl =
-        builder.Configuration["Minio:PublicBaseUrl"]
-        ?? Environment.GetEnvironmentVariable("MINIO_PUBLIC_BASE_URL")
-        ?? "https://minio.caulong365.store";
-});
-
-// Configure EmailOptions with fallback values
-builder.Services.Configure<EmailOptions>(options =>
-{
-    options.SmtpServer =
-        builder.Configuration["EmailOptions:SmtpServer"]
-        ?? Environment.GetEnvironmentVariable("EMAIL_SMTP_SERVER")
-        ?? "smtp.hostinger.com";
-    options.SmtpPort = int.TryParse(
-        builder.Configuration["EmailOptions:SmtpPort"]
-            ?? Environment.GetEnvironmentVariable("EMAIL_SMTP_PORT"),
-        out var port
-    )
-        ? port
-        : 587;
-    options.EnableSsl = bool.TryParse(
-        builder.Configuration["EmailOptions:EnableSsl"]
-            ?? Environment.GetEnvironmentVariable("EMAIL_ENABLE_SSL"),
-        out var enableSsl
-    )
-        ? enableSsl
-        : true;
-    options.Username =
-        builder.Configuration["EmailOptions:Username"]
-        ?? Environment.GetEnvironmentVariable("EMAIL_USERNAME")
-        ?? "contact@caulong365.store";
-    options.Password =
-        builder.Configuration["EmailOptions:Password"]
-        ?? Environment.GetEnvironmentVariable("EMAIL_PASSWORD")
-        ?? "m0|AE!D?K";
-    options.FromEmail =
-        builder.Configuration["EmailOptions:FromEmail"]
-        ?? Environment.GetEnvironmentVariable("EMAIL_FROM_EMAIL")
-        ?? "contact@caulong365.store";
-    options.FromName =
-        builder.Configuration["EmailOptions:FromName"]
-        ?? Environment.GetEnvironmentVariable("EMAIL_FROM_NAME")
-        ?? "Hệ thống Quản lý Sân Cầu Lông";
-    options.Timeout = int.TryParse(
-        builder.Configuration["EmailOptions:Timeout"]
-            ?? Environment.GetEnvironmentVariable("EMAIL_TIMEOUT"),
-        out var timeout
-    )
-        ? timeout
-        : 30000;
-    options.UseDefaultCredentials = bool.TryParse(
-        builder.Configuration["EmailOptions:UseDefaultCredentials"]
-            ?? Environment.GetEnvironmentVariable("EMAIL_USE_DEFAULT_CREDENTIALS"),
-        out var useDefaultCredentials
-    )
-        ? useDefaultCredentials
-        : false;
-    options.RequireAuthentication = bool.TryParse(
-        builder.Configuration["EmailOptions:RequireAuthentication"]
-            ?? Environment.GetEnvironmentVariable("EMAIL_REQUIRE_AUTHENTICATION"),
-        out var requireAuth
-    )
-        ? requireAuth
-        : true;
-    options.ClientCertificatePath =
-        builder.Configuration["EmailOptions:ClientCertificatePath"]
-        ?? Environment.GetEnvironmentVariable("EMAIL_CLIENT_CERTIFICATE_PATH")
-        ?? null;
-});
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.JwtOptionsKey));
+builder.Services.Configure<EmailOptions>(
+    builder.Configuration.GetSection(EmailOptions.EmailOptionsKey)
+);
 
 builder
     .Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(opt =>
@@ -221,6 +101,9 @@ builder.Services.AddScoped<ISliderService, SliderService>();
 builder.Services.AddScoped<IExportService, ExportService>();
 builder.Services.AddScoped<IMembershipService, MembershipService>();
 builder.Services.AddScoped<IUserMembershipService, UserMembershipService>();
+builder.Services.AddScoped<IVoucherService, VoucherService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -245,7 +128,9 @@ builder.Services.AddAutoMapper(config => config.AddProfile<PayrollMappingProfile
 builder.Services.AddAutoMapper(config => config.AddProfile<NotificationMappingProfile>());
 
 builder.Services.AddAutoMapper(config => config.AddProfile<PaymentMappingProfile>());
-
+builder.Services.Configure<MinioOptions>(
+    builder.Configuration.GetSection(MinioOptions.MinioOptionsKey)
+);
 builder.Services.AddAutoMapper(config => config.AddProfile<CourtMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<CourtAreaMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<InventoryCheckMappingProfile>());
@@ -258,6 +143,8 @@ builder.Services.AddAutoMapper(config => config.AddProfile<OrderMappingProfile>(
 builder.Services.AddAutoMapper(config => config.AddProfile<BlogMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<SliderMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<MembershipMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<FeedbackMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<VoucherMappingProfile>());
 
 // MinIO client
 builder.Services.AddSingleton<IMinioClient>(sp =>
@@ -282,29 +169,9 @@ builder
     })
     .AddJwtBearer(options =>
     {
-        // Try to get JwtOptions from configuration with fallback values
-        var jwtOptions = new JwtOptions
-        {
-            Secret =
-                builder.Configuration["JwtOptions:Secret"]
-                ?? Environment.GetEnvironmentVariable("JWT_SECRET")
-                ?? "871ad85acb1a0faf58dfd9499624dc699e03f9bc",
-            Issuer =
-                builder.Configuration["JwtOptions:Issuer"]
-                ?? Environment.GetEnvironmentVariable("JWT_ISSUER")
-                ?? "https://caulong365-api.azurewebsites.net/",
-            Audience =
-                builder.Configuration["JwtOptions:Audience"]
-                ?? Environment.GetEnvironmentVariable("JWT_AUDIENCE")
-                ?? "https://caulong365-api.azurewebsites.net/",
-            ExpirationTimeInMinutes = int.TryParse(
-                builder.Configuration["JwtOptions:ExpirationTimeInMinutes"]
-                    ?? Environment.GetEnvironmentVariable("JWT_EXPIRATION_MINUTES"),
-                out var exp
-            )
-                ? exp
-                : 15,
-        };
+        var jwtOptions =
+            builder.Configuration.GetSection(JwtOptions.JwtOptionsKey).Get<JwtOptions>()
+            ?? throw new ArgumentException(nameof(JwtOptions));
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
@@ -425,28 +292,14 @@ builder
 
 builder.Services.AddCors(options =>
 {
-    var configuredOrigins =
-        builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
-        ?? (
-            Environment
-                .GetEnvironmentVariable("ALLOWED_ORIGINS")
-                ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            ??
-            [
-                "https://purple-cliff-047082910.2.azurestaticapps.net",
-                "http://localhost:3000",
-                "https://caulong365.store",
-            ]
-        );
-
     options.AddPolicy(
-        "AllowFrontend",
+        "Frontend",
         builder =>
         {
             builder
-                .WithOrigins(configuredOrigins)
-                .AllowAnyMethod()
+                .WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
                 .AllowAnyHeader()
+                .AllowAnyMethod()
                 .AllowCredentials();
         }
     );
@@ -488,19 +341,13 @@ app.MapScalarApiReference(options =>
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
-app.UseCors("AllowFrontend");
+app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 app.UseWebSockets();
-app.MapHub<BookingHub>("/hubs/booking").RequireCors("AllowFrontend");
-app.MapHub<NotificationHub>("/hubs/notifications").RequireCors("AllowFrontend");
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate(); // Tự động apply migrations
-}
+app.MapHub<BookingHub>("/hubs/booking").RequireCors("Frontend");
+app.MapHub<NotificationHub>("/hubs/notifications").RequireCors("Frontend");
 
 app.Run();

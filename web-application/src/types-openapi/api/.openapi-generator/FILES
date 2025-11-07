@@ -9,9 +9,11 @@ apis/CategoriesApi.ts
 apis/CourtAreasApi.ts
 apis/CourtsApi.ts
 apis/CustomersApi.ts
+apis/DashboardApi.ts
 apis/DepartmentApi.ts
 apis/EmailApi.ts
 apis/ExportsApi.ts
+apis/FeedbacksApi.ts
 apis/FilesApi.ts
 apis/InventoryCardsApi.ts
 apis/InventoryChecksApi.ts
@@ -38,6 +40,7 @@ apis/SupplierBankAccountsApi.ts
 apis/SuppliersApi.ts
 apis/UserMembershipsApi.ts
 apis/UsersApi.ts
+apis/VouchersApi.ts
 apis/index.ts
 index.ts
 models/Activity.ts
@@ -110,6 +113,7 @@ models/CreateCourtPricingRuleTemplateRequest.ts
 models/CreateCourtPricingRulesRequest.ts
 models/CreateCourtRequest.ts
 models/CreateCustomerRequest.ts
+models/CreateFeedbackRequest.ts
 models/CreateInventoryCardForPurchaseRequest.ts
 models/CreateInventoryCardForSaleRequest.ts
 models/CreateInventoryCardRequest.ts
@@ -139,10 +143,13 @@ models/CreateSupplierRequest.ts
 models/CreateUserMembershipRequest.ts
 models/CreateUserMembershipResponse.ts
 models/CreateUserMembershipResponseApiResponse.ts
+models/CreateVoucherRequest.ts
 models/CurrentUserResponse.ts
 models/CurrentUserResponseApiResponse.ts
 models/Customer.ts
 models/CustomerDto.ts
+models/DashboardSummaryResponse.ts
+models/DashboardSummaryResponseApiResponse.ts
 models/DayOfWeek.ts
 models/DeletCourtAreaRequest.ts
 models/DeleteBlogRequest.ts
@@ -150,6 +157,7 @@ models/DeleteCategoryRequest.ts
 models/DeleteCourtPricingRuleTemplateRequest.ts
 models/DeleteCourtRequest.ts
 models/DeleteCustomerRequest.ts
+models/DeleteFeedbackRequest.ts
 models/DeleteFileRequest.ts
 models/DeleteMembershipRequest.ts
 models/DeletePriceTableProductRequest.ts
@@ -160,6 +168,7 @@ models/DeleteRoleRequest.ts
 models/DeleteServiceRequest.ts
 models/DeleteSliderRequest.ts
 models/DeleteSupplierRequest.ts
+models/DeleteVoucherRequest.ts
 models/Department.ts
 models/DepartmentRequest.ts
 models/DepartmentResponse.ts
@@ -189,6 +198,9 @@ models/DetailCourtResponseApiResponse.ts
 models/DetailCustomerRequest.ts
 models/DetailCustomerResponse.ts
 models/DetailCustomerResponseApiResponse.ts
+models/DetailFeedbackRequest.ts
+models/DetailFeedbackResponse.ts
+models/DetailFeedbackResponseApiResponse.ts
 models/DetailInventoryCheckResponse.ts
 models/DetailInventoryCheckResponseApiResponse.ts
 models/DetailMembershipRequest.ts
@@ -225,6 +237,7 @@ models/DetailStockOutResponseApiResponse.ts
 models/DetailSupplierRequest.ts
 models/DetailSupplierResponse.ts
 models/DetailSupplierResponseApiResponse.ts
+models/DetailVoucherRequest.ts
 models/EmailAttachment.ts
 models/EmailRequest.ts
 models/EmailResponse.ts
@@ -233,7 +246,10 @@ models/EmailTemplateRequest.ts
 models/EmailTemplateType.ts
 models/EndServiceRequest.ts
 models/ExtendPaymentRequest.ts
+models/Feedback.ts
 models/ForgotPasswordRequest.ts
+models/HeatmapCellDto.ts
+models/HeatmapCellDtoArrayApiResponse.ts
 models/Int32ApiResponse.ts
 models/Int32ListApiResponse.ts
 models/InventoryCard.ts
@@ -279,6 +295,11 @@ models/ListCustomerResponseListApiResponse.ts
 models/ListCustomerResponsePagedResponse.ts
 models/ListCustomerResponsePagedResponseApiResponse.ts
 models/ListDepartmentRequest.ts
+models/ListFeedbackByBookingRequest.ts
+models/ListFeedbackByCustomerRequest.ts
+models/ListFeedbackRequest.ts
+models/ListFeedbackResponse.ts
+models/ListFeedbackResponseListApiResponse.ts
 models/ListInventoryCheckRequest.ts
 models/ListInventoryCheckResponse.ts
 models/ListInventoryCheckResponseListApiResponse.ts
@@ -331,6 +352,8 @@ models/ListUserRolesRequest.ts
 models/LoginRequest.ts
 models/Membership.ts
 models/MergeInventoryChecksRequest.ts
+models/MonthlyCustomerTypeDto.ts
+models/MonthlyCustomerTypeDtoArrayApiResponse.ts
 models/MyProfileResponse.ts
 models/MyProfileResponseApiResponse.ts
 models/NoShowBookingCourtRequest.ts
@@ -372,12 +395,16 @@ models/QrPaymentResponseApiResponse.ts
 models/Receipt.ts
 models/ReceiptItem.ts
 models/ReceiptStatus.ts
+models/RecentTransactionDto.ts
+models/RecentTransactionDtoArrayApiResponse.ts
 models/RegisterRequest.ts
 models/RelatedPerson.ts
 models/RemoveBookingServiceRequest.ts
 models/ReturnGoods.ts
 models/ReturnGoodsItem.ts
 models/ReturnGoodsStatus.ts
+models/RevenuePointDto.ts
+models/RevenuePointDtoArrayApiResponse.ts
 models/SafeWaitHandle.ts
 models/SalaryForm.ts
 models/SalaryFormRequest.ts
@@ -425,6 +452,8 @@ models/Supplier.ts
 models/SupplierBankAccount.ts
 models/SupplierBankAccountListApiResponse.ts
 models/SystemConfig.ts
+models/TopCourtDto.ts
+models/TopCourtDtoArrayApiResponse.ts
 models/UpdateBlogRequest.ts
 models/UpdateCashflowRequest.ts
 models/UpdateCategoryRequest.ts
@@ -432,6 +461,7 @@ models/UpdateCourtAreaRequest.ts
 models/UpdateCourtPricingRuleTemplateRequest.ts
 models/UpdateCourtRequest.ts
 models/UpdateCustomerRequest.ts
+models/UpdateFeedbackRequest.ts
 models/UpdateInventoryCardRequest.ts
 models/UpdateInventoryCardResponse.ts
 models/UpdateInventoryCardResponseApiResponse.ts
@@ -454,6 +484,7 @@ models/UpdateSupplierRequest.ts
 models/UpdateUserMembershipStatusRequest.ts
 models/UpdateUserRequest.ts
 models/UpdateUserRolesRequest.ts
+models/UpdateVoucherRequest.ts
 models/UploadFileRequest.ts
 models/UploadFileResponse.ts
 models/UploadFileResponseApiResponse.ts
@@ -465,6 +496,15 @@ models/UserMembershipResponseApiResponse.ts
 models/UserMembershipResponseArrayApiResponse.ts
 models/ValidateForgotPasswordRequest.ts
 models/VerifyEmailRequest.ts
+models/Voucher.ts
+models/VoucherResponse.ts
+models/VoucherResponseApiResponse.ts
+models/VoucherResponseArrayApiResponse.ts
+models/VoucherTimeRule.ts
+models/VoucherTimeRuleDto.ts
+models/VoucherUsage.ts
+models/VoucherUserRule.ts
+models/VoucherUserRuleDto.ts
 models/WaitHandle.ts
 models/WeeklyScheduleRequest.ts
 models/index.ts

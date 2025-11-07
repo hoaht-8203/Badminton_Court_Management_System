@@ -1,6 +1,8 @@
 using System.Net;
+using ApiApplication.Constants;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
+using ApiApplication.Dtos.Cashflow;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Enums;
@@ -22,7 +24,8 @@ public class PaymentWebhooksController(
     IConfiguration configuration,
     IHubContext<BookingHub> hubContext,
     IEmailService emailService,
-    ILogger<PaymentWebhooksController> logger
+    ILogger<PaymentWebhooksController> logger,
+    ICashflowService cashflowService
 ) : ControllerBase
 {
     private readonly ApplicationDbContext _context = context;
@@ -30,6 +33,7 @@ public class PaymentWebhooksController(
     private readonly IHubContext<BookingHub> _hubContext = hubContext;
     private readonly IEmailService _emailService = emailService;
     private readonly ILogger<PaymentWebhooksController> _logger = logger;
+    private readonly ICashflowService _cashflowService = cashflowService;
 
     public class SePayWebhookRequest
     {
@@ -84,7 +88,8 @@ public class PaymentWebhooksController(
         var rawPaymentId =
             probe
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .FirstOrDefault(s => s.StartsWith("PM-") || s.StartsWith("PM")) ?? probe;
+                .FirstOrDefault(s => s.StartsWith("PM-") || s.StartsWith("PM"))
+            ?? probe;
 
         // Transform webhook format (PM02102025000001) to database format (PM-02102025-000001)
         var paymentId = rawPaymentId;
@@ -158,6 +163,50 @@ public class PaymentWebhooksController(
             }
 
             await _context.SaveChangesAsync();
+
+            // Create cashflow receipt for this successful payment
+            try
+            {
+                // choose a default cashflow type for receipts (first type where IsPayment == false)
+                var receiptType = await _context.CashflowTypes.FirstOrDefaultAsync(t =>
+                    t.IsPayment == false
+                );
+                if (receiptType != null)
+                {
+                    var cashflowReq = new CreateCashflowRequest
+                    {
+                        CashflowTypeId = CashflowTypeIdMapping.ReceivePayment,
+                        Value = payment.Amount,
+                        IsPayment = false,
+                        RelatedPerson =
+                            payment.Customer?.FullName
+                            ?? payment.Booking?.Customer?.FullName
+                            ?? payment.Order?.Customer?.FullName
+                            ?? string.Empty,
+                        PersonType = RelatedPeopleGroup.Customer,
+                        Note = $"Thu từ thanh toán {payment.Id}",
+                        Time = DateTime.UtcNow,
+                        RelatedId = payment.Id,
+                    };
+
+                    await _cashflowService.CreateCashflowAsync(cashflowReq);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "No cashflow type found for receipts; skipping cashflow creation for payment {PaymentId}",
+                        payment.Id
+                    );
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to create cashflow for payment {PaymentId}",
+                    payment.Id
+                );
+            }
 
             // Send realtime notifications
             await _hubContext.Clients.All.SendAsync("paymentUpdated", payment.Id);

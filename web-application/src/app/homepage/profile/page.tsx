@@ -2,8 +2,16 @@
 
 import ProfilePage from "@/components/homepage/ProfilePage";
 import { useGetUserBookingHistory } from "@/hooks/useSchedule";
-import { ListUserBookingHistoryResponse } from "@/types-openapi/api";
-import { CalendarOutlined, ClockCircleOutlined, DollarOutlined, HistoryOutlined, ReloadOutlined, UserOutlined } from "@ant-design/icons";
+import { ListUserBookingHistoryResponse, DetailBookingCourtResponse } from "@/types-openapi/api";
+import {
+  CalendarOutlined,
+  ClockCircleOutlined,
+  DollarOutlined,
+  HistoryOutlined,
+  ReloadOutlined,
+  UserOutlined,
+  QrcodeOutlined,
+} from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Alert, Empty, Menu, Space, Spin, Table, Tag, Typography, Button } from "antd";
 import dayjs from "dayjs";
@@ -11,6 +19,7 @@ import { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { exportService } from "@/services/exportService";
 import { DownloadOutlined } from "@ant-design/icons";
+import QrPaymentDrawer from "@/components/quanlysancaulong/court-schedule/qr-payment-drawer";
 
 const { Title, Text } = Typography;
 
@@ -43,10 +52,66 @@ const BookingExpandableContent = dynamic<ExpandableProps>(() => import("./_compo
 const BookingHistoryPage = () => {
   const [current, setCurrent] = useState("profile");
   const { data, isLoading, error, refetch, isFetching } = useGetUserBookingHistory();
+  const [openQrDrawer, setOpenQrDrawer] = useState(false);
+  const [selectedBookingForQr, setSelectedBookingForQr] = useState<ListUserBookingHistoryResponse | null>(null);
 
   const onClick = useCallback<NonNullable<MenuProps["onClick"]>>((e) => {
     setCurrent(e.key);
   }, []);
+
+  // Helper function to convert ListUserBookingHistoryResponse to DetailBookingCourtResponse
+  const convertToDetailBooking = useCallback((booking: ListUserBookingHistoryResponse): DetailBookingCourtResponse => {
+    return {
+      id: booking.id,
+      customerId: booking.customerId,
+      courtId: booking.courtId,
+      courtName: booking.courtName,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      daysOfWeek: booking.daysOfWeek,
+      status: booking.status,
+      totalHours: booking.totalHours,
+      totalAmount: booking.totalAmount,
+      paidAmount: booking.paidAmount,
+      remainingAmount: booking.remainingAmount,
+      customer: booking.customer,
+      payments: booking.payments || [],
+      bookingServices: [],
+      bookingCourtOccurrences: booking.bookingCourtOccurrences || [],
+      paymentId: booking.paymentId,
+      paymentAmount: booking.paymentAmount,
+      qrUrl: booking.qrUrl,
+      holdMinutes: booking.holdMinutes,
+      expiresAtUtc: booking.expiresAtUtc,
+      overdueMinutes: 0,
+      overdueHours: 0,
+      surchargeAmount: 0,
+      lateFeePercentage: 150,
+      paymentType:
+        booking.paidAmount && booking.totalAmount && booking.paidAmount >= booking.totalAmount * 0.99
+          ? "Full"
+          : booking.paidAmount && booking.paidAmount > 0
+            ? "Deposit"
+            : "None",
+    };
+  }, []);
+
+  const handleShowQrPayment = useCallback((booking: ListUserBookingHistoryResponse) => {
+    setSelectedBookingForQr(booking);
+    setOpenQrDrawer(true);
+  }, []);
+
+  const handleCloseQrDrawer = useCallback(() => {
+    setOpenQrDrawer(false);
+    setSelectedBookingForQr(null);
+  }, []);
+
+  const handlePaymentSuccess = useCallback(() => {
+    refetch();
+    handleCloseQrDrawer();
+  }, [refetch, handleCloseQrDrawer]);
 
   const columns = useMemo(
     () => [
@@ -119,7 +184,7 @@ const BookingHistoryPage = () => {
             <Text type="success">{record.paidAmount && record.paidAmount > 0 ? `${record.paidAmount.toLocaleString("vi-VN")} đ` : "0 đ"}</Text>
           </Space>
         ),
-        width: 200,
+        width: 150,
       },
       {
         title: "Còn lại",
@@ -143,8 +208,32 @@ const BookingHistoryPage = () => {
         },
         width: 200,
       },
+      {
+        title: "Thao tác",
+        key: "action",
+        render: (_: any, record: ListUserBookingHistoryResponse) => {
+          const isPendingPayment = record.status === "PendingPayment";
+          const hasQrUrl = record.qrUrl && record.paymentId;
+
+          return (
+            <Space>
+              <Button
+                type="primary"
+                icon={<QrcodeOutlined />}
+                onClick={() => handleShowQrPayment(record)}
+                size="small"
+                disabled={!hasQrUrl || !isPendingPayment}
+              >
+                Mã QR
+              </Button>
+            </Space>
+          );
+        },
+        width: 100,
+        fixed: "right" as const,
+      },
     ],
-    [],
+    [handleShowQrPayment],
   );
 
   const bookingHistory = useMemo(() => data?.data || [], [data?.data]);
@@ -251,6 +340,17 @@ const BookingHistoryPage = () => {
       ) : (
         renderContent()
       )}
+
+      {/* QR Payment Drawer */}
+      <QrPaymentDrawer
+        bookingDetail={selectedBookingForQr ? convertToDetailBooking(selectedBookingForQr) : null}
+        open={openQrDrawer}
+        onClose={handleCloseQrDrawer}
+        title="Thanh toán chuyển khoản"
+        width={560}
+        hideCustomerButton={true}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };

@@ -22,15 +22,37 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
 
   useEffect(() => {
     if (data?.data && open) {
-      const { id, images, ...rest } = data.data;
-      form.setFieldsValue({ id, ...rest, images: images ?? undefined });
+      const { id, images, category, ...rest } = data.data;
+      const costPrice = (rest as any).costPrice ?? 0;
+      const salePrice = (rest as any).salePrice ?? 0;
+      
+      // Map category name to categoryId
+      let categoryId: number | undefined;
+      if (category && categoriesData?.data) {
+        const foundCategory = categoriesData.data.find((c) => c.name === category);
+        categoryId = foundCategory?.id;
+      }
+      // Also check if categoryId is directly provided in the response
+      const directCategoryId = (data.data as any).categoryId;
+      if (directCategoryId) {
+        categoryId = directCategoryId;
+      }
+      
+      form.setFieldsValue({ 
+        id, 
+        ...rest, 
+        categoryId,
+        costPrice, 
+        salePrice, 
+        images: images ?? undefined 
+      });
       setManageInventory(!!rest.manageInventory);
     } else if (!open) {
       // Reset all states when closing
       setNewCategoryName("");
       setManageInventory(false);
     }
-  }, [data?.data, open, form]);
+  }, [data?.data, open, form, categoriesData?.data]);
 
   // FE no longer creates inventory checks here; backend handles auto-balanced creation when stock changes.
 
@@ -81,6 +103,7 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
                 name="name"
                 label="Tên hàng"
                 rules={[
+                  { required: true, message: "Vui lòng nhập tên hàng" },
                   {
                     validator: async (_rule, value) => {
                       if (!value) return Promise.resolve();
@@ -101,7 +124,7 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="menuType" label="Loại thực đơn">
+              <Form.Item name="menuType" label="Loại thực đơn" rules={[{ required: true, message: "Vui lòng chọn loại thực đơn" }]}>
                 <Select
                   options={[
                     { label: "Đồ ăn", value: "Đồ ăn" },
@@ -113,7 +136,7 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="categoryId" label="Nhóm hàng">
+              <Form.Item name="categoryId" label="Nhóm hàng" rules={[{ required: true, message: "Vui lòng chọn nhóm hàng" }]}>
                 <Select
                   placeholder="Chọn nhóm hàng"
                   allowClear
@@ -171,7 +194,7 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="unit" label="Đơn vị tính">
+              <Form.Item name="unit" label="Đơn vị tính" rules={[{ required: true, message: "Vui lòng nhập đơn vị tính" }]}>
                 <Input />
               </Form.Item>
             </Col>
@@ -194,6 +217,7 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
                 name="salePrice"
                 label="Giá bán"
                 rules={[
+                  { required: true, message: "Vui lòng nhập giá bán" },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
                       const cp = Number(getFieldValue("costPrice") || 0);

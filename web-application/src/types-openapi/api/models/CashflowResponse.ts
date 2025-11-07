@@ -51,10 +51,10 @@ export interface CashflowResponse {
     cashflowTypeName?: string | null;
     /**
      * 
-     * @type {number}
+     * @type {string}
      * @memberof CashflowResponse
      */
-    relatedId?: number | null;
+    relatedId?: string | null;
     /**
      * 
      * @type {string}

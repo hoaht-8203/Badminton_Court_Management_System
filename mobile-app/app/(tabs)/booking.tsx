@@ -249,6 +249,8 @@ export default function BookingCreate() {
         setTimeDrawerVisible(false);
         setQrDrawerVisible(false);
         setBookingDetail(null);
+        setQrExpired(false);
+        setRemainingMs(0);
         setErrors({});
         setHasSelectedDate(false);
         setHasSelectedRangeStart(false);
@@ -265,6 +267,7 @@ export default function BookingCreate() {
   const qrFade = useState(new Animated.Value(0))[0];
   const [bookingDetail, setBookingDetail] = useState<any>(null);
   const [remainingMs, setRemainingMs] = useState<number>(0);
+  const [qrExpired, setQrExpired] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -365,9 +368,12 @@ export default function BookingCreate() {
       const res = await courtScheduleService.userCreateBooking(payload);
       if (res?.data) {
         setBookingDetail(res.data);
+        setQrExpired(false);
         if (res.data?.expiresAtUtc) {
           const expiry = new Date(res.data.expiresAtUtc as any).getTime();
           setRemainingMs(Math.max(0, expiry - Date.now()));
+        } else {
+          setRemainingMs(0);
         }
         setQrDrawerVisible(true);
         Animated.parallel([
@@ -396,12 +402,30 @@ export default function BookingCreate() {
 
   // countdown
   useEffect(() => {
-    if (!qrDrawerVisible || !bookingDetail?.expiresAtUtc) return;
-    const id = setInterval(() => {
-      const expiry = new Date(bookingDetail.expiresAtUtc as any).getTime();
-      setRemainingMs(Math.max(0, expiry - Date.now()));
-    }, 1000);
-    return () => clearInterval(id);
+    if (!qrDrawerVisible || !bookingDetail?.expiresAtUtc) {
+      setRemainingMs(0);
+      setQrExpired(false);
+      return;
+    }
+
+    setQrExpired(false);
+    const expiry = new Date(bookingDetail.expiresAtUtc as any).getTime();
+    let intervalId: ReturnType<typeof setInterval>;
+
+    const updateRemaining = () => {
+      const diff = expiry - Date.now();
+      if (diff <= 0) {
+        setRemainingMs(0);
+        setQrExpired(true);
+        if (intervalId) clearInterval(intervalId);
+      } else {
+        setRemainingMs(diff);
+      }
+    };
+
+    updateRemaining();
+    intervalId = setInterval(updateRemaining, 1000);
+    return () => clearInterval(intervalId);
   }, [qrDrawerVisible, bookingDetail?.expiresAtUtc]);
 
   // SignalR updates
@@ -434,6 +458,9 @@ export default function BookingCreate() {
           }),
         ]).start(() => {
           setQrDrawerVisible(false);
+          setBookingDetail(null);
+          setQrExpired(false);
+          setRemainingMs(0);
           toast.success("Đặt sân thành công");
           router.push("/");
         });
@@ -446,11 +473,13 @@ export default function BookingCreate() {
   }, [qrDrawerVisible, bookingDetail?.paymentId, qrSlide, qrFade, router]);
 
   const downloadQr = () => {
+    if (qrExpired) return;
     const url = bookingDetail?.qrUrl as string | undefined;
     if (!url) return;
     Linking.openURL(url).catch(() => {});
   };
   const openMBBank = () => {
+    if (qrExpired) return;
     const ba = "VQRQAEMLF5363@mb";
     const am = Math.round(bookingDetail?.paymentAmount || 0);
     const tn = bookingDetail?.paymentId || "";
@@ -881,7 +910,12 @@ export default function BookingCreate() {
               duration: 300,
               useNativeDriver: true,
             }),
-          ]).start(() => setQrDrawerVisible(false));
+          ]).start(() => {
+            setQrDrawerVisible(false);
+            setBookingDetail(null);
+            setQrExpired(false);
+            setRemainingMs(0);
+          });
         }}
         statusBarTranslucent
       >
@@ -907,7 +941,12 @@ export default function BookingCreate() {
                   duration: 300,
                   useNativeDriver: true,
                 }),
-              ]).start(() => setQrDrawerVisible(false));
+              ]).start(() => {
+                setQrDrawerVisible(false);
+                setBookingDetail(null);
+                setQrExpired(false);
+                setRemainingMs(0);
+              });
             }}
           />
           <Animated.View
@@ -947,23 +986,60 @@ export default function BookingCreate() {
                   style={{
                     padding: 10,
                     borderWidth: 1,
-                    borderColor: "#fecaca",
-                    backgroundColor: "#fef2f2",
+                    borderColor: qrExpired ? "#fecaca" : "#fde68a",
+                    backgroundColor: qrExpired ? "#fef2f2" : "#fffbeb",
                     borderRadius: 8,
                   }}
                 >
-                  <Text style={{ color: "#b91c1c", fontWeight: "700" }}>
-                    Thời gian giữ chỗ còn lại:{" "}
-                    {Math.floor(remainingMs / 1000 / 60)}:
-                    {String(Math.floor((remainingMs / 1000) % 60)).padStart(
-                      2,
-                      "0"
-                    )}
+                  <Text
+                    style={{
+                      color: qrExpired ? "#b91c1c" : "#92400e",
+                      fontWeight: "700",
+                      textAlign: "center",
+                    }}
+                  >
+                    {qrExpired
+                      ? "QR Code đã hết hạn. Vui lòng đặt lại hoặc liên hệ quầy để nhận mã mới."
+                      : `Thời gian giữ chỗ còn lại: ${Math.floor(
+                          remainingMs / 1000 / 60
+                        )}:${String(
+                          Math.floor((remainingMs / 1000) % 60)
+                        ).padStart(2, "0")}`}
                   </Text>
                 </View>
               ) : null}
               <View style={{ alignItems: "center" }}>
-                {bookingDetail?.qrUrl ? (
+                {qrExpired ? (
+                  <View
+                    style={{
+                      padding: 20,
+                      borderWidth: 1,
+                      borderColor: "#fca5a5",
+                      backgroundColor: "#fee2e2",
+                      borderRadius: 12,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#b91c1c",
+                        fontWeight: "600",
+                        textAlign: "center",
+                      }}
+                    >
+                      Mã thanh toán đã hết hạn.
+                    </Text>
+                    <Text
+                      style={{
+                        color: "#7f1d1d",
+                        fontSize: 12,
+                        marginTop: 8,
+                        textAlign: "center",
+                      }}
+                    >
+                      Vui lòng tạo yêu cầu thanh toán mới để tiếp tục.
+                    </Text>
+                  </View>
+                ) : bookingDetail?.qrUrl ? (
                   <Image
                     source={{ uri: bookingDetail.qrUrl }}
                     style={{ width: 260, height: 260, borderRadius: 12 }}
@@ -971,65 +1047,77 @@ export default function BookingCreate() {
                 ) : (
                   <Text style={{ color: subTextColor }}>Không có QR</Text>
                 )}
-                <Text style={{ color: textColor, marginTop: 8 }}>
-                  Mã thanh toán: {bookingDetail?.paymentId ?? "-"}
-                </Text>
-                <Text
-                  style={{ color: textColor, marginTop: 4, fontWeight: "700" }}
-                >
-                  Số tiền:{" "}
-                  {(bookingDetail?.paymentAmount ?? 0).toLocaleString("vi-VN")}{" "}
-                  đ
-                </Text>
+                {!qrExpired && (
+                  <>
+                    <Text style={{ color: textColor, marginTop: 8 }}>
+                      Mã thanh toán: {bookingDetail?.paymentId ?? "-"}
+                    </Text>
+                    <Text
+                      style={{
+                        color: textColor,
+                        marginTop: 4,
+                        fontWeight: "700",
+                      }}
+                    >
+                      Số tiền:{" "}
+                      {(bookingDetail?.paymentAmount ?? 0).toLocaleString(
+                        "vi-VN"
+                      )}{" "}
+                      đ
+                    </Text>
+                  </>
+                )}
               </View>
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: 12,
-                  justifyContent: "center",
-                  marginTop: 8,
-                }}
-              >
-                <Pressable
-                  onPress={downloadQr}
+              {!qrExpired && (
+                <View
                   style={{
-                    backgroundColor:
-                      colorScheme === "dark" ? "#374151" : "#e5e7eb",
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    borderRadius: 10,
                     flexDirection: "row",
-                    alignItems: "center",
-                    gap: 8,
+                    gap: 12,
+                    justifyContent: "center",
+                    marginTop: 8,
                   }}
                 >
-                  <Ionicons
-                    name="download-outline"
-                    size={18}
-                    color={textColor}
-                  />
-                  <Text style={{ color: textColor, fontWeight: "600" }}>
-                    Tải QR
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={openMBBank}
-                  style={{
-                    backgroundColor: "#2563eb",
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    borderRadius: 10,
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  <Ionicons name="logo-buffer" size={18} color="#ffffff" />
-                  <Text style={{ color: "#ffffff", fontWeight: "700" }}>
-                    Thanh toán bằng MB Bank
-                  </Text>
-                </Pressable>
-              </View>
+                  <Pressable
+                    onPress={downloadQr}
+                    style={{
+                      backgroundColor:
+                        colorScheme === "dark" ? "#374151" : "#e5e7eb",
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      borderRadius: 10,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Ionicons
+                      name="download-outline"
+                      size={18}
+                      color={textColor}
+                    />
+                    <Text style={{ color: textColor, fontWeight: "600" }}>
+                      Tải QR
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={openMBBank}
+                    style={{
+                      backgroundColor: "#2563eb",
+                      paddingHorizontal: 16,
+                      paddingVertical: 12,
+                      borderRadius: 10,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Ionicons name="logo-buffer" size={18} color="#ffffff" />
+                    <Text style={{ color: "#ffffff", fontWeight: "700" }}>
+                      Thanh toán bằng MB Bank
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
             </ScrollView>
           </Animated.View>
         </Animated.View>

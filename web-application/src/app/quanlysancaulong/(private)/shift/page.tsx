@@ -29,10 +29,13 @@ export default React.memo(function ShiftPage() {
     show();
   }, [show]);
 
-  const handleEdit = useCallback((record: ShiftResponse) => {
-    setEditRecord(record);
-    show(record);
-  }, [show]);
+  const handleEdit = useCallback(
+    (record: ShiftResponse) => {
+      setEditRecord(record);
+      show(record);
+    },
+    [show],
+  );
 
   const handleDelete = useCallback(
     (record: ShiftResponse) => {

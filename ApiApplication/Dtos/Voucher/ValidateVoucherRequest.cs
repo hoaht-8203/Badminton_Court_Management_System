@@ -11,4 +11,3 @@ public class ValidateVoucherRequest
     [Range(0.01, double.MaxValue, ErrorMessage = "Tổng tiền đơn hàng phải lớn hơn 0")]
     public decimal OrderTotalAmount { get; set; } // Tổng tiền trước khi giảm giá
 }
-

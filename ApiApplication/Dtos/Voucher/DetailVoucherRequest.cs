@@ -7,4 +7,3 @@ public class DetailVoucherRequest
     [Required]
     public int Id { get; set; }
 }
-

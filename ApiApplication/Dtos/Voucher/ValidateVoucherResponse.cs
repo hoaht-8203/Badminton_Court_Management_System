@@ -8,4 +8,3 @@ public class ValidateVoucherResponse
     public decimal FinalAmount { get; set; } // Tổng tiền sau khi giảm giá
     public VoucherResponse? Voucher { get; set; }
 }
-

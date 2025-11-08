@@ -22,10 +22,7 @@ public class ProductMappingProfile : Profile
                 dest => dest.Category,
                 opt => opt.MapFrom(src => src.Category != null ? src.Category.Name : null)
             )
-            .ForMember(
-                dest => dest.CategoryId,
-                opt => opt.MapFrom(src => src.CategoryId)
-            );
+            .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId));
 
         CreateMap<CreateProductRequest, Product>()
             .ForMember(

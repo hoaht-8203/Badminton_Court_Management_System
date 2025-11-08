@@ -792,7 +792,11 @@ public class BookingCourtService(
                 var first = booking.Payments.OrderBy(p => p.PaymentCreatedAt).First();
                 // Inline QR info for transfer (pending) case
                 if (
-                    !string.Equals(first.Status, PaymentStatus.Paid, StringComparison.OrdinalIgnoreCase)
+                    !string.Equals(
+                        first.Status,
+                        PaymentStatus.Paid,
+                        StringComparison.OrdinalIgnoreCase
+                    )
                 )
                 {
                     dto.PaymentId = first.Id;

@@ -45,15 +45,18 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
       usageLimitPerUser: values.usageLimitPerUser,
     } as UpdateVoucherRequest;
 
-    updateMutation.mutate({ id: voucherId, data: payload }, {
-      onSuccess: () => {
-        message.success("Gia hạn voucher thành công!");
-        onClose();
+    updateMutation.mutate(
+      { id: voucherId, data: payload },
+      {
+        onSuccess: () => {
+          message.success("Gia hạn voucher thành công!");
+          onClose();
+        },
+        onError: (err: ApiError) => {
+          message.error(err.message);
+        },
       },
-      onError: (err: ApiError) => {
-        message.error(err.message);
-      },
-    });
+    );
   };
 
   return (
@@ -69,72 +72,87 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
       width={720}
       extra={
         <div>
-          <Button onClick={() => { form.resetFields(); onClose(); }}>Đóng</Button>
-          <Button type="primary" style={{ marginLeft: 8 }} loading={updateMutation.status === "pending"} onClick={() => form.submit()} icon={<SaveOutlined />}>
+          <Button
+            onClick={() => {
+              form.resetFields();
+              onClose();
+            }}
+          >
+            Đóng
+          </Button>
+          <Button
+            type="primary"
+            style={{ marginLeft: 8 }}
+            loading={updateMutation.status === "pending"}
+            onClick={() => form.submit()}
+            icon={<SaveOutlined />}
+          >
             Lưu
           </Button>
         </div>
       }
     >
-      {
-        (() => {
-          const items = [
-            {
-              key: "1",
-              label: "Thông tin cơ bản",
-              children: (
-                <Form form={form} onFinish={handleSubmit} layout="vertical">
-                  <FormItem name="endAt" label="Ngày kết thúc mới" rules={[{ required: true }]}>
-                    <DatePicker showTime style={{ width: "100%" }} format="DD/MM/YYYY HH:mm" />
-                  </FormItem>
+      {(() => {
+        const items = [
+          {
+            key: "1",
+            label: "Thông tin cơ bản",
+            children: (
+              <Form form={form} onFinish={handleSubmit} layout="vertical">
+                <FormItem name="endAt" label="Ngày kết thúc mới" rules={[{ required: true }]}>
+                  <DatePicker showTime style={{ width: "100%" }} format="DD/MM/YYYY HH:mm" />
+                </FormItem>
 
-                  <FormItem name="usageLimitTotal" label="Giới hạn sử dụng tổng" initialValue={0}>
-                    <InputNumber min={0} style={{ width: "100%" }} placeholder="0 = không giới hạn" />
-                  </FormItem>
+                <FormItem name="usageLimitTotal" label="Giới hạn sử dụng tổng" initialValue={0}>
+                  <InputNumber min={0} style={{ width: "100%" }} placeholder="0 = không giới hạn" />
+                </FormItem>
 
-                  <FormItem name="usageLimitPerUser" label="Giới hạn sử dụng mỗi user" initialValue={1}>
-                    <InputNumber min={0} style={{ width: "100%" }} />
-                  </FormItem>
-                </Form>
-              ),
-            },
-            {
-              key: "2",
-              label: "Đối tượng áp dụng",
-              children: (
-                <div>
-                  <Divider>Quy tắc thời gian</Divider>
-                  {(detailResp?.data?.timeRules ?? []).length === 0 ? (
-                    <div>-</div>
-                  ) : (
-                    (detailResp?.data?.timeRules ?? []).map((r: any, i: number) => (
-                      <div key={i} style={{ marginBottom: 8 }}>
-                        {r.dayOfWeek != null ? <div>Thứ: {String(r.dayOfWeek)}</div> : null}
-                        {r.specificDate ? <div>Ngày: {dayjs(r.specificDate).format("DD/MM/YYYY")}</div> : null}
-                        {(r.startTime || r.endTime) && <div>Giờ: {r.startTime ?? "-"} - {r.endTime ?? "-"}</div>}
-                      </div>
-                    ))
-                  )}
+                <FormItem name="usageLimitPerUser" label="Giới hạn sử dụng mỗi user" initialValue={1}>
+                  <InputNumber min={0} style={{ width: "100%" }} />
+                </FormItem>
+              </Form>
+            ),
+          },
+          {
+            key: "2",
+            label: "Đối tượng áp dụng",
+            children: (
+              <div>
+                <Divider>Quy tắc thời gian</Divider>
+                {(detailResp?.data?.timeRules ?? []).length === 0 ? (
+                  <div>-</div>
+                ) : (
+                  (detailResp?.data?.timeRules ?? []).map((r: any, i: number) => (
+                    <div key={i} style={{ marginBottom: 8 }}>
+                      {r.dayOfWeek != null ? <div>Thứ: {String(r.dayOfWeek)}</div> : null}
+                      {r.specificDate ? <div>Ngày: {dayjs(r.specificDate).format("DD/MM/YYYY")}</div> : null}
+                      {(r.startTime || r.endTime) && (
+                        <div>
+                          Giờ: {r.startTime ?? "-"} - {r.endTime ?? "-"}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
 
-                  <Divider>Quy tắc người dùng</Divider>
-                  {(detailResp?.data?.userRules ?? []).length === 0 ? (
-                    <div>-</div>
-                  ) : (
-                    (detailResp?.data?.userRules ?? []).map((u: any, i: number) => (
-                      <div key={i} style={{ marginBottom: 8 }}>
-                        {u.isNewCustomer != null ? <div>Khách hàng mới: {u.isNewCustomer ? "Có" : "Không"}</div> : null}
-                        {u.userType ? <div>Loại người dùng: {u.userType}</div> : null}
-                      </div>
-                    ))
-                  )}
-                </div>
-              ),
-            },
-          ];
+                <Divider>Quy tắc người dùng</Divider>
+                {(detailResp?.data?.userRules ?? []).length === 0 ? (
+                  <div>-</div>
+                ) : (
+                  (detailResp?.data?.userRules ?? []).map((u: any, i: number) => (
+                    <div key={i} style={{ marginBottom: 8 }}>
+                      {u.isNewCustomer != null ? <div>Khách hàng mới: {u.isNewCustomer ? "Có" : "Không"}</div> : null}
+                      {u.userType ? <div>Loại người dùng: {u.userType}</div> : null}
+                    </div>
+                  ))
+                )}
+              </div>
+            ),
+          },
+        ];
 
-          return <Tabs defaultActiveKey="1" items={items} />;
-        })()
-      }
+        return <Tabs defaultActiveKey="1" items={items} />;
+      })()}
     </Drawer>
   );
 };

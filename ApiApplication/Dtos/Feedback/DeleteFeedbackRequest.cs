@@ -7,5 +7,3 @@ public class DeleteFeedbackRequest
     [Required]
     public int Id { get; set; }
 }
-
-

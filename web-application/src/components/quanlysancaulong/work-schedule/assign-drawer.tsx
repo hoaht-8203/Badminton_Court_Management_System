@@ -101,15 +101,12 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
   const handleMouseEnter = useCallback((staffId: number, day: number) => () => setHoverCell({ staffId, day }), []);
   const handleMouseLeave = useCallback(() => setHoverCell(null), []);
 
-  const openAssignModal = useCallback(
-    (staff: { id: number; fullName: string } | null, fullDate: string, dayValue?: number) => {
-      if (typeof dayValue === "number") setSelectedDay(dayValue);
-      setModalStaff(staff);
-      setModalDate(fullDate);
-      setModalOpen(true);
-    },
-    [],
-  );
+  const openAssignModal = useCallback((staff: { id: number; fullName: string } | null, fullDate: string, dayValue?: number) => {
+    if (typeof dayValue === "number") setSelectedDay(dayValue);
+    setModalStaff(staff);
+    setModalDate(fullDate);
+    setModalOpen(true);
+  }, []);
 
   // allow selecting day-of-week header; persist selectedDay across week navigation
   const selectDay = useCallback((dayValue: number) => setSelectedDay(dayValue), []);

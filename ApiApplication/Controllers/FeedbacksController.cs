@@ -19,7 +19,9 @@ public class FeedbacksController(IFeedbackService feedbackService) : ControllerB
     )
     {
         var result = await _feedbackService.CreateFeedBackAsync(request);
-        return Ok(ApiResponse<DetailFeedbackResponse>.SuccessResponse(result, "Tạo feedback thành công"));
+        return Ok(
+            ApiResponse<DetailFeedbackResponse>.SuccessResponse(result, "Tạo feedback thành công")
+        );
     }
 
     [HttpGet("detail")]
@@ -28,7 +30,12 @@ public class FeedbacksController(IFeedbackService feedbackService) : ControllerB
     )
     {
         var result = await _feedbackService.DetailFeedBackAsync(request);
-        return Ok(ApiResponse<DetailFeedbackResponse>.SuccessResponse(result, "Lấy chi tiết feedback thành công"));
+        return Ok(
+            ApiResponse<DetailFeedbackResponse>.SuccessResponse(
+                result,
+                "Lấy chi tiết feedback thành công"
+            )
+        );
     }
 
     [HttpPut("update")]
@@ -37,11 +44,18 @@ public class FeedbacksController(IFeedbackService feedbackService) : ControllerB
     )
     {
         var result = await _feedbackService.UpdateFeedBackAsync(request);
-        return Ok(ApiResponse<DetailFeedbackResponse>.SuccessResponse(result, "Cập nhật feedback thành công"));
+        return Ok(
+            ApiResponse<DetailFeedbackResponse>.SuccessResponse(
+                result,
+                "Cập nhật feedback thành công"
+            )
+        );
     }
 
     [HttpDelete("delete")]
-    public async Task<ActionResult<ApiResponse<bool>>> Delete([FromQuery] DeleteFeedbackRequest request)
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(
+        [FromQuery] DeleteFeedbackRequest request
+    )
     {
         var result = await _feedbackService.DeleteFeedBackAsync(request);
         return Ok(ApiResponse<bool>.SuccessResponse(result, "Xóa feedback thành công"));
@@ -53,7 +67,12 @@ public class FeedbacksController(IFeedbackService feedbackService) : ControllerB
     )
     {
         var result = await _feedbackService.ListFeedBackAsync(request);
-        return Ok(ApiResponse<List<ListFeedbackResponse>>.SuccessResponse(result, "Lấy danh sách feedback thành công"));
+        return Ok(
+            ApiResponse<List<ListFeedbackResponse>>.SuccessResponse(
+                result,
+                "Lấy danh sách feedback thành công"
+            )
+        );
     }
 
     [HttpGet("list/{BookingCourtOccurrenceId:guid}")]
@@ -62,7 +81,12 @@ public class FeedbacksController(IFeedbackService feedbackService) : ControllerB
     )
     {
         var result = await _feedbackService.ListFeedBackByBookingOccurrenceAsync(request);
-        return Ok(ApiResponse<List<ListFeedbackResponse>>.SuccessResponse(result, "Lấy danh sách feedback theo lịch đặt thành công"));
+        return Ok(
+            ApiResponse<List<ListFeedbackResponse>>.SuccessResponse(
+                result,
+                "Lấy danh sách feedback theo lịch đặt thành công"
+            )
+        );
     }
 
     [HttpGet("list/{CustomerId:int}")]
@@ -71,8 +95,11 @@ public class FeedbacksController(IFeedbackService feedbackService) : ControllerB
     )
     {
         var result = await _feedbackService.ListFeedBackByCustomerAsync(request);
-        return Ok(ApiResponse<List<ListFeedbackResponse>>.SuccessResponse(result, "Lấy danh sách feedback theo khách hàng thành công"));
+        return Ok(
+            ApiResponse<List<ListFeedbackResponse>>.SuccessResponse(
+                result,
+                "Lấy danh sách feedback theo khách hàng thành công"
+            )
+        );
     }
 }
-
-

@@ -70,10 +70,13 @@ const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
                 placeholder="Chọn nhóm hàng"
                 optionFilterProp="label"
                 filterOption={(input, option) => (option?.label ?? "").toLowerCase().includes(input.toLowerCase())}
-                options={(categoriesData?.data || []).map((c: any) => ({
-                  label: c.name,
-                  value: c.name,
-                }))}
+                options={[
+                  { label: "Tất cả sản phẩm", value: "" },
+                  ...(categoriesData?.data || []).map((c: any) => ({
+                    label: c.name,
+                    value: c.name,
+                  })),
+                ]}
               />
             </Form.Item>
           </Col>

@@ -16,6 +16,10 @@ public class ProductMappingProfile : Profile
             .ForMember(
                 dest => dest.Images,
                 opt => opt.MapFrom(src => src.Images ?? Array.Empty<string>())
+            )
+            .ForMember(
+                dest => dest.Stock,
+                opt => opt.MapFrom(src => src.Stock)
             );
         CreateMap<Product, DetailProductResponse>()
             .ForMember(
@@ -36,7 +40,6 @@ public class ProductMappingProfile : Profile
 
         CreateMap<UpdateProductRequest, Product>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.IsActive, opt => opt.Ignore())
             .ForMember(dest => dest.Images, opt => opt.Ignore())
             .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
     }

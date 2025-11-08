@@ -51,6 +51,12 @@ export interface DetailProductResponse {
     category?: string | null;
     /**
      * 
+     * @type {number}
+     * @memberof DetailProductResponse
+     */
+    categoryId?: number | null;
+    /**
+     * 
      * @type {string}
      * @memberof DetailProductResponse
      */
@@ -85,6 +91,12 @@ export interface DetailProductResponse {
      * @memberof DetailProductResponse
      */
     isActive?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof DetailProductResponse
+     */
+    isDisplayOnWeb?: boolean;
     /**
      * 
      * @type {boolean}
@@ -159,12 +171,14 @@ export function DetailProductResponseFromJSONTyped(json: any, ignoreDiscriminato
         'name': json['name'],
         'menuType': json['menuType'] == null ? undefined : json['menuType'],
         'category': json['category'] == null ? undefined : json['category'],
+        'categoryId': json['categoryId'] == null ? undefined : json['categoryId'],
         'position': json['position'] == null ? undefined : json['position'],
         'costPrice': json['costPrice'] == null ? undefined : json['costPrice'],
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
         'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
         'isExtraTopping': json['isExtraTopping'] == null ? undefined : json['isExtraTopping'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
+        'isDisplayOnWeb': json['isDisplayOnWeb'] == null ? undefined : json['isDisplayOnWeb'],
         'manageInventory': json['manageInventory'] == null ? undefined : json['manageInventory'],
         'stock': json['stock'] == null ? undefined : json['stock'],
         'minStock': json['minStock'] == null ? undefined : json['minStock'],
@@ -192,12 +206,14 @@ export function DetailProductResponseToJSONTyped(value?: DetailProductResponse |
         'name': value['name'],
         'menuType': value['menuType'],
         'category': value['category'],
+        'categoryId': value['categoryId'],
         'position': value['position'],
         'costPrice': value['costPrice'],
         'salePrice': value['salePrice'],
         'isDirectSale': value['isDirectSale'],
         'isExtraTopping': value['isExtraTopping'],
         'isActive': value['isActive'],
+        'isDisplayOnWeb': value['isDisplayOnWeb'],
         'manageInventory': value['manageInventory'],
         'stock': value['stock'],
         'minStock': value['minStock'],

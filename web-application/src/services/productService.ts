@@ -57,4 +57,14 @@ export const productService = {
     const res = await axiosInstance.get<ApiResponse<ListProductsByPriceTableResponse[]>>("/api/Products/list-by-price-table", { params: payload });
     return res.data;
   },
+
+  async listForWeb(payload: ListProductRequest): Promise<ApiResponse<ListProductResponse[]>> {
+    const res = await axiosInstance.get<ApiResponse<ListProductResponse[]>>("/api/Products/list-for-web", { params: payload });
+    return res.data;
+  },
+
+  async updateWebDisplay(id: number, isDisplayOnWeb: boolean): Promise<ApiResponse<null>> {
+    const res = await axiosInstance.put<ApiResponse<null>>("/api/Products/update-web-display", undefined, { params: { id, isDisplayOnWeb } });
+    return res.data;
+  },
 };

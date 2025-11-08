@@ -25,7 +25,7 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
       const { id, images, category, ...rest } = data.data;
       const costPrice = (rest as any).costPrice ?? 0;
       const salePrice = (rest as any).salePrice ?? 0;
-      
+
       // Map category name to categoryId
       let categoryId: number | undefined;
       if (category && categoriesData?.data) {
@@ -37,14 +37,14 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
       if (directCategoryId) {
         categoryId = directCategoryId;
       }
-      
-      form.setFieldsValue({ 
-        id, 
-        ...rest, 
+
+      form.setFieldsValue({
+        id,
+        ...rest,
         categoryId,
-        costPrice, 
-        salePrice, 
-        images: images ?? undefined 
+        costPrice,
+        salePrice,
+        images: images ?? undefined,
       });
       setManageInventory(!!rest.manageInventory);
     } else if (!open) {

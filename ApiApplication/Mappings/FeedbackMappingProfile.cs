@@ -15,5 +15,3 @@ public class FeedbackMappingProfile : Profile
             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 }
-
-

@@ -9,8 +9,10 @@ public interface IFeedbackService
     Task<DetailFeedbackResponse> UpdateFeedBackAsync(UpdateFeedbackRequest request);
     Task<bool> DeleteFeedBackAsync(DeleteFeedbackRequest request);
     Task<List<ListFeedbackResponse>> ListFeedBackAsync(ListFeedbackRequest request);
-    Task<List<ListFeedbackResponse>> ListFeedBackByBookingOccurrenceAsync(ListFeedbackByBookingRequest request);
-    Task<List<ListFeedbackResponse>> ListFeedBackByCustomerAsync(ListFeedbackByCustomerRequest request);
+    Task<List<ListFeedbackResponse>> ListFeedBackByBookingOccurrenceAsync(
+        ListFeedbackByBookingRequest request
+    );
+    Task<List<ListFeedbackResponse>> ListFeedBackByCustomerAsync(
+        ListFeedbackByCustomerRequest request
+    );
 }
-
-

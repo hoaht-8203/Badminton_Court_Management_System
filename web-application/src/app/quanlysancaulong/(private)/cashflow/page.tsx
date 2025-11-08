@@ -100,9 +100,7 @@ const CashflowPage: React.FC = () => {
           <Suspense fallback={<Spin />}>
             <CashflowFilter
               onSearch={setSearchParams}
-              onReset={() =>
-                setSearchParams({ isPayment: undefined, from: undefined, to: undefined, cashflowTypeId: undefined, status: undefined })
-              }
+              onReset={() => setSearchParams({ isPayment: undefined, from: undefined, to: undefined, cashflowTypeId: undefined, status: undefined })}
             />
           </Suspense>
         </div>

@@ -7,5 +7,3 @@ public class ListFeedbackByBookingRequest
     [Required]
     public Guid BookingCourtOccurrenceId { get; set; }
 }
-
-

@@ -7,5 +7,3 @@ public class DetailFeedbackRequest
     [Required]
     public int Id { get; set; }
 }
-
-

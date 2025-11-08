@@ -322,7 +322,7 @@ const PriceInformation = ({
             <div className="space-y-1">
               <div className="text-sm text-gray-500">Trạng thái</div>
               <div>
-                <Tag color={record.isActive ? "green" : "red"} className="text-sm px-2 py-1">
+                <Tag color={record.isActive ? "green" : "red"} className="px-2 py-1 text-sm">
                   {record.isActive ? "Kích hoạt" : "Không kích hoạt"}
                 </Tag>
               </div>
@@ -342,7 +342,7 @@ const PriceInformation = ({
                 )}
               </div>
               {(record.effectiveFrom || record.effectiveTo) && (
-                <div className="text-xs text-gray-400 mt-1">
+                <div className="mt-1 text-xs text-gray-400">
                   {record.effectiveFrom ? dayjs(record.effectiveFrom).format("DD/MM/YYYY HH:mm") : "---"} →{" "}
                   {record.effectiveTo ? dayjs(record.effectiveTo).format("DD/MM/YYYY HH:mm") : "---"}
                 </div>
@@ -357,7 +357,7 @@ const PriceInformation = ({
         <Card className="mb-4" title={<span className="text-lg font-semibold">Khung giờ áp dụng</span>}>
           <div className="flex flex-wrap gap-2">
             {d.timeRanges.map((it, idx) => (
-              <Tag key={idx} color="blue" className="text-sm px-3 py-1 mb-2">
+              <Tag key={idx} color="blue" className="mb-2 px-3 py-1 text-sm">
                 {it.startTime} - {it.endTime}
               </Tag>
             ))}
@@ -371,7 +371,9 @@ const PriceInformation = ({
         title={
           <div className="flex items-center justify-between">
             <span className="text-lg font-semibold">Sản phẩm áp dụng</span>
-            <Tag color="cyan" className="text-sm">{products.length} sản phẩm</Tag>
+            <Tag color="cyan" className="text-sm">
+              {products.length} sản phẩm
+            </Tag>
           </div>
         }
       >
@@ -426,7 +428,7 @@ const PriceInformation = ({
       </Card>
 
       {/* Actions */}
-      <div className="flex justify-end gap-2 pt-4 border-t">
+      <div className="flex justify-end gap-2 border-t pt-4">
         {record.isActive ? (
           <Button danger icon={<StopOutlined />} onClick={() => onChangeStatus(false)}>
             Ngừng áp dụng

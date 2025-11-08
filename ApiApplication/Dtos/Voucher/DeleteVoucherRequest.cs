@@ -7,4 +7,3 @@ public class DeleteVoucherRequest
     [Required]
     public int Id { get; set; }
 }
-

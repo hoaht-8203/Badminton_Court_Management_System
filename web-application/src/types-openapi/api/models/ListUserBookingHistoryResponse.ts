@@ -155,6 +155,30 @@ export interface ListUserBookingHistoryResponse {
      * @memberof ListUserBookingHistoryResponse
      */
     customer?: CustomerDto;
+    /**
+     * 
+     * @type {number}
+     * @memberof ListUserBookingHistoryResponse
+     */
+    paymentAmount?: number | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ListUserBookingHistoryResponse
+     */
+    qrUrl?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof ListUserBookingHistoryResponse
+     */
+    holdMinutes?: number | null;
+    /**
+     * 
+     * @type {Date}
+     * @memberof ListUserBookingHistoryResponse
+     */
+    expiresAtUtc?: Date | null;
 }
 
 /**
@@ -193,6 +217,10 @@ export function ListUserBookingHistoryResponseFromJSONTyped(json: any, ignoreDis
         'bookingCourtOccurrences': json['bookingCourtOccurrences'] == null ? undefined : ((json['bookingCourtOccurrences'] as Array<any>).map(BookingCourtOccurrenceDtoFromJSON)),
         'payments': json['payments'] == null ? undefined : ((json['payments'] as Array<any>).map(PaymentDtoFromJSON)),
         'customer': json['customer'] == null ? undefined : CustomerDtoFromJSON(json['customer']),
+        'paymentAmount': json['paymentAmount'] == null ? undefined : json['paymentAmount'],
+        'qrUrl': json['qrUrl'] == null ? undefined : json['qrUrl'],
+        'holdMinutes': json['holdMinutes'] == null ? undefined : json['holdMinutes'],
+        'expiresAtUtc': json['expiresAtUtc'] == null ? undefined : (new Date(json['expiresAtUtc'])),
     };
 }
 
@@ -226,6 +254,10 @@ export function ListUserBookingHistoryResponseToJSONTyped(value?: ListUserBookin
         'bookingCourtOccurrences': value['bookingCourtOccurrences'] == null ? undefined : ((value['bookingCourtOccurrences'] as Array<any>).map(BookingCourtOccurrenceDtoToJSON)),
         'payments': value['payments'] == null ? undefined : ((value['payments'] as Array<any>).map(PaymentDtoToJSON)),
         'customer': CustomerDtoToJSON(value['customer']),
+        'paymentAmount': value['paymentAmount'],
+        'qrUrl': value['qrUrl'],
+        'holdMinutes': value['holdMinutes'],
+        'expiresAtUtc': value['expiresAtUtc'] === null ? null : ((value['expiresAtUtc'] as any)?.toISOString()),
     };
 }
 

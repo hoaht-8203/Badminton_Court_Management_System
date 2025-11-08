@@ -81,7 +81,9 @@ function Component({ record }: Props) {
                                 ? "red"
                                 : occurrence.status === "Cancelled"
                                   ? "red"
-                                  : "default"
+                                  : occurrence.status === "PendingPayment"
+                                    ? "orange"
+                                    : "default"
                       }
                     >
                       {occurrence.status === "Active"
@@ -94,7 +96,9 @@ function Component({ record }: Props) {
                               ? "Không đến"
                               : occurrence.status === "Cancelled"
                                 ? "Đã hủy"
-                                : occurrence.status}
+                                : occurrence.status === "PendingPayment"
+                                  ? "Chờ thanh toán"
+                                  : occurrence.status}
                     </Tag>
                   </Col>
 

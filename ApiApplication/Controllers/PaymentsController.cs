@@ -90,8 +90,7 @@ public class PaymentWebhooksController(
         var rawPaymentId =
             probe
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries)
-                .FirstOrDefault(s => s.StartsWith("PM-") || s.StartsWith("PM"))
-            ?? probe;
+                .FirstOrDefault(s => s.StartsWith("PM-") || s.StartsWith("PM")) ?? probe;
 
         // Transform webhook format (PM02102025000001) to database format (PM-02102025-000001)
         var paymentId = rawPaymentId;

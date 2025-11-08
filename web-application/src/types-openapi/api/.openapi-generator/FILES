@@ -140,6 +140,7 @@ models/CreateStockOutItem.ts
 models/CreateStockOutRequest.ts
 models/CreateStoreBankAccountRequest.ts
 models/CreateSupplierRequest.ts
+models/CreateUserMembershipForCurrentUserRequest.ts
 models/CreateUserMembershipRequest.ts
 models/CreateUserMembershipResponse.ts
 models/CreateUserMembershipResponseApiResponse.ts
@@ -492,6 +493,7 @@ models/UploadFileResponseApiResponse.ts
 models/UpsertBankAccountRequest.ts
 models/UserCreateBookingCourtRequest.ts
 models/UserMembership.ts
+models/UserMembershipInfo.ts
 models/UserMembershipResponse.ts
 models/UserMembershipResponseApiResponse.ts
 models/UserMembershipResponseArrayApiResponse.ts

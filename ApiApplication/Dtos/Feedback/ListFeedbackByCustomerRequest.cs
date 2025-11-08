@@ -7,5 +7,3 @@ public class ListFeedbackByCustomerRequest
     [Required]
     public int CustomerId { get; set; }
 }
-
-

@@ -42,14 +42,17 @@ export default React.memo(function ListStaffPage() {
 
   const staffList = useMemo(() => staffsData?.data ?? [], [staffsData]);
 
-  const handleChangeStaffStatus = useCallback(async (staffId: number, isActive: boolean) => {
-    try {
-      await changeStaffStatus.mutateAsync({ staffId, isActive });
-      message.success("Đổi trạng thái nhân viên thành công");
-    } catch (error: any) {
-      message.error(error?.message || "Có lỗi xảy ra, vui lòng thử lại");
-    }
-  }, [changeStaffStatus]);
+  const handleChangeStaffStatus = useCallback(
+    async (staffId: number, isActive: boolean) => {
+      try {
+        await changeStaffStatus.mutateAsync({ staffId, isActive });
+        message.success("Đổi trạng thái nhân viên thành công");
+      } catch (error: any) {
+        message.error(error?.message || "Có lỗi xảy ra, vui lòng thử lại");
+      }
+    },
+    [changeStaffStatus],
+  );
 
   const handleSearch = useCallback((values: ListStaffRequest) => {
     // Backend expects: 1 = active, 0 = inactive. UI uses 2 = "Đã nghỉ việc".
@@ -82,21 +85,24 @@ export default React.memo(function ListStaffPage() {
     setEditingStaff(null);
   }, []);
 
-  const handleStaffModalSubmit = useCallback(async (values: StaffRequest) => {
-    try {
-      if (editingStaff && editingStaff.id) {
-        await updateStaff.mutateAsync(values);
-        message.success("Cập nhật nhân viên thành công");
-      } else {
-        await createStaff.mutateAsync(values);
-        message.success("Thêm nhân viên thành công");
+  const handleStaffModalSubmit = useCallback(
+    async (values: StaffRequest) => {
+      try {
+        if (editingStaff && editingStaff.id) {
+          await updateStaff.mutateAsync(values);
+          message.success("Cập nhật nhân viên thành công");
+        } else {
+          await createStaff.mutateAsync(values);
+          message.success("Thêm nhân viên thành công");
+        }
+        setOpenStaffModal(false);
+        setEditingStaff(null);
+      } catch (error: any) {
+        message.error(error?.message || "Có lỗi xảy ra, vui lòng thử lại");
       }
-      setOpenStaffModal(false);
-      setEditingStaff(null);
-    } catch (error: any) {
-      message.error(error?.message || "Có lỗi xảy ra, vui lòng thử lại");
-    }
-  }, [createStaff, updateStaff, editingStaff]);
+    },
+    [createStaff, updateStaff, editingStaff],
+  );
 
   const handleExportExcel = useCallback(() => {
     message.success("Xuất Excel (demo)");

@@ -2,15 +2,33 @@
 
 import ProfilePage from "@/components/homepage/ProfilePage";
 import { useGetUserBookingHistory } from "@/hooks/useSchedule";
-import { ListUserBookingHistoryResponse } from "@/types-openapi/api";
-import { CalendarOutlined, ClockCircleOutlined, DollarOutlined, HistoryOutlined, ReloadOutlined, UserOutlined } from "@ant-design/icons";
+import { ListUserBookingHistoryResponse, DetailBookingCourtResponse } from "@/types-openapi/api";
+import {
+  CalendarOutlined,
+  ClockCircleOutlined,
+  DollarOutlined,
+  HistoryOutlined,
+  ReloadOutlined,
+  UserOutlined,
+  QrcodeOutlined,
+  CrownOutlined,
+  CheckCircleOutlined,
+} from "@ant-design/icons";
+import "./membership-cards.css";
 import type { MenuProps } from "antd";
-import { Alert, Empty, Menu, Space, Spin, Table, Tag, Typography, Button } from "antd";
+import { Alert, Empty, Menu, Space, Spin, Table, Tag, Typography, Button, Modal, message } from "antd";
 import dayjs from "dayjs";
 import { useCallback, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { exportService } from "@/services/exportService";
 import { DownloadOutlined } from "@ant-design/icons";
+import QrPaymentDrawer from "@/components/quanlysancaulong/court-schedule/qr-payment-drawer";
+import MembershipQrPaymentDrawer from "@/components/quanlysancaulong/memberships/membership-qr-payment-drawer";
+import { useAuth } from "@/context/AuthContext";
+import { useListMemberships } from "@/hooks/useMembership";
+import { useCreateUserMembershipForCurrentUser } from "@/hooks/useUserMembershipService";
+import { ListMembershipResponse, CreateUserMembershipResponse } from "@/types-openapi/api";
+import Image from "next/image";
 
 const { Title, Text } = Typography;
 
@@ -26,6 +44,11 @@ const items: MenuItem[] = [
     label: "Lịch sử đặt sân & Thanh toán",
     key: "booking-history",
     icon: <HistoryOutlined />,
+  },
+  {
+    label: "Hội viên",
+    key: "membership",
+    icon: <CrownOutlined />,
   },
 ];
 
@@ -43,10 +66,121 @@ const BookingExpandableContent = dynamic<ExpandableProps>(() => import("./_compo
 const BookingHistoryPage = () => {
   const [current, setCurrent] = useState("profile");
   const { data, isLoading, error, refetch, isFetching } = useGetUserBookingHistory();
+  const [openQrDrawer, setOpenQrDrawer] = useState(false);
+  const [selectedBookingForQr, setSelectedBookingForQr] = useState<ListUserBookingHistoryResponse | null>(null);
+  const { user, refresh: refreshUser } = useAuth();
+  const { data: membershipsData, isLoading: loadingMemberships } = useListMemberships({});
+  const createMembershipMutation = useCreateUserMembershipForCurrentUser();
+  const [openMembershipQrDrawer, setOpenMembershipQrDrawer] = useState(false);
+  const [selectedMembershipPayment, setSelectedMembershipPayment] = useState<CreateUserMembershipResponse | null>(null);
 
   const onClick = useCallback<NonNullable<MenuProps["onClick"]>>((e) => {
     setCurrent(e.key);
   }, []);
+
+  // Helper function to convert ListUserBookingHistoryResponse to DetailBookingCourtResponse
+  const convertToDetailBooking = useCallback((booking: ListUserBookingHistoryResponse): DetailBookingCourtResponse => {
+    return {
+      id: booking.id,
+      customerId: booking.customerId,
+      courtId: booking.courtId,
+      courtName: booking.courtName,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      startTime: booking.startTime,
+      endTime: booking.endTime,
+      daysOfWeek: booking.daysOfWeek,
+      status: booking.status,
+      totalHours: booking.totalHours,
+      totalAmount: booking.totalAmount,
+      paidAmount: booking.paidAmount,
+      remainingAmount: booking.remainingAmount,
+      customer: booking.customer,
+      payments: booking.payments || [],
+      bookingServices: [],
+      bookingCourtOccurrences: booking.bookingCourtOccurrences || [],
+      paymentId: booking.paymentId,
+      paymentAmount: booking.paymentAmount,
+      qrUrl: booking.qrUrl,
+      holdMinutes: booking.holdMinutes,
+      expiresAtUtc: booking.expiresAtUtc,
+      overdueMinutes: 0,
+      overdueHours: 0,
+      surchargeAmount: 0,
+      lateFeePercentage: 150,
+      paymentType:
+        booking.paidAmount && booking.totalAmount && booking.paidAmount >= booking.totalAmount * 0.99
+          ? "Full"
+          : booking.paidAmount && booking.paidAmount > 0
+            ? "Deposit"
+            : "None",
+    };
+  }, []);
+
+  const handleShowQrPayment = useCallback((booking: ListUserBookingHistoryResponse) => {
+    setSelectedBookingForQr(booking);
+    setOpenQrDrawer(true);
+  }, []);
+
+  const handleCloseQrDrawer = useCallback(() => {
+    setOpenQrDrawer(false);
+    setSelectedBookingForQr(null);
+  }, []);
+
+  const handlePaymentSuccess = useCallback(() => {
+    refetch();
+    handleCloseQrDrawer();
+  }, [refetch, handleCloseQrDrawer]);
+
+  const handleRegisterMembership = useCallback(
+    (membership: ListMembershipResponse) => {
+      if (!membership.id) return;
+
+      Modal.confirm({
+        title: "Xác nhận đăng ký gói hội viên",
+        content: (
+          <div>
+            <p>Bạn có chắc chắn muốn đăng ký gói hội viên:</p>
+            <p>
+              <strong>{membership.name}</strong>
+            </p>
+            <p>Giá: {membership.price?.toLocaleString("vi-VN")} đ</p>
+            <p>Thời hạn: {membership.durationDays} ngày</p>
+            <p className="text-orange-500">Lưu ý: Thanh toán bằng chuyển khoản</p>
+          </div>
+        ),
+        okText: "Đăng ký",
+        cancelText: "Hủy",
+        onOk: async () => {
+          try {
+            const result = await createMembershipMutation.mutateAsync({
+              membershipId: membership.id!,
+            });
+
+            if (result.data) {
+              message.success("Đăng ký gói hội viên thành công!");
+              refreshUser();
+
+              // If payment method is Bank and has QR, show QR drawer
+              if (result.data.qrUrl && result.data.paymentMethod === "Bank") {
+                setSelectedMembershipPayment(result.data);
+                setOpenMembershipQrDrawer(true);
+              }
+            }
+          } catch (error: any) {
+            message.error(error?.message || "Đăng ký gói hội viên thất bại!");
+          }
+        },
+      });
+    },
+    [createMembershipMutation, refreshUser],
+  );
+
+  const handleCloseMembershipQrDrawer = useCallback(() => {
+    setOpenMembershipQrDrawer(false);
+    setSelectedMembershipPayment(null);
+    refreshUser();
+  }, [refreshUser]);
 
   const columns = useMemo(
     () => [
@@ -119,7 +253,7 @@ const BookingHistoryPage = () => {
             <Text type="success">{record.paidAmount && record.paidAmount > 0 ? `${record.paidAmount.toLocaleString("vi-VN")} đ` : "0 đ"}</Text>
           </Space>
         ),
-        width: 200,
+        width: 150,
       },
       {
         title: "Còn lại",
@@ -143,8 +277,32 @@ const BookingHistoryPage = () => {
         },
         width: 200,
       },
+      {
+        title: "Thao tác",
+        key: "action",
+        render: (_: any, record: ListUserBookingHistoryResponse) => {
+          const isPendingPayment = record.status === "PendingPayment";
+          const hasQrUrl = record.qrUrl && record.paymentId;
+
+          return (
+            <Space>
+              <Button
+                type="primary"
+                icon={<QrcodeOutlined />}
+                onClick={() => handleShowQrPayment(record)}
+                size="small"
+                disabled={!hasQrUrl || !isPendingPayment}
+              >
+                Mã QR
+              </Button>
+            </Space>
+          );
+        },
+        width: 100,
+        fixed: "right" as const,
+      },
     ],
-    [],
+    [handleShowQrPayment],
   );
 
   const bookingHistory = useMemo(() => data?.data || [], [data?.data]);
@@ -231,6 +389,271 @@ const BookingHistoryPage = () => {
             <ProfilePage />
           </section>
         );
+      case "membership":
+        const currentMembership = user?.membership;
+        const availableMemberships = membershipsData?.data?.filter((m) => m.status === "Active") || [];
+
+        return (
+          <section>
+            <div className="mb-6">
+              <Title level={2}>
+                <CrownOutlined className="mr-2" />
+                Quản lý hội viên
+              </Title>
+              <Text type="secondary">Thông tin gói hội viên của bạn</Text>
+            </div>
+
+            {currentMembership ? (
+              <div className="current-membership-card-wrapper">
+                {(() => {
+                  // Determine level based on membership name or use default
+                  const membershipName = currentMembership.membershipName?.toLowerCase() || "";
+                  let level = 2; // Default to gold
+                  if (membershipName.includes("silver")) level = 1;
+                  else if (membershipName.includes("gold")) level = 2;
+                  else if (membershipName.includes("platinum")) level = 3;
+
+                  const getLogoPath = (level: number) => {
+                    switch (level) {
+                      case 1:
+                        return "/membership-logo/silver-1.png";
+                      case 2:
+                        return "/membership-logo/gold-1.png";
+                      case 3:
+                      case 4:
+                        return "/membership-logo/platinum-1.png";
+                      default:
+                        return "/membership-logo/gold-1.png";
+                    }
+                  };
+
+                  const isExpired = currentMembership.endDate && dayjs(currentMembership.endDate).isBefore(dayjs());
+                  const isActive = currentMembership.isActive && !isExpired;
+                  const isPaid = currentMembership.status === "Paid";
+
+                  return (
+                    <div className={`current-membership-card current-membership-card-level-${level}`}>
+                      <div className="current-membership-card-header">
+                        <div className="current-membership-card-status-badge">
+                          {isActive ? "Đang hoạt động" : isExpired ? "Đã hết hạn" : "Chưa kích hoạt"}
+                        </div>
+                        <Image
+                          src={getLogoPath(level)}
+                          alt={currentMembership.membershipName || "Membership logo"}
+                          width={100}
+                          height={100}
+                          className="current-membership-card-logo"
+                          unoptimized
+                        />
+                        <h3 className="current-membership-card-title">{currentMembership.membershipName || "N/A"}</h3>
+                        {isPaid && (
+                          <div className="current-membership-card-paid-badge">
+                            <CheckCircleOutlined /> Đã thanh toán
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="current-membership-card-body">
+                        <div className="current-membership-card-info-grid">
+                          {currentMembership.startDate && (
+                            <div className="current-membership-card-info-item">
+                              <CalendarOutlined className="current-membership-card-info-icon" />
+                              <div className="current-membership-card-info-content">
+                                <div className="current-membership-card-info-label">Ngày bắt đầu</div>
+                                <div className="current-membership-card-info-value">{dayjs(currentMembership.startDate).format("DD/MM/YYYY")}</div>
+                              </div>
+                            </div>
+                          )}
+                          {currentMembership.endDate && (
+                            <div className="current-membership-card-info-item">
+                              <CalendarOutlined className="current-membership-card-info-icon" />
+                              <div className="current-membership-card-info-content">
+                                <div className="current-membership-card-info-label">Ngày kết thúc</div>
+                                <div className="current-membership-card-info-value">{dayjs(currentMembership.endDate).format("DD/MM/YYYY")}</div>
+                              </div>
+                            </div>
+                          )}
+                          {currentMembership.startDate && currentMembership.endDate && (
+                            <div className="current-membership-card-info-item">
+                              <ClockCircleOutlined className="current-membership-card-info-icon" />
+                              <div className="current-membership-card-info-content">
+                                <div className="current-membership-card-info-label">Thời hạn còn lại</div>
+                                <div className="current-membership-card-info-value">
+                                  {isExpired ? (
+                                    <span style={{ color: "#ff4d4f" }}>Đã hết hạn</span>
+                                  ) : (
+                                    <span>{dayjs(currentMembership.endDate).diff(dayjs(), "day")} ngày</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          <div className="current-membership-card-info-item">
+                            <CrownOutlined className="current-membership-card-info-icon" />
+                            <div className="current-membership-card-info-content">
+                              <div className="current-membership-card-info-label">Trạng thái</div>
+                              <div className="current-membership-card-info-value">
+                                {isActive ? (
+                                  <span style={{ color: "#52c41a", fontWeight: 600 }}>Đang hoạt động</span>
+                                ) : isExpired ? (
+                                  <span style={{ color: "#ff4d4f", fontWeight: 600 }}>Đã hết hạn</span>
+                                ) : (
+                                  <span style={{ color: "#faad14", fontWeight: 600 }}>Chưa kích hoạt</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {isExpired && (
+                          <div className="current-membership-card-expired-alert">
+                            <Alert
+                              message="Gói hội viên đã hết hạn"
+                              description="Bạn có thể đăng ký gói hội viên mới bên dưới"
+                              type="warning"
+                              showIcon
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            ) : (
+              <Alert
+                message="Bạn chưa có gói hội viên"
+                description="Vui lòng chọn một gói hội viên bên dưới để đăng ký"
+                type="info"
+                showIcon
+                className="!mb-6"
+              />
+            )}
+
+            <div className="mb-6">
+              <Title level={3}>Danh sách gói hội viên</Title>
+              {loadingMemberships ? (
+                <div className="flex items-center justify-center py-12">
+                  <Spin size="large" />
+                </div>
+              ) : availableMemberships.length === 0 ? (
+                <Empty description="Không có gói hội viên nào khả dụng" />
+              ) : (
+                <div className="membership-cards-container">
+                  {availableMemberships.map((membership, index) => {
+                    // Determine level based on index (can be changed to price-based logic)
+                    const totalMemberships = availableMemberships.length;
+                    let level = 1;
+                    if (totalMemberships === 1) {
+                      level = 2;
+                    } else if (totalMemberships === 2) {
+                      level = index === 0 ? 1 : 3;
+                    } else if (totalMemberships === 3) {
+                      level = index === 0 ? 1 : index === 1 ? 2 : 3;
+                    } else {
+                      // 4+ memberships: distribute levels
+                      const levelMap = [1, 2, 3, 4];
+                      level = levelMap[Math.min(index, 3)];
+                    }
+
+                    const isPopular = index === Math.floor(totalMemberships / 2); // Middle card is popular
+                    const isDisabled = !!currentMembership && currentMembership.isActive && dayjs(currentMembership.endDate).isAfter(dayjs());
+
+                    // Map level to logo
+                    const getLogoPath = (level: number) => {
+                      switch (level) {
+                        case 1:
+                          return "/membership-logo/silver-1.png";
+                        case 2:
+                          return "/membership-logo/gold-1.png";
+                        case 3:
+                        case 4:
+                          return "/membership-logo/platinum-1.png";
+                        default:
+                          return "/membership-logo/gold-1.png";
+                      }
+                    };
+
+                    return (
+                      <div
+                        key={membership.id}
+                        className={`membership-card membership-card-level-${level} ${isPopular ? "membership-card-popular" : ""}`}
+                      >
+                        <div className="membership-card-header">
+                          <div className="membership-card-status">{membership.status === "Active" ? "Đang hoạt động" : membership.status}</div>
+                          <Image
+                            src={getLogoPath(level)}
+                            alt={membership.name || "Membership logo"}
+                            width={80}
+                            height={80}
+                            className="membership-card-logo"
+                            unoptimized
+                          />
+                          <h3 className="membership-card-title">{membership.name}</h3>
+                        </div>
+
+                        <div className="membership-card-body">
+                          {membership.description && <p className="membership-card-description">{membership.description}</p>}
+
+                          <div className="membership-card-price-section">
+                            <div className="membership-card-price-label">Giá gói</div>
+                            <div className="membership-card-price-value">
+                              {membership.price?.toLocaleString("vi-VN")}
+                              <span className="membership-card-price-currency">đ</span>
+                            </div>
+                          </div>
+
+                          <ul className="membership-card-features">
+                            <li className="membership-card-feature">
+                              <CheckCircleOutlined className="membership-card-feature-icon" />
+                              <span className="membership-card-feature-text">
+                                Thời hạn: <span className="membership-card-feature-value">{membership.durationDays} ngày</span>
+                              </span>
+                            </li>
+                            {membership.discountPercent && membership.discountPercent > 0 && (
+                              <li className="membership-card-feature">
+                                <CheckCircleOutlined className="membership-card-feature-icon" />
+                                <span className="membership-card-feature-text">
+                                  Giảm giá: <span className="membership-card-feature-value">{membership.discountPercent}%</span> khi đặt sân
+                                </span>
+                              </li>
+                            )}
+                            <li className="membership-card-feature">
+                              <CheckCircleOutlined className="membership-card-feature-icon" />
+                              <span className="membership-card-feature-text">Thanh toán bằng chuyển khoản</span>
+                            </li>
+                          </ul>
+
+                          {membership.discountPercent && membership.discountPercent > 0 && (
+                            <div className="membership-card-discount">🎉 Giảm {membership.discountPercent}% khi đặt sân</div>
+                          )}
+
+                          <button
+                            type="button"
+                            className="membership-card-action"
+                            onClick={() => handleRegisterMembership(membership)}
+                            disabled={isDisabled || createMembershipMutation.isPending}
+                          >
+                            {createMembershipMutation.isPending ? (
+                              <span>
+                                <Spin size="small" style={{ marginRight: 8 }} />
+                                Đang xử lý...
+                              </span>
+                            ) : isDisabled ? (
+                              "Đã có gói"
+                            ) : (
+                              "Đăng ký ngay"
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </section>
+        );
       default:
         return null;
     }
@@ -251,6 +674,29 @@ const BookingHistoryPage = () => {
       ) : (
         renderContent()
       )}
+
+      {/* QR Payment Drawer for Booking */}
+      <QrPaymentDrawer
+        bookingDetail={selectedBookingForQr ? convertToDetailBooking(selectedBookingForQr) : null}
+        open={openQrDrawer}
+        onClose={handleCloseQrDrawer}
+        title="Thanh toán chuyển khoản"
+        width={560}
+        hideCustomerButton={true}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
+
+      {/* QR Payment Drawer for Membership */}
+      <MembershipQrPaymentDrawer
+        detail={selectedMembershipPayment}
+        open={openMembershipQrDrawer}
+        onClose={handleCloseMembershipQrDrawer}
+        onPaymentSuccess={() => {
+          refreshUser();
+        }}
+        title="Thanh toán gói hội viên"
+        width={480}
+      />
     </div>
   );
 };

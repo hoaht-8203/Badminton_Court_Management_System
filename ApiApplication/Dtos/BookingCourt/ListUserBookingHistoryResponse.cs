@@ -25,4 +25,10 @@ public class ListUserBookingHistoryResponse
     public List<BookingCourtOccurrenceDto> BookingCourtOccurrences { get; set; } = [];
     public List<PaymentDto> Payments { get; set; } = [];
     public CustomerDto Customer { get; set; } = null!;
+
+    // Inline QR/payment info for quick checkout (when transfer method)
+    public decimal? PaymentAmount { get; set; }
+    public string? QrUrl { get; set; }
+    public int? HoldMinutes { get; set; }
+    public DateTime? ExpiresAtUtc { get; set; }
 }

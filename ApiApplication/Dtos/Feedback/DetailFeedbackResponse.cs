@@ -18,5 +18,3 @@ public class DetailFeedbackResponse
     public string Status { get; set; } = "Active";
     public DateTime CreatedAt { get; set; }
 }
-
-

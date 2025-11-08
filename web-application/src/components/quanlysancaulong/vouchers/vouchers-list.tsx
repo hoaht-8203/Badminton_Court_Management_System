@@ -1,8 +1,8 @@
 "use client";
 
 import { VoucherResponse } from "@/types-openapi/api";
-import { Table, TableProps, Tabs, Divider, Button, Space, Popconfirm, message, Descriptions, Card, Tag as AntTag, Empty } from "antd";
-import { EditOutlined, DeleteOutlined, ClockCircleOutlined, CalendarOutlined, UserOutlined } from "@ant-design/icons";
+import { CalendarOutlined, ClockCircleOutlined, DeleteOutlined, EditOutlined, UserOutlined } from "@ant-design/icons";
+import { Tag as AntTag, Button, Card, Descriptions, Divider, Empty, Popconfirm, Space, Table, Tabs, message } from "antd";
 import dayjs from "dayjs";
 import { createVouchersColumns } from "./vouchers-columns";
 

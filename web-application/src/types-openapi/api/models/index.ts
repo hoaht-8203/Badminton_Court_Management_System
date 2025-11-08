@@ -203,6 +203,7 @@ export * from './EmailTemplateRequest';
 export * from './EmailTemplateType';
 export * from './EndServiceRequest';
 export * from './ExtendPaymentRequest';
+export * from './ExtendVoucherRequest';
 export * from './Feedback';
 export * from './ForgotPasswordRequest';
 export * from './HeatmapCellDto';

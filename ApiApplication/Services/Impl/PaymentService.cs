@@ -49,8 +49,19 @@ public class PaymentService(
         var payment = _mapper.Map<Payment>(booking);
         payment.Status = PaymentStatus.PendingPayment;
 
+        // Persist voucher info if supplied by caller
+        payment.VoucherId = request.VoucherId;
+        payment.DiscountAmount = request.DiscountAmount ?? 0m;
+
         // Calculate base amount for the booking (full amount)
         var fullAmount = await CalculateBookingAmountAsync(booking);
+
+        // Apply discount if caller provided a DiscountAmount (booking-level voucher applied earlier)
+        var finalFullAmount = fullAmount;
+        if (request.DiscountAmount.HasValue)
+        {
+            finalFullAmount = Math.Max(0, fullAmount - request.DiscountAmount.Value);
+        }
 
         // Determine amount to charge now (deposit or full)
         var payInFull = request.PayInFull == true;
@@ -61,7 +72,10 @@ public class PaymentService(
             ? "Bank"
             : request.PaymentMethod;
 
-        payment.Amount = payInFull ? fullAmount : Math.Round(fullAmount * depositPercent, 2);
+        // Determine amount to charge now (deposit or full) after discount applied
+        payment.Amount = payInFull
+            ? finalFullAmount
+            : Math.Round(finalFullAmount * depositPercent, 2);
         payment.Id = await GenerateNextPaymentIdAsync();
 
         await _context.Payments.AddAsync(payment);
@@ -154,6 +168,9 @@ public class PaymentService(
             UserMembershipId = request.UserMembershipId,
             CustomerId = request.CustomerId,
             Amount = request.Amount,
+            // No voucher/discount for membership payments by default
+            VoucherId = null,
+            DiscountAmount = 0m,
             Status = string.Equals(
                 request.PaymentMethod,
                 "Cash",
@@ -322,6 +339,8 @@ public class PaymentService(
             OrderId = request.OrderId,
             CustomerId = request.CustomerId,
             Amount = request.Amount,
+            VoucherId = order.VoucherId,
+            DiscountAmount = order.DiscountAmount,
             Status = "PendingPayment", // Mặc định là PendingPayment
             Note = request.Note,
             PaymentCreatedAt = DateTime.UtcNow,

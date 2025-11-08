@@ -16,4 +16,7 @@ public class UserCreateBookingCourtRequest
 
     // Payment preferences
     public bool? PayInFull { get; set; } // default false -> pay deposit
+
+    // Optional voucher applied at booking time by user
+    public int? VoucherId { get; set; }
 }

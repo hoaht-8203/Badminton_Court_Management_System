@@ -132,12 +132,8 @@ public class VoucherService : IVoucherService
             throw new ApiException("Người dùng chưa đăng nhập", HttpStatusCode.Unauthorized);
         }
 
-        // Get customer associated with user
+        // Get customer associated with user (may be null for admin/receptionist accounts)
         var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
-        if (customer == null)
-        {
-            return new List<VoucherResponse>();
-        }
 
         // Get current time information (this will be different for each request)
         var now = DateTime.UtcNow;
@@ -158,11 +154,20 @@ public class VoucherService : IVoucherService
             )
             .ToListAsync();
 
+        // If there's no customer associated with the current user (e.g. admin/receptionist),
+        // return all active, non-expired vouchers so staff can apply them when creating bookings for customers.
+        if (customer == null)
+        {
+            return _mapper.Map<List<VoucherResponse>>(vouchers);
+        }
+
         // Step 2: Pre-load voucher usages for this specific customer to avoid N+1 queries
         // This is user-specific, so different users will have different usage counts
         var voucherIds = vouchers.Select(v => v.Id).ToList();
-        var userVoucherUsages = await _context.VoucherUsages
-            .Where(vu => vu.CustomerId == customer.Id && voucherIds.Contains(vu.VoucherId))
+        var userVoucherUsages = await _context
+            .VoucherUsages.Where(vu =>
+                vu.CustomerId == customer.Id && voucherIds.Contains(vu.VoucherId)
+            )
             .GroupBy(vu => vu.VoucherId)
             .Select(g => new { VoucherId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.VoucherId, x => x.Count);
@@ -321,9 +326,34 @@ public class VoucherService : IVoucherService
             };
         }
 
-        // Check date range
-        var now = DateTime.UtcNow;
-        if (voucher.StartAt > now || voucher.EndAt < now)
+        // Determine the reference time for validation. If booking context is provided in the request,
+        // use that; otherwise fall back to current UTC time.
+        var referenceDateTime = DateTime.UtcNow;
+        if (request.BookingDate.HasValue)
+        {
+            // Build a DateTime from BookingDate and optional start time if present
+            var bookingDate = request.BookingDate.Value.Date;
+            if (request.BookingStartTime.HasValue)
+            {
+                var st = request.BookingStartTime.Value;
+                referenceDateTime = new DateTime(
+                    bookingDate.Year,
+                    bookingDate.Month,
+                    bookingDate.Day,
+                    st.Hour,
+                    st.Minute,
+                    st.Second,
+                    DateTimeKind.Utc
+                );
+            }
+            else
+            {
+                referenceDateTime = bookingDate;
+            }
+        }
+
+        // Check date range against referenceDateTime
+        if (voucher.StartAt > referenceDateTime || voucher.EndAt < referenceDateTime)
         {
             return new ValidateVoucherResponse
             {
@@ -343,8 +373,9 @@ public class VoucherService : IVoucherService
         }
 
         // Check per-user usage limit
-        var userUsageCount = await _context.VoucherUsages
-            .CountAsync(vu => vu.VoucherId == voucher.Id && vu.CustomerId == customerId);
+        var userUsageCount = await _context.VoucherUsages.CountAsync(vu =>
+            vu.VoucherId == voucher.Id && vu.CustomerId == customerId
+        );
 
         if (voucher.UsageLimitPerUser > 0 && userUsageCount >= voucher.UsageLimitPerUser)
         {
@@ -356,7 +387,10 @@ public class VoucherService : IVoucherService
         }
 
         // Check minimum order value
-        if (voucher.MinOrderValue.HasValue && request.OrderTotalAmount < voucher.MinOrderValue.Value)
+        if (
+            voucher.MinOrderValue.HasValue
+            && request.OrderTotalAmount < voucher.MinOrderValue.Value
+        )
         {
             return new ValidateVoucherResponse
             {
@@ -366,10 +400,10 @@ public class VoucherService : IVoucherService
             };
         }
 
-        // Check time rules
-        var currentDate = DateOnly.FromDateTime(now);
-        var currentTime = TimeOnly.FromDateTime(now);
-        var currentDayOfWeek = now.DayOfWeek;
+        // Check time rules - use booking context if provided, otherwise current UTC
+        var currentDate = DateOnly.FromDateTime(referenceDateTime);
+        var currentTime = TimeOnly.FromDateTime(referenceDateTime);
+        var currentDayOfWeek = referenceDateTime.DayOfWeek;
 
         if (voucher.TimeRules != null && voucher.TimeRules.Any())
         {
@@ -487,7 +521,10 @@ public class VoucherService : IVoucherService
             discountAmount = request.OrderTotalAmount * voucher.DiscountPercentage.Value / 100;
 
             // Apply max discount if specified
-            if (voucher.MaxDiscountValue.HasValue && discountAmount > voucher.MaxDiscountValue.Value)
+            if (
+                voucher.MaxDiscountValue.HasValue
+                && discountAmount > voucher.MaxDiscountValue.Value
+            )
             {
                 discountAmount = voucher.MaxDiscountValue.Value;
             }

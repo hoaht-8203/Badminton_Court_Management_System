@@ -6,17 +6,17 @@ import { ApiResponse } from "@/types/api";
 
 export const dashboardKeys = {
   all: ["dashboard"] as const,
-  summary: () => [...dashboardKeys.all, "summary"] as const,
+  summary: (params?: { from?: Date; to?: Date; branchId?: number }) => [...dashboardKeys.all, "summary", params] as const,
   revenue: (params?: { from?: Date; to?: Date; granularity?: string; branchId?: number }) => [...dashboardKeys.all, "revenue", params] as const,
-  heatmap: () => [...dashboardKeys.all, "heatmap"] as const,
-  topCourts: () => [...dashboardKeys.all, "topCourts"] as const,
+  heatmap: (params?: { from?: Date; to?: Date; branchId?: number }) => [...dashboardKeys.all, "heatmap", params] as const,
+  topCourts: (params?: { from?: Date; to?: Date; limit?: number; branchId?: number }) => [...dashboardKeys.all, "topCourts", params] as const,
   // include params in key so queries refetch when params change
   recent: (params?: { limit?: number; from?: Date; to?: Date; branchId?: number }) => [...dashboardKeys.all, "recent", params] as const,
 };
 
 export const useDashboardSummary = (params?: { from?: Date; to?: Date; branchId?: number }) => {
   return useQuery<ApiResponse<DashboardSummaryResponse | null>, ApiError>({
-    queryKey: dashboardKeys.summary(),
+    queryKey: dashboardKeys.summary(params),
     queryFn: () => dashboardService.getSummary(params),
     enabled: true,
   });
@@ -32,7 +32,7 @@ export const useDashboardRevenue = (params?: { from?: Date; to?: Date; granulari
 
 export const useDashboardHeatmap = (params?: { from?: Date; to?: Date; branchId?: number }) => {
   return useQuery<ApiResponse<HeatmapCellDto[] | null>, ApiError>({
-    queryKey: dashboardKeys.heatmap(),
+    queryKey: dashboardKeys.heatmap(params),
     queryFn: () => dashboardService.getBookingsHeatmap(params),
     enabled: true,
   });
@@ -40,7 +40,7 @@ export const useDashboardHeatmap = (params?: { from?: Date; to?: Date; branchId?
 
 export const useDashboardTopCourts = (params?: { from?: Date; to?: Date; limit?: number; branchId?: number }) => {
   return useQuery<ApiResponse<TopCourtDto[] | null>, ApiError>({
-    queryKey: dashboardKeys.topCourts(),
+    queryKey: dashboardKeys.topCourts(params),
     queryFn: () => dashboardService.getTopCourts(params),
     enabled: true,
   });

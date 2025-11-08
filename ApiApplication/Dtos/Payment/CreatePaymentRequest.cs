@@ -10,4 +10,8 @@ public class CreatePaymentRequest
     public bool? PayInFull { get; set; }
     public decimal? DepositPercent { get; set; }
     public string? PaymentMethod { get; set; } // "Bank" | "Cash"
+
+    // Optional voucher/discount info supplied by callers that already validated voucher
+    public int? VoucherId { get; set; }
+    public decimal? DiscountAmount { get; set; }
 }

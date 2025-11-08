@@ -22,8 +22,7 @@ const SearchVoucher = ({ onSearch, onReset }: SearchVoucherProps) => {
       code: values.code || undefined,
       title: values.title || undefined,
       discountType: values.discountType || undefined,
-      isActive:
-        values.isActive === "" ? undefined : values.isActive === "active" ? true : values.isActive === "inactive" ? false : undefined,
+      isActive: values.isActive === "" ? undefined : values.isActive === "active" ? true : values.isActive === "inactive" ? false : undefined,
       startAtFrom: from ? dayjs(from).toDate() : undefined,
       startAtTo: to ? dayjs(to).toDate() : undefined,
     });

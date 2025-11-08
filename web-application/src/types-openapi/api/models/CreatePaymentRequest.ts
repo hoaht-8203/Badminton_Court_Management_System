@@ -55,6 +55,18 @@ export interface CreatePaymentRequest {
      * @memberof CreatePaymentRequest
      */
     paymentMethod?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreatePaymentRequest
+     */
+    voucherId?: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreatePaymentRequest
+     */
+    discountAmount?: number | null;
 }
 
 /**
@@ -81,6 +93,8 @@ export function CreatePaymentRequestFromJSONTyped(json: any, ignoreDiscriminator
         'payInFull': json['payInFull'] == null ? undefined : json['payInFull'],
         'depositPercent': json['depositPercent'] == null ? undefined : json['depositPercent'],
         'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
+        'voucherId': json['voucherId'] == null ? undefined : json['voucherId'],
+        'discountAmount': json['discountAmount'] == null ? undefined : json['discountAmount'],
     };
 }
 
@@ -101,6 +115,8 @@ export function CreatePaymentRequestToJSONTyped(value?: CreatePaymentRequest | n
         'payInFull': value['payInFull'],
         'depositPercent': value['depositPercent'],
         'paymentMethod': value['paymentMethod'],
+        'voucherId': value['voucherId'],
+        'discountAmount': value['discountAmount'],
     };
 }
 

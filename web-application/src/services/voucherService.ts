@@ -1,5 +1,14 @@
 import { axiosInstance } from "@/lib/axios";
-import { CreateVoucherRequest, DeleteVoucherRequest, DetailVoucherRequest, UpdateVoucherRequest, VoucherResponse } from "@/types-openapi/api";
+import {
+  CreateVoucherRequest,
+  DeleteVoucherRequest,
+  DetailVoucherRequest,
+  UpdateVoucherRequest,
+  VoucherResponse,
+  ValidateVoucherRequest,
+  ValidateVoucherResponseApiResponse,
+  ValidateVoucherResponse,
+} from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 
 export const voucherService = {
@@ -35,5 +44,22 @@ export const voucherService = {
   async getAvailable(): Promise<ApiResponse<VoucherResponse[]>> {
     const res = await axiosInstance.get<ApiResponse<VoucherResponse[]>>("/api/vouchers/available");
     return res.data;
+  },
+
+  /**
+   * Validate a voucher against a booking context (date/time).
+   * Expected backend endpoint: POST /api/Vouchers/validate
+   */
+  async validate(payload: ValidateVoucherRequest): Promise<ApiResponse<ValidateVoucherResponse | null>> {
+    const res = await axiosInstance.post<ApiResponse<ValidateVoucherResponseApiResponse>>("/api/Vouchers/validate", payload);
+    // The generated API wraps the ValidateVoucherResponse in a ApiResponse-like wrapper (ValidateVoucherResponseApiResponse).
+    // Normalize to our ApiResponse<T> shape for consistency with other service methods.
+    const apiData = res.data;
+    return {
+      success: apiData.success,
+      message: apiData.message,
+      data: apiData.data?.data ?? null,
+      errors: apiData.errors ?? null,
+    } as ApiResponse<ValidateVoucherResponse | null>;
   },
 };

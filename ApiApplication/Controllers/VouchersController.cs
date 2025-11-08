@@ -1,8 +1,8 @@
+using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Voucher;
 using ApiApplication.Services;
 using ApiApplication.Sessions;
-using ApiApplication.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,7 +28,9 @@ public class VouchersController(
     }
 
     [HttpGet("detail")]
-    public async Task<ApiResponse<VoucherResponse?>> Detail([FromQuery] DetailVoucherRequest request)
+    public async Task<ApiResponse<VoucherResponse?>> Detail(
+        [FromQuery] DetailVoucherRequest request
+    )
     {
         var data = await _voucherService.DetailAsync(request.Id);
         return ApiResponse<VoucherResponse?>.SuccessResponse(data);
@@ -67,27 +69,49 @@ public class VouchersController(
         [FromBody] ValidateVoucherRequest request
     )
     {
-        // Get current user's customer ID
-        var userId = _currentUser.UserId;
-        if (userId == null)
+        // Determine which customer to validate for. Prefer explicit CustomerId in request (used by staff),
+        // otherwise resolve by current user.
+        int? customerIdFromRequest = request.CustomerId;
+
+        int resolvedCustomerId;
+
+        if (customerIdFromRequest.HasValue)
         {
-            return ApiResponse<ValidateVoucherResponse>.ErrorResponse("Người dùng chưa đăng nhập");
+            resolvedCustomerId = customerIdFromRequest.Value;
+            var customerExists = await _context.Customers.AnyAsync(c => c.Id == resolvedCustomerId);
+            if (!customerExists)
+            {
+                return ApiResponse<ValidateVoucherResponse>.ErrorResponse("Không tìm thấy thông tin khách hàng");
+            }
+        }
+        else
+        {
+            var userId = _currentUser.UserId;
+            if (userId == null)
+            {
+                return ApiResponse<ValidateVoucherResponse>.ErrorResponse("Người dùng chưa đăng nhập");
+            }
+
+            var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
+            if (customer == null)
+            {
+                return ApiResponse<ValidateVoucherResponse>.ErrorResponse(
+                    "Không tìm thấy thông tin khách hàng"
+                );
+            }
+
+            resolvedCustomerId = customer.Id;
         }
 
-        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
-        if (customer == null)
-        {
-            return ApiResponse<ValidateVoucherResponse>.ErrorResponse("Không tìm thấy thông tin khách hàng");
-        }
+        var result = await _voucherService.ValidateAndCalculateDiscountAsync(request, resolvedCustomerId);
 
-        var result = await _voucherService.ValidateAndCalculateDiscountAsync(request, customer.Id);
-        
         if (!result.IsValid)
         {
-            return ApiResponse<ValidateVoucherResponse>.ErrorResponse(result.ErrorMessage ?? "Voucher không hợp lệ");
+            return ApiResponse<ValidateVoucherResponse>.ErrorResponse(
+                result.ErrorMessage ?? "Voucher không hợp lệ"
+            );
         }
 
         return ApiResponse<ValidateVoucherResponse>.SuccessResponse(result);
     }
 }
-

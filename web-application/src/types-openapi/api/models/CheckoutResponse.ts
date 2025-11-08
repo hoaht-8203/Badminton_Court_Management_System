@@ -120,6 +120,18 @@ export interface CheckoutResponse {
      * @type {number}
      * @memberof CheckoutResponse
      */
+    voucherId?: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof CheckoutResponse
+     */
+    discountAmount?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof CheckoutResponse
+     */
     totalAmount?: number;
     /**
      * 
@@ -198,6 +210,8 @@ export function CheckoutResponseFromJSONTyped(json: any, ignoreDiscriminator: bo
         'lateFeeAmount': json['lateFeeAmount'] == null ? undefined : json['lateFeeAmount'],
         'overdueMinutes': json['overdueMinutes'] == null ? undefined : json['overdueMinutes'],
         'overdueDisplay': json['overdueDisplay'] == null ? undefined : json['overdueDisplay'],
+        'voucherId': json['voucherId'] == null ? undefined : json['voucherId'],
+        'discountAmount': json['discountAmount'] == null ? undefined : json['discountAmount'],
         'totalAmount': json['totalAmount'] == null ? undefined : json['totalAmount'],
         'paymentId': json['paymentId'] == null ? undefined : json['paymentId'],
         'paymentAmount': json['paymentAmount'] == null ? undefined : json['paymentAmount'],
@@ -236,6 +250,8 @@ export function CheckoutResponseToJSONTyped(value?: CheckoutResponse | null, ign
         'lateFeeAmount': value['lateFeeAmount'],
         'overdueMinutes': value['overdueMinutes'],
         'overdueDisplay': value['overdueDisplay'],
+        'voucherId': value['voucherId'],
+        'discountAmount': value['discountAmount'],
         'totalAmount': value['totalAmount'],
         'paymentId': value['paymentId'],
         'paymentAmount': value['paymentAmount'],

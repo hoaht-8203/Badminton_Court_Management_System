@@ -24,6 +24,7 @@ public class BookingCourtService(
     IConfiguration configuration,
     IHubContext<BookingHub> hub,
     INotificationService notificationService,
+    IVoucherService voucherService,
     IHttpContextAccessor httpContextAccessor,
     UserManager<ApplicationUser> userManager
 ) : IBookingCourtService
@@ -34,6 +35,7 @@ public class BookingCourtService(
     private readonly IConfiguration _configuration = configuration;
     private readonly IHubContext<BookingHub> _hub = hub;
     private readonly INotificationService _notificationService = notificationService;
+    private readonly IVoucherService _voucherService = voucherService;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
 
@@ -241,7 +243,50 @@ public class BookingCourtService(
             ? "Bank"
             : request.PaymentMethod;
 
-        await _paymentService.CreatePaymentAsync(
+        // Create BookingCourtOccurrence records for each occurrence first so we can compute full booking amount
+        await CreateBookingCourtOccurrencesAsync(entity, paymentMethod);
+
+        // Calculate total amount for all occurrences (subtotal before discount)
+        var occurrences = await _context
+            .BookingCourtOccurrences.Where(o => o.BookingCourtId == entity.Id)
+            .ToListAsync();
+        decimal totalAmount = 0m;
+        foreach (var occ in occurrences)
+        {
+            totalAmount += await CalculateBookingAmountForOccurrenceAsync(occ);
+        }
+
+        // Validate voucher if provided (use booking date/time as context)
+        decimal discountAmount = 0m;
+        int? voucherId = null;
+        if (request.VoucherId.HasValue)
+        {
+            var validateResult = await _voucherService.ValidateAndCalculateDiscountAsync(
+                new Dtos.Voucher.ValidateVoucherRequest
+                {
+                    VoucherId = request.VoucherId.Value,
+                    OrderTotalAmount = totalAmount,
+                    BookingDate = entity.StartDate.ToDateTime(entity.StartTime),
+                    BookingStartTime = entity.StartTime,
+                    BookingEndTime = entity.EndTime,
+                },
+                entity.CustomerId
+            );
+
+            if (!validateResult.IsValid)
+            {
+                throw new ApiException(
+                    validateResult.ErrorMessage ?? "Voucher không hợp lệ",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            discountAmount = validateResult.DiscountAmount;
+            voucherId = request.VoucherId;
+        }
+
+        // Create Payment for booking, passing discount info so payment amount is calculated after discount
+        var createdPayment = await _paymentService.CreatePaymentAsync(
             new CreatePaymentRequest
             {
                 BookingId = entity.Id,
@@ -249,11 +294,27 @@ public class BookingCourtService(
                 PayInFull = payInFull,
                 DepositPercent = depositPercent,
                 PaymentMethod = paymentMethod,
+                VoucherId = voucherId,
+                DiscountAmount = discountAmount,
             }
         );
 
-        // Create BookingCourtOccurrence records for each occurrence
-        await CreateBookingCourtOccurrencesAsync(entity, paymentMethod);
+        // If voucher applied and payment is already paid (cash) or marked paid, record usage
+        if (
+            voucherId.HasValue
+            && (
+                string.Equals(createdPayment.Status, "Paid", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(paymentMethod, "Cash", StringComparison.OrdinalIgnoreCase)
+            )
+        )
+        {
+            await _voucherService.RecordVoucherUsageAsync(
+                voucherId.Value,
+                entity.CustomerId,
+                Guid.Empty,
+                discountAmount
+            );
+        }
 
         // Broadcast booking created (pending payment) event
         await _hub.Clients.All.SendAsync(
@@ -506,7 +567,50 @@ public class BookingCourtService(
         var depositPercent = 0.3m;
         var paymentMethod = "Bank";
 
-        await _paymentService.CreatePaymentAsync(
+        // Create BookingCourtOccurrence records for each occurrence first so we can compute full booking amount
+        await CreateBookingCourtOccurrencesAsync(entity, paymentMethod);
+
+        // Calculate total amount for all occurrences (subtotal before discount)
+        var occurrences = await _context
+            .BookingCourtOccurrences.Where(o => o.BookingCourtId == entity.Id)
+            .ToListAsync();
+        decimal totalAmount = 0m;
+        foreach (var occ in occurrences)
+        {
+            totalAmount += await CalculateBookingAmountForOccurrenceAsync(occ);
+        }
+
+        // Validate voucher if provided (use booking date/time as context)
+        decimal discountAmount = 0m;
+        int? voucherId = null;
+        if (request.VoucherId.HasValue)
+        {
+            var validateResult = await _voucherService.ValidateAndCalculateDiscountAsync(
+                new Dtos.Voucher.ValidateVoucherRequest
+                {
+                    VoucherId = request.VoucherId.Value,
+                    OrderTotalAmount = totalAmount,
+                    BookingDate = entity.StartDate.ToDateTime(entity.StartTime),
+                    BookingStartTime = entity.StartTime,
+                    BookingEndTime = entity.EndTime,
+                },
+                entity.CustomerId
+            );
+
+            if (!validateResult.IsValid)
+            {
+                throw new ApiException(
+                    validateResult.ErrorMessage ?? "Voucher không hợp lệ",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            discountAmount = validateResult.DiscountAmount;
+            voucherId = request.VoucherId;
+        }
+
+        // Create Payment for booking, passing discount info so payment amount is calculated after discount
+        var createdPayment = await _paymentService.CreatePaymentAsync(
             new CreatePaymentRequest
             {
                 BookingId = entity.Id,
@@ -514,11 +618,27 @@ public class BookingCourtService(
                 PayInFull = payInFull,
                 DepositPercent = depositPercent,
                 PaymentMethod = paymentMethod,
+                VoucherId = voucherId,
+                DiscountAmount = discountAmount,
             }
         );
 
-        // Create BookingCourtOccurrence records for each occurrence
-        await CreateBookingCourtOccurrencesAsync(entity, paymentMethod);
+        // If voucher applied and payment is already paid (cash) or marked paid, record usage
+        if (
+            voucherId.HasValue
+            && (
+                string.Equals(createdPayment.Status, "Paid", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(paymentMethod, "Cash", StringComparison.OrdinalIgnoreCase)
+            )
+        )
+        {
+            await _voucherService.RecordVoucherUsageAsync(
+                voucherId.Value,
+                entity.CustomerId,
+                Guid.Empty,
+                discountAmount
+            );
+        }
 
         // Broadcast booking created (pending payment) event
         await _hub.Clients.All.SendAsync(

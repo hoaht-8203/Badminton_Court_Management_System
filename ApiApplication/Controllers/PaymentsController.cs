@@ -25,7 +25,8 @@ public class PaymentWebhooksController(
     IHubContext<BookingHub> hubContext,
     IEmailService emailService,
     ILogger<PaymentWebhooksController> logger,
-    ICashflowService cashflowService
+    ICashflowService cashflowService,
+    IVoucherService voucherService
 ) : ControllerBase
 {
     private readonly ApplicationDbContext _context = context;
@@ -34,6 +35,7 @@ public class PaymentWebhooksController(
     private readonly IEmailService _emailService = emailService;
     private readonly ILogger<PaymentWebhooksController> _logger = logger;
     private readonly ICashflowService _cashflowService = cashflowService;
+    private readonly IVoucherService _voucherService = voucherService;
 
     public class SePayWebhookRequest
     {
@@ -163,6 +165,28 @@ public class PaymentWebhooksController(
             }
 
             await _context.SaveChangesAsync();
+
+            // If this payment had a voucher attached at creation time, record its usage now that payment is confirmed
+            if (payment.VoucherId.HasValue)
+            {
+                try
+                {
+                    await _voucherService.RecordVoucherUsageAsync(
+                        payment.VoucherId.Value,
+                        payment.CustomerId,
+                        payment.OrderId ?? Guid.Empty,
+                        payment.DiscountAmount
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Failed to record voucher usage for payment {PaymentId}",
+                        payment.Id
+                    );
+                }
+            }
 
             // Create cashflow receipt for this successful payment
             try

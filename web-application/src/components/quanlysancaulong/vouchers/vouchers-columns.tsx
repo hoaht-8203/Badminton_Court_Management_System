@@ -110,9 +110,10 @@ export const createVouchersColumns = ({ onEdit, onDelete, onExtend }: VouchersCo
     render: (_, record) => (
       <div>
         <div>
-          Tổng: {record.usageLimitTotal === 0 ? "Không giới hạn" : record.usageLimitTotal ? `${record.usedCount ?? 0}/${record.usageLimitTotal}` : "-"}
+          Tổng:{" "}
+          {record.usageLimitTotal === 0 ? "Không giới hạn" : record.usageLimitTotal ? `${record.usedCount ?? 0}/${record.usageLimitTotal}` : "-"}
         </div>
-        <div>Mỗi user: {record.usageLimitPerUser === 0 ? "Không giới hạn" : record.usageLimitPerUser ?? "-"}</div>
+        <div>Mỗi user: {record.usageLimitPerUser === 0 ? "Không giới hạn" : (record.usageLimitPerUser ?? "-")}</div>
       </div>
     ),
   },

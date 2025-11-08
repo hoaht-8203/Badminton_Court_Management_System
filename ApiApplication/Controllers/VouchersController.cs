@@ -52,6 +52,13 @@ public class VouchersController(
         return ApiResponse<object?>.SuccessResponse(null, "Cập nhật voucher thành công");
     }
 
+    [HttpPatch("extend/{id}")]
+    public async Task<ApiResponse<object?>> Extend(int id, [FromBody] ExtendVoucherRequest request)
+    {
+        await _voucherService.ExtendAsync(id, request);
+        return ApiResponse<object?>.SuccessResponse(null, "Gia hạn voucher thành công");
+    }
+
     [HttpDelete("delete")]
     public async Task<ApiResponse<object?>> Delete([FromQuery] DeleteVoucherRequest request)
     {

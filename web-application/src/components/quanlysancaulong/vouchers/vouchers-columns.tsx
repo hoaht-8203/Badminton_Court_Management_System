@@ -1,17 +1,10 @@
 "use client";
 
 import { VoucherResponse } from "@/types-openapi/api";
-import { TableProps, Tag, Button, Space, Popconfirm } from "antd";
-import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { TableProps, Tag } from "antd";
 import dayjs from "dayjs";
 
-interface VouchersColumnsProps {
-  onEdit: (voucher: VoucherResponse) => void;
-  onDelete: (id: number) => void;
-  onExtend: (voucher: VoucherResponse) => void;
-}
-
-export const createVouchersColumns = ({ onEdit, onDelete, onExtend }: VouchersColumnsProps): TableProps<VoucherResponse>["columns"] => [
+export const createVouchersColumns = (): TableProps<VoucherResponse>["columns"] => [
   {
     title: "Mã voucher",
     dataIndex: "code",
@@ -69,41 +62,6 @@ export const createVouchersColumns = ({ onEdit, onDelete, onExtend }: VouchersCo
     render: (value) => (value ? dayjs(value).format("DD/MM/YYYY HH:mm") : "-"),
   },
   {
-    title: "Quy tắc thời gian",
-    key: "timeRules",
-    width: 300,
-    render: (_, record) => {
-      const rules = record.timeRules ?? [];
-      if (!rules.length) return "-";
-      const formatDay = (d: any) => {
-        if (d === 0) return "Chủ nhật";
-        if (d === 1) return "Thứ 2";
-        if (d === 2) return "Thứ 3";
-        if (d === 3) return "Thứ 4";
-        if (d === 4) return "Thứ 5";
-        if (d === 5) return "Thứ 6";
-        if (d === 6) return "Thứ 7";
-        return String(d);
-      };
-
-      return (
-        <div>
-          {rules.map((r, idx) => (
-            <div key={idx} style={{ marginBottom: 6 }}>
-              {r.dayOfWeek != null ? <div>{formatDay(r.dayOfWeek)}</div> : null}
-              {r.specificDate ? <div>Ngày: {dayjs(r.specificDate).format("DD/MM/YYYY")}</div> : null}
-              {(r.startTime || r.endTime) && (
-                <div>
-                  Giờ: {r.startTime ?? "-"} - {r.endTime ?? "-"}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      );
-    },
-  },
-  {
     title: "Giới hạn",
     key: "limits",
     width: 150,
@@ -123,32 +81,5 @@ export const createVouchersColumns = ({ onEdit, onDelete, onExtend }: VouchersCo
     key: "isActive",
     width: 120,
     render: (isActive) => <Tag color={isActive ? "green" : "red"}>{isActive ? "Hoạt động" : "Không hoạt động"}</Tag>,
-  },
-  {
-    title: "Thao tác",
-    key: "actions",
-    width: 120,
-    fixed: "right",
-    render: (_, record) => (
-      <Space>
-        <Button type="link" onClick={() => onExtend(record)}>
-          Gia hạn
-        </Button>
-        <Button type="link" icon={<EditOutlined />} onClick={() => onEdit(record)}>
-          Sửa
-        </Button>
-        <Popconfirm
-          title="Xóa voucher"
-          description="Bạn có chắc chắn muốn xóa voucher này?"
-          onConfirm={() => onDelete(record.id ?? 0)}
-          okText="Xóa"
-          cancelText="Hủy"
-        >
-          <Button type="link" danger icon={<DeleteOutlined />}>
-            Xóa
-          </Button>
-        </Popconfirm>
-      </Space>
-    ),
   },
 ];

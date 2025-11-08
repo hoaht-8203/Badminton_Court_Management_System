@@ -71,6 +71,18 @@ export const useUpdateVoucher = () => {
   });
 };
 
+// Extend Voucher Mutation (partial update for extension)
+export const useExtendVoucher = () => {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<null>, ApiError, { id: number; data: { endAt?: Date; usageLimitTotal?: number; usageLimitPerUser?: number } }>({
+    mutationFn: ({ id, data }) => voucherService.extend(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: voucherKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: voucherKeys.detail({ id: variables.id }) });
+    },
+  });
+};
+
 // Delete Voucher Mutation
 export const useDeleteVoucher = () => {
   const queryClient = useQueryClient();

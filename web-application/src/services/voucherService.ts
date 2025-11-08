@@ -34,6 +34,11 @@ export const voucherService = {
     return res.data;
   },
 
+  async extend(id: number, payload: { endAt?: Date; usageLimitTotal?: number; usageLimitPerUser?: number }): Promise<ApiResponse<null>> {
+    const res = await axiosInstance.patch<ApiResponse<null>>(`/api/vouchers/extend/${id}`, payload);
+    return res.data;
+  },
+
   async delete(payload: DeleteVoucherRequest): Promise<ApiResponse<null>> {
     const res = await axiosInstance.delete<ApiResponse<null>>("/api/vouchers/delete", {
       params: payload,

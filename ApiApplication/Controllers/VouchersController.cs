@@ -1,6 +1,8 @@
 using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Voucher;
+using ApiApplication.Entities;
+using ApiApplication.Entities.Shared;
 using ApiApplication.Services;
 using ApiApplication.Sessions;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +22,8 @@ public class VouchersController(
     private readonly ICurrentUser _currentUser = currentUser;
     private readonly ApplicationDbContext _context = context;
 
+    #region CRUD Operations
+
     [HttpGet("list")]
     public async Task<ApiResponse<VoucherResponse[]>> List()
     {
@@ -28,9 +32,7 @@ public class VouchersController(
     }
 
     [HttpGet("detail")]
-    public async Task<ApiResponse<VoucherResponse?>> Detail(
-        [FromQuery] DetailVoucherRequest request
-    )
+    public async Task<ApiResponse<VoucherResponse?>> Detail([FromQuery] DetailVoucherRequest request)
     {
         var data = await _voucherService.DetailAsync(request.Id);
         return ApiResponse<VoucherResponse?>.SuccessResponse(data);
@@ -57,6 +59,10 @@ public class VouchersController(
         return ApiResponse<object?>.SuccessResponse(null, "Xóa voucher thành công");
     }
 
+    #endregion
+
+    #region Business Operations
+
     [HttpGet("available")]
     public async Task<ApiResponse<VoucherResponse[]>> GetAvailableVouchers()
     {
@@ -69,41 +75,18 @@ public class VouchersController(
         [FromBody] ValidateVoucherRequest request
     )
     {
-        // Determine which customer to validate for. Prefer explicit CustomerId in request (used by staff),
-        // otherwise resolve by current user.
-        int? customerIdFromRequest = request.CustomerId;
-
-        int resolvedCustomerId;
-
-        if (customerIdFromRequest.HasValue)
+        // Resolve customer ID: prefer explicit CustomerId (used by staff), otherwise resolve by current user
+        var customerIdResult = await ResolveCustomerIdAsync(request.CustomerId);
+        if (!customerIdResult.Success)
         {
-            resolvedCustomerId = customerIdFromRequest.Value;
-            var customerExists = await _context.Customers.AnyAsync(c => c.Id == resolvedCustomerId);
-            if (!customerExists)
-            {
-                return ApiResponse<ValidateVoucherResponse>.ErrorResponse("Không tìm thấy thông tin khách hàng");
-            }
-        }
-        else
-        {
-            var userId = _currentUser.UserId;
-            if (userId == null)
-            {
-                return ApiResponse<ValidateVoucherResponse>.ErrorResponse("Người dùng chưa đăng nhập");
-            }
-
-            var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
-            if (customer == null)
-            {
-                return ApiResponse<ValidateVoucherResponse>.ErrorResponse(
-                    "Không tìm thấy thông tin khách hàng"
-                );
-            }
-
-            resolvedCustomerId = customer.Id;
+            return ApiResponse<ValidateVoucherResponse>.ErrorResponse(customerIdResult.ErrorMessage!);
         }
 
-        var result = await _voucherService.ValidateAndCalculateDiscountAsync(request, resolvedCustomerId);
+        // Validate voucher with resolved customer ID
+        var result = await _voucherService.ValidateAndCalculateDiscountAsync(
+            request,
+            customerIdResult.CustomerId
+        );
 
         if (!result.IsValid)
         {
@@ -114,4 +97,82 @@ public class VouchersController(
 
         return ApiResponse<ValidateVoucherResponse>.SuccessResponse(result);
     }
+
+    #endregion
+
+    #region Private Helper Methods
+
+    /// <summary>
+    /// Resolves customer ID from request or current user.
+    /// Auto-creates customer if it doesn't exist for current user.
+    /// </summary>
+    private async Task<(bool Success, int CustomerId, string? ErrorMessage)> ResolveCustomerIdAsync(
+        int? customerIdFromRequest
+    )
+    {
+        // If customer ID is explicitly provided (staff flow), validate it exists
+        if (customerIdFromRequest.HasValue)
+        {
+            var customerExists = await _context.Customers.AnyAsync(
+                c => c.Id == customerIdFromRequest.Value
+            );
+            if (!customerExists)
+            {
+                return (false, 0, "Không tìm thấy thông tin khách hàng");
+            }
+
+            return (true, customerIdFromRequest.Value, null);
+        }
+
+        // Otherwise, resolve by current user
+        var userId = _currentUser.UserId;
+        if (userId == null)
+        {
+            return (false, 0, "Người dùng chưa đăng nhập");
+        }
+
+        var user = await _context
+            .Users.Include(u => u.Customer)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            return (false, 0, "Người dùng không tồn tại");
+        }
+
+        // Auto-create customer if it doesn't exist (similar to BookingCourtService)
+        if (user.Customer == null)
+        {
+            await EnsureCustomerExistsForUserAsync(user);
+        }
+
+        return (true, user.Customer!.Id, null);
+    }
+
+    /// <summary>
+    /// Creates a customer record for the given user if it doesn't exist.
+    /// </summary>
+    private async Task EnsureCustomerExistsForUserAsync(ApplicationUser user)
+    {
+        if (user.Customer != null)
+        {
+            return;
+        }
+
+        var customer = new Customer
+        {
+            FullName = user.FullName,
+            PhoneNumber = user.PhoneNumber ?? "",
+            Email = user.Email ?? "",
+            Status = CustomerStatus.Active,
+            UserId = user.Id,
+        };
+
+        await _context.Customers.AddAsync(customer);
+        user.Customer = customer;
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+    }
+
+    #endregion
 }

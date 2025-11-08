@@ -2,6 +2,7 @@ using System.Net;
 using ApiApplication.Data;
 using ApiApplication.Dtos.Voucher;
 using ApiApplication.Entities;
+using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
 using ApiApplication.Sessions;
 using AutoMapper;
@@ -132,8 +133,30 @@ public class VoucherService : IVoucherService
             throw new ApiException("Người dùng chưa đăng nhập", HttpStatusCode.Unauthorized);
         }
 
-        // Get customer associated with user (may be null for admin/receptionist accounts)
-        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
+        // Get user with customer navigation property
+        var user = await _context
+            .Users.Include(u => u.Customer)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+        {
+            throw new ApiException("Người dùng không tồn tại", HttpStatusCode.Unauthorized);
+        }
+
+        // Auto-create customer if it doesn't exist (consistent with ValidateVoucher flow)
+        // This ensures that available vouchers are filtered correctly based on customer-specific rules
+        if (user.Customer == null)
+        {
+            await EnsureCustomerExistsForUserAsync(user);
+            // After SaveChangesAsync, the user.Customer should be set, but reload to be safe
+            await _context.Entry(user).Reference(u => u.Customer).LoadAsync();
+        }
+
+        var customer = user.Customer;
+
+        // Note: After auto-creation, customer should never be null for regular users.
+        // However, admin/receptionist accounts may still not have customers,
+        // so we handle that case below.
 
         // Get current time information (this will be different for each request)
         var now = DateTime.UtcNow;
@@ -154,7 +177,7 @@ public class VoucherService : IVoucherService
             )
             .ToListAsync();
 
-        // If there's no customer associated with the current user (e.g. admin/receptionist),
+        // If there's still no customer (e.g. admin/receptionist accounts that shouldn't have customers),
         // return all active, non-expired vouchers so staff can apply them when creating bookings for customers.
         if (customer == null)
         {
@@ -294,6 +317,32 @@ public class VoucherService : IVoucherService
         }
 
         return _mapper.Map<List<VoucherResponse>>(availableVouchers);
+    }
+
+    /// <summary>
+    /// Creates a customer record for the given user if it doesn't exist.
+    /// This ensures consistency across voucher operations (available, validate, booking).
+    /// </summary>
+    private async Task EnsureCustomerExistsForUserAsync(ApplicationUser user)
+    {
+        if (user.Customer != null)
+        {
+            return;
+        }
+
+        var customer = new Customer
+        {
+            FullName = user.FullName,
+            PhoneNumber = user.PhoneNumber ?? "",
+            Email = user.Email ?? "",
+            Status = CustomerStatus.Active,
+            UserId = user.Id,
+        };
+
+        await _context.Customers.AddAsync(customer);
+        user.Customer = customer;
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
     }
 
     public async Task<ValidateVoucherResponse> ValidateAndCalculateDiscountAsync(

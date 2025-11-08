@@ -55,10 +55,12 @@ export const voucherService = {
     // The generated API wraps the ValidateVoucherResponse in a ApiResponse-like wrapper (ValidateVoucherResponseApiResponse).
     // Normalize to our ApiResponse<T> shape for consistency with other service methods.
     const apiData = res.data;
+    // The backend returns ApiResponse where `data` is the ValidateVoucherResponse object.
+    // Earlier code expected an extra nesting (data.data) — normalize correctly to ApiResponse<T>.
     return {
       success: apiData.success,
       message: apiData.message,
-      data: apiData.data?.data ?? null,
+      data: apiData.data ?? null,
       errors: apiData.errors ?? null,
     } as ApiResponse<ValidateVoucherResponse | null>;
   },

@@ -39,11 +39,40 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
       return;
     }
 
-    const payload: UpdateVoucherRequest = {
-      endAt: values.endAt ? dayjs(values.endAt).toDate() : undefined,
-      usageLimitTotal: values.usageLimitTotal,
-      usageLimitPerUser: values.usageLimitPerUser,
-    } as UpdateVoucherRequest;
+    // Build a minimal payload containing only fields that changed compared to the loaded voucher detail
+    const payload: UpdateVoucherRequest = {} as UpdateVoucherRequest;
+    const v = detailResp?.data as VoucherResponse | undefined;
+
+    // endAt (compare timestamps)
+    if (values.endAt) {
+      const newEnd = dayjs(values.endAt).toDate();
+      const oldEnd = v?.endAt ? new Date(v.endAt) : undefined;
+      if (!oldEnd || newEnd.getTime() !== oldEnd.getTime()) {
+        payload.endAt = newEnd;
+      }
+    }
+
+    // usageLimitTotal
+    if (values.usageLimitTotal !== undefined) {
+      const oldUsageTotal = v?.usageLimitTotal;
+      if (oldUsageTotal !== values.usageLimitTotal) {
+        payload.usageLimitTotal = values.usageLimitTotal;
+      }
+    }
+
+    // usageLimitPerUser
+    if (values.usageLimitPerUser !== undefined) {
+      const oldUsagePerUser = v?.usageLimitPerUser;
+      if (oldUsagePerUser !== values.usageLimitPerUser) {
+        payload.usageLimitPerUser = values.usageLimitPerUser;
+      }
+    }
+
+    // If nothing changed, inform the user and skip the request
+    if (Object.keys(payload).length === 0) {
+      message.info("Không có thay đổi để cập nhật");
+      return;
+    }
 
     updateMutation.mutate({ id: voucherId, data: payload }, {
       onSuccess: () => {

@@ -2,6 +2,7 @@ import { ApiError } from "@/lib/axios";
 import { userMembershipService } from "@/services/userMembershipService";
 import {
   CreateUserMembershipRequest,
+  CreateUserMembershipForCurrentUserRequest,
   CreateUserMembershipResponse,
   ExtendPaymentRequest,
   ListUserMembershipRequest,
@@ -65,6 +66,17 @@ export const useCreateUserMembership = () => {
   const queryClient = useQueryClient();
   return useMutation<ApiResponse<CreateUserMembershipResponse>, ApiError, CreateUserMembershipRequest>({
     mutationFn: (data) => userMembershipService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userMembershipKeys.lists() });
+    },
+  });
+};
+
+// Create UserMembership for Current User Mutation (self-registration, always uses Bank transfer)
+export const useCreateUserMembershipForCurrentUser = () => {
+  const queryClient = useQueryClient();
+  return useMutation<ApiResponse<CreateUserMembershipResponse>, ApiError, CreateUserMembershipForCurrentUserRequest>({
+    mutationFn: (data) => userMembershipService.createForCurrentUser(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userMembershipKeys.lists() });
     },

@@ -1,6 +1,7 @@
 import { axiosInstance } from "@/lib/axios";
 import {
   CreateUserMembershipRequest,
+  CreateUserMembershipForCurrentUserRequest,
   CreateUserMembershipResponse,
   ExtendPaymentRequest,
   ListUserMembershipRequest,
@@ -26,6 +27,11 @@ export const userMembershipService = {
 
   async create(payload: CreateUserMembershipRequest): Promise<ApiResponse<CreateUserMembershipResponse>> {
     const res = await axiosInstance.post<ApiResponse<CreateUserMembershipResponse>>("/api/usermemberships/create", payload);
+    return res.data;
+  },
+
+  async createForCurrentUser(payload: CreateUserMembershipForCurrentUserRequest): Promise<ApiResponse<CreateUserMembershipResponse>> {
+    const res = await axiosInstance.post<ApiResponse<CreateUserMembershipResponse>>("/api/usermemberships/create-for-current-user", payload);
     return res.data;
   },
 

@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { UserMembershipInfo } from './UserMembershipInfo';
+import {
+    UserMembershipInfoFromJSON,
+    UserMembershipInfoFromJSONTyped,
+    UserMembershipInfoToJSON,
+    UserMembershipInfoToJSONTyped,
+} from './UserMembershipInfo';
+
 /**
  * 
  * @export
@@ -67,6 +75,12 @@ export interface CurrentUserResponse {
      * @memberof CurrentUserResponse
      */
     roles?: Array<string> | null;
+    /**
+     * 
+     * @type {UserMembershipInfo}
+     * @memberof CurrentUserResponse
+     */
+    membership?: UserMembershipInfo;
 }
 
 /**
@@ -97,6 +111,7 @@ export function CurrentUserResponseFromJSONTyped(json: any, ignoreDiscriminator:
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'roles': json['roles'] == null ? undefined : json['roles'],
+        'membership': json['membership'] == null ? undefined : UserMembershipInfoFromJSON(json['membership']),
     };
 }
 
@@ -119,6 +134,7 @@ export function CurrentUserResponseToJSONTyped(value?: CurrentUserResponse | nul
         'avatarUrl': value['avatarUrl'],
         'phoneNumber': value['phoneNumber'],
         'roles': value['roles'],
+        'membership': UserMembershipInfoToJSON(value['membership']),
     };
 }
 

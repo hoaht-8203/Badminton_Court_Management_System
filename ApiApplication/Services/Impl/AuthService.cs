@@ -153,6 +153,41 @@ public class AuthService(
         await _context.SaveChangesAsync();
     }
 
+    private async Task<UserMembershipInfo?> GetUserMembershipInfoAsync(Guid userId)
+    {
+        var customer = await _context
+            .Customers.Include(c => c.UserMemberships)
+            .ThenInclude(um => um.Membership)
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (customer == null)
+        {
+            return null;
+        }
+
+        var nowUtc = DateTime.UtcNow;
+        var activeMembership = customer
+            .UserMemberships.Where(um => um.IsActive && um.EndDate > nowUtc)
+            .OrderByDescending(um => um.StartDate)
+            .FirstOrDefault();
+
+        if (activeMembership == null)
+        {
+            return null;
+        }
+
+        return new UserMembershipInfo
+        {
+            Id = activeMembership.Id,
+            MembershipId = activeMembership.MembershipId,
+            MembershipName = activeMembership.Membership?.Name,
+            StartDate = activeMembership.StartDate,
+            EndDate = activeMembership.EndDate,
+            IsActive = activeMembership.IsActive,
+            Status = activeMembership.Status,
+        };
+    }
+
     public async Task<CurrentUserResponse> GetCurrentUserAsync()
     {
         var principal = _httpContextAccessor.HttpContext?.User;
@@ -169,6 +204,7 @@ public class AuthService(
 
         var res = _mapper.Map<CurrentUserResponse>(user);
         res.Roles = [.. roles];
+        res.Membership = await GetUserMembershipInfoAsync(user.Id);
         return res;
     }
 
@@ -258,6 +294,7 @@ public class AuthService(
 
         var res = _mapper.Map<CurrentUserResponse>(user);
         res.Roles = [.. roles];
+        res.Membership = await GetUserMembershipInfoAsync(user.Id);
         return res;
     }
 
@@ -501,7 +538,7 @@ public class AuthService(
         );
 
         var roles = await _userManager.GetRolesAsync(user);
-        return new CurrentUserResponse
+        var response = new CurrentUserResponse
         {
             UserId = user.Id,
             UserName = user.UserName,
@@ -511,5 +548,7 @@ public class AuthService(
             AvatarUrl = user.AvatarUrl,
             Roles = roles.ToList(),
         };
+        response.Membership = await GetUserMembershipInfoAsync(user.Id);
+        return response;
     }
 }

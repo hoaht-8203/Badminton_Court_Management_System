@@ -18,6 +18,8 @@ import type {
   CreateVoucherRequest,
   ObjectApiResponse,
   UpdateVoucherRequest,
+  ValidateVoucherRequest,
+  ValidateVoucherResponseApiResponse,
   VoucherResponseApiResponse,
   VoucherResponseArrayApiResponse,
 } from '../models/index';
@@ -28,6 +30,10 @@ import {
     ObjectApiResponseToJSON,
     UpdateVoucherRequestFromJSON,
     UpdateVoucherRequestToJSON,
+    ValidateVoucherRequestFromJSON,
+    ValidateVoucherRequestToJSON,
+    ValidateVoucherResponseApiResponseFromJSON,
+    ValidateVoucherResponseApiResponseToJSON,
     VoucherResponseApiResponseFromJSON,
     VoucherResponseApiResponseToJSON,
     VoucherResponseArrayApiResponseFromJSON,
@@ -49,6 +55,10 @@ export interface ApiVouchersDetailGetRequest {
 export interface ApiVouchersUpdateIdPutRequest {
     id: number;
     updateVoucherRequest?: UpdateVoucherRequest;
+}
+
+export interface ApiVouchersValidatePostRequest {
+    validateVoucherRequest?: ValidateVoucherRequest;
 }
 
 /**
@@ -134,6 +144,19 @@ export interface VouchersApiInterface {
     /**
      */
     apiVouchersUpdateIdPut(requestParameters: ApiVouchersUpdateIdPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
+     * @param {ValidateVoucherRequest} [validateVoucherRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof VouchersApiInterface
+     */
+    apiVouchersValidatePostRaw(requestParameters: ApiVouchersValidatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ValidateVoucherResponseApiResponse>>;
+
+    /**
+     */
+    apiVouchersValidatePost(requestParameters: ApiVouchersValidatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ValidateVoucherResponseApiResponse>;
 
 }
 
@@ -337,6 +360,36 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
      */
     async apiVouchersUpdateIdPut(requestParameters: ApiVouchersUpdateIdPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiVouchersUpdateIdPutRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiVouchersValidatePostRaw(requestParameters: ApiVouchersValidatePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ValidateVoucherResponseApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Vouchers/validate`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ValidateVoucherRequestToJSON(requestParameters['validateVoucherRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ValidateVoucherResponseApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiVouchersValidatePost(requestParameters: ApiVouchersValidatePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ValidateVoucherResponseApiResponse> {
+        const response = await this.apiVouchersValidatePostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -42,6 +42,18 @@ public class UserMembershipsController(IUserMembershipService userMembershipServ
         );
     }
 
+    [HttpPost("create-for-current-user")]
+    public async Task<ApiResponse<CreateUserMembershipResponse>> CreateForCurrentUser(
+        [FromBody] CreateUserMembershipForCurrentUserRequest request
+    )
+    {
+        var data = await _userMembershipService.CreateForCurrentUserAsync(request);
+        return ApiResponse<CreateUserMembershipResponse>.SuccessResponse(
+            data,
+            "Đăng ký gói hội viên thành công"
+        );
+    }
+
     [HttpPut("update-status")]
     public async Task<ApiResponse<object?>> UpdateStatus(
         [FromBody] UpdateUserMembershipStatusRequest request

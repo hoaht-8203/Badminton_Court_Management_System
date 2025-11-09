@@ -10,5 +10,3 @@ public class ListFeedbackRequest
     public DateTime? From { get; set; }
     public DateTime? To { get; set; }
 }
-
-

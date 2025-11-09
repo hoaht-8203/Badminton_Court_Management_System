@@ -39,6 +39,12 @@ export interface CheckoutBookingRequest {
     paymentMethod: string;
     /**
      * 
+     * @type {number}
+     * @memberof CheckoutBookingRequest
+     */
+    voucherId?: number | null;
+    /**
+     * 
      * @type {string}
      * @memberof CheckoutBookingRequest
      */
@@ -67,6 +73,7 @@ export function CheckoutBookingRequestFromJSONTyped(json: any, ignoreDiscriminat
         'bookingCourtOccurrenceId': json['bookingCourtOccurrenceId'],
         'lateFeePercentage': json['lateFeePercentage'] == null ? undefined : json['lateFeePercentage'],
         'paymentMethod': json['paymentMethod'],
+        'voucherId': json['voucherId'] == null ? undefined : json['voucherId'],
         'note': json['note'] == null ? undefined : json['note'],
     };
 }
@@ -85,6 +92,7 @@ export function CheckoutBookingRequestToJSONTyped(value?: CheckoutBookingRequest
         'bookingCourtOccurrenceId': value['bookingCourtOccurrenceId'],
         'lateFeePercentage': value['lateFeePercentage'],
         'paymentMethod': value['paymentMethod'],
+        'voucherId': value['voucherId'],
         'note': value['note'],
     };
 }

@@ -41,6 +41,13 @@ import {
     BookingCourtToJSON,
     BookingCourtToJSONTyped,
 } from './BookingCourt';
+import type { Voucher } from './Voucher';
+import {
+    VoucherFromJSON,
+    VoucherFromJSONTyped,
+    VoucherToJSON,
+    VoucherToJSONTyped,
+} from './Voucher';
 
 /**
  * 
@@ -173,6 +180,18 @@ export interface Order {
      * @type {number}
      * @memberof Order
      */
+    voucherId?: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof Order
+     */
+    discountAmount?: number;
+    /**
+     * 
+     * @type {number}
+     * @memberof Order
+     */
     totalAmount?: number;
     /**
      * 
@@ -198,6 +217,12 @@ export interface Order {
      * @memberof Order
      */
     payments?: Array<Payment> | null;
+    /**
+     * 
+     * @type {Voucher}
+     * @memberof Order
+     */
+    voucher?: Voucher;
 }
 
 /**
@@ -239,11 +264,14 @@ export function OrderFromJSONTyped(json: any, ignoreDiscriminator: boolean): Ord
         'lateFeePercentage': json['lateFeePercentage'] == null ? undefined : json['lateFeePercentage'],
         'lateFeeAmount': json['lateFeeAmount'] == null ? undefined : json['lateFeeAmount'],
         'overdueMinutes': json['overdueMinutes'] == null ? undefined : json['overdueMinutes'],
+        'voucherId': json['voucherId'] == null ? undefined : json['voucherId'],
+        'discountAmount': json['discountAmount'] == null ? undefined : json['discountAmount'],
         'totalAmount': json['totalAmount'] == null ? undefined : json['totalAmount'],
         'status': json['status'] == null ? undefined : json['status'],
         'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
         'note': json['note'] == null ? undefined : json['note'],
         'payments': json['payments'] == null ? undefined : ((json['payments'] as Array<any>).map(PaymentFromJSON)),
+        'voucher': json['voucher'] == null ? undefined : VoucherFromJSON(json['voucher']),
     };
 }
 
@@ -278,11 +306,14 @@ export function OrderToJSONTyped(value?: Order | null, ignoreDiscriminator: bool
         'lateFeePercentage': value['lateFeePercentage'],
         'lateFeeAmount': value['lateFeeAmount'],
         'overdueMinutes': value['overdueMinutes'],
+        'voucherId': value['voucherId'],
+        'discountAmount': value['discountAmount'],
         'totalAmount': value['totalAmount'],
         'status': value['status'],
         'paymentMethod': value['paymentMethod'],
         'note': value['note'],
         'payments': value['payments'] == null ? undefined : ((value['payments'] as Array<any>).map(PaymentToJSON)),
+        'voucher': VoucherToJSON(value['voucher']),
     };
 }
 

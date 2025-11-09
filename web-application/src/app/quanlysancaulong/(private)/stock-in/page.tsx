@@ -318,9 +318,7 @@ const StockInPage = () => {
           <Button icon={<ReloadOutlined />} onClick={() => load()}>
             Tải lại
           </Button>
-          <Button onClick={() => setOpenProductDrawer(true)}>
-            Thêm sản phẩm mới
-          </Button>
+          <Button onClick={() => setOpenProductDrawer(true)}>Thêm sản phẩm mới</Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={onCreate}>
             Nhập hàng
           </Button>
@@ -407,11 +405,7 @@ const StockInPage = () => {
         receiptId={editingId ?? undefined}
       />
 
-      <CreateNewProductDrawer
-        open={openProductDrawer}
-        onClose={() => setOpenProductDrawer(false)}
-        title="Thêm sản phẩm mới"
-      />
+      <CreateNewProductDrawer open={openProductDrawer} onClose={() => setOpenProductDrawer(false)} title="Thêm sản phẩm mới" />
     </section>
   );
 };

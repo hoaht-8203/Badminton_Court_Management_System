@@ -356,7 +356,8 @@ namespace ApiApplication.Services.Impl
                         // Send negative value for outflow
                         Value = -Math.Abs(amount),
                         IsPayment = true,
-                        RelatedPerson = returnGoods.Supplier != null ? returnGoods.Supplier.Name : string.Empty,
+                        RelatedPerson =
+                            returnGoods.Supplier != null ? returnGoods.Supplier.Name : string.Empty,
                         PersonType = RelatedPeopleGroup.Supplier,
                         RelatedId = returnGoods.Id.ToString(),
                         Note = $"Chi trả trả hàng {returnGoods.Code}",
@@ -368,7 +369,9 @@ namespace ApiApplication.Services.Impl
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to create cashflow for return goods {returnGoods.Id}: {ex.Message}");
+                Console.WriteLine(
+                    $"Failed to create cashflow for return goods {returnGoods.Id}: {ex.Message}"
+                );
             }
 
             await _context.SaveChangesAsync();

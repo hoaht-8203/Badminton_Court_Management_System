@@ -48,5 +48,3 @@ public class Feedback : BaseEntity
 
     public string Status { get; set; } = FeedbackStatus.Active;
 }
-
-

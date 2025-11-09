@@ -1,8 +1,8 @@
+using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Voucher;
 using ApiApplication.Services;
 using ApiApplication.Sessions;
-using ApiApplication.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,7 +28,9 @@ public class VouchersController(
     }
 
     [HttpGet("detail")]
-    public async Task<ApiResponse<VoucherResponse?>> Detail([FromQuery] DetailVoucherRequest request)
+    public async Task<ApiResponse<VoucherResponse?>> Detail(
+        [FromQuery] DetailVoucherRequest request
+    )
     {
         var data = await _voucherService.DetailAsync(request.Id);
         return ApiResponse<VoucherResponse?>.SuccessResponse(data);
@@ -77,17 +79,20 @@ public class VouchersController(
         var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
         if (customer == null)
         {
-            return ApiResponse<ValidateVoucherResponse>.ErrorResponse("Không tìm thấy thông tin khách hàng");
+            return ApiResponse<ValidateVoucherResponse>.ErrorResponse(
+                "Không tìm thấy thông tin khách hàng"
+            );
         }
 
         var result = await _voucherService.ValidateAndCalculateDiscountAsync(request, customer.Id);
-        
+
         if (!result.IsValid)
         {
-            return ApiResponse<ValidateVoucherResponse>.ErrorResponse(result.ErrorMessage ?? "Voucher không hợp lệ");
+            return ApiResponse<ValidateVoucherResponse>.ErrorResponse(
+                result.ErrorMessage ?? "Voucher không hợp lệ"
+            );
         }
 
         return ApiResponse<ValidateVoucherResponse>.SuccessResponse(result);
     }
 }
-

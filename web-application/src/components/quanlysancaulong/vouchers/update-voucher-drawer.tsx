@@ -41,8 +41,8 @@ const UpdateVoucherDrawer = ({ open, onClose, voucherId }: UpdateVoucherDrawerPr
         timeRules: v.timeRules?.map((r: any) => ({
           ...r,
           specificDate: r.specificDate ? dayjs(r.specificDate) : undefined,
-          startTime: r.startTime ? r.startTime.slice(0,5) : undefined,
-          endTime: r.endTime ? r.endTime.slice(0,5) : undefined,
+          startTime: r.startTime ? r.startTime.slice(0, 5) : undefined,
+          endTime: r.endTime ? r.endTime.slice(0, 5) : undefined,
         })),
         userRules: v.userRules,
       } as any);
@@ -67,16 +67,19 @@ const UpdateVoucherDrawer = ({ open, onClose, voucherId }: UpdateVoucherDrawerPr
       })),
     } as UpdateVoucherRequest;
 
-    updateMutation.mutate({ id: voucherId, data: payload }, {
-      onSuccess: () => {
-        message.success("Cập nhật voucher thành công!");
-        form.resetFields();
-        onClose();
+    updateMutation.mutate(
+      { id: voucherId, data: payload },
+      {
+        onSuccess: () => {
+          message.success("Cập nhật voucher thành công!");
+          form.resetFields();
+          onClose();
+        },
+        onError: (err: ApiError) => {
+          message.error(err.message);
+        },
       },
-      onError: (err: ApiError) => {
-        message.error(err.message);
-      },
-    });
+    );
   };
 
   return (

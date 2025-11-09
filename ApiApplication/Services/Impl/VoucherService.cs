@@ -161,8 +161,10 @@ public class VoucherService : IVoucherService
         // Step 2: Pre-load voucher usages for this specific customer to avoid N+1 queries
         // This is user-specific, so different users will have different usage counts
         var voucherIds = vouchers.Select(v => v.Id).ToList();
-        var userVoucherUsages = await _context.VoucherUsages
-            .Where(vu => vu.CustomerId == customer.Id && voucherIds.Contains(vu.VoucherId))
+        var userVoucherUsages = await _context
+            .VoucherUsages.Where(vu =>
+                vu.CustomerId == customer.Id && voucherIds.Contains(vu.VoucherId)
+            )
             .GroupBy(vu => vu.VoucherId)
             .Select(g => new { VoucherId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.VoucherId, x => x.Count);
@@ -343,8 +345,9 @@ public class VoucherService : IVoucherService
         }
 
         // Check per-user usage limit
-        var userUsageCount = await _context.VoucherUsages
-            .CountAsync(vu => vu.VoucherId == voucher.Id && vu.CustomerId == customerId);
+        var userUsageCount = await _context.VoucherUsages.CountAsync(vu =>
+            vu.VoucherId == voucher.Id && vu.CustomerId == customerId
+        );
 
         if (voucher.UsageLimitPerUser > 0 && userUsageCount >= voucher.UsageLimitPerUser)
         {
@@ -356,7 +359,10 @@ public class VoucherService : IVoucherService
         }
 
         // Check minimum order value
-        if (voucher.MinOrderValue.HasValue && request.OrderTotalAmount < voucher.MinOrderValue.Value)
+        if (
+            voucher.MinOrderValue.HasValue
+            && request.OrderTotalAmount < voucher.MinOrderValue.Value
+        )
         {
             return new ValidateVoucherResponse
             {
@@ -487,7 +493,10 @@ public class VoucherService : IVoucherService
             discountAmount = request.OrderTotalAmount * voucher.DiscountPercentage.Value / 100;
 
             // Apply max discount if specified
-            if (voucher.MaxDiscountValue.HasValue && discountAmount > voucher.MaxDiscountValue.Value)
+            if (
+                voucher.MaxDiscountValue.HasValue
+                && discountAmount > voucher.MaxDiscountValue.Value
+            )
             {
                 discountAmount = voucher.MaxDiscountValue.Value;
             }

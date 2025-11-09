@@ -39,14 +39,17 @@ const VouchersPage = () => {
       title: "Xóa voucher",
       content: "Bạn có chắc chắn muốn xóa voucher này?",
       onOk: () => {
-        deleteMutation.mutate({ id }, {
-          onSuccess: () => {
-            message.success("Xóa voucher thành công!");
+        deleteMutation.mutate(
+          { id },
+          {
+            onSuccess: () => {
+              message.success("Xóa voucher thành công!");
+            },
+            onError: (err: ApiError) => {
+              message.error(err.message);
+            },
           },
-          onError: (err: ApiError) => {
-            message.error(err.message);
-          },
-        });
+        );
       },
       okText: "Xóa",
       cancelText: "Hủy",
@@ -59,9 +62,10 @@ const VouchersPage = () => {
     // code filter
     if (filters.code && !(v.code ?? "").toLowerCase().includes((filters.code as string).toLowerCase())) return false;
     // title filter
-    if (filters.title && !((v.title ?? "") + " " + (v.description ?? "")).toLowerCase().includes((filters.title as string).toLowerCase())) return false;
+    if (filters.title && !((v.title ?? "") + " " + (v.description ?? "")).toLowerCase().includes((filters.title as string).toLowerCase()))
+      return false;
     // discountType filter
-    if (filters.discountType && !((v.discountType ?? "").toLowerCase().includes((filters.discountType as string).toLowerCase()))) return false;
+    if (filters.discountType && !(v.discountType ?? "").toLowerCase().includes((filters.discountType as string).toLowerCase())) return false;
     // isActive filter
     if (typeof filters.isActive === "boolean" && v.isActive !== filters.isActive) return false;
     // startAt range filter
@@ -73,22 +77,16 @@ const VouchersPage = () => {
   return (
     <section>
       <div className="mb-4">
-        <Breadcrumb
-          items={[
-            { title: "Quản trị ứng dụng" },
-            { title: "Quản lý voucher" },
-          ]}
-        />
+        <Breadcrumb items={[{ title: "Quản trị ứng dụng" }, { title: "Quản lý voucher" }]} />
       </div>
 
-      <SearchVoucher
-        onSearch={(s) => setFilters(s)}
-        onReset={() => setFilters({})}
-      />
+      <SearchVoucher onSearch={(s) => setFilters(s)} onReset={() => setFilters({})} />
 
       <div className="mb-2 flex items-center justify-between">
         <div>
-          <span className="font-bold text-green-500">Tổng số voucher: {filtered.length} / {vouchersResp?.data?.length ?? 0}</span>
+          <span className="font-bold text-green-500">
+            Tổng số voucher: {filtered.length} / {vouchersResp?.data?.length ?? 0}
+          </span>
         </div>
         <div className="flex gap-2">
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenCreate(true)}>
@@ -100,13 +98,13 @@ const VouchersPage = () => {
         </div>
       </div>
 
-  <VouchersList vouchers={filtered} loading={isFetching} onEdit={handleEdit} onDelete={handleDelete} onExtend={handleExtend} />
+      <VouchersList vouchers={filtered} loading={isFetching} onEdit={handleEdit} onDelete={handleDelete} onExtend={handleExtend} />
 
       <CreateVoucherDrawer open={openCreate} onClose={() => setOpenCreate(false)} />
 
-  <UpdateVoucherDrawer open={openUpdate} onClose={() => setOpenUpdate(false)} voucherId={selectedVoucherId} />
+      <UpdateVoucherDrawer open={openUpdate} onClose={() => setOpenUpdate(false)} voucherId={selectedVoucherId} />
 
-  <ExtendVoucherDrawer open={openExtend} onClose={() => setOpenExtend(false)} voucherId={extendVoucherId} />
+      <ExtendVoucherDrawer open={openExtend} onClose={() => setOpenExtend(false)} voucherId={extendVoucherId} />
 
       {contextHolder}
     </section>

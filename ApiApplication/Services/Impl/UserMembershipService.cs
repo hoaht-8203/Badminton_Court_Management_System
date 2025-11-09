@@ -1,8 +1,11 @@
 using ApiApplication.Data;
 using ApiApplication.Dtos.Membership.UserMembership;
 using ApiApplication.Entities;
+using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
+using ApiApplication.Sessions;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
@@ -11,13 +14,17 @@ public class UserMembershipService(
     ApplicationDbContext context,
     IMapper mapper,
     IPaymentService paymentService,
-    IConfiguration configuration
+    IConfiguration configuration,
+    ICurrentUser currentUser,
+    UserManager<ApplicationUser> userManager
 ) : IUserMembershipService
 {
     private readonly ApplicationDbContext _context = context;
     private readonly IMapper _mapper = mapper;
     private readonly IPaymentService _paymentService = paymentService;
     private readonly IConfiguration _configuration = configuration;
+    private readonly ICurrentUser _currentUser = currentUser;
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
 
     public async Task<List<UserMembershipResponse>> ListAsync(ListUserMembershipRequest request)
     {
@@ -136,22 +143,8 @@ public class UserMembershipService(
                 System.Net.HttpStatusCode.NotFound
             );
         }
-        // Prevent overlapping/stacking memberships:
-        // - Block if customer has a Paid membership that hasn't expired
-        // - Block if customer has a PendingPayment membership that hasn't expired (avoid multiple pending registrations)
-        var nowCheckUtc = DateTime.UtcNow;
-        var hasUnexpiredActiveOrPending = await _context.UserMemberships.AnyAsync(um =>
-            um.CustomerId == request.CustomerId
-            && (um.Status == "Paid" || um.Status == "PendingPayment")
-            && um.EndDate > nowCheckUtc
-        );
-        if (hasUnexpiredActiveOrPending)
-        {
-            throw new ApiException(
-                "Khách hàng đang có gói hội viên còn hiệu lực hoặc đang chờ thanh toán, không thể đăng ký gói mới cho đến khi hoàn tất hoặc hết hạn.",
-                System.Net.HttpStatusCode.BadRequest
-            );
-        }
+
+        // Check if membership exists and is Active
         var membership = await _context.Memberships.FirstOrDefaultAsync(m =>
             m.Id == request.MembershipId
         );
@@ -160,6 +153,30 @@ public class UserMembershipService(
             throw new ApiException(
                 $"Gói hội viên không tồn tại: {request.MembershipId}",
                 System.Net.HttpStatusCode.NotFound
+            );
+        }
+
+        // Check if membership status is Active
+        if (!string.Equals(membership.Status, "Active", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ApiException(
+                $"Gói hội viên không ở trạng thái Active, không thể đăng ký.",
+                System.Net.HttpStatusCode.BadRequest
+            );
+        }
+
+        // Prevent overlapping/stacking memberships:
+        // - Block if customer has ANY membership that hasn't expired (regardless of status)
+        // - Customer must wait for current membership to expire before adding a new one or switching
+        var nowCheckUtc = DateTime.UtcNow;
+        var hasUnexpiredMembership = await _context.UserMemberships.AnyAsync(um =>
+            um.CustomerId == request.CustomerId && um.EndDate > nowCheckUtc
+        );
+        if (hasUnexpiredMembership)
+        {
+            throw new ApiException(
+                "Khách hàng đang có gói hội viên còn hiệu lực, không thể đăng ký gói mới. Vui lòng chờ hết hạn hoặc đổi sang gói hội viên khác.",
+                System.Net.HttpStatusCode.BadRequest
             );
         }
 
@@ -235,6 +252,69 @@ public class UserMembershipService(
         }
 
         return resp;
+    }
+
+    public async Task<CreateUserMembershipResponse> CreateForCurrentUserAsync(
+        CreateUserMembershipForCurrentUserRequest request
+    )
+    {
+        // Get current user ID
+        var userId = _currentUser.UserId;
+        if (userId == null)
+        {
+            throw new ApiException(
+                "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
+                System.Net.HttpStatusCode.Unauthorized
+            );
+        }
+
+        // Get ApplicationUser
+        var user = await _userManager.FindByIdAsync(userId.Value.ToString());
+        if (user == null)
+        {
+            throw new ApiException(
+                "Không tìm thấy tài khoản người dùng.",
+                System.Net.HttpStatusCode.NotFound
+            );
+        }
+
+        // Check if user already has a Customer record
+        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
+
+        // If customer doesn't exist, create one from user information
+        if (customer == null)
+        {
+            customer = new Customer
+            {
+                FullName = user.FullName,
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                DateOfBirth = user.DateOfBirth,
+                Address = user.Address,
+                City = user.City,
+                District = user.District,
+                Ward = user.Ward,
+                AvatarUrl = user.AvatarUrl,
+                Status = CustomerStatus.Active,
+                UserId = userId.Value,
+            };
+            _context.Customers.Add(customer);
+            await _context.SaveChangesAsync();
+        }
+
+        // Now create membership using the existing CreateAsync logic
+        // Convert CreateUserMembershipForCurrentUserRequest to CreateUserMembershipRequest
+        // User must pay via bank transfer (no cash option for self-registration)
+        var createRequest = new CreateUserMembershipRequest
+        {
+            CustomerId = customer.Id,
+            MembershipId = request.MembershipId,
+            IsActive = request.IsActive,
+            PaymentMethod = "Bank", // Force bank transfer for user self-registration
+            PaymentNote = request.PaymentNote,
+        };
+
+        return await CreateAsync(createRequest);
     }
 
     public async Task<CreateUserMembershipResponse> ExtendPaymentAsync(ExtendPaymentRequest request)

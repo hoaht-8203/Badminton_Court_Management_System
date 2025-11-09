@@ -14,16 +14,18 @@ public class CreateFeedbackRequest
 
     [Range(1, 5)]
     public int CourtQuality { get; set; } = 5;
+
     [Range(1, 5)]
     public int StaffService { get; set; } = 5;
+
     [Range(1, 5)]
     public int Cleanliness { get; set; } = 5;
+
     [Range(1, 5)]
     public int Lighting { get; set; } = 5;
+
     [Range(1, 5)]
     public int ValueForMoney { get; set; } = 5;
 
     public string[]? MediaUrl { get; set; }
 }
-
-

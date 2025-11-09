@@ -94,11 +94,7 @@ const ProductCategoryPage = () => {
                 ...col,
                 render: (_, record) => {
                   if ((record as any).isSummaryRow) {
-                    return (
-                      <StockSummaryCell
-                        productIds={tableData.filter((item) => !(item as any).isSummaryRow).map((item) => item.id!)}
-                      />
-                    );
+                    return <StockSummaryCell productIds={tableData.filter((item) => !(item as any).isSummaryRow).map((item) => item.id!)} />;
                   }
                   return <StockCell productId={record.id!} />;
                 },

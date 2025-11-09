@@ -292,7 +292,7 @@ const UserCourtScheduler = ({ courts }: UserCourtSchedulerProps) => {
           <DayPilotScheduler
             ref={schedulerRef}
             cellWidthSpec={"Fixed"}
-            cellWidth={120}
+            cellWidth={30}
             groupConcurrentEvents={true}
             groupConcurrentEventsLimit={2}
             groupBubble={
@@ -336,7 +336,8 @@ const UserCourtScheduler = ({ courts }: UserCourtSchedulerProps) => {
             businessBeginsHour={0}
             businessEndsHour={24}
             businessWeekends={true}
-            scale={"Hour"}
+            scale="CellDuration"
+            cellDuration={15}
             timeRangeSelectedHandling={user ? "Enabled" : "Disabled"}
             days={1}
             startDate={selectedDate}

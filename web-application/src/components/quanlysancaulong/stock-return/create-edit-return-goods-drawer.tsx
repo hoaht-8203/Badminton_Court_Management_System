@@ -462,7 +462,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
 
       // Call onChanged to refresh parent component data immediately
       if (onChanged) {
-          onChanged();
+        onChanged();
       }
 
       // Reset all filter states
@@ -503,7 +503,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
 
       // Call onChanged to refresh parent component data immediately
       if (onChanged) {
-          onChanged();
+        onChanged();
       }
 
       // Reset all filter states

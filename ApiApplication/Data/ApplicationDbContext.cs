@@ -400,6 +400,7 @@ public class ApplicationDbContext(
             entity.Property(e => e.ItemsSubtotal).HasColumnType("decimal(18,2)");
             entity.Property(e => e.LateFeePercentage).HasColumnType("decimal(5,2)");
             entity.Property(e => e.LateFeeAmount).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.DiscountAmount).HasColumnType("decimal(18,2)");
             entity.Property(e => e.TotalAmount).HasColumnType("decimal(18,2)");
             entity.Property(e => e.Status).HasMaxLength(50);
             entity.Property(e => e.Note).HasMaxLength(500);

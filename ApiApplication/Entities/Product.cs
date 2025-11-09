@@ -30,6 +30,7 @@ public class Product : BaseEntity
 
     public bool IsDirectSale { get; set; } = true;
     public bool IsActive { get; set; } = true;
+    public bool IsDisplayOnWeb { get; set; } = false;
 
     public bool ManageInventory { get; set; } = false;
     public int Stock { get; set; } = 0;

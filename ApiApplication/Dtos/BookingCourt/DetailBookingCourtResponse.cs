@@ -41,4 +41,11 @@ public class DetailBookingCourtResponse
     public decimal OverdueHours { get; set; }
     public decimal SurchargeAmount { get; set; }
     public decimal LateFeePercentage { get; set; } = 150m; // Default 150%
+
+    // Membership discount info
+    public bool HasMembershipDiscount { get; set; }
+    public decimal? MembershipDiscountPercent { get; set; }
+    public decimal? MembershipDiscountAmount { get; set; }
+    public decimal? OriginalAmount { get; set; } // Amount before discount (court cost only)
+    public string? MembershipName { get; set; } // Name of the membership applied
 }

@@ -57,15 +57,22 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
   // FE no longer creates inventory checks here; backend handles auto-balanced creation when stock changes.
 
   const onSubmit = (values: UpdateProductRequest) => {
-    // Ensure not to accidentally change active status; backend has a dedicated endpoint
-    const { ...rest } = values as any;
-    updateMutation.mutate(rest as UpdateProductRequest, {
-      onSuccess: async () => {
-        message.success("Cập nhật hàng hóa thành công");
-        onClose();
+    // Giữ nguyên trạng thái isActive hiện tại từ dữ liệu gốc
+    const currentIsActive = data?.data?.isActive ?? true;
+    const { isActive, ...rest } = values as any;
+    updateMutation.mutate(
+      {
+        ...rest,
+        isActive: currentIsActive, // Giữ nguyên trạng thái hiện tại
+      } as UpdateProductRequest,
+      {
+        onSuccess: async () => {
+          message.success("Cập nhật hàng hóa thành công");
+          onClose();
+        },
+        onError: (err: ApiError) => message.error(err.message),
       },
-      onError: (err: ApiError) => message.error(err.message),
-    });
+    );
   };
 
   return (
@@ -254,6 +261,11 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
             <Col span={8}>
               <Form.Item name="manageInventory" valuePropName="checked" label="Quản lý tồn kho">
                 <Checkbox onChange={(e) => setManageInventory(e.target.checked)} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item name="isDisplayOnWeb" valuePropName="checked" label="Bán trên Web">
+                <Checkbox />
               </Form.Item>
             </Col>
           </Row>

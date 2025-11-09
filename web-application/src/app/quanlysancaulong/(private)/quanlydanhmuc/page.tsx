@@ -1,6 +1,7 @@
 "use client";
 
 import CreateNewProductDrawer from "@/components/quanlysancaulong/products/create-new-product-drawer";
+import CreateWebProductDrawer from "@/components/quanlysancaulong/products/create-web-product-drawer";
 import { productColumns, StockCell, StockSummaryCell } from "@/components/quanlysancaulong/products/products-columns";
 import SearchProducts from "@/components/quanlysancaulong/products/search-products";
 import UpdateProductDrawer from "@/components/quanlysancaulong/products/update-product-drawer";
@@ -10,6 +11,7 @@ import { DetailProductResponse, ListProductRequest, ListProductResponse } from "
 import { CheckOutlined, EditOutlined, PlusOutlined, ReloadOutlined, StopOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Col, Divider, Image, message, Modal, Row, Table, TableProps, Tabs, Tag } from "antd";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
 type ProductFilters = ListProductRequest & { priceSort?: "ascend" | "descend"; isActive?: boolean };
 
@@ -24,6 +26,7 @@ const tableProps: TableProps<ListProductResponse> = {
 const ProductCategoryPage = () => {
   const [searchParams, setSearchParams] = useState<ProductFilters>({});
   const [openCreate, setOpenCreate] = useState(false);
+  const [openCreateWeb, setOpenCreateWeb] = useState(false);
   const [openUpdate, setOpenUpdate] = useState(false);
   const [currentId, setCurrentId] = useState<number | null>(null);
   const [modal, contextHolder] = Modal.useModal();
@@ -64,7 +67,13 @@ const ProductCategoryPage = () => {
   return (
     <section>
       <div className="mb-4">
-        <Breadcrumb items={[{ title: "Quản lý hàng hoá" }, { title: "Quản lý danh mục" }]} />
+        <Breadcrumb
+          items={[
+            { title: <Link href="/homepage">Trang chủ</Link> },
+            { title: "Quản lý hàng hoá" },
+            { title: "Quản lý danh mục" },
+          ]}
+        />
       </div>
 
       <div className="mb-2">
@@ -80,8 +89,11 @@ const ProductCategoryPage = () => {
             <Button icon={<ReloadOutlined />} onClick={() => refetch()}>
               Tải lại
             </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenCreate(true)}>
+            <Button icon={<PlusOutlined />} onClick={() => setOpenCreate(true)}>
               Thêm hàng hóa
+            </Button>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenCreateWeb(true)}>
+              Thêm sản phẩm bán hàng
             </Button>
           </div>
         </div>
@@ -153,6 +165,7 @@ const ProductCategoryPage = () => {
       </div>
 
       <CreateNewProductDrawer open={openCreate} onClose={() => setOpenCreate(false)} />
+      <CreateWebProductDrawer open={openCreateWeb} onClose={() => setOpenCreateWeb(false)} />
       <UpdateProductDrawer open={openUpdate} onClose={() => setOpenUpdate(false)} productId={currentId ?? 0} />
 
       {contextHolder}
@@ -242,21 +255,17 @@ const ProductInformation = ({
                           </div>
                           <Divider size="small" style={{ margin: "4px 0" }} />
 
-                          {record.menuType !== "Khác" && (
-                            <>
-                              <div className="flex">
-                                <div className="w-32 font-medium">Tồn kho:</div>
-                                <div>{d?.stock ?? 0}</div>
-                              </div>
-                              <Divider size="small" style={{ margin: "4px 0" }} />
+                          <div className="flex">
+                            <div className="w-32 font-medium">Tồn kho:</div>
+                            <div>{d?.stock ?? 0}</div>
+                          </div>
+                          <Divider size="small" style={{ margin: "4px 0" }} />
 
-                              <div className="flex">
-                                <div className="w-32 font-medium">Ngưỡng min/max:</div>
-                                <div>{d ? `${d.minStock} / ${d.maxStock}` : "-"}</div>
-                              </div>
-                              <Divider size="small" style={{ margin: "4px 0" }} />
-                            </>
-                          )}
+                          <div className="flex">
+                            <div className="w-32 font-medium">Ngưỡng min/max:</div>
+                            <div>{d ? `${d.minStock ?? 0} / ${d.maxStock ?? 0}` : "0 / 0"}</div>
+                          </div>
+                          <Divider size="small" style={{ margin: "4px 0" }} />
 
                           <div className="flex">
                             <div className="w-32 font-medium">Mô tả:</div>

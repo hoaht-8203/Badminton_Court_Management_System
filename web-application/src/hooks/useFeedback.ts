@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { feedbackService } from "@/services/feedbackService";
-import { CreateFeedbackRequest, DetailFeedbackResponse, ListFeedbackResponse } from "@/types-openapi/api";
+import { CreateFeedbackRequest, DetailFeedbackResponse, ListFeedbackRequest, ListFeedbackResponse } from "@/types-openapi/api";
 import { message } from "antd";
 
 export function useCreateFeedback() {
@@ -73,15 +73,7 @@ export function useGetFeedbackByCustomer(customerId: number | undefined, enabled
   });
 }
 
-export function useListFeedbacks(params?: {
-  id?: number;
-  customerId?: number;
-  bookingCourtOccurrenceId?: string;
-  rating?: number;
-  status?: string;
-  from?: Date;
-  to?: Date;
-}) {
+export function useListFeedbacks(params?: ListFeedbackRequest) {
   return useQuery({
     queryKey: ["feedbacks", "list", params],
     queryFn: () => feedbackService.listFeedbacks(params),

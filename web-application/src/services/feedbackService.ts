@@ -1,4 +1,4 @@
-import { CreateFeedbackRequest, DetailFeedbackResponse, ListFeedbackResponse } from "@/types-openapi/api";
+import { CreateFeedbackRequest, DetailFeedbackResponse, ListFeedbackRequest, ListFeedbackResponse } from "@/types-openapi/api";
 import { axiosInstance } from "@/lib/axios";
 import { ApiResponse } from "@/types/api";
 
@@ -44,16 +44,34 @@ export const feedbackService = {
     return response.data;
   },
 
-  async listFeedbacks(params?: {
-    id?: number;
-    customerId?: number;
-    bookingCourtOccurrenceId?: string;
-    rating?: number;
-    status?: string;
-    from?: Date;
-    to?: Date;
-  }): Promise<ApiResponse<ListFeedbackResponse[]>> {
-    const response = await axiosInstance.get("api/Feedbacks/list", { params });
+  async listFeedbacks(params?: ListFeedbackRequest): Promise<ApiResponse<ListFeedbackResponse[]>> {
+    // Filter out null and undefined values before sending to API
+    // Convert ListFeedbackRequest to query params format
+    const queryParams: Record<string, any> = {};
+    if (params) {
+      if (params.id !== null && params.id !== undefined) {
+        queryParams.id = params.id;
+      }
+      if (params.customerId !== null && params.customerId !== undefined) {
+        queryParams.customerId = params.customerId;
+      }
+      if (params.bookingCourtOccurrenceId !== null && params.bookingCourtOccurrenceId !== undefined) {
+        queryParams.bookingCourtOccurrenceId = params.bookingCourtOccurrenceId;
+      }
+      if (params.rating !== null && params.rating !== undefined) {
+        queryParams.rating = params.rating;
+      }
+      if (params.status !== null && params.status !== undefined) {
+        queryParams.status = params.status;
+      }
+      if (params.from !== null && params.from !== undefined) {
+        queryParams.from = params.from;
+      }
+      if (params.to !== null && params.to !== undefined) {
+        queryParams.to = params.to;
+      }
+    }
+    const response = await axiosInstance.get("api/Feedbacks/list", { params: queryParams });
     return response.data;
   },
 };

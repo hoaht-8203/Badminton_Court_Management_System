@@ -1,7 +1,7 @@
 "use client";
 
 import { ListFeedbackResponse, DetailFeedbackResponse } from "@/types-openapi/api";
-import { DeleteOutlined, EyeOutlined, ImageOutlined, MessageOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EyeOutlined, MessageOutlined } from "@ant-design/icons";
 import { Tag as AntTag, Button, Descriptions, Divider, Empty, Image, Popconfirm, Rate, Space, Table, Tabs, message } from "antd";
 import dayjs from "dayjs";
 import { createFeedbackColumns } from "./feedback-columns";
@@ -21,8 +21,8 @@ const FeedbacksList = ({ feedbacks, loading, onReply, onDelete, onViewDetail }: 
   const [expandedRowKeys, setExpandedRowKeys] = useState<React.Key[]>([]);
 
   const ExpandedRowContent = ({ record, isExpanded }: { record: ListFeedbackResponse; isExpanded: boolean }) => {
-    // Chỉ fetch detail khi row được expand
-    const { data: feedbackDetail, isLoading } = useGetFeedbackDetail(record.id, isExpanded);
+    // Chỉ fetch detail khi row được expand và có id
+    const { data: feedbackDetail, isLoading } = useGetFeedbackDetail(record.id, isExpanded && !!record.id);
     const detail: DetailFeedbackResponse | null = feedbackDetail?.data || null;
     const mediaCount = useMemo(() => detail?.mediaUrl?.length || 0, [detail?.mediaUrl?.length]);
 
@@ -122,7 +122,7 @@ const FeedbacksList = ({ feedbacks, loading, onReply, onDelete, onViewDetail }: 
             <Button icon={<EyeOutlined />} onClick={() => onViewDetail(record)}>
               Xem chi tiết
             </Button>
-            {record.status !== "Deleted" && (
+            {record.status !== "Deleted" && record.id !== undefined && (
               <>
                 <Button type="primary" icon={<MessageOutlined />} onClick={() => onReply(record)}>
                   {detail?.adminReply ? "Sửa phản hồi" : "Phản hồi"}
@@ -130,7 +130,11 @@ const FeedbacksList = ({ feedbacks, loading, onReply, onDelete, onViewDetail }: 
                 <Popconfirm
                   title="Xóa feedback"
                   description="Bạn có chắc chắn muốn xóa feedback này? (Feedback sẽ được đánh dấu là đã xóa)"
-                  onConfirm={() => onDelete(record.id)}
+                  onConfirm={() => {
+                    if (record.id !== undefined) {
+                      onDelete(record.id);
+                    }
+                  }}
                   okText="Xóa"
                   cancelText="Hủy"
                 >
@@ -156,21 +160,23 @@ const FeedbacksList = ({ feedbacks, loading, onReply, onDelete, onViewDetail }: 
       columns={columns}
       dataSource={feedbacks}
       loading={loading}
-      rowKey="id"
+      rowKey={(record) => record.id ?? `feedback-${record.customerId}-${record.bookingCourtOccurrenceId}`}
       scroll={{ x: 1200 }}
       expandable={{
         expandedRowRender,
         expandRowByClick: false,
         expandedRowKeys: expandedRowKeys,
         onExpand: (expanded, record) => {
-          if (expanded) {
-            setExpandedRowKeys([...expandedRowKeys, record.id]);
-          } else {
-            setExpandedRowKeys(expandedRowKeys.filter((key) => key !== record.id));
+          if (record.id !== undefined) {
+            if (expanded) {
+              setExpandedRowKeys([...expandedRowKeys, record.id]);
+            } else {
+              setExpandedRowKeys(expandedRowKeys.filter((key) => key !== record.id));
+            }
           }
         },
         onExpandedRowsChange: (expandedKeys) => {
-          setExpandedRowKeys(expandedKeys);
+          setExpandedRowKeys([...expandedKeys]);
         },
       }}
       pagination={{

@@ -1,10 +1,11 @@
 "use client";
 
 import ProductCard from "@/components/homepage/ProductCard";
+import SnowEffect from "@/components/homepage/SnowEffect";
 import { useDetailProduct, useListProductsForWeb } from "@/hooks/useProducts";
 import { DetailProductResponse } from "@/types-openapi/api";
 import { Avatar, Button, Col, Divider, Empty, Image, InputNumber, Rate, Row, Spin, Tabs, Typography, message } from "antd";
-import { UserOutlined, MessageOutlined } from "@ant-design/icons";
+import { UserOutlined, GiftOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
@@ -17,6 +18,12 @@ const ProductDetailPage = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [autoSlide, setAutoSlide] = useState(true);
+  const [relatedProductsIndex, setRelatedProductsIndex] = useState(0);
+
+  // Auto scroll to top when page loads
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [productId]);
 
   const { data: productData, isLoading } = useDetailProduct({ id: productId }, !!productId);
   const product = productData?.data as DetailProductResponse | undefined;
@@ -40,9 +47,28 @@ const ProductDetailPage = () => {
 
   const relatedProducts = useMemo(() => {
     if (!relatedProductsData?.data || !product) return [];
-    // Lọc bỏ sản phẩm hiện tại và lấy tối đa 4 sản phẩm
-    return relatedProductsData.data.filter((p) => p.id !== product.id).slice(0, 4);
+    // Lọc bỏ sản phẩm hiện tại và các sản phẩm sold out (stock = 0)
+    return relatedProductsData.data.filter((p) => {
+      const stock = p.stock ?? 0;
+      return p.id !== product.id && stock > 0;
+    });
   }, [relatedProductsData?.data, product]);
+
+  // Hiển thị 4 sản phẩm mỗi lần
+  const productsPerPage = 4;
+  const totalPages = Math.ceil(relatedProducts.length / productsPerPage);
+  const displayedProducts = useMemo(() => {
+    const startIndex = relatedProductsIndex * productsPerPage;
+    return relatedProducts.slice(startIndex, startIndex + productsPerPage);
+  }, [relatedProducts, relatedProductsIndex, productsPerPage]);
+
+  const handlePrevRelated = () => {
+    setRelatedProductsIndex((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleNextRelated = () => {
+    setRelatedProductsIndex((prev) => Math.min(totalPages - 1, prev + 1));
+  };
 
   const formatPrice = (price?: number) => {
     if (!price) return "Liên hệ";
@@ -52,10 +78,6 @@ const ProductDetailPage = () => {
     }).format(price);
   };
 
-  const handleBuyNow = () => {
-    // TODO: Implement buy now logic
-    message.info("Tính năng đang phát triển");
-  };
 
   if (isLoading) {
     return (
@@ -84,7 +106,8 @@ const ProductDetailPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
+      <SnowEffect />
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="mb-6 text-sm text-gray-600">
@@ -98,7 +121,12 @@ const ProductDetailPage = () => {
           {product.category && (
             <>
               <span className="mx-2">/</span>
-              <span className="text-gray-600">{product.category}</span>
+              <Link 
+                href={`/homepage/products?category=${encodeURIComponent(product.category)}`} 
+                className="text-gray-600 hover:text-blue-600"
+              >
+                {product.category}
+              </Link>
             </>
           )}
           <span className="mx-2">/</span>
@@ -170,7 +198,14 @@ const ProductDetailPage = () => {
           {/* Product Info */}
           <Col xs={24} lg={12}>
             <div className="rounded-lg bg-white p-6 shadow-sm">
-              <Title level={1} className="mb-4">
+              <Title 
+                level={1} 
+                className="mb-4"
+                style={{ 
+                  fontSize: "32px",
+                  fontFamily: '-apple-system, "system-ui", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"'
+                }}
+              >
                 {product.name}
               </Title>
 
@@ -250,29 +285,126 @@ const ProductDetailPage = () => {
                     />
                   </div>
 
+                  {/* Additional Offers */}
+                  <div className="mb-6 rounded-lg border border-orange-200 bg-orange-50 p-4">
+                <style dangerouslySetInnerHTML={{__html: `
+                  @keyframes gentleShake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-2px) rotate(-1deg); }
+                    75% { transform: translateX(2px) rotate(1deg); }
+                  }
+                  .shake-offer-header {
+                    animation: gentleShake 2s ease-in-out infinite;
+                  }
+                `}} />
+                <div className="mb-3 flex items-center gap-2 shake-offer-header">
+                  <GiftOutlined style={{ fontSize: "20px", color: "#ff4d4f" }} />
+                  <Text strong style={{ fontSize: "16px" }}>
+                    <span className="text-gray-800">Ưu đãi thêm khi mua sản phẩm tại </span>
+                    <img
+                      src="http://localhost:3000/web-logo/caulong365_ver3.png"
+                      alt="CauLong365.Store"
+                      className="ml-2 inline-block h-6"
+                      style={{ verticalAlign: "middle" }}
+                    />
+                  </Text>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2">
+                    <img
+                      src="https://res.cloudinary.com/dafzz2c9j/image/upload/v1762582034/png-clipart-checked-logo-check-mark-green-check-angle-leaf-thumbnail-removebg-preview_xdfzob.png"
+                      alt="check"
+                      className="mt-0.5 h-5 w-5 flex-shrink-0"
+                    />
+                    <Text className="text-sm">
+                      <span style={{ color: "#ff6b35" }}>Sơn logo mặt vợt</span>
+                      <span className="text-gray-700"> miễn phí</span>
+                    </Text>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <img
+                      src="https://e7.pngegg.com/pngimages/405/55/png-clipart-checked-logo-check-mark-green-check-angle-leaf-thumbnail.png"
+                      alt="check"
+                      className="mt-0.5 h-5 w-5 flex-shrink-0"
+                    />
+                    <Text className="text-sm">
+                      <span style={{ color: "#ff6b35" }}>Bảo hành lưới đan</span>
+                      <span className="text-gray-700"> trong 72 giờ</span>
+                    </Text>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <img
+                      src="https://e7.pngegg.com/pngimages/405/55/png-clipart-checked-logo-check-mark-green-check-angle-leaf-thumbnail.png"
+                      alt="check"
+                      className="mt-0.5 h-5 w-5 flex-shrink-0"
+                    />
+                    <Text className="text-sm">
+                      <span style={{ color: "#ff6b35" }}>Thay gen vợt</span>
+                      <span className="text-gray-700"> miễn phí trọn đời</span>
+                    </Text>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <img
+                      src="https://e7.pngegg.com/pngimages/405/55/png-clipart-checked-logo-check-mark-green-check-angle-leaf-thumbnail.png"
+                      alt="check"
+                      className="mt-0.5 h-5 w-5 flex-shrink-0"
+                    />
+                    <Text className="text-sm">
+                      <span style={{ color: "#ff6b35" }}>Tích luỹ điểm thành viên</span>
+                      <span className="text-gray-700"> Premium</span>
+                    </Text>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <img
+                      src="https://e7.pngegg.com/pngimages/405/55/png-clipart-checked-logo-check-mark-green-check-angle-leaf-thumbnail.png"
+                      alt="check"
+                      className="mt-0.5 h-5 w-5 flex-shrink-0"
+                    />
+                    <Text className="text-sm">
+                      <span style={{ color: "#ff6b35" }}>Voucher giảm giá</span>
+                      <span className="text-gray-700"> cho lần mua hàng tiếp theo</span>
+                    </Text>
+                  </div>
+                </div>
+              </div>
+
                   <div className="mb-4">
+                    <style dangerouslySetInnerHTML={{__html: `
+                      @keyframes gentlePulse {
+                        0%, 100% { transform: scale(1); }
+                        50% { transform: scale(1.03); }
+                      }
+                      .zalo-button-pulse {
+                        animation: gentlePulse 2s ease-in-out infinite;
+                      }
+                    `}} />
                     <Button
-                      type="primary"
+                      type="default"
                       size="large"
-                      onClick={handleBuyNow}
-                      disabled={isOutOfStock}
-                      danger
-                      className="w-full"
+                      onClick={handleZaloContact}
+                      className="zalo-button-pulse w-full transition-all duration-300 hover:opacity-90 hover:shadow-lg"
+                      style={{ backgroundColor: "#0068FF", color: "white", borderColor: "#0068FF" }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#0052CC";
+                        e.currentTarget.style.animation = "none";
+                        e.currentTarget.style.transform = "translateY(-2px) scale(1.05)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#0068FF";
+                        e.currentTarget.style.animation = "";
+                        e.currentTarget.style.transform = "";
+                      }}
                     >
-                      Mua ngay
+                      <div className="flex items-center justify-center gap-2">
+                        <img
+                          src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Icon_of_Zalo.svg/2048px-Icon_of_Zalo.svg.png"
+                          alt="Zalo"
+                          className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
+                        />
+                        <span>Liên hệ Zalo</span>
+                      </div>
                     </Button>
                   </div>
-
-                  <Button
-                    type="default"
-                    size="large"
-                    icon={<MessageOutlined />}
-                    onClick={handleZaloContact}
-                    className="w-full"
-                    style={{ backgroundColor: "#0068FF", color: "white", borderColor: "#0068FF" }}
-                  >
-                    Liên hệ Zalo
-                  </Button>
                 </>
               )}
             </div>
@@ -309,11 +441,31 @@ const ProductDetailPage = () => {
         {/* Related Products */}
         {relatedProducts.length > 0 && (
           <div>
-            <Title level={2} className="mb-6">
-              Sản phẩm liên quan
-            </Title>
+            <div className="mb-6 flex items-center justify-between">
+              <Title level={2} className="mb-0">
+                Sản phẩm liên quan
+              </Title>
+              {totalPages > 1 && (
+                <div className="flex gap-2">
+                  <Button
+                    icon={<LeftOutlined />}
+                    onClick={handlePrevRelated}
+                    disabled={relatedProductsIndex === 0}
+                  >
+                    Trước
+                  </Button>
+                  <Button
+                    icon={<RightOutlined />}
+                    onClick={handleNextRelated}
+                    disabled={relatedProductsIndex >= totalPages - 1}
+                  >
+                    Sau
+                  </Button>
+                </div>
+              )}
+            </div>
             <Row gutter={[24, 24]}>
-              {relatedProducts.map((relatedProduct) => (
+              {displayedProducts.map((relatedProduct) => (
                 <Col key={relatedProduct.id} xs={24} sm={12} lg={6}>
                   <ProductCard product={relatedProduct} />
                 </Col>

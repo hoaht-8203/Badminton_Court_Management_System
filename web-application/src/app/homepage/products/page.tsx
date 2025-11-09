@@ -1,18 +1,21 @@
 "use client";
 
 import ProductCard from "@/components/homepage/ProductCard";
+import SnowEffect from "@/components/homepage/SnowEffect";
 import { useListProductsForWeb } from "@/hooks/useProducts";
 import { ListProductResponse } from "@/types-openapi/api";
 import { Button, Checkbox, Col, Empty, Input, Pagination, Radio, Row, Select, Spin, Typography } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 const { Title } = Typography;
 
 type SortOption = "default" | "price-asc" | "price-desc" | "name-asc" | "name-desc";
 
 const AllProductsPage = () => {
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<string | null>(null);
@@ -20,6 +23,16 @@ const AllProductsPage = () => {
   const [sortBy, setSortBy] = useState<SortOption>("default");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 12;
+
+  // Đọc category từ URL query parameter
+  useEffect(() => {
+    const categoryParam = searchParams.get("category");
+    if (categoryParam) {
+      const decodedCategory = decodeURIComponent(categoryParam);
+      setSelectedCategories([decodedCategory]);
+      setCurrentPage(1); // Reset về trang 1 khi filter
+    }
+  }, [searchParams]);
 
   const { data: productsData, isLoading } = useListProductsForWeb({
     name: searchTerm || undefined,
@@ -132,7 +145,8 @@ const AllProductsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
+      <SnowEffect />
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="mb-6 text-sm text-gray-600">

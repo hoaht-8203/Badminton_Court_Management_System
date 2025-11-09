@@ -3,10 +3,9 @@
 import ProductCard from "@/components/homepage/ProductCard";
 import SnowEffect from "@/components/homepage/SnowEffect";
 import { useListProductsForWeb } from "@/hooks/useProducts";
-import { ListProductResponse } from "@/types-openapi/api";
 import { Button, Checkbox, Col, Empty, Input, Pagination, Radio, Row, Select, Spin, Typography } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -319,4 +318,16 @@ const AllProductsPage = () => {
   );
 };
 
-export default AllProductsPage;
+const AllProductsPageWrapper = () => {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <Spin size="large" />
+      </div>
+    }>
+      <AllProductsPage />
+    </Suspense>
+  );
+};
+
+export default AllProductsPageWrapper;

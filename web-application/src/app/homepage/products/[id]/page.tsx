@@ -4,7 +4,7 @@ import ProductCard from "@/components/homepage/ProductCard";
 import SnowEffect from "@/components/homepage/SnowEffect";
 import { useDetailProduct, useListProductsForWeb } from "@/hooks/useProducts";
 import { DetailProductResponse } from "@/types-openapi/api";
-import { Avatar, Button, Col, Divider, Empty, Image, InputNumber, Rate, Row, Spin, Tabs, Typography, message } from "antd";
+import { Avatar, Button, Col, Empty, Image, InputNumber, Rate, Row, Spin, Tabs, Typography } from "antd";
 import { UserOutlined, GiftOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -17,7 +17,7 @@ const ProductDetailPage = () => {
   const productId = Number(params.id);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [autoSlide, setAutoSlide] = useState(true);
+  const autoSlide = true; // Auto slide enabled
   const [relatedProductsIndex, setRelatedProductsIndex] = useState(0);
 
   // Auto scroll to top when page loads
@@ -479,8 +479,8 @@ const ProductDetailPage = () => {
 };
 
 // Component hiển thị đánh giá sản phẩm
-const ProductReviews = ({ productId }: { productId: number }) => {
-  // TODO: Lấy đánh giá từ API
+const ProductReviews = ({ productId: _productId }: { productId: number }) => {
+  // TODO: Lấy đánh giá từ API sử dụng _productId
   // Tạm thời sử dụng dữ liệu mẫu
   const reviews = [
     {

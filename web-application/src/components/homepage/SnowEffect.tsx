@@ -8,10 +8,9 @@ const SnowEffect = () => {
   const circlesRef = useRef<any[]>([]);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
     let handleResize: () => void;
 
-    timer = setTimeout(() => {
+    const timer = setTimeout(() => {
       if (!canvasRef.current) return;
 
       const canvas = canvasRef.current;

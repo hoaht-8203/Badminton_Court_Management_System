@@ -95,6 +95,47 @@ namespace ApiApplication.Controllers
         }
 
         /// <summary>
+        /// Lấy danh sách sản phẩm bán trên web cho user
+        /// </summary>
+        /// <param name="request">Tham số yêu cầu</param>
+        /// <returns>Danh sách sản phẩm bán trên web</returns>
+        [HttpGet("list-for-web")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponse<List<ListProductResponse>>>> ListForWeb(
+            [FromQuery] ListProductRequest request
+        )
+        {
+            var result = await _productService.ListForWebAsync(request);
+            return Ok(
+                ApiResponse<List<ListProductResponse>>.SuccessResponse(
+                    result,
+                    "Lấy danh sách sản phẩm bán trên web thành công"
+                )
+            );
+        }
+
+        /// <summary>
+        /// Cập nhật trạng thái bán trên web của sản phẩm
+        /// </summary>
+        /// <param name="id">ID sản phẩm</param>
+        /// <param name="isDisplayOnWeb">Trạng thái bán trên web</param>
+        /// <returns></returns>
+        [HttpPut("update-web-display")]
+        public async Task<ActionResult<ApiResponse<object?>>> UpdateWebDisplay(
+            [FromQuery] int id,
+            [FromQuery] bool isDisplayOnWeb
+        )
+        {
+            await _productService.UpdateWebDisplayAsync(id, isDisplayOnWeb);
+            return Ok(
+                ApiResponse<object?>.SuccessResponse(
+                    null,
+                    "Cập nhật trạng thái bán trên web thành công"
+                )
+            );
+        }
+
+        /// <summary>
         /// Lấy danh sách sản phẩm theo bảng giá
         /// </summary>
         /// <param name="request">Tham số yêu cầu (CheckTime là optional)</param>

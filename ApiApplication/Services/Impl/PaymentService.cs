@@ -222,6 +222,34 @@ public class PaymentService(
         return $"{prefix}{next.ToString("D6")}";
     }
 
+    /// <summary>
+    /// Get active membership discount percent for a customer
+    /// </summary>
+    private async Task<decimal> GetActiveMembershipDiscountPercentAsync(int customerId)
+    {
+        var nowUtc = DateTime.UtcNow;
+        var activeMembership = await _context
+            .UserMemberships.Include(um => um.Membership)
+            .Where(um =>
+                um.CustomerId == customerId
+                && um.IsActive
+                && um.Status == "Paid"
+                && um.EndDate > nowUtc
+            )
+            .OrderByDescending(um => um.StartDate)
+            .Select(um => um.Membership!.DiscountPercent)
+            .FirstOrDefaultAsync();
+
+        return activeMembership;
+    }
+
+    private static int GetCustomDayOfWeek(DateOnly date)
+    {
+        // Monday = 2, Tuesday = 3, ..., Sunday = 8
+        var dayOfWeek = (int)date.DayOfWeek;
+        return dayOfWeek == 0 ? 8 : dayOfWeek + 1;
+    }
+
     private async Task<decimal> CalculateBookingAmountAsync(BookingCourt booking)
     {
         // Helper: compute price for a single day-of-week using court rules and the booking's time range
@@ -288,7 +316,15 @@ public class PaymentService(
             courtCost = await ComputePerDayAsync(walkInDow);
         }
 
-        // Calculate service costs
+        // Apply membership discount to court cost only
+        var discountPercent = await GetActiveMembershipDiscountPercentAsync(booking.CustomerId);
+        if (discountPercent > 0)
+        {
+            var discountAmount = courtCost * discountPercent / 100m;
+            courtCost = courtCost - discountAmount;
+        }
+
+        // Calculate service costs (services are not discounted)
         var serviceCost = 0m;
         var bookingServices = await _context
             .BookingServices.Include(bs => bs.BookingCourtOccurrence)
@@ -366,11 +402,5 @@ public class PaymentService(
         }
 
         return _mapper.Map<DetailPaymentResponse>(createdPayment);
-    }
-
-    private static int GetCustomDayOfWeek(DateOnly date)
-    {
-        var sys = (int)date.DayOfWeek;
-        return sys == 0 ? 8 : sys + 1;
     }
 }

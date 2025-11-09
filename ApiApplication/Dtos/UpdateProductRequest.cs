@@ -23,6 +23,7 @@ public class UpdateProductRequest
 
     public bool? IsDirectSale { get; set; }
     public bool? IsActive { get; set; }
+    public bool? IsDisplayOnWeb { get; set; }
 
     public bool? ManageInventory { get; set; }
     public int? Stock { get; set; }

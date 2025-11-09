@@ -1,7 +1,24 @@
 import { useListCourts, useListCourtPricingRuleByCourtId } from "@/hooks/useCourt";
 import { customerService } from "@/services/customerService";
 import { CreateBookingCourtRequest, DetailBookingCourtResponse, DetailCustomerResponse } from "@/types-openapi/api";
-import { Card, Checkbox, Col, DatePicker, Descriptions, Form, FormProps, Input, message, Modal, Radio, Row, Select, TimePicker, Button } from "antd";
+import {
+  Card,
+  Checkbox,
+  Col,
+  DatePicker,
+  Descriptions,
+  Form,
+  FormProps,
+  Input,
+  message,
+  Modal,
+  Radio,
+  Row,
+  Select,
+  TimePicker,
+  Button,
+  Tag,
+} from "antd";
 import { CheckboxGroupProps } from "antd/es/checkbox";
 import FormItem from "antd/es/form/FormItem";
 import dayjs from "dayjs";
@@ -12,6 +29,8 @@ import { useGetAvailableVouchers, useValidateVoucher } from "@/hooks/useVouchers
 import { ApiError } from "@/lib/axios";
 import { useCreateBookingCourt } from "@/hooks/useBookingCourt";
 import QrPaymentDrawer from "./qr-payment-drawer";
+import { useListUserMemberships } from "@/hooks/useUserMembershipService";
+import { useListMemberships } from "@/hooks/useMembership";
 
 interface ModelCreateNewBookingProps {
   open: boolean;
@@ -77,6 +96,31 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
   const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [modalSelectedVoucherId, setModalSelectedVoucherId] = useState<number | null>(null);
   const [modalValidateLoading, setModalValidateLoading] = useState(false);
+
+  // Fetch customer membership - only when customer is selected and modal is open
+  const customerId = customerWatch?.value;
+  const shouldFetchMembership = open && !!customerId;
+
+  // Fetch membership data only when customer is selected
+  const { data: membershipsData } = useListUserMemberships({
+    customerId: customerId || null,
+    isActive: true,
+  });
+
+  // Get active membership (isActive = true, status = "Paid", endDate > now)
+  // Return null if no customer selected to avoid showing cached data
+  const activeMembership = useMemo(() => {
+    if (!shouldFetchMembership || !customerId || !membershipsData?.data) return null;
+    const now = dayjs();
+    return membershipsData.data.find((m) => m.isActive && m.status === "Paid" && m.endDate && dayjs(m.endDate).isAfter(now)) || null;
+  }, [membershipsData, shouldFetchMembership, customerId]);
+
+  // Fetch membership detail to get discountPercent
+  const { data: allMembershipsData } = useListMemberships({});
+  const membershipDetail = useMemo(() => {
+    if (!activeMembership?.membershipId || !allMembershipsData?.data) return null;
+    return allMembershipsData.data.find((m) => m.id === activeMembership.membershipId) || null;
+  }, [activeMembership?.membershipId, allMembershipsData]);
 
   // Tổng số buổi trong khoảng ngày theo các thứ đã chọn (chỉ cho chế độ cố định)
   const totalSessions = useMemo(() => {
@@ -175,10 +219,20 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
     return Math.round(total);
   }, [startTimeWatch, endTimeWatch, pricingRules, startDateWatch, createBookingCourtDaysOfWeek, daysOfWeek, dateRangeWatch]);
 
-  // Tổng tiền toàn bộ = calculatedPrice (đã bao gồm logic vãng lai/cố định)
+  // Calculate price with membership discount
+  const priceWithDiscount = useMemo(() => {
+    if (!calculatedPrice || !membershipDetail?.discountPercent) {
+      return calculatedPrice;
+    }
+    const discountPercent = membershipDetail.discountPercent || 0;
+    const discountAmount = (calculatedPrice * discountPercent) / 100;
+    return Math.round(calculatedPrice - discountAmount);
+  }, [calculatedPrice, membershipDetail]);
+
+  // Tổng tiền toàn bộ = priceWithDiscount (đã áp dụng discount nếu có)
   const fullAmount = useMemo(() => {
-    return calculatedPrice;
-  }, [calculatedPrice]);
+    return priceWithDiscount;
+  }, [priceWithDiscount]);
 
   const depositPercent = 0.3; // 30% default
   // Deposit should be calculated from the discounted total: (fullAmount - voucherDiscount) * depositPercent
@@ -616,12 +670,40 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                         },
                         {
                           key: "8",
+                          label: "Gói hội viên",
+                          children: activeMembership ? <Tag color="green">{activeMembership.membershipName || "N/A"}</Tag> : "-",
+                          span: 1,
+                        },
+                        {
+                          key: "9",
+                          label: "Giảm giá hội viên",
+                          children: membershipDetail?.discountPercent ? `${membershipDetail.discountPercent}%` : "-",
+                          span: 1,
+                        },
+                        {
+                          key: "10",
                           label: "Tổng số tiền cần trả (tạm tính)",
-                          children: calculatedPrice > 0 ? `${calculatedPrice.toLocaleString("vi-VN")} đ` : "Chưa xác định",
+                          children:
+                            priceWithDiscount > 0 ? (
+                              <div>
+                                {membershipDetail?.discountPercent && calculatedPrice !== priceWithDiscount ? (
+                                  <div>
+                                    <div style={{ textDecoration: "line-through", color: "#999", fontSize: "12px" }}>
+                                      {calculatedPrice.toLocaleString("vi-VN")} đ
+                                    </div>
+                                    <div style={{ color: "#52c41a", fontWeight: "bold" }}>{priceWithDiscount.toLocaleString("vi-VN")} đ</div>
+                                  </div>
+                                ) : (
+                                  <span>{priceWithDiscount.toLocaleString("vi-VN")} đ</span>
+                                )}
+                              </div>
+                            ) : (
+                              "Chưa xác định"
+                            ),
                           span: 1,
                           style: {
-                            color: calculatedPrice > 0 ? "inherit" : "orange",
-                            fontWeight: calculatedPrice > 0 ? "bold" : "normal",
+                            color: priceWithDiscount > 0 ? "inherit" : "orange",
+                            fontWeight: priceWithDiscount > 0 ? "bold" : "normal",
                           },
                         },
                       ]}
@@ -695,12 +777,40 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                         },
                         {
                           key: "9",
+                          label: "Gói hội viên",
+                          children: activeMembership ? <Tag color="green">{activeMembership.membershipName || "N/A"}</Tag> : "-",
+                          span: 1,
+                        },
+                        {
+                          key: "10",
+                          label: "Giảm giá hội viên",
+                          children: membershipDetail?.discountPercent ? `${membershipDetail.discountPercent}%` : "-",
+                          span: 1,
+                        },
+                        {
+                          key: "11",
                           label: "Tổng số tiền cần trả (tạm tính)",
-                          children: calculatedPrice > 0 ? `${calculatedPrice.toLocaleString("vi-VN")} đ` : "Chưa xác định",
+                          children:
+                            priceWithDiscount > 0 ? (
+                              <div>
+                                {membershipDetail?.discountPercent && calculatedPrice !== priceWithDiscount ? (
+                                  <div>
+                                    <div style={{ textDecoration: "line-through", color: "#999", fontSize: "12px" }}>
+                                      {calculatedPrice.toLocaleString("vi-VN")} đ
+                                    </div>
+                                    <div style={{ color: "#52c41a", fontWeight: "bold" }}>{priceWithDiscount.toLocaleString("vi-VN")} đ</div>
+                                  </div>
+                                ) : (
+                                  <span>{priceWithDiscount.toLocaleString("vi-VN")} đ</span>
+                                )}
+                              </div>
+                            ) : (
+                              "Chưa xác định"
+                            ),
                           span: 1,
                           style: {
-                            color: calculatedPrice > 0 ? "inherit" : "orange",
-                            fontWeight: calculatedPrice > 0 ? "bold" : "normal",
+                            color: priceWithDiscount > 0 ? "inherit" : "orange",
+                            fontWeight: priceWithDiscount > 0 ? "bold" : "normal",
                           },
                         },
                       ]}
@@ -715,11 +825,15 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                         {selectedVoucherId ? (
                           (() => {
                             const v = availableVouchers?.data?.data?.find((x) => x.id === selectedVoucherId);
-                            const label = v ? `${v.code ?? v.title ?? "Voucher"} ${v.discountValue ? `- ${v.discountValue}đ` : v.discountPercentage ? `- ${v.discountPercentage}%` : ""}` : `Voucher #${selectedVoucherId}`;
+                            const label = v
+                              ? `${v.code ?? v.title ?? "Voucher"} ${v.discountValue ? `- ${v.discountValue}đ` : v.discountPercentage ? `- ${v.discountPercentage}%` : ""}`
+                              : `Voucher #${selectedVoucherId}`;
                             return (
                               <div>
                                 <div style={{ fontWeight: 600 }}>{label}</div>
-                                <div style={{ color: "#888", fontSize: 12 }}>{voucherDiscount > 0 ? `Giảm -${voucherDiscount.toLocaleString("vi-VN")} đ` : "Đang kiểm tra..."}</div>
+                                <div style={{ color: "#888", fontSize: 12 }}>
+                                  {voucherDiscount > 0 ? `Giảm -${voucherDiscount.toLocaleString("vi-VN")} đ` : "Đang kiểm tra..."}
+                                </div>
                               </div>
                             );
                           })()
@@ -728,7 +842,14 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                         )}
                       </Col>
                       <Col span={6}>
-                        <Button onClick={() => { setModalSelectedVoucherId(selectedVoucherId); setVoucherModalOpen(true); }}>Chọn voucher</Button>
+                        <Button
+                          onClick={() => {
+                            setModalSelectedVoucherId(selectedVoucherId);
+                            setVoucherModalOpen(true);
+                          }}
+                        >
+                          Chọn voucher
+                        </Button>
                       </Col>
                       <Col span={6}>
                         <Button
@@ -815,8 +936,16 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                                     <div style={{ color: "#666", fontSize: 12 }}>{v.description}</div>
                                   </div>
                                   <div style={{ textAlign: "right" }}>
-                                    <div style={{ fontWeight: 700 }}>{v.discountValue ? `${v.discountValue.toLocaleString("vi-VN")} đ` : v.discountPercentage ? `${v.discountPercentage}%` : ""}</div>
-                                    <div style={{ color: "#999", fontSize: 12 }}>{v.endAt ? `Hết hạn: ${dayjs(v.endAt).format("DD/MM/YYYY")}` : ""}</div>
+                                    <div style={{ fontWeight: 700 }}>
+                                      {v.discountValue
+                                        ? `${v.discountValue.toLocaleString("vi-VN")} đ`
+                                        : v.discountPercentage
+                                          ? `${v.discountPercentage}%`
+                                          : ""}
+                                    </div>
+                                    <div style={{ color: "#999", fontSize: 12 }}>
+                                      {v.endAt ? `Hết hạn: ${dayjs(v.endAt).format("DD/MM/YYYY")}` : ""}
+                                    </div>
                                   </div>
                                 </div>
                               </Radio>
@@ -826,7 +955,6 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                       </Radio.Group>
                       {modalValidateLoading && <div style={{ marginTop: 8, color: "#666" }}>Đang kiểm tra voucher...</div>}
                     </Modal>
-
                   </FormItem>
 
                   <Card title="Thông tin thanh toán">
@@ -883,8 +1011,8 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                               key: "amount-pay-now",
                               label: "Cần thanh toán",
                               children:
-                                Math.max((payInFull ? (fullAmount - (voucherDiscount ?? 0)) : depositAmount), 0) > 0
-                                  ? `${Math.max((payInFull ? (fullAmount - (voucherDiscount ?? 0)) : depositAmount), 0).toLocaleString("vi-VN")} đ`
+                                Math.max(payInFull ? fullAmount - (voucherDiscount ?? 0) : depositAmount, 0) > 0
+                                  ? `${Math.max(payInFull ? fullAmount - (voucherDiscount ?? 0) : depositAmount, 0).toLocaleString("vi-VN")} đ`
                                   : "-",
                             },
                           ]}

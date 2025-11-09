@@ -1,7 +1,7 @@
 "use client";
 
 import { DetailBookingCourtResponse } from "@/types-openapi/api";
-import { Button, Descriptions, Drawer, Image, message } from "antd";
+import { Button, Descriptions, Drawer, Image, message, Tag } from "antd";
 import { useEffect, useState, useRef } from "react";
 import { HubConnection, HubConnectionBuilder, HttpTransportType, ILogger, LogLevel } from "@microsoft/signalr";
 import { apiBaseUrl } from "@/lib/axios";
@@ -313,6 +313,30 @@ export default function QrPaymentDrawer({
             label: "Thời gian",
             children: bookingDetail ? `${String(bookingDetail.startTime)} - ${String(bookingDetail.endTime)}` : "-",
           },
+          {
+            key: "membership",
+            label: "Gói hội viên",
+            children:
+              bookingDetail?.hasMembershipDiscount && bookingDetail?.membershipName ? <Tag color="green">{bookingDetail.membershipName}</Tag> : "-",
+          },
+          ...(bookingDetail?.hasMembershipDiscount && bookingDetail?.membershipDiscountPercent
+            ? [
+                {
+                  key: "discount",
+                  label: "Giảm giá hội viên",
+                  children: `${bookingDetail.membershipDiscountPercent}%`,
+                },
+                {
+                  key: "discountAmount",
+                  label: "Số tiền được giảm",
+                  children: bookingDetail.membershipDiscountAmount ? (
+                    <span className="font-semibold text-green-600">{`-${bookingDetail.membershipDiscountAmount.toLocaleString("vi-VN")} đ`}</span>
+                  ) : (
+                    "-"
+                  ),
+                },
+              ]
+            : []),
           {
             key: "amount",
             label: "Số tiền cần thanh toán",

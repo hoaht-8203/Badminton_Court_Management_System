@@ -78,6 +78,12 @@ export interface CreateProductRequest {
      * @type {boolean}
      * @memberof CreateProductRequest
      */
+    isDisplayOnWeb?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof CreateProductRequest
+     */
     manageInventory?: boolean;
     /**
      * 
@@ -150,6 +156,7 @@ export function CreateProductRequestFromJSONTyped(json: any, ignoreDiscriminator
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
         'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
+        'isDisplayOnWeb': json['isDisplayOnWeb'] == null ? undefined : json['isDisplayOnWeb'],
         'manageInventory': json['manageInventory'] == null ? undefined : json['manageInventory'],
         'stock': json['stock'] == null ? undefined : json['stock'],
         'minStock': json['minStock'] == null ? undefined : json['minStock'],
@@ -181,6 +188,7 @@ export function CreateProductRequestToJSONTyped(value?: CreateProductRequest | n
         'salePrice': value['salePrice'],
         'isDirectSale': value['isDirectSale'],
         'isActive': value['isActive'],
+        'isDisplayOnWeb': value['isDisplayOnWeb'],
         'manageInventory': value['manageInventory'],
         'stock': value['stock'],
         'minStock': value['minStock'],

@@ -36,12 +36,6 @@ export interface CreateUserMembershipForCurrentUserRequest {
      * @type {string}
      * @memberof CreateUserMembershipForCurrentUserRequest
      */
-    paymentMethod?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof CreateUserMembershipForCurrentUserRequest
-     */
     paymentNote?: string | null;
 }
 
@@ -65,7 +59,6 @@ export function CreateUserMembershipForCurrentUserRequestFromJSONTyped(json: any
         
         'membershipId': json['membershipId'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
-        'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
         'paymentNote': json['paymentNote'] == null ? undefined : json['paymentNote'],
     };
 }
@@ -83,7 +76,6 @@ export function CreateUserMembershipForCurrentUserRequestToJSONTyped(value?: Cre
         
         'membershipId': value['membershipId'],
         'isActive': value['isActive'],
-        'paymentMethod': value['paymentMethod'],
         'paymentNote': value['paymentNote'],
     };
 }

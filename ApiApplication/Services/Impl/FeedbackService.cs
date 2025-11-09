@@ -274,26 +274,47 @@ public class FeedbackService(ApplicationDbContext context, IMapper mapper, ICurr
                 System.Net.HttpStatusCode.BadRequest
             );
 
+        // Handle MediaUrl separately - always process if provided in request
+        string[]? cleanedMediaUrl = null;
         if (request.MediaUrl != null)
         {
-            var cleaned = request
+            // Clean and validate the MediaUrl array
+            cleanedMediaUrl = request
                 .MediaUrl.Where(s => !string.IsNullOrWhiteSpace(s))
                 .Select(s => s.Trim())
                 .Distinct()
                 .Take(3)
                 .ToArray();
-            if (cleaned.Length != request.MediaUrl.Length && request.MediaUrl.Length > 3)
+            
+            // If after cleaning we have items, validate count
+            if (cleanedMediaUrl.Length > 0)
             {
-                throw new ApiException(
-                    "Tối đa 3 media cho feedback",
-                    System.Net.HttpStatusCode.BadRequest
-                );
+                if (request.MediaUrl.Length > 3)
+                {
+                    throw new ApiException(
+                        "Tối đa 3 media cho feedback",
+                        System.Net.HttpStatusCode.BadRequest
+                    );
+                }
             }
-            request.MediaUrl = cleaned;
+            else
+            {
+                // Empty array means clear MediaUrl - set to null
+                cleanedMediaUrl = null;
+            }
         }
 
         var originalReply = entity.AdminReply;
         _mapper.Map(request, entity);
+
+        // Explicitly set MediaUrl after mapping to ensure it's updated correctly
+        // If request.MediaUrl is not null, it means user wants to update MediaUrl
+        // (either with new values or clear it by sending empty array)
+        if (request.MediaUrl != null)
+        {
+            entity.MediaUrl = cleanedMediaUrl;
+        }
+        // If request.MediaUrl is null, don't update MediaUrl (preserve existing value)
 
         // Set AdminReplyAt when AdminReply is updated from null/empty to non-empty
         if (

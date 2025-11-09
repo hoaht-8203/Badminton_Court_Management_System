@@ -216,6 +216,36 @@ export interface DetailBookingCourtResponse {
      * @memberof DetailBookingCourtResponse
      */
     lateFeePercentage?: number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof DetailBookingCourtResponse
+     */
+    hasMembershipDiscount?: boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    membershipDiscountPercent?: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    membershipDiscountAmount?: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof DetailBookingCourtResponse
+     */
+    originalAmount?: number | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof DetailBookingCourtResponse
+     */
+    membershipName?: string | null;
 }
 
 /**
@@ -263,6 +293,11 @@ export function DetailBookingCourtResponseFromJSONTyped(json: any, ignoreDiscrim
         'overdueHours': json['overdueHours'] == null ? undefined : json['overdueHours'],
         'surchargeAmount': json['surchargeAmount'] == null ? undefined : json['surchargeAmount'],
         'lateFeePercentage': json['lateFeePercentage'] == null ? undefined : json['lateFeePercentage'],
+        'hasMembershipDiscount': json['hasMembershipDiscount'] == null ? undefined : json['hasMembershipDiscount'],
+        'membershipDiscountPercent': json['membershipDiscountPercent'] == null ? undefined : json['membershipDiscountPercent'],
+        'membershipDiscountAmount': json['membershipDiscountAmount'] == null ? undefined : json['membershipDiscountAmount'],
+        'originalAmount': json['originalAmount'] == null ? undefined : json['originalAmount'],
+        'membershipName': json['membershipName'] == null ? undefined : json['membershipName'],
     };
 }
 
@@ -305,6 +340,11 @@ export function DetailBookingCourtResponseToJSONTyped(value?: DetailBookingCourt
         'overdueHours': value['overdueHours'],
         'surchargeAmount': value['surchargeAmount'],
         'lateFeePercentage': value['lateFeePercentage'],
+        'hasMembershipDiscount': value['hasMembershipDiscount'],
+        'membershipDiscountPercent': value['membershipDiscountPercent'],
+        'membershipDiscountAmount': value['membershipDiscountAmount'],
+        'originalAmount': value['originalAmount'],
+        'membershipName': value['membershipName'],
     };
 }
 

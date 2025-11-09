@@ -15,6 +15,7 @@
 
 import * as runtime from '../runtime';
 import type {
+  CreateUserMembershipForCurrentUserRequest,
   CreateUserMembershipRequest,
   CreateUserMembershipResponseApiResponse,
   ExtendPaymentRequest,
@@ -24,6 +25,8 @@ import type {
   UserMembershipResponseArrayApiResponse,
 } from '../models/index';
 import {
+    CreateUserMembershipForCurrentUserRequestFromJSON,
+    CreateUserMembershipForCurrentUserRequestToJSON,
     CreateUserMembershipRequestFromJSON,
     CreateUserMembershipRequestToJSON,
     CreateUserMembershipResponseApiResponseFromJSON,
@@ -39,6 +42,10 @@ import {
     UserMembershipResponseArrayApiResponseFromJSON,
     UserMembershipResponseArrayApiResponseToJSON,
 } from '../models/index';
+
+export interface ApiUserMembershipsCreateForCurrentUserPostRequest {
+    createUserMembershipForCurrentUserRequest?: CreateUserMembershipForCurrentUserRequest;
+}
 
 export interface ApiUserMembershipsCreatePostRequest {
     createUserMembershipRequest?: CreateUserMembershipRequest;
@@ -73,6 +80,19 @@ export interface ApiUserMembershipsUpdateStatusPutRequest {
  * @interface UserMembershipsApiInterface
  */
 export interface UserMembershipsApiInterface {
+    /**
+     * 
+     * @param {CreateUserMembershipForCurrentUserRequest} [createUserMembershipForCurrentUserRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof UserMembershipsApiInterface
+     */
+    apiUserMembershipsCreateForCurrentUserPostRaw(requestParameters: ApiUserMembershipsCreateForCurrentUserPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateUserMembershipResponseApiResponse>>;
+
+    /**
+     */
+    apiUserMembershipsCreateForCurrentUserPost(requestParameters: ApiUserMembershipsCreateForCurrentUserPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateUserMembershipResponseApiResponse>;
+
     /**
      * 
      * @param {CreateUserMembershipRequest} [createUserMembershipRequest] 
@@ -159,6 +179,36 @@ export interface UserMembershipsApiInterface {
  * 
  */
 export class UserMembershipsApi extends runtime.BaseAPI implements UserMembershipsApiInterface {
+
+    /**
+     */
+    async apiUserMembershipsCreateForCurrentUserPostRaw(requestParameters: ApiUserMembershipsCreateForCurrentUserPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CreateUserMembershipResponseApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/UserMemberships/create-for-current-user`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CreateUserMembershipForCurrentUserRequestToJSON(requestParameters['createUserMembershipForCurrentUserRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => CreateUserMembershipResponseApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiUserMembershipsCreateForCurrentUserPost(requestParameters: ApiUserMembershipsCreateForCurrentUserPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<CreateUserMembershipResponseApiResponse> {
+        const response = await this.apiUserMembershipsCreateForCurrentUserPostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
 
     /**
      */

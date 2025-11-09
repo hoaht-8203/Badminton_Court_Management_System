@@ -12,6 +12,8 @@ public interface IProductService
     Task DeleteAsync(DeleteProductRequest request);
     Task UpdateImagesAsync(UpdateProductImagesRequest request);
     Task UpdateStatusAsync(int id, bool isActive);
+    Task UpdateWebDisplayAsync(int id, bool isDisplayOnWeb);
+    Task<List<ListProductResponse>> ListForWebAsync(ListProductRequest request);
 
     Task<List<ListProductsByPriceTableResponse>> ListByPriceTableAsync(
         ListProductsByPriceTableRequest request

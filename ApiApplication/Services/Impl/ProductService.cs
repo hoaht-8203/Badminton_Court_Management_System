@@ -346,6 +346,61 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
         await _context.SaveChangesAsync();
     }
 
+    public async Task UpdateWebDisplayAsync(int id, bool isDisplayOnWeb)
+    {
+        var entity = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+        if (entity == null)
+        {
+            throw new ApiException(
+                $"Sản phẩm không tồn tại: {id}",
+                System.Net.HttpStatusCode.NotFound
+            );
+        }
+
+        entity.IsDisplayOnWeb = isDisplayOnWeb;
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<ListProductResponse>> ListForWebAsync(ListProductRequest request)
+    {
+        var query = _context.Products
+            .Include(p => p.Category)
+            .Where(p => p.IsActive && p.IsDisplayOnWeb) // Chỉ lấy sản phẩm active và bán trên web
+            .AsQueryable();
+
+        if (request.Id.HasValue)
+        {
+            query = query.Where(p => p.Id == request.Id);
+        }
+        if (!string.IsNullOrWhiteSpace(request.Code))
+        {
+            var code = request.Code.ToLower();
+            query = query.Where(p => p.Code != null && p.Code.ToLower().Contains(code));
+        }
+        if (!string.IsNullOrWhiteSpace(request.Name))
+        {
+            var name = request.Name.ToLower();
+            query = query.Where(p => p.Name.ToLower().Contains(name));
+        }
+        if (!string.IsNullOrWhiteSpace(request.MenuType))
+        {
+            var menu = request.MenuType.ToLower();
+            query = query.Where(p => p.MenuType != null && p.MenuType.ToLower().Contains(menu));
+        }
+        if (!string.IsNullOrWhiteSpace(request.Category))
+        {
+            var cat = request.Category.ToLower();
+            query = query.Where(p => p.Category != null && p.Category.Name.ToLower().Contains(cat));
+        }
+        if (request.IsDirectSale.HasValue)
+        {
+            query = query.Where(p => p.IsDirectSale == request.IsDirectSale);
+        }
+
+        var items = await query.OrderBy(p => p.Name).ToListAsync(); // Sắp xếp theo tên cho web
+        return _mapper.Map<List<ListProductResponse>>(items);
+    }
+
     private async Task<string> GenerateNextInventoryCodeAsync()
     {
         var last = await _context

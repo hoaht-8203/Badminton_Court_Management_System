@@ -11,15 +11,12 @@ import { InfoCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-type CreateNewProductDrawerProps = {
+type CreateWebProductDrawerProps = {
   open: boolean;
   onClose: () => void;
-  title?: string;
-  presetMenuType?: string; // e.g. "Khác"
-  isService?: boolean; // when true, hide inventory management controls
 };
 
-const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isService }: CreateNewProductDrawerProps) => {
+const CreateWebProductDrawer = ({ open, onClose }: CreateWebProductDrawerProps) => {
   const [form] = Form.useForm<CreateProductRequest>();
   const createMutation = useCreateProduct();
   const createCategoryMutation = useCreateCategory();
@@ -37,8 +34,6 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
     onChange: ({ fileList }) => setFiles(fileList),
     multiple: true,
   };
-
-  // Không tạo phiếu kiểm kho ở FE; backend sẽ tự tạo phiếu cân bằng khi phù hợp
 
   // Auto-generate code: SP0001 style
   const generateNextCode = async () => {
@@ -60,10 +55,8 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
 
   useEffect(() => {
     if (open) {
-      // preset menu type if provided
-      if (presetMenuType) {
-        form.setFieldsValue({ menuType: presetMenuType });
-      }
+      // Auto set menuType to "Khác" and isDisplayOnWeb to true
+      form.setFieldsValue({ menuType: "Khác", isDisplayOnWeb: true });
       // generate code on open
       generateNextCode();
     } else {
@@ -76,14 +69,21 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
   }, [open]);
 
   const onSubmit = async (values: CreateProductRequest) => {
-    createMutation.mutate(values, {
+    // Ensure menuType is "Khác" and isDisplayOnWeb is true
+    const finalValues = {
+      ...values,
+      menuType: "Khác",
+      isDisplayOnWeb: true,
+    };
+
+    createMutation.mutate(finalValues, {
       onSuccess: async () => {
         try {
           // Get the new product ID
           let productId: number | undefined;
 
-          if (values.code) {
-            const list = await productService.list({ code: values.code });
+          if (finalValues.code) {
+            const list = await productService.list({ code: finalValues.code });
             productId = list.data?.[0]?.id;
 
             // Upload images if available
@@ -98,7 +98,6 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
 
             // Refresh product lists
             qc.invalidateQueries({ queryKey: ["products"] });
-            // FE không gọi tạo phiếu kiểm kho ở đây nữa
           } else if (files.length > 0) {
             message.warning("Đã tạo hàng. Vui lòng đặt mã code để tải ảnh ngay lần tới.");
           }
@@ -114,7 +113,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
   };
 
   return (
-    <Drawer title={title ?? "Thêm hàng hóa"} width={720} onClose={onClose} open={open} destroyOnClose>
+    <Drawer title="Thêm sản phẩm bán hàng" width={720} onClose={onClose} open={open} destroyOnClose>
       <Form
         form={form}
         layout="vertical"
@@ -122,8 +121,8 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
         initialValues={{
           isDirectSale: true,
           manageInventory: false,
-          isDisplayOnWeb: false,
-          menuType: presetMenuType,
+          isDisplayOnWeb: true,
+          menuType: "Khác",
           maxStock: 999,
           stock: 0,
           minStock: 0,
@@ -174,21 +173,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
         </Row>
 
         <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item name="menuType" label="Loại thực đơn" rules={[{ required: true, message: "Vui lòng chọn loại thực đơn" }]}>
-              <Select
-                options={[
-                  { label: "Đồ ăn", value: "Đồ ăn" },
-                  { label: "Đồ uống", value: "Đồ uống" },
-                  { label: "Khác", value: "Khác" },
-                ]}
-                placeholder="Chọn loại thực đơn"
-                allowClear={!isService}
-                disabled={!!isService}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
+          <Col span={24}>
             <Form.Item name="categoryId" label="Nhóm hàng" rules={[{ required: true, message: "Vui lòng chọn nhóm hàng" }]}>
               <Select
                 placeholder="Chọn nhóm hàng"
@@ -301,22 +286,20 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
           </Col>
         </Row>
 
-        {!isService && (
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="isDirectSale" valuePropName="checked" label="Bán trực tiếp">
-                <Checkbox />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item name="manageInventory" valuePropName="checked" label="Quản lý tồn kho">
-                <Checkbox onChange={(e) => setManageInventory(e.target.checked)} />
-              </Form.Item>
-            </Col>
-          </Row>
-        )}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="isDirectSale" valuePropName="checked" label="Bán trực tiếp">
+              <Checkbox />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="manageInventory" valuePropName="checked" label="Quản lý tồn kho">
+              <Checkbox onChange={(e) => setManageInventory(e.target.checked)} />
+            </Form.Item>
+          </Col>
+        </Row>
 
-        {!isService && manageInventory && (
+        {manageInventory && (
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item
@@ -410,4 +393,5 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
   );
 };
 
-export default CreateNewProductDrawer;
+export default CreateWebProductDrawer;
+

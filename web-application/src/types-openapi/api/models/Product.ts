@@ -129,6 +129,12 @@ export interface Product {
      * @type {boolean}
      * @memberof Product
      */
+    isDisplayOnWeb?: boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof Product
+     */
     manageInventory?: boolean;
     /**
      * 
@@ -213,6 +219,7 @@ export function ProductFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
         'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
+        'isDisplayOnWeb': json['isDisplayOnWeb'] == null ? undefined : json['isDisplayOnWeb'],
         'manageInventory': json['manageInventory'] == null ? undefined : json['manageInventory'],
         'stock': json['stock'] == null ? undefined : json['stock'],
         'minStock': json['minStock'] == null ? undefined : json['minStock'],
@@ -251,6 +258,7 @@ export function ProductToJSONTyped(value?: Product | null, ignoreDiscriminator: 
         'salePrice': value['salePrice'],
         'isDirectSale': value['isDirectSale'],
         'isActive': value['isActive'],
+        'isDisplayOnWeb': value['isDisplayOnWeb'],
         'manageInventory': value['manageInventory'],
         'stock': value['stock'],
         'minStock': value['minStock'],

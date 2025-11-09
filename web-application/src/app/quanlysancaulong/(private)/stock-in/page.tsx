@@ -6,6 +6,7 @@ import { PlusOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons"
 import dayjs from "dayjs";
 import CreateEditStockInDrawer from "@/components/quanlysancaulong/stock-in/create-edit-stock-in-drawer";
 import CreateNewProductDrawer from "@/components/quanlysancaulong/products/create-new-product-drawer";
+import CreateWebProductDrawer from "@/components/quanlysancaulong/products/create-web-product-drawer";
 import { receiptsService } from "@/services/receiptsService";
 import { useListSuppliers } from "@/hooks/useSuppliers";
 import { CreateReceiptRequest } from "@/types-openapi/api";
@@ -65,6 +66,7 @@ const StockInPage = () => {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [openProductDrawer, setOpenProductDrawer] = useState(false);
+  const [openWebProductDrawer, setOpenWebProductDrawer] = useState(false);
   const [searchForm] = Form.useForm();
   const [filters, setFilters] = useState<{
     code?: string;

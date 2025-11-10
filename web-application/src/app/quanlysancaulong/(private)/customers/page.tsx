@@ -216,7 +216,7 @@ const CustomerInformation = ({
           <Col span={7}>
             <Row gutter={16}>
               <Col span={8}>Giới tính:</Col>
-              <Col span={16}>{record.gender}</Col>
+              <Col span={16}>{record.gender || "-"}</Col>
               <Col span={24}>
                 <Divider size="small" />
               </Col>

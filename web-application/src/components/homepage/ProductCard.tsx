@@ -58,7 +58,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             )}
           </div>
         }
-        className="h-full"
+        className="h-full border border-gray-300 shadow-sm transition-shadow duration-300 hover:shadow-lg"
         styles={{ body: { padding: "16px" } }}
       >
         <div className="flex h-full flex-col">

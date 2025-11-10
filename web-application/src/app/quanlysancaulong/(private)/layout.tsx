@@ -4,7 +4,7 @@ import React from "react";
 
 import { useAuth } from "@/context/AuthContext";
 import { CurrentUserResponse } from "@/types-openapi/api";
-import { LogoutOutlined, SettingOutlined, UserOutlined, CalendarOutlined, ToolOutlined, MessageOutlined } from "@ant-design/icons";
+import { LogoutOutlined, SettingOutlined, UserOutlined, CalendarOutlined, ToolOutlined, MessageOutlined, GiftOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Avatar, Button, Dropdown, Layout, Menu } from "antd";
 import { ArrowLeftRight, ChartSpline, Columns2, FileText, Handshake, IdCardLanyard, Package, Settings } from "lucide-react";
@@ -159,7 +159,7 @@ const sideBarItems: MenuProps["items"] = [
   {
     key: "/quanlysancaulong/vouchers",
     label: "Quản lý voucher",
-    icon: <FileText className="h-4 w-4" />,
+    icon: <GiftOutlined className="h-4 w-4" />,
   },
   {
     key: "cashflow",

@@ -435,21 +435,31 @@ const CourtScheduler = ({ courts }: CourtSchedulerProps) => {
   }, []);
 
   // Memoize resources to prevent unnecessary re-computations
-  const resources: DayPilot.ResourceData[] = useMemo(
-    () =>
-      courts.map((courtArea) => ({
-        name: courtArea.name ?? "",
-        id: courtArea.id,
-        expanded: true,
-        children:
-          courtArea.courts?.map((court) => ({
-            name: court.name ?? "",
-            id: court.id,
-            status: court.status,
-          })) ?? [],
-      })),
-    [courts],
-  );
+  const resources: DayPilot.ResourceData[] = useMemo(() => {
+    return courts
+      .map((courtArea) => {
+        const children =
+          courtArea.courts
+            ?.map((court) => ({
+              name: court.name ?? "",
+              id: court.id,
+              status: court.status,
+            }))
+            ?.filter((child) => !!child?.id) ?? [];
+
+        if (children.length === 0) {
+          return null;
+        }
+
+        return {
+          name: courtArea.name ?? "",
+          id: courtArea.id,
+          expanded: true,
+          children,
+        } as DayPilot.ResourceData;
+      })
+      .filter((resource): resource is DayPilot.ResourceData => resource !== null);
+  }, [courts]);
 
   // const handleCreateBooking = () => {
   //   console.log("handleCreateBooking", newBooking);

@@ -73,6 +73,12 @@ export interface UserCreateBookingCourtRequest {
      * @memberof UserCreateBookingCourtRequest
      */
     payInFull?: boolean | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof UserCreateBookingCourtRequest
+     */
+    voucherId?: number | null;
 }
 
 /**
@@ -101,6 +107,7 @@ export function UserCreateBookingCourtRequestFromJSONTyped(json: any, ignoreDisc
         'daysOfWeek': json['daysOfWeek'] == null ? undefined : json['daysOfWeek'],
         'note': json['note'] == null ? undefined : json['note'],
         'payInFull': json['payInFull'] == null ? undefined : json['payInFull'],
+        'voucherId': json['voucherId'] == null ? undefined : json['voucherId'],
     };
 }
 
@@ -124,6 +131,7 @@ export function UserCreateBookingCourtRequestToJSONTyped(value?: UserCreateBooki
         'daysOfWeek': value['daysOfWeek'],
         'note': value['note'],
         'payInFull': value['payInFull'],
+        'voucherId': value['voucherId'],
     };
 }
 

@@ -2,6 +2,7 @@ using System.Net;
 using ApiApplication.Data;
 using ApiApplication.Dtos.Voucher;
 using ApiApplication.Entities;
+using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
 using ApiApplication.Sessions;
 using AutoMapper;
@@ -59,6 +60,16 @@ public class VoucherService : IVoucherService
         var v = await _context.Vouchers.FindAsync(id);
         if (v == null)
             throw new ApiException("Voucher không tồn tại", HttpStatusCode.NotFound);
+        
+        // Chỉ cho phép xóa voucher chưa được sử dụng lần nào
+        if (v.UsedCount > 0)
+        {
+            throw new ApiException(
+                $"Không thể xóa voucher này. Voucher đã được sử dụng {v.UsedCount} lần.",
+                HttpStatusCode.BadRequest
+            );
+        }
+        
         _context.Vouchers.Remove(v);
         await _context.SaveChangesAsync();
     }
@@ -123,6 +134,32 @@ public class VoucherService : IVoucherService
         await _context.SaveChangesAsync();
     }
 
+    public async Task ExtendAsync(int id, ExtendVoucherRequest request)
+    {
+        var v = await _context.Vouchers.FindAsync(id);
+        if (v == null)
+            throw new ApiException("Voucher không tồn tại", HttpStatusCode.NotFound);
+
+        // Chỉ update những trường có giá trị (partial update)
+        if (request.EndAt.HasValue)
+        {
+            v.EndAt = request.EndAt.Value;
+        }
+
+        if (request.UsageLimitTotal.HasValue)
+        {
+            v.UsageLimitTotal = request.UsageLimitTotal.Value;
+        }
+
+        if (request.UsageLimitPerUser.HasValue)
+        {
+            v.UsageLimitPerUser = request.UsageLimitPerUser.Value;
+        }
+
+        _context.Vouchers.Update(v);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<List<VoucherResponse>> GetAvailableVouchersForCurrentUserAsync()
     {
         // Get current user
@@ -132,12 +169,30 @@ public class VoucherService : IVoucherService
             throw new ApiException("Người dùng chưa đăng nhập", HttpStatusCode.Unauthorized);
         }
 
-        // Get customer associated with user
-        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
-        if (customer == null)
+        // Get user with customer navigation property
+        var user = await _context
+            .Users.Include(u => u.Customer)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
         {
-            return new List<VoucherResponse>();
+            throw new ApiException("Người dùng không tồn tại", HttpStatusCode.Unauthorized);
         }
+
+        // Auto-create customer if it doesn't exist (consistent with ValidateVoucher flow)
+        // This ensures that available vouchers are filtered correctly based on customer-specific rules
+        if (user.Customer == null)
+        {
+            await EnsureCustomerExistsForUserAsync(user);
+            // After SaveChangesAsync, the user.Customer should be set, but reload to be safe
+            await _context.Entry(user).Reference(u => u.Customer).LoadAsync();
+        }
+
+        var customer = user.Customer;
+
+        // Note: After auto-creation, customer should never be null for regular users.
+        // However, admin/receptionist accounts may still not have customers,
+        // so we handle that case below.
 
         // Get current time information (this will be different for each request)
         var now = DateTime.UtcNow;
@@ -157,6 +212,13 @@ public class VoucherService : IVoucherService
                 && (v.UsageLimitTotal == 0 || v.UsedCount < v.UsageLimitTotal) // Check total usage limit
             )
             .ToListAsync();
+
+        // If there's still no customer (e.g. admin/receptionist accounts that shouldn't have customers),
+        // return all active, non-expired vouchers so staff can apply them when creating bookings for customers.
+        if (customer == null)
+        {
+            return _mapper.Map<List<VoucherResponse>>(vouchers);
+        }
 
         // Step 2: Pre-load voucher usages for this specific customer to avoid N+1 queries
         // This is user-specific, so different users will have different usage counts
@@ -293,6 +355,32 @@ public class VoucherService : IVoucherService
         return _mapper.Map<List<VoucherResponse>>(availableVouchers);
     }
 
+    /// <summary>
+    /// Creates a customer record for the given user if it doesn't exist.
+    /// This ensures consistency across voucher operations (available, validate, booking).
+    /// </summary>
+    private async Task EnsureCustomerExistsForUserAsync(ApplicationUser user)
+    {
+        if (user.Customer != null)
+        {
+            return;
+        }
+
+        var customer = new Customer
+        {
+            FullName = user.FullName,
+            PhoneNumber = user.PhoneNumber ?? "",
+            Email = user.Email ?? "",
+            Status = CustomerStatus.Active,
+            UserId = user.Id,
+        };
+
+        await _context.Customers.AddAsync(customer);
+        user.Customer = customer;
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<ValidateVoucherResponse> ValidateAndCalculateDiscountAsync(
         ValidateVoucherRequest request,
         int customerId
@@ -323,9 +411,34 @@ public class VoucherService : IVoucherService
             };
         }
 
-        // Check date range
-        var now = DateTime.UtcNow;
-        if (voucher.StartAt > now || voucher.EndAt < now)
+        // Determine the reference time for validation. If booking context is provided in the request,
+        // use that; otherwise fall back to current UTC time.
+        var referenceDateTime = DateTime.UtcNow;
+        if (request.BookingDate.HasValue)
+        {
+            // Build a DateTime from BookingDate and optional start time if present
+            var bookingDate = request.BookingDate.Value.Date;
+            if (request.BookingStartTime.HasValue)
+            {
+                var st = request.BookingStartTime.Value;
+                referenceDateTime = new DateTime(
+                    bookingDate.Year,
+                    bookingDate.Month,
+                    bookingDate.Day,
+                    st.Hour,
+                    st.Minute,
+                    st.Second,
+                    DateTimeKind.Utc
+                );
+            }
+            else
+            {
+                referenceDateTime = bookingDate;
+            }
+        }
+
+        // Check date range against referenceDateTime
+        if (voucher.StartAt > referenceDateTime || voucher.EndAt < referenceDateTime)
         {
             return new ValidateVoucherResponse
             {
@@ -372,10 +485,10 @@ public class VoucherService : IVoucherService
             };
         }
 
-        // Check time rules
-        var currentDate = DateOnly.FromDateTime(now);
-        var currentTime = TimeOnly.FromDateTime(now);
-        var currentDayOfWeek = now.DayOfWeek;
+        // Check time rules - use booking context if provided, otherwise current UTC
+        var currentDate = DateOnly.FromDateTime(referenceDateTime);
+        var currentTime = TimeOnly.FromDateTime(referenceDateTime);
+        var currentDayOfWeek = referenceDateTime.DayOfWeek;
 
         if (voucher.TimeRules != null && voucher.TimeRules.Any())
         {

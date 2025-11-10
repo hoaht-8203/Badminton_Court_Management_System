@@ -29,4 +29,8 @@ public class Payment : BaseEntity
     public decimal Amount { get; set; }
     public string Status { get; set; } = PaymentStatus.PendingPayment;
     public string? Note { get; set; }
+
+    // Optional voucher info applied to this payment
+    public int? VoucherId { get; set; }
+    public decimal DiscountAmount { get; set; } = 0m;
 }

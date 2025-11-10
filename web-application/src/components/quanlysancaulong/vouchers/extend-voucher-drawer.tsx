@@ -1,10 +1,10 @@
 "use client";
 
-import { useDetailVoucher, useUpdateVoucher } from "@/hooks/useVouchers";
+import { useDetailVoucher, useExtendVoucher } from "@/hooks/useVouchers";
 import { ApiError } from "@/lib/axios";
-import { UpdateVoucherRequest, DetailVoucherRequest, VoucherResponse } from "@/types-openapi/api";
+import { DetailVoucherRequest, VoucherResponse } from "@/types-openapi/api";
 import { CloseOutlined, SaveOutlined } from "@ant-design/icons";
-import { Button, Drawer, Form, FormProps, InputNumber, DatePicker, Tabs, message, Divider } from "antd";
+import { Button, DatePicker, Divider, Drawer, Form, FormProps, InputNumber, Tabs, message } from "antd";
 import FormItem from "antd/es/form/FormItem";
 import dayjs from "dayjs";
 import React from "react";
@@ -15,12 +15,18 @@ interface ExtendVoucherDrawerProps {
   voucherId: number | null;
 }
 
+interface ExtendVoucherFormValues {
+  endAt?: dayjs.Dayjs;
+  usageLimitTotal?: number;
+  usageLimitPerUser?: number;
+}
+
 // Use Tabs items API (TabPane is deprecated)
 
 const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerProps) => {
-  const [form] = Form.useForm<UpdateVoucherRequest>();
+  const [form] = Form.useForm<ExtendVoucherFormValues>();
   const { data: detailResp } = useDetailVoucher({ id: voucherId ?? 0 } as DetailVoucherRequest);
-  const updateMutation = useUpdateVoucher();
+  const extendMutation = useExtendVoucher();
 
   React.useEffect(() => {
     if (detailResp?.data) {
@@ -33,19 +39,37 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
     }
   }, [detailResp, form]);
 
-  const handleSubmit: FormProps<UpdateVoucherRequest>["onFinish"] = (values) => {
+  const handleSubmit: FormProps<ExtendVoucherFormValues>["onFinish"] = (values) => {
     if (!voucherId) {
       message.error("ID voucher không hợp lệ");
       return;
     }
 
-    const payload: UpdateVoucherRequest = {
-      endAt: values.endAt ? dayjs(values.endAt).toDate() : undefined,
-      usageLimitTotal: values.usageLimitTotal,
-      usageLimitPerUser: values.usageLimitPerUser,
-    } as UpdateVoucherRequest;
+    // Build payload with only provided fields
+    const payload: { endAt?: Date; usageLimitTotal?: number; usageLimitPerUser?: number } = {};
 
-    updateMutation.mutate(
+    // endAt
+    if (values.endAt) {
+      payload.endAt = dayjs(values.endAt).toDate();
+    }
+
+    // usageLimitTotal
+    if (values.usageLimitTotal !== undefined) {
+      payload.usageLimitTotal = values.usageLimitTotal;
+    }
+
+    // usageLimitPerUser
+    if (values.usageLimitPerUser !== undefined) {
+      payload.usageLimitPerUser = values.usageLimitPerUser;
+    }
+
+    // If nothing provided, inform the user and skip the request
+    if (Object.keys(payload).length === 0) {
+      message.info("Vui lòng nhập ít nhất một trường để cập nhật");
+      return;
+    }
+
+    extendMutation.mutate(
       { id: voucherId, data: payload },
       {
         onSuccess: () => {
@@ -80,13 +104,7 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
           >
             Đóng
           </Button>
-          <Button
-            type="primary"
-            style={{ marginLeft: 8 }}
-            loading={updateMutation.status === "pending"}
-            onClick={() => form.submit()}
-            icon={<SaveOutlined />}
-          >
+          <Button type="primary" style={{ marginLeft: 8 }} loading={extendMutation.isPending} onClick={() => form.submit()} icon={<SaveOutlined />}>
             Lưu
           </Button>
         </div>
@@ -99,7 +117,7 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
             label: "Thông tin cơ bản",
             children: (
               <Form form={form} onFinish={handleSubmit} layout="vertical">
-                <FormItem name="endAt" label="Ngày kết thúc mới" rules={[{ required: true }]}>
+                <FormItem name="endAt" label="Ngày kết thúc mới">
                   <DatePicker showTime style={{ width: "100%" }} format="DD/MM/YYYY HH:mm" />
                 </FormItem>
 

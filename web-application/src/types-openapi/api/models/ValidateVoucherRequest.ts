@@ -31,6 +31,30 @@ export interface ValidateVoucherRequest {
      * @memberof ValidateVoucherRequest
      */
     orderTotalAmount: number;
+    /**
+     * 
+     * @type {Date}
+     * @memberof ValidateVoucherRequest
+     */
+    bookingDate?: Date | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ValidateVoucherRequest
+     */
+    bookingStartTime?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof ValidateVoucherRequest
+     */
+    bookingEndTime?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof ValidateVoucherRequest
+     */
+    customerId?: number | null;
 }
 
 /**
@@ -54,6 +78,10 @@ export function ValidateVoucherRequestFromJSONTyped(json: any, ignoreDiscriminat
         
         'voucherId': json['voucherId'],
         'orderTotalAmount': json['orderTotalAmount'],
+        'bookingDate': json['bookingDate'] == null ? undefined : (new Date(json['bookingDate'])),
+        'bookingStartTime': json['bookingStartTime'] == null ? undefined : json['bookingStartTime'],
+        'bookingEndTime': json['bookingEndTime'] == null ? undefined : json['bookingEndTime'],
+        'customerId': json['customerId'] == null ? undefined : json['customerId'],
     };
 }
 
@@ -70,6 +98,10 @@ export function ValidateVoucherRequestToJSONTyped(value?: ValidateVoucherRequest
         
         'voucherId': value['voucherId'],
         'orderTotalAmount': value['orderTotalAmount'],
+        'bookingDate': value['bookingDate'] === null ? null : ((value['bookingDate'] as any)?.toISOString()),
+        'bookingStartTime': value['bookingStartTime'],
+        'bookingEndTime': value['bookingEndTime'],
+        'customerId': value['customerId'],
     };
 }
 

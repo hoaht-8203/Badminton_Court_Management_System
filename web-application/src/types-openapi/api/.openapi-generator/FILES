@@ -247,6 +247,7 @@ models/EmailTemplateRequest.ts
 models/EmailTemplateType.ts
 models/EndServiceRequest.ts
 models/ExtendPaymentRequest.ts
+models/ExtendVoucherRequest.ts
 models/Feedback.ts
 models/ForgotPasswordRequest.ts
 models/HeatmapCellDto.ts

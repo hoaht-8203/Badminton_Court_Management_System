@@ -9,6 +9,10 @@ interface Props {
 
 // Small SVG line chart with axes and simple ticks
 const RevenueChart: React.FC<Props> = ({ series = [] }) => {
+  // hover state for interactivity: highlight one month and dim others
+  // NOTE: hooks must be called unconditionally, so declare state before any early returns
+  const [hovered, setHovered] = React.useState<number | null>(null);
+
   if (!series.length) {
     return (
       <Card title="Doanh thu theo thời gian" style={{ minHeight: 240 }}>
@@ -74,8 +78,6 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
   const tickIndices = labelPositions; // show all positions (usually 12)
   const xTicks = tickIndices.map((i) => ({ i, label: adjustedSeries[i]?.date ?? "" }));
 
-  // hover state for interactivity: highlight one month and dim others
-  const [hovered, setHovered] = React.useState<number | null>(null);
 
   return (
     <Card title="Doanh thu theo thời gian" style={{ minHeight: 240 }}>

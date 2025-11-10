@@ -169,6 +169,18 @@ export interface Payment {
      * @memberof Payment
      */
     note?: string | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof Payment
+     */
+    voucherId?: number | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof Payment
+     */
+    discountAmount?: number;
 }
 
 /**
@@ -209,6 +221,8 @@ export function PaymentFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'amount': json['amount'] == null ? undefined : json['amount'],
         'status': json['status'] == null ? undefined : json['status'],
         'note': json['note'] == null ? undefined : json['note'],
+        'voucherId': json['voucherId'] == null ? undefined : json['voucherId'],
+        'discountAmount': json['discountAmount'] == null ? undefined : json['discountAmount'],
     };
 }
 
@@ -242,6 +256,8 @@ export function PaymentToJSONTyped(value?: Payment | null, ignoreDiscriminator: 
         'amount': value['amount'],
         'status': value['status'],
         'note': value['note'],
+        'voucherId': value['voucherId'],
+        'discountAmount': value['discountAmount'],
     };
 }
 

@@ -376,6 +376,24 @@ public class AuthService(
 
         _mapper.Map(updateMyProfileRequest, user);
         await _userManager.UpdateAsync(user);
+
+        // Đồng bộ thông tin sang Customer (nếu có liên kết)
+        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == user.Id);
+        if (customer != null)
+        {
+            customer.FullName = updateMyProfileRequest.FullName;
+            customer.PhoneNumber = updateMyProfileRequest.PhoneNumber;
+            customer.Address = updateMyProfileRequest.Address;
+            customer.City = updateMyProfileRequest.City;
+            customer.District = updateMyProfileRequest.District;
+            customer.Ward = updateMyProfileRequest.Ward;
+            customer.AvatarUrl = updateMyProfileRequest.AvatarUrl ?? customer.AvatarUrl;
+            customer.DateOfBirth = updateMyProfileRequest.DateOfBirth.HasValue
+                ? DateOnly.FromDateTime(updateMyProfileRequest.DateOfBirth.Value)
+                : customer.DateOfBirth;
+            // Không cập nhật Email/Gender/IDCard/Status ở đây để tránh ghi đè không mong muốn
+            await _context.SaveChangesAsync();
+        }
     }
 
     public async Task UpdatePasswordAsync(

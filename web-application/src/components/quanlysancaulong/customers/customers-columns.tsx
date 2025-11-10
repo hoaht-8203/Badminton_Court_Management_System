@@ -46,6 +46,7 @@ export const columns: TableProps<ListCustomerResponse>["columns"] = [
     dataIndex: "gender",
     key: "gender",
     width: 100,
+    render: (gender) => gender || "-",
   },
   {
     title: "Địa chỉ",

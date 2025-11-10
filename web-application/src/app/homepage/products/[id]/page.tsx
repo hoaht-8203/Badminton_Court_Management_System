@@ -302,7 +302,7 @@ const ProductDetailPage = () => {
                   <Text strong style={{ fontSize: "16px" }}>
                     <span className="text-gray-800">Ưu đãi thêm khi mua sản phẩm tại </span>
                     <img
-                      src="http://localhost:3000/web-logo/caulong365_ver3.png"
+                      src="https://caulong365.store/web-logo/caulong365_ver3.png"
                       alt="CauLong365.Store"
                       className="ml-2 inline-block h-6"
                       style={{ verticalAlign: "middle" }}

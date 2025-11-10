@@ -35,6 +35,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
     listType: "picture-card",
     fileList: files,
     onChange: ({ fileList }) => setFiles(fileList),
+    multiple: true,
   };
 
   // Không tạo phiếu kiểm kho ở FE; backend sẽ tự tạo phiếu cân bằng khi phù hợp
@@ -121,6 +122,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
         initialValues={{
           isDirectSale: true,
           manageInventory: false,
+          isDisplayOnWeb: false,
           menuType: presetMenuType,
           maxStock: 999,
           stock: 0,
@@ -301,12 +303,12 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
 
         {!isService && (
           <Row gutter={16}>
-            <Col span={8}>
+            <Col span={12}>
               <Form.Item name="isDirectSale" valuePropName="checked" label="Bán trực tiếp">
                 <Checkbox />
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col span={12}>
               <Form.Item name="manageInventory" valuePropName="checked" label="Quản lý tồn kho">
                 <Checkbox onChange={(e) => setManageInventory(e.target.checked)} />
               </Form.Item>

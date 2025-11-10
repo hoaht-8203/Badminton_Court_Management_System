@@ -49,8 +49,19 @@ public class PaymentService(
         var payment = _mapper.Map<Payment>(booking);
         payment.Status = PaymentStatus.PendingPayment;
 
+        // Persist voucher info if supplied by caller
+        payment.VoucherId = request.VoucherId;
+        payment.DiscountAmount = request.DiscountAmount ?? 0m;
+
         // Calculate base amount for the booking (full amount)
         var fullAmount = await CalculateBookingAmountAsync(booking);
+
+        // Apply discount if caller provided a DiscountAmount (booking-level voucher applied earlier)
+        var finalFullAmount = fullAmount;
+        if (request.DiscountAmount.HasValue)
+        {
+            finalFullAmount = Math.Max(0, fullAmount - request.DiscountAmount.Value);
+        }
 
         // Determine amount to charge now (deposit or full)
         var payInFull = request.PayInFull == true;
@@ -61,7 +72,10 @@ public class PaymentService(
             ? "Bank"
             : request.PaymentMethod;
 
-        payment.Amount = payInFull ? fullAmount : Math.Round(fullAmount * depositPercent, 2);
+        // Determine amount to charge now (deposit or full) after discount applied
+        payment.Amount = payInFull
+            ? finalFullAmount
+            : Math.Round(finalFullAmount * depositPercent, 2);
         payment.Id = await GenerateNextPaymentIdAsync();
 
         await _context.Payments.AddAsync(payment);
@@ -154,6 +168,9 @@ public class PaymentService(
             UserMembershipId = request.UserMembershipId,
             CustomerId = request.CustomerId,
             Amount = request.Amount,
+            // No voucher/discount for membership payments by default
+            VoucherId = null,
+            DiscountAmount = 0m,
             Status = string.Equals(
                 request.PaymentMethod,
                 "Cash",
@@ -203,6 +220,34 @@ public class PaymentService(
             }
         }
         return $"{prefix}{next.ToString("D6")}";
+    }
+
+    /// <summary>
+    /// Get active membership discount percent for a customer
+    /// </summary>
+    private async Task<decimal> GetActiveMembershipDiscountPercentAsync(int customerId)
+    {
+        var nowUtc = DateTime.UtcNow;
+        var activeMembership = await _context
+            .UserMemberships.Include(um => um.Membership)
+            .Where(um =>
+                um.CustomerId == customerId
+                && um.IsActive
+                && um.Status == "Paid"
+                && um.EndDate > nowUtc
+            )
+            .OrderByDescending(um => um.StartDate)
+            .Select(um => um.Membership!.DiscountPercent)
+            .FirstOrDefaultAsync();
+
+        return activeMembership;
+    }
+
+    private static int GetCustomDayOfWeek(DateOnly date)
+    {
+        // Monday = 2, Tuesday = 3, ..., Sunday = 8
+        var dayOfWeek = (int)date.DayOfWeek;
+        return dayOfWeek == 0 ? 8 : dayOfWeek + 1;
     }
 
     private async Task<decimal> CalculateBookingAmountAsync(BookingCourt booking)
@@ -271,7 +316,15 @@ public class PaymentService(
             courtCost = await ComputePerDayAsync(walkInDow);
         }
 
-        // Calculate service costs
+        // Apply membership discount to court cost only
+        var discountPercent = await GetActiveMembershipDiscountPercentAsync(booking.CustomerId);
+        if (discountPercent > 0)
+        {
+            var discountAmount = courtCost * discountPercent / 100m;
+            courtCost = courtCost - discountAmount;
+        }
+
+        // Calculate service costs (services are not discounted)
         var serviceCost = 0m;
         var bookingServices = await _context
             .BookingServices.Include(bs => bs.BookingCourtOccurrence)
@@ -322,6 +375,8 @@ public class PaymentService(
             OrderId = request.OrderId,
             CustomerId = request.CustomerId,
             Amount = request.Amount,
+            VoucherId = order.VoucherId,
+            DiscountAmount = order.DiscountAmount,
             Status = "PendingPayment", // Mặc định là PendingPayment
             Note = request.Note,
             PaymentCreatedAt = DateTime.UtcNow,
@@ -347,11 +402,5 @@ public class PaymentService(
         }
 
         return _mapper.Map<DetailPaymentResponse>(createdPayment);
-    }
-
-    private static int GetCustomDayOfWeek(DateOnly date)
-    {
-        var sys = (int)date.DayOfWeek;
-        return sys == 0 ? 8 : sys + 1;
     }
 }

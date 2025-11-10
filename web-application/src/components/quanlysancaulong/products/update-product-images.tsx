@@ -36,13 +36,22 @@ const UpdateProductImages = ({ productId, onUpdated }: { productId: number; onUp
     listType: "picture-card",
     fileList: files,
     onChange: ({ fileList }) => setFiles(fileList),
+    multiple: true,
   };
 
   const handleUpload = async () => {
     try {
       setLoading(true);
       // Only upload newly added files; existing ones with url have no originFileObj
-      await productService.updateImages(productId, files.map((f) => f.originFileObj as File).filter(Boolean));
+      const newFiles = files.map((f) => f.originFileObj as File).filter(Boolean);
+      
+      // If no new files, don't call updateImages (keep existing images)
+      if (newFiles.length === 0) {
+        message.info("Không có ảnh mới để tải lên. Ảnh cũ sẽ được giữ nguyên.");
+        return;
+      }
+      
+      await productService.updateImages(productId, newFiles);
       message.success("Cập nhật ảnh thành công");
       // Refresh product detail and list so new images show up
       qc.invalidateQueries({ queryKey: ["product", { id: productId }] });

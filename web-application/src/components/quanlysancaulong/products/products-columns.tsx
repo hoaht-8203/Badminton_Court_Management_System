@@ -95,6 +95,16 @@ export const productColumns: TableProps<ListProductResponse>["columns"] = [
       return <Tag color={v ? "green" : "red"}>{v ? "Kinh doanh" : "Ngừng kinh doanh"}</Tag>;
     },
   },
+  {
+    title: "Bán trên Web",
+    dataIndex: "isDisplayOnWeb",
+    key: "isDisplayOnWeb",
+    width: 130,
+    render: (v: boolean | undefined, record: any) => {
+      if ((record as any).isSummaryRow) return "";
+      return <Tag color={v ? "blue" : "default"}>{v ? "Bán" : "Không bán"}</Tag>;
+    },
+  },
 ];
 
 // Component để tính tổng tồn kho - sử dụng service

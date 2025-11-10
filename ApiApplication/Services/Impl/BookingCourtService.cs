@@ -24,6 +24,7 @@ public class BookingCourtService(
     IConfiguration configuration,
     IHubContext<BookingHub> hub,
     INotificationService notificationService,
+    IVoucherService voucherService,
     IHttpContextAccessor httpContextAccessor,
     UserManager<ApplicationUser> userManager
 ) : IBookingCourtService
@@ -34,6 +35,7 @@ public class BookingCourtService(
     private readonly IConfiguration _configuration = configuration;
     private readonly IHubContext<BookingHub> _hub = hub;
     private readonly INotificationService _notificationService = notificationService;
+    private readonly IVoucherService _voucherService = voucherService;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
 
@@ -241,7 +243,50 @@ public class BookingCourtService(
             ? "Bank"
             : request.PaymentMethod;
 
-        await _paymentService.CreatePaymentAsync(
+        // Create BookingCourtOccurrence records for each occurrence first so we can compute full booking amount
+        await CreateBookingCourtOccurrencesAsync(entity, paymentMethod);
+
+        // Calculate total amount for all occurrences (subtotal before discount)
+        var occurrences = await _context
+            .BookingCourtOccurrences.Where(o => o.BookingCourtId == entity.Id)
+            .ToListAsync();
+        decimal totalAmount = 0m;
+        foreach (var occ in occurrences)
+        {
+            totalAmount += await CalculateBookingAmountForOccurrenceAsync(occ);
+        }
+
+        // Validate voucher if provided (use booking date/time as context)
+        decimal discountAmount = 0m;
+        int? voucherId = null;
+        if (request.VoucherId.HasValue)
+        {
+            var validateResult = await _voucherService.ValidateAndCalculateDiscountAsync(
+                new Dtos.Voucher.ValidateVoucherRequest
+                {
+                    VoucherId = request.VoucherId.Value,
+                    OrderTotalAmount = totalAmount,
+                    BookingDate = entity.StartDate.ToDateTime(entity.StartTime),
+                    BookingStartTime = entity.StartTime,
+                    BookingEndTime = entity.EndTime,
+                },
+                entity.CustomerId
+            );
+
+            if (!validateResult.IsValid)
+            {
+                throw new ApiException(
+                    validateResult.ErrorMessage ?? "Voucher không hợp lệ",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            discountAmount = validateResult.DiscountAmount;
+            voucherId = request.VoucherId;
+        }
+
+        // Create Payment for booking, passing discount info so payment amount is calculated after discount
+        var createdPayment = await _paymentService.CreatePaymentAsync(
             new CreatePaymentRequest
             {
                 BookingId = entity.Id,
@@ -249,11 +294,27 @@ public class BookingCourtService(
                 PayInFull = payInFull,
                 DepositPercent = depositPercent,
                 PaymentMethod = paymentMethod,
+                VoucherId = voucherId,
+                DiscountAmount = discountAmount,
             }
         );
 
-        // Create BookingCourtOccurrence records for each occurrence
-        await CreateBookingCourtOccurrencesAsync(entity, paymentMethod);
+        // If voucher applied and payment is already paid (cash) or marked paid, record usage
+        if (
+            voucherId.HasValue
+            && (
+                string.Equals(createdPayment.Status, "Paid", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(paymentMethod, "Cash", StringComparison.OrdinalIgnoreCase)
+            )
+        )
+        {
+            await _voucherService.RecordVoucherUsageAsync(
+                voucherId.Value,
+                entity.CustomerId,
+                Guid.Empty,
+                discountAmount
+            );
+        }
 
         // Broadcast booking created (pending payment) event
         await _hub.Clients.All.SendAsync(
@@ -502,11 +563,56 @@ public class BookingCourtService(
         );
 
         // Create payment with preferences (deposit or full, method)
+        // Note: CreatePaymentAsync will automatically apply membership discount if customer has active membership
+        // The discount is applied in PaymentService.CalculateBookingAmountAsync
         var payInFull = request.PayInFull == true;
         var depositPercent = 0.3m;
         var paymentMethod = "Bank";
 
-        await _paymentService.CreatePaymentAsync(
+        // Create BookingCourtOccurrence records for each occurrence first so we can compute full booking amount
+        await CreateBookingCourtOccurrencesAsync(entity, paymentMethod);
+
+        // Calculate total amount for all occurrences (subtotal before discount)
+        var occurrences = await _context
+            .BookingCourtOccurrences.Where(o => o.BookingCourtId == entity.Id)
+            .ToListAsync();
+        decimal totalAmount = 0m;
+        foreach (var occ in occurrences)
+        {
+            totalAmount += await CalculateBookingAmountForOccurrenceAsync(occ);
+        }
+
+        // Validate voucher if provided (use booking date/time as context)
+        decimal discountAmount = 0m;
+        int? voucherId = null;
+        if (request.VoucherId.HasValue)
+        {
+            var validateResult = await _voucherService.ValidateAndCalculateDiscountAsync(
+                new Dtos.Voucher.ValidateVoucherRequest
+                {
+                    VoucherId = request.VoucherId.Value,
+                    OrderTotalAmount = totalAmount,
+                    BookingDate = entity.StartDate.ToDateTime(entity.StartTime),
+                    BookingStartTime = entity.StartTime,
+                    BookingEndTime = entity.EndTime,
+                },
+                entity.CustomerId
+            );
+
+            if (!validateResult.IsValid)
+            {
+                throw new ApiException(
+                    validateResult.ErrorMessage ?? "Voucher không hợp lệ",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            discountAmount = validateResult.DiscountAmount;
+            voucherId = request.VoucherId;
+        }
+
+        // Create Payment for booking, passing discount info so payment amount is calculated after discount
+        var createdPayment = await _paymentService.CreatePaymentAsync(
             new CreatePaymentRequest
             {
                 BookingId = entity.Id,
@@ -514,11 +620,27 @@ public class BookingCourtService(
                 PayInFull = payInFull,
                 DepositPercent = depositPercent,
                 PaymentMethod = paymentMethod,
+                VoucherId = voucherId,
+                DiscountAmount = discountAmount,
             }
         );
 
-        // Create BookingCourtOccurrence records for each occurrence
-        await CreateBookingCourtOccurrencesAsync(entity, paymentMethod);
+        // If voucher applied and payment is already paid (cash) or marked paid, record usage
+        if (
+            voucherId.HasValue
+            && (
+                string.Equals(createdPayment.Status, "Paid", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(paymentMethod, "Cash", StringComparison.OrdinalIgnoreCase)
+            )
+        )
+        {
+            await _voucherService.RecordVoucherUsageAsync(
+                voucherId.Value,
+                entity.CustomerId,
+                Guid.Empty,
+                discountAmount
+            );
+        }
 
         // Broadcast booking created (pending payment) event
         await _hub.Clients.All.SendAsync(
@@ -902,13 +1024,70 @@ public class BookingCourtService(
 
         var dto = _mapper.Map<DetailBookingCourtResponse>(entity);
 
-        // Compute totals - calculate from all occurrences
-        var totalAmount = 0m;
+        // Get membership discount info
+        var membershipInfo = await GetActiveMembershipDiscountAsync(entity.CustomerId);
+        var discountPercent = membershipInfo?.DiscountPercent ?? 0m;
+        var membershipName = membershipInfo?.MembershipName;
+
+        // Calculate totals from all occurrences (each occurrence already has discount applied)
+        var totalOriginalAmount = 0m;
+        var totalDiscountedAmount = 0m;
         foreach (var occurrence in entity.BookingCourtOccurrences)
         {
-            var occurrenceAmount = await CalculateBookingAmountForOccurrenceAsync(occurrence);
-            totalAmount += occurrenceAmount;
+            // Calculate original amount (before discount) for this occurrence
+            var dow = GetCustomDayOfWeek(occurrence.Date);
+            var rules = await _context
+                .CourtPricingRules.Where(r =>
+                    r.CourtId == entity.CourtId && r.DaysOfWeek.Contains(dow)
+                )
+                .OrderBy(r => r.Order)
+                .ToListAsync();
+
+            var occurrenceOriginal = 0m;
+            if (rules.Count > 0)
+            {
+                var currentTime = occurrence.StartTime;
+                var endTime = occurrence.EndTime;
+                while (currentTime < endTime)
+                {
+                    var applicableRule = rules.FirstOrDefault(r =>
+                        currentTime >= r.StartTime && currentTime < r.EndTime
+                    );
+                    if (applicableRule == null)
+                    {
+                        break;
+                    }
+                    var ruleEndTime =
+                        applicableRule.EndTime < endTime ? applicableRule.EndTime : endTime;
+                    var hours = (decimal)
+                        (ruleEndTime.ToTimeSpan() - currentTime.ToTimeSpan()).TotalHours;
+                    occurrenceOriginal += applicableRule.PricePerHour * hours;
+                    currentTime = ruleEndTime;
+                }
+            }
+
+            totalOriginalAmount += Math.Ceiling(occurrenceOriginal);
+
+            // Calculate discounted amount (already applied in CalculateBookingAmountForOccurrenceAsync)
+            var occurrenceDiscounted = await CalculateBookingAmountForOccurrenceAsync(occurrence);
+            totalDiscountedAmount += occurrenceDiscounted;
         }
+
+        // Calculate service costs (services are not discounted)
+        var serviceCost = 0m;
+        var bookingServices = await _context
+            .BookingServices.Include(bs => bs.BookingCourtOccurrence)
+            .Where(bs => bs.BookingCourtOccurrence.BookingCourtId == entity.Id)
+            .ToListAsync();
+
+        foreach (var bookingService in bookingServices)
+        {
+            serviceCost += bookingService.TotalPrice;
+        }
+
+        // Total amount = discounted court cost + service cost
+        var totalAmount = totalDiscountedAmount + serviceCost;
+        var totalDiscountAmount = totalOriginalAmount - totalDiscountedAmount;
 
         // Only count payments directly related to this booking (not occurrence-specific payments)
         var paidAmount = entity
@@ -916,9 +1095,18 @@ public class BookingCourtService(
                 p.Status == PaymentStatus.Paid && p.BookingCourtOccurrenceId == null
             )
             .Sum(p => p.Amount);
+
         dto.TotalAmount = Math.Ceiling(totalAmount);
         dto.PaidAmount = Math.Ceiling(paidAmount);
         dto.RemainingAmount = Math.Max(0, Math.Ceiling(totalAmount - paidAmount));
+
+        // Set membership discount info
+        dto.HasMembershipDiscount = discountPercent > 0;
+        dto.MembershipDiscountPercent = discountPercent > 0 ? discountPercent : null;
+        dto.MembershipDiscountAmount =
+            discountPercent > 0 ? Math.Ceiling(totalDiscountAmount) : null;
+        dto.OriginalAmount = discountPercent > 0 ? Math.Ceiling(totalOriginalAmount) : null;
+        dto.MembershipName = membershipName;
 
         // Infer payment type from first payment amount vs total
         if (entity.Payments.Count == 0)
@@ -1434,6 +1622,34 @@ public class BookingCourtService(
         return true;
     }
 
+    /// <summary>
+    /// Get active membership for a customer with discount percent
+    /// </summary>
+    private async Task<(
+        decimal DiscountPercent,
+        string? MembershipName
+    )?> GetActiveMembershipDiscountAsync(int customerId)
+    {
+        var nowUtc = DateTime.UtcNow;
+        var activeMembership = await _context
+            .UserMemberships.Include(um => um.Membership)
+            .Where(um =>
+                um.CustomerId == customerId
+                && um.IsActive
+                && um.Status == "Paid"
+                && um.EndDate > nowUtc
+            )
+            .OrderByDescending(um => um.StartDate)
+            .FirstOrDefaultAsync();
+
+        if (activeMembership?.Membership == null)
+        {
+            return null;
+        }
+
+        return (activeMembership.Membership.DiscountPercent, activeMembership.Membership.Name);
+    }
+
     private async Task<decimal> CalculateBookingAmountForEntityAsync(BookingCourt booking)
     {
         var dow = GetCustomDayOfWeek(booking.StartDate);
@@ -1472,6 +1688,36 @@ public class BookingCourtService(
         return Math.Ceiling(total);
     }
 
+    /// <summary>
+    /// Calculate booking amount with membership discount applied (court cost only)
+    /// </summary>
+    private async Task<(
+        decimal OriginalAmount,
+        decimal DiscountedAmount,
+        decimal DiscountPercent,
+        string? MembershipName
+    )> CalculateBookingAmountWithDiscountAsync(BookingCourt booking)
+    {
+        var originalAmount = await CalculateBookingAmountForEntityAsync(booking);
+        var membershipInfo = await GetActiveMembershipDiscountAsync(booking.CustomerId);
+
+        if (membershipInfo == null || membershipInfo.Value.DiscountPercent <= 0)
+        {
+            return (originalAmount, originalAmount, 0m, null);
+        }
+
+        var discountPercent = membershipInfo.Value.DiscountPercent;
+        var discountAmount = originalAmount * discountPercent / 100m;
+        var discountedAmount = originalAmount - discountAmount;
+
+        return (
+            originalAmount,
+            Math.Ceiling(discountedAmount),
+            discountPercent,
+            membershipInfo.Value.MembershipName
+        );
+    }
+
     private async Task<decimal> CalculateBookingAmountForOccurrenceAsync(
         BookingCourtOccurrence occurrence
     )
@@ -1507,6 +1753,17 @@ public class BookingCourtService(
             var priceForThisPeriod = applicableRule.PricePerHour * hours;
             total += priceForThisPeriod;
             currentTime = ruleEndTime;
+        }
+
+        // Apply membership discount if customer has active membership
+        var booking = occurrence.BookingCourt!;
+        var membershipInfo = await GetActiveMembershipDiscountAsync(booking.CustomerId);
+
+        if (membershipInfo != null && membershipInfo.Value.DiscountPercent > 0)
+        {
+            var discountPercent = membershipInfo.Value.DiscountPercent;
+            var discountAmount = total * discountPercent / 100m;
+            total = total - discountAmount;
         }
 
         return Math.Ceiling(total);

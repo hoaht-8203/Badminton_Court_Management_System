@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251108132743_AddDiscountAmountToOrder")]
-    partial class AddDiscountAmountToOrder
+    [Migration("20251107230859_AddVoucherToBooking")]
+    partial class AddVoucherToBooking
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1552,7 +1552,7 @@ namespace ApiApplication.Migrations
                         .HasColumnType("integer");
 
                     b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("ItemsSubtotal")
                         .HasColumnType("decimal(18,2)");
@@ -1634,6 +1634,9 @@ namespace ApiApplication.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
@@ -1654,6 +1657,9 @@ namespace ApiApplication.Migrations
                         .HasColumnType("text");
 
                     b.Property<int?>("UserMembershipId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("VoucherId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -2778,22 +2784,22 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 11, 8, 13, 27, 43, 637, DateTimeKind.Utc).AddTicks(1130),
+                            CreatedAt = new DateTime(2025, 11, 7, 23, 8, 58, 304, DateTimeKind.Utc).AddTicks(683),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 11, 8, 13, 27, 43, 637, DateTimeKind.Utc).AddTicks(1130),
+                            UpdatedAt = new DateTime(2025, 11, 7, 23, 8, 58, 304, DateTimeKind.Utc).AddTicks(684),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 11, 8, 13, 27, 43, 637, DateTimeKind.Utc).AddTicks(1130),
+                            CreatedAt = new DateTime(2025, 11, 7, 23, 8, 58, 304, DateTimeKind.Utc).AddTicks(685),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 11, 8, 13, 27, 43, 637, DateTimeKind.Utc).AddTicks(1130),
+                            UpdatedAt = new DateTime(2025, 11, 7, 23, 8, 58, 304, DateTimeKind.Utc).AddTicks(686),
                             UpdatedBy = "System",
                             Value = ""
                         });

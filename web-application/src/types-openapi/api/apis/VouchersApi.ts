@@ -16,6 +16,7 @@
 import * as runtime from '../runtime';
 import type {
   CreateVoucherRequest,
+  ExtendVoucherRequest,
   ObjectApiResponse,
   UpdateVoucherRequest,
   ValidateVoucherRequest,
@@ -26,6 +27,8 @@ import type {
 import {
     CreateVoucherRequestFromJSON,
     CreateVoucherRequestToJSON,
+    ExtendVoucherRequestFromJSON,
+    ExtendVoucherRequestToJSON,
     ObjectApiResponseFromJSON,
     ObjectApiResponseToJSON,
     UpdateVoucherRequestFromJSON,
@@ -50,6 +53,11 @@ export interface ApiVouchersDeleteDeleteRequest {
 
 export interface ApiVouchersDetailGetRequest {
     id: number;
+}
+
+export interface ApiVouchersExtendIdPatchRequest {
+    id: number;
+    extendVoucherRequest?: ExtendVoucherRequest;
 }
 
 export interface ApiVouchersUpdateIdPutRequest {
@@ -118,6 +126,20 @@ export interface VouchersApiInterface {
     /**
      */
     apiVouchersDetailGet(requestParameters: ApiVouchersDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<VoucherResponseApiResponse>;
+
+    /**
+     * 
+     * @param {number} id 
+     * @param {ExtendVoucherRequest} [extendVoucherRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof VouchersApiInterface
+     */
+    apiVouchersExtendIdPatchRaw(requestParameters: ApiVouchersExtendIdPatchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiVouchersExtendIdPatch(requestParameters: ApiVouchersExtendIdPatchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
     /**
      * 
@@ -295,6 +317,44 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
      */
     async apiVouchersDetailGet(requestParameters: ApiVouchersDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<VoucherResponseApiResponse> {
         const response = await this.apiVouchersDetailGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiVouchersExtendIdPatchRaw(requestParameters: ApiVouchersExtendIdPatchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        if (requestParameters['id'] == null) {
+            throw new runtime.RequiredError(
+                'id',
+                'Required parameter "id" was null or undefined when calling apiVouchersExtendIdPatch().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Vouchers/extend/{id}`;
+        urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PATCH',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ExtendVoucherRequestToJSON(requestParameters['extendVoucherRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiVouchersExtendIdPatch(requestParameters: ApiVouchersExtendIdPatchRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiVouchersExtendIdPatchRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

@@ -6,15 +6,28 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ApiApplication.Migrations
 {
     /// <inheritdoc />
-    public partial class AddDiscountAmountToOrder : Migration
+    public partial class AddVoucherToBooking : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<decimal>(
                 name: "DiscountAmount",
+                table: "Payments",
+                type: "numeric",
+                nullable: false,
+                defaultValue: 0m);
+
+            migrationBuilder.AddColumn<int>(
+                name: "VoucherId",
+                table: "Payments",
+                type: "integer",
+                nullable: true);
+
+            migrationBuilder.AddColumn<decimal>(
+                name: "DiscountAmount",
                 table: "Orders",
-                type: "numeric(18,2)",
+                type: "numeric",
                 nullable: false,
                 defaultValue: 0m);
 
@@ -29,14 +42,14 @@ namespace ApiApplication.Migrations
                 keyColumn: "Id",
                 keyValue: 1,
                 columns: new[] { "CreatedAt", "UpdatedAt" },
-                values: new object[] { new DateTime(2025, 11, 8, 13, 27, 43, 637, DateTimeKind.Utc).AddTicks(1130), new DateTime(2025, 11, 8, 13, 27, 43, 637, DateTimeKind.Utc).AddTicks(1130) });
+                values: new object[] { new DateTime(2025, 11, 7, 23, 8, 58, 304, DateTimeKind.Utc).AddTicks(683), new DateTime(2025, 11, 7, 23, 8, 58, 304, DateTimeKind.Utc).AddTicks(684) });
 
             migrationBuilder.UpdateData(
                 table: "SystemConfigs",
                 keyColumn: "Id",
                 keyValue: 2,
                 columns: new[] { "CreatedAt", "UpdatedAt" },
-                values: new object[] { new DateTime(2025, 11, 8, 13, 27, 43, 637, DateTimeKind.Utc).AddTicks(1130), new DateTime(2025, 11, 8, 13, 27, 43, 637, DateTimeKind.Utc).AddTicks(1130) });
+                values: new object[] { new DateTime(2025, 11, 7, 23, 8, 58, 304, DateTimeKind.Utc).AddTicks(685), new DateTime(2025, 11, 7, 23, 8, 58, 304, DateTimeKind.Utc).AddTicks(686) });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_VoucherId",
@@ -61,6 +74,14 @@ namespace ApiApplication.Migrations
             migrationBuilder.DropIndex(
                 name: "IX_Orders_VoucherId",
                 table: "Orders");
+
+            migrationBuilder.DropColumn(
+                name: "DiscountAmount",
+                table: "Payments");
+
+            migrationBuilder.DropColumn(
+                name: "VoucherId",
+                table: "Payments");
 
             migrationBuilder.DropColumn(
                 name: "DiscountAmount",

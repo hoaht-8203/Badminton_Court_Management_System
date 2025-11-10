@@ -82,7 +82,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("UserName");
 
-                    b.ToTable("Activities");
+                    b.ToTable("Activities", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.ApplicationUser", b =>
@@ -238,7 +238,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ApplicationUserTokens");
+                    b.ToTable("ApplicationUserTokens", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.AttendanceRecord", b =>
@@ -268,7 +268,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("StaffId");
 
-                    b.ToTable("AttendanceRecords");
+                    b.ToTable("AttendanceRecords", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Blog", b =>
@@ -307,7 +307,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Blogs");
+                    b.ToTable("Blogs", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.BookingCourt", b =>
@@ -366,7 +366,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("BookingCourts");
+                    b.ToTable("BookingCourts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.BookingCourtOccurrence", b =>
@@ -412,7 +412,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("BookingCourtId");
 
-                    b.ToTable("BookingCourtOccurrences");
+                    b.ToTable("BookingCourtOccurrences", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.BookingOrderItem", b =>
@@ -454,7 +454,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("BookingOrderItems");
+                    b.ToTable("BookingOrderItems", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.BookingService", b =>
@@ -513,7 +513,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("BookingServices");
+                    b.ToTable("BookingServices", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Branch", b =>
@@ -559,7 +559,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Branches");
+                    b.ToTable("Branches", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.CancelledShift", b =>
@@ -589,7 +589,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("StaffId");
 
-                    b.ToTable("CancelledShifts");
+                    b.ToTable("CancelledShifts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Cashflow", b =>
@@ -655,7 +655,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("Time");
 
-                    b.ToTable("Cashflows");
+                    b.ToTable("Cashflows", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.CashflowType", b =>
@@ -703,7 +703,7 @@ namespace ApiApplication.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("CashflowTypes");
+                    b.ToTable("CashflowTypes", (string)null);
 
                     b.HasData(
                         new
@@ -815,7 +815,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
 
                     b.HasData(
                         new
@@ -895,7 +895,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("CourtAreaId");
 
-                    b.ToTable("Courts");
+                    b.ToTable("Courts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.CourtArea", b =>
@@ -924,7 +924,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CourtAreas");
+                    b.ToTable("CourtAreas", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.CourtPricingRuleTemplate", b =>
@@ -960,7 +960,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CourtPricingRuleTemplates");
+                    b.ToTable("CourtPricingRuleTemplates", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.CourtPricingRules", b =>
@@ -1004,7 +1004,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("CourtId");
 
-                    b.ToTable("CourtPricingRules");
+                    b.ToTable("CourtPricingRules", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Customer", b =>
@@ -1078,7 +1078,7 @@ namespace ApiApplication.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
 
                     b.HasData(
                         new
@@ -1169,7 +1169,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Departments");
+                    b.ToTable("Departments", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Feedback", b =>
@@ -1238,7 +1238,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Feedbacks");
+                    b.ToTable("Feedbacks", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.InventoryCard", b =>
@@ -1290,7 +1290,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("InventoryCards");
+                    b.ToTable("InventoryCards", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.InventoryCheck", b =>
@@ -1336,7 +1336,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("InventoryChecks");
+                    b.ToTable("InventoryChecks", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.InventoryCheckItem", b =>
@@ -1377,7 +1377,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("InventoryCheckItems");
+                    b.ToTable("InventoryCheckItems", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Membership", b =>
@@ -1425,7 +1425,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Memberships");
+                    b.ToTable("Memberships", (string)null);
 
                     b.HasData(
                         new
@@ -1515,7 +1515,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Order", b =>
@@ -1549,7 +1549,7 @@ namespace ApiApplication.Migrations
                         .HasColumnType("integer");
 
                     b.Property<decimal>("DiscountAmount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<decimal>("ItemsSubtotal")
                         .HasColumnType("decimal(18,2)");
@@ -1605,7 +1605,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Payment", b =>
@@ -1631,6 +1631,9 @@ namespace ApiApplication.Migrations
                     b.Property<int>("CustomerId")
                         .HasColumnType("integer");
 
+                    b.Property<decimal>("DiscountAmount")
+                        .HasColumnType("numeric");
+
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
@@ -1653,6 +1656,9 @@ namespace ApiApplication.Migrations
                     b.Property<int?>("UserMembershipId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("VoucherId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BookingCourtOccurrenceId");
@@ -1668,7 +1674,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("UserMembershipId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Payroll", b =>
@@ -1716,7 +1722,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Payrolls");
+                    b.ToTable("Payrolls", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PayrollItem", b =>
@@ -1752,7 +1758,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("StaffId");
 
-                    b.ToTable("PayrollItems");
+                    b.ToTable("PayrollItems", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PriceTable", b =>
@@ -1791,7 +1797,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PriceTables");
+                    b.ToTable("PriceTables", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PriceTableProduct", b =>
@@ -1809,7 +1815,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("PriceTableProducts");
+                    b.ToTable("PriceTableProducts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.PriceTimeRange", b =>
@@ -1833,7 +1839,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("PriceTableId");
 
-                    b.ToTable("PriceTimeRanges");
+                    b.ToTable("PriceTimeRanges", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Product", b =>
@@ -1922,7 +1928,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Receipt", b =>
@@ -1982,7 +1988,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("Receipts");
+                    b.ToTable("Receipts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.ReceiptItem", b =>
@@ -2011,7 +2017,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("ReceiptId");
 
-                    b.ToTable("ReceiptItems");
+                    b.ToTable("ReceiptItems", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.RelatedPerson", b =>
@@ -2064,7 +2070,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("RelatedPeople");
+                    b.ToTable("RelatedPeople", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.ReturnGoods", b =>
@@ -2131,7 +2137,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("ReturnGoods");
+                    b.ToTable("ReturnGoods", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.ReturnGoodsItem", b =>
@@ -2179,7 +2185,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("ReturnGoodsId");
 
-                    b.ToTable("ReturnGoodsItems");
+                    b.ToTable("ReturnGoodsItems", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.SalaryForm", b =>
@@ -2206,7 +2212,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SalaryForms");
+                    b.ToTable("SalaryForms", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Schedule", b =>
@@ -2254,7 +2260,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("StaffId");
 
-                    b.ToTable("Schedules");
+                    b.ToTable("Schedules", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Service", b =>
@@ -2317,7 +2323,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Services");
+                    b.ToTable("Services", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Shift", b =>
@@ -2355,7 +2361,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Shifts");
+                    b.ToTable("Shifts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Slider", b =>
@@ -2398,7 +2404,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sliders");
+                    b.ToTable("Sliders", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Staff", b =>
@@ -2470,7 +2476,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Staffs");
+                    b.ToTable("Staffs", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.StockOut", b =>
@@ -2520,7 +2526,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("StockOuts");
+                    b.ToTable("StockOuts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.StockOutItem", b =>
@@ -2553,7 +2559,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("StockOutId");
 
-                    b.ToTable("StockOutItems");
+                    b.ToTable("StockOutItems", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.StoreBankAccount", b =>
@@ -2596,7 +2602,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StoreBankAccounts");
+                    b.ToTable("StoreBankAccounts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Supplier", b =>
@@ -2652,7 +2658,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
 
                     b.HasData(
                         new
@@ -2730,7 +2736,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("SupplierBankAccounts");
+                    b.ToTable("SupplierBankAccounts", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.SystemConfig", b =>
@@ -2769,28 +2775,28 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SystemConfigs");
+                    b.ToTable("SystemConfigs", (string)null);
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 11, 8, 13, 27, 43, 637, DateTimeKind.Utc).AddTicks(1130),
+                            CreatedAt = new DateTime(2025, 11, 7, 23, 8, 58, 304, DateTimeKind.Utc).AddTicks(683),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 11, 8, 13, 27, 43, 637, DateTimeKind.Utc).AddTicks(1130),
+                            UpdatedAt = new DateTime(2025, 11, 7, 23, 8, 58, 304, DateTimeKind.Utc).AddTicks(684),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 11, 8, 13, 27, 43, 637, DateTimeKind.Utc).AddTicks(1130),
+                            CreatedAt = new DateTime(2025, 11, 7, 23, 8, 58, 304, DateTimeKind.Utc).AddTicks(685),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 11, 8, 13, 27, 43, 637, DateTimeKind.Utc).AddTicks(1130),
+                            UpdatedAt = new DateTime(2025, 11, 7, 23, 8, 58, 304, DateTimeKind.Utc).AddTicks(686),
                             UpdatedBy = "System",
                             Value = ""
                         });
@@ -2841,7 +2847,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("CustomerId", "MembershipId", "StartDate");
 
-                    b.ToTable("UserMemberships");
+                    b.ToTable("UserMemberships", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.Voucher", b =>
@@ -2911,7 +2917,7 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Vouchers");
+                    b.ToTable("Vouchers", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.VoucherTimeRule", b =>
@@ -2941,7 +2947,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("VoucherTimeRules");
+                    b.ToTable("VoucherTimeRules", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.VoucherUsage", b =>
@@ -2970,7 +2976,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("VoucherUsages");
+                    b.ToTable("VoucherUsages", (string)null);
                 });
 
             modelBuilder.Entity("ApiApplication.Entities.VoucherUserRule", b =>
@@ -2994,7 +3000,7 @@ namespace ApiApplication.Migrations
 
                     b.HasIndex("VoucherId");
 
-                    b.ToTable("VoucherUserRules");
+                    b.ToTable("VoucherUserRules", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>

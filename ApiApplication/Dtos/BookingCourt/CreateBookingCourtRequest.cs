@@ -18,4 +18,7 @@ public class CreateBookingCourtRequest
     public string? PaymentMethod { get; set; } // "Bank" | "Cash"
 
     public bool? IsUserMode { get; set; } = false;
+
+    // Optional voucher applied at booking time
+    public int? VoucherId { get; set; }
 }

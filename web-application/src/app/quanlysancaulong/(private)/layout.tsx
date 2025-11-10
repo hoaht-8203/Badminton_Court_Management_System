@@ -4,7 +4,7 @@ import React from "react";
 
 import { useAuth } from "@/context/AuthContext";
 import { CurrentUserResponse } from "@/types-openapi/api";
-import { LogoutOutlined, SettingOutlined, UserOutlined, CalendarOutlined, ToolOutlined } from "@ant-design/icons";
+import { LogoutOutlined, SettingOutlined, UserOutlined, CalendarOutlined, ToolOutlined, MessageOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Avatar, Button, Dropdown, Layout, Menu } from "antd";
 import { ArrowLeftRight, ChartSpline, Columns2, FileText, Handshake, IdCardLanyard, Package, Settings } from "lucide-react";
@@ -133,6 +133,10 @@ const sideBarItems: MenuProps["items"] = [
       {
         key: "/quanlysancaulong/roles",
         label: "Quản lý vai trò",
+      },
+      {
+        key: "/quanlysancaulong/feedbacks",
+        label: "Quản lý feedback",
       },
     ],
   },

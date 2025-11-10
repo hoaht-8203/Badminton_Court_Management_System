@@ -69,6 +69,18 @@ export interface ListProductResponse {
     isActive?: boolean;
     /**
      * 
+     * @type {boolean}
+     * @memberof ListProductResponse
+     */
+    isDisplayOnWeb?: boolean;
+    /**
+     * 
+     * @type {number}
+     * @memberof ListProductResponse
+     */
+    stock?: number;
+    /**
+     * 
      * @type {Array<string>}
      * @memberof ListProductResponse
      */
@@ -102,6 +114,8 @@ export function ListProductResponseFromJSONTyped(json: any, ignoreDiscriminator:
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
         'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
+        'isDisplayOnWeb': json['isDisplayOnWeb'] == null ? undefined : json['isDisplayOnWeb'],
+        'stock': json['stock'] == null ? undefined : json['stock'],
         'images': json['images'] == null ? undefined : json['images'],
     };
 }
@@ -125,6 +139,8 @@ export function ListProductResponseToJSONTyped(value?: ListProductResponse | nul
         'salePrice': value['salePrice'],
         'isDirectSale': value['isDirectSale'],
         'isActive': value['isActive'],
+        'isDisplayOnWeb': value['isDisplayOnWeb'],
+        'stock': value['stock'],
         'images': value['images'],
     };
 }

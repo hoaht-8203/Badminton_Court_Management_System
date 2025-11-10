@@ -56,6 +56,15 @@ export interface ApiProductsListByPriceTableGetRequest {
     isActive?: boolean;
 }
 
+export interface ApiProductsListForWebGetRequest {
+    id?: number;
+    code?: string;
+    name?: string;
+    menuType?: string;
+    category?: string;
+    isDirectSale?: boolean;
+}
+
 export interface ApiProductsListGetRequest {
     id?: number;
     code?: string;
@@ -77,6 +86,11 @@ export interface ApiProductsUpdatePutRequest {
 export interface ApiProductsUpdateStatusPutRequest {
     id?: number;
     isActive?: boolean;
+}
+
+export interface ApiProductsUpdateWebDisplayPutRequest {
+    id?: number;
+    isDisplayOnWeb?: boolean;
 }
 
 /**
@@ -153,6 +167,24 @@ export interface ProductsApiInterface {
      * @throws {RequiredError}
      * @memberof ProductsApiInterface
      */
+    apiProductsListForWebGetRaw(requestParameters: ApiProductsListForWebGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListProductResponseListApiResponse>>;
+
+    /**
+     */
+    apiProductsListForWebGet(requestParameters: ApiProductsListForWebGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListProductResponseListApiResponse>;
+
+    /**
+     * 
+     * @param {number} [id] 
+     * @param {string} [code] 
+     * @param {string} [name] 
+     * @param {string} [menuType] 
+     * @param {string} [category] 
+     * @param {boolean} [isDirectSale] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProductsApiInterface
+     */
     apiProductsListGetRaw(requestParameters: ApiProductsListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListProductResponseListApiResponse>>;
 
     /**
@@ -199,6 +231,20 @@ export interface ProductsApiInterface {
     /**
      */
     apiProductsUpdateStatusPut(requestParameters: ApiProductsUpdateStatusPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
+     * @param {number} [id] 
+     * @param {boolean} [isDisplayOnWeb] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProductsApiInterface
+     */
+    apiProductsUpdateWebDisplayPutRaw(requestParameters: ApiProductsUpdateWebDisplayPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiProductsUpdateWebDisplayPut(requestParameters: ApiProductsUpdateWebDisplayPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
 }
 
@@ -360,6 +406,57 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
      */
     async apiProductsListByPriceTableGet(requestParameters: ApiProductsListByPriceTableGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListProductsByPriceTableResponseListApiResponse> {
         const response = await this.apiProductsListByPriceTableGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProductsListForWebGetRaw(requestParameters: ApiProductsListForWebGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListProductResponseListApiResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['id'] != null) {
+            queryParameters['Id'] = requestParameters['id'];
+        }
+
+        if (requestParameters['code'] != null) {
+            queryParameters['Code'] = requestParameters['code'];
+        }
+
+        if (requestParameters['name'] != null) {
+            queryParameters['Name'] = requestParameters['name'];
+        }
+
+        if (requestParameters['menuType'] != null) {
+            queryParameters['MenuType'] = requestParameters['menuType'];
+        }
+
+        if (requestParameters['category'] != null) {
+            queryParameters['Category'] = requestParameters['category'];
+        }
+
+        if (requestParameters['isDirectSale'] != null) {
+            queryParameters['IsDirectSale'] = requestParameters['isDirectSale'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Products/list-for-web`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListProductResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProductsListForWebGet(requestParameters: ApiProductsListForWebGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListProductResponseListApiResponse> {
+        const response = await this.apiProductsListForWebGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -537,6 +634,41 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
      */
     async apiProductsUpdateStatusPut(requestParameters: ApiProductsUpdateStatusPutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiProductsUpdateStatusPutRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProductsUpdateWebDisplayPutRaw(requestParameters: ApiProductsUpdateWebDisplayPutRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['id'] != null) {
+            queryParameters['id'] = requestParameters['id'];
+        }
+
+        if (requestParameters['isDisplayOnWeb'] != null) {
+            queryParameters['isDisplayOnWeb'] = requestParameters['isDisplayOnWeb'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Products/update-web-display`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'PUT',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProductsUpdateWebDisplayPut(requestParameters: ApiProductsUpdateWebDisplayPutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiProductsUpdateWebDisplayPutRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

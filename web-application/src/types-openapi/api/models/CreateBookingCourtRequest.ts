@@ -91,6 +91,12 @@ export interface CreateBookingCourtRequest {
      * @memberof CreateBookingCourtRequest
      */
     isUserMode?: boolean | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof CreateBookingCourtRequest
+     */
+    voucherId?: number | null;
 }
 
 /**
@@ -122,6 +128,7 @@ export function CreateBookingCourtRequestFromJSONTyped(json: any, ignoreDiscrimi
         'depositPercent': json['depositPercent'] == null ? undefined : json['depositPercent'],
         'paymentMethod': json['paymentMethod'] == null ? undefined : json['paymentMethod'],
         'isUserMode': json['isUserMode'] == null ? undefined : json['isUserMode'],
+        'voucherId': json['voucherId'] == null ? undefined : json['voucherId'],
     };
 }
 
@@ -148,6 +155,7 @@ export function CreateBookingCourtRequestToJSONTyped(value?: CreateBookingCourtR
         'depositPercent': value['depositPercent'],
         'paymentMethod': value['paymentMethod'],
         'isUserMode': value['isUserMode'],
+        'voucherId': value['voucherId'],
     };
 }
 

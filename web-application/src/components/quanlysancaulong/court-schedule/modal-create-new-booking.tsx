@@ -77,8 +77,17 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
   const [payInFull, setPayInFull] = useState<boolean>(false);
   const [paymentMethod, setPaymentMethod] = useState<"Bank" | "Cash">(userMode ? "Bank" : "Bank");
   const totalHoursPlay = useMemo(() => {
-    return (endTimeWatch?.diff(startTimeWatch, "hour") ?? 0).toFixed(1);
+    if (!startTimeWatch || !endTimeWatch) return 0;
+    const minutes = endTimeWatch.diff(startTimeWatch, "minute");
+    if (minutes <= 0) return 0;
+    return Math.round((minutes / 60) * 100) / 100;
   }, [startTimeWatch, endTimeWatch]);
+
+  const totalHoursDisplay = useMemo(() => {
+    if (totalHoursPlay === 0) return "0";
+    const formatted = totalHoursPlay % 1 === 0 ? totalHoursPlay.toFixed(0) : totalHoursPlay.toFixed(2);
+    return formatted.replace(/\.?0+$/, "");
+  }, [totalHoursPlay]);
 
   const [createBookingCourtDaysOfWeek, setCreateBookingCourtDaysOfWeek] = useState<string>("1");
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>([]);
@@ -660,7 +669,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                         {
                           key: "7",
                           label: "Tổng số giờ đặt sân",
-                          children: `${totalHoursPlay} giờ`,
+                          children: `${totalHoursDisplay} giờ`,
                           span: 1,
                           style: { color: totalHoursPlay < 1 ? "red" : "inherit" },
                         },
@@ -771,7 +780,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                         {
                           key: "8",
                           label: "Tổng số giờ mỗi buổi",
-                          children: `${totalHoursPlay} giờ`,
+                          children: `${totalHoursDisplay} giờ`,
                           span: 1,
                           style: { color: totalHoursPlay < 1 ? "red" : "inherit" },
                         },

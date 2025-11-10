@@ -239,20 +239,30 @@ const UserCourtScheduler = ({ courts }: UserCourtSchedulerProps) => {
   }, []);
 
   // Memoize resources to prevent unnecessary re-computations
-  const resources: DayPilot.ResourceData[] = useMemo(
-    () =>
-      courts.map((courtArea) => ({
-        name: courtArea.name ?? "",
-        id: courtArea.id,
-        expanded: true,
-        children:
-          courtArea.courts?.map((court) => ({
-            name: court.name ?? "",
-            id: court.id,
-          })) ?? [],
-      })),
-    [courts],
-  );
+  const resources: DayPilot.ResourceData[] = useMemo(() => {
+    return courts
+      .map((courtArea) => {
+        const children =
+          courtArea.courts
+            ?.map((court) => ({
+              name: court.name ?? "",
+              id: court.id,
+            }))
+            ?.filter((child) => !!child?.id) ?? [];
+
+        if (children.length === 0) {
+          return null;
+        }
+
+        return {
+          name: courtArea.name ?? "",
+          id: courtArea.id,
+          expanded: true,
+          children,
+        } as DayPilot.ResourceData;
+      })
+      .filter((resource): resource is DayPilot.ResourceData => resource !== null);
+  }, [courts]);
 
   return (
     <>

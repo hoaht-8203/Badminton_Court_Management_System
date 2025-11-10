@@ -264,7 +264,7 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
               </Form.Item>
             </Col>
             <Col span={8}>
-              <Form.Item name="isDisplayOnWeb" valuePropName="checked" label="Bán trên Web">
+              <Form.Item name="isDisplayOnWeb" valuePropName="checked" label="Hiện trên web">
                 <Checkbox />
               </Form.Item>
             </Col>

@@ -96,13 +96,13 @@ export const productColumns: TableProps<ListProductResponse>["columns"] = [
     },
   },
   {
-    title: "Bán trên Web",
+    title: "Hiện trên web",
     dataIndex: "isDisplayOnWeb",
     key: "isDisplayOnWeb",
     width: 130,
     render: (v: boolean | undefined, record: any) => {
       if ((record as any).isSummaryRow) return "";
-      return <Tag color={v ? "blue" : "default"}>{v ? "Bán" : "Không bán"}</Tag>;
+      return <Tag color={v ? "blue" : "default"}>{v ? "Hiện" : "Ẩn"}</Tag>;
     },
   },
 ];

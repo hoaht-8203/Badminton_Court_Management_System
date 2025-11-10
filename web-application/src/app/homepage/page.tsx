@@ -36,7 +36,7 @@ const HomePage = () => {
         <Products products={productsData?.data ?? []} isLoading={isLoadingProducts} limit={8} />
       </section>
 
-      <section className="container mx-auto mt-10">
+      <section className="container mx-auto mt-10 px-4">
         <h2 className="text-2xl font-bold">Bài viết nổi bật</h2>
         <p className="text-gray-500">Bài viết về sân cầu lông</p>
 

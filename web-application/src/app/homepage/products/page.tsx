@@ -1,15 +1,10 @@
 "use client";
 
 import ProductCard from "@/components/homepage/ProductCard";
-import SnowEffect from "@/components/homepage/SnowEffect";
 import { useListProductsForWeb } from "@/hooks/useProducts";
-import { Button, Checkbox, Col, Empty, Input, Pagination, Radio, Row, Select, Spin, Typography } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
 import { useMemo, useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-
-const { Title } = Typography;
 
 type SortOption = "default" | "price-asc" | "price-desc" | "name-asc" | "name-desc";
 
@@ -23,13 +18,12 @@ const AllProductsPage = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 12;
 
-  // Đọc category từ URL query parameter
   useEffect(() => {
     const categoryParam = searchParams.get("category");
     if (categoryParam) {
       const decodedCategory = decodeURIComponent(categoryParam);
       setSelectedCategories([decodedCategory]);
-      setCurrentPage(1); // Reset về trang 1 khi filter
+      setCurrentPage(1);
     }
   }, [searchParams]);
 
@@ -37,9 +31,8 @@ const AllProductsPage = () => {
     name: searchTerm || undefined,
   });
 
-  const allProducts = productsData?.data ?? [];
+  const allProducts = useMemo(() => productsData?.data ?? [], [productsData?.data]);
 
-  // Lấy danh sách categories duy nhất từ products
   const categories = useMemo(() => {
     const cats = new Set<string>();
     allProducts.forEach((p) => {
@@ -48,17 +41,13 @@ const AllProductsPage = () => {
     return Array.from(cats).sort();
   }, [allProducts]);
 
-  // Filter và sort products
   const filteredAndSortedProducts = useMemo(() => {
-    // Bắt đầu với tất cả sản phẩm
     let filtered = [...allProducts];
 
-    // Filter theo category
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((product) => product.category && selectedCategories.includes(product.category));
     }
 
-    // Filter theo giá
     if (priceRange) {
       filtered = filtered.filter((product) => {
         const price = product.salePrice ?? 0;
@@ -79,19 +68,14 @@ const AllProductsPage = () => {
       });
     }
 
-    // Filter theo trạng thái tồn kho
-    // Mặc định chỉ hiển thị sản phẩm còn hàng, trừ khi người dùng chọn "Hết hàng"
     if (stockStatus === "out-of-stock") {
-      // Chỉ hiển thị sản phẩm hết hàng (stock = 0, null, hoặc undefined)
       filtered = filtered.filter((product) => {
         const stock = product.stock;
         return stock === undefined || stock === null || Number(stock) === 0;
       });
     } else {
-      // Mặc định (all hoặc in-stock): chỉ hiển thị sản phẩm còn hàng
       filtered = filtered.filter((product) => {
         const stock = product.stock;
-        // Chỉ hiển thị nếu stock > 0
         if (stock === undefined || stock === null) {
           return false;
         }
@@ -99,7 +83,6 @@ const AllProductsPage = () => {
       });
     }
 
-    // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
         case "price-asc":
@@ -118,20 +101,14 @@ const AllProductsPage = () => {
     return filtered;
   }, [allProducts, selectedCategories, priceRange, stockStatus, sortBy]);
 
-  // Tính toán sản phẩm cho trang hiện tại
   const paginatedProducts = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
     return filteredAndSortedProducts.slice(startIndex, endIndex);
   }, [filteredAndSortedProducts, currentPage, pageSize]);
 
-  // Reset về trang 1 khi filter thay đổi
   const handleFilterChange = () => {
     setCurrentPage(1);
-  };
-
-  const handleFilter = () => {
-    // Filter logic is handled in useMemo, this is just for the button
   };
 
   const handleClearFilters = () => {
@@ -143,176 +120,302 @@ const AllProductsPage = () => {
     setCurrentPage(1);
   };
 
+  const totalPages = Math.ceil(filteredAndSortedProducts.length / pageSize);
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <SnowEffect />
-      <div className="container mx-auto px-4 py-8">
-        {/* Breadcrumb */}
-        <div className="mb-6 text-sm text-gray-600">
-          <Link href="/homepage" className="text-gray-600 hover:text-blue-600">
-            Trang chủ
-          </Link>
-          <span className="mx-2">/</span>
-          <span className="font-medium text-gray-900">Sản phẩm</span>
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <div className="container mx-auto px-4 py-8 lg:px-6">
+        {/* Header Section */}
+        <div className="mb-8">
+          <nav className="mb-4 flex items-center gap-2 text-sm text-gray-600">
+            <Link href="/homepage" className="transition-colors hover:text-blue-600">
+              Trang chủ
+            </Link>
+            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+            <span className="font-medium text-gray-900">Sản phẩm</span>
+          </nav>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900">Danh sách sản phẩm</h1>
+              <p className="mt-2 text-gray-600">Khám phá bộ sưu tập sản phẩm chất lượng cao của chúng tôi</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-gray-700">Sắp xếp:</label>
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  setSortBy(e.target.value as SortOption);
+                  setCurrentPage(1);
+                }}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none"
+              >
+                <option value="default">Mặc định</option>
+                <option value="price-asc">Giá: Thấp đến cao</option>
+                <option value="price-desc">Giá: Cao đến thấp</option>
+                <option value="name-asc">Tên: A-Z</option>
+                <option value="name-desc">Tên: Z-A</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        <Row gutter={24}>
-          {/* Sidebar Filter */}
-          <Col xs={24} lg={6}>
-            <div className="rounded-lg bg-white p-6 shadow-sm">
-              <Title level={4} className="mb-4">
-                Bộ lọc
-              </Title>
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+          {/* Enhanced Sidebar Filter */}
+          <aside className="lg:col-span-1">
+            <div className="sticky top-8 rounded-2xl bg-white p-6 shadow-lg">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Bộ lọc</h2>
+                <button onClick={handleClearFilters} className="text-sm font-medium text-blue-600 transition-colors hover:text-blue-700">
+                  Xóa tất cả
+                </button>
+              </div>
 
               {/* Search */}
               <div className="mb-6">
-                <Input
-                  placeholder="Tìm kiếm theo tên sản phẩm..."
-                  prefix={<SearchOutlined />}
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    handleFilterChange();
-                  }}
-                  allowClear
-                />
+                <label className="mb-2 block text-sm font-semibold text-gray-700">Tìm kiếm</label>
+                <div className="relative">
+                  <svg
+                    className="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Tên sản phẩm..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      handleFilterChange();
+                    }}
+                    className="w-full rounded-lg border border-gray-300 bg-gray-50 py-2.5 pr-4 pl-10 text-sm transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:outline-none"
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => {
+                        setSearchTerm("");
+                        handleFilterChange();
+                      }}
+                      className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600"
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Category Filter */}
               <div className="mb-6">
-                <Title level={5} className="mb-3 text-base">
-                  Danh mục
-                </Title>
-                <Checkbox.Group
-                  value={selectedCategories.length === 0 ? ["all"] : selectedCategories}
-                  onChange={(values) => {
-                    // Lọc ra các giá trị không phải "all"
-                    const categoryValues = values.filter((v) => v !== "all") as string[];
-                    
-                    // Nếu chỉ chọn "Tất cả sản phẩm" (có "all" và không có category nào)
-                    if (values.includes("all") && categoryValues.length === 0) {
-                      setSelectedCategories([]);
-                    }
-                    // Nếu chọn category khác (có category trong values)
-                    else {
-                      setSelectedCategories(categoryValues);
-                    }
-                    handleFilterChange();
-                  }}
-                  className="flex flex-col gap-2"
-                >
-                  <Checkbox value="all">Tất cả sản phẩm</Checkbox>
+                <label className="mb-3 block text-sm font-semibold text-gray-700">Danh mục</label>
+                <div className="space-y-2">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={selectedCategories.length === 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedCategories([]);
+                        } else {
+                          setSelectedCategories(categories);
+                        }
+                        handleFilterChange();
+                      }}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Tất cả</span>
+                  </label>
                   {categories.map((cat) => (
-                    <Checkbox key={cat} value={cat}>
-                      {cat}
-                    </Checkbox>
+                    <label key={cat} className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50">
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(cat)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCategories([...selectedCategories, cat]);
+                          } else {
+                            setSelectedCategories(selectedCategories.filter((c) => c !== cat));
+                          }
+                          handleFilterChange();
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{cat}</span>
+                    </label>
                   ))}
-                </Checkbox.Group>
+                </div>
               </div>
 
               {/* Stock Status Filter */}
               <div className="mb-6">
-                <Title level={5} className="mb-3 text-base">
-                  Trạng thái
-                </Title>
-                <Radio.Group
-                  value={stockStatus}
-                  onChange={(e) => {
-                    setStockStatus(e.target.value);
-                    handleFilterChange();
-                  }}
-                  className="flex flex-col gap-2"
-                >
-                  <Radio value="in-stock">Còn hàng</Radio>
-                  <Radio value="out-of-stock">Hết hàng</Radio>
-                </Radio.Group>
+                <label className="mb-3 block text-sm font-semibold text-gray-700">Trạng thái</label>
+                <div className="space-y-2">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="stockStatus"
+                      value="in-stock"
+                      checked={stockStatus === "in-stock"}
+                      onChange={(e) => {
+                        setStockStatus(e.target.value);
+                        handleFilterChange();
+                      }}
+                      className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Còn hàng</span>
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50">
+                    <input
+                      type="radio"
+                      name="stockStatus"
+                      value="out-of-stock"
+                      checked={stockStatus === "out-of-stock"}
+                      onChange={(e) => {
+                        setStockStatus(e.target.value);
+                        handleFilterChange();
+                      }}
+                      className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Hết hàng</span>
+                  </label>
+                </div>
               </div>
 
               {/* Price Filter */}
               <div className="mb-6">
-                <Title level={5} className="mb-3 text-base">
-                  Lọc theo giá
-                </Title>
-                <Radio.Group
-                  value={priceRange}
-                  onChange={(e) => {
-                    setPriceRange(e.target.value);
-                    handleFilterChange();
-                  }}
-                  className="flex flex-col gap-2"
-                >
-                  <Radio value="under-100k">&lt; 100.000₫</Radio>
-                  <Radio value="100k-300k">100.000₫ - 300.000₫</Radio>
-                  <Radio value="300k-500k">300.000₫ - 500.000₫</Radio>
-                  <Radio value="500k-1m">500.000₫ - 1.000.000₫</Radio>
-                  <Radio value="over-1m">&gt; 1.000.000₫</Radio>
-                </Radio.Group>
-              </div>
-
-              {/* Filter Buttons */}
-              <div className="flex flex-col gap-2">
-                <Button type="primary" block onClick={handleFilter}>
-                  Lọc sản phẩm
-                </Button>
-                <Button block onClick={handleClearFilters}>
-                  Xóa bộ lọc
-                </Button>
+                <label className="mb-3 block text-sm font-semibold text-gray-700">Khoảng giá</label>
+                <div className="space-y-2">
+                  {[
+                    { value: "under-100k", label: "< 100.000₫" },
+                    { value: "100k-300k", label: "100.000₫ - 300.000₫" },
+                    { value: "300k-500k", label: "300.000₫ - 500.000₫" },
+                    { value: "500k-1m", label: "500.000₫ - 1.000.000₫" },
+                    { value: "over-1m", label: "> 1.000.000₫" },
+                  ].map((option) => (
+                    <label key={option.value} className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="priceRange"
+                        value={option.value}
+                        checked={priceRange === option.value}
+                        onChange={(e) => {
+                          setPriceRange(e.target.value);
+                          handleFilterChange();
+                        }}
+                        className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">{option.label}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
-          </Col>
+          </aside>
 
           {/* Main Content */}
-          <Col xs={24} lg={18}>
-            <div className="mb-6 flex items-center justify-between">
-              <Title level={2} className="mb-0">
-                Sản phẩm
-              </Title>
-              <Select
-                value={sortBy}
-                onChange={(value) => {
-                  setSortBy(value);
-                  setCurrentPage(1);
-                }}
-                style={{ width: 200 }}
-                options={[
-                  { label: "Mặc định", value: "default" },
-                  { label: "Giá: Thấp đến cao", value: "price-asc" },
-                  { label: "Giá: Cao đến thấp", value: "price-desc" },
-                  { label: "Tên: A-Z", value: "name-asc" },
-                  { label: "Tên: Z-A", value: "name-desc" },
-                ]}
-              />
-            </div>
-
+          <main className="lg:col-span-3">
             {isLoading ? (
-              <div className="flex justify-center py-12">
-                <Spin size="large" />
+              <div className="flex min-h-[400px] items-center justify-center">
+                <div className="text-center">
+                  <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+                  <p className="mt-4 text-gray-600">Đang tải sản phẩm...</p>
+                </div>
               </div>
             ) : filteredAndSortedProducts.length === 0 ? (
-              <Empty description="Không tìm thấy sản phẩm nào" />
+              <div className="rounded-2xl bg-white p-12 text-center shadow-lg">
+                <svg className="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                  />
+                </svg>
+                <h3 className="mt-4 text-lg font-semibold text-gray-900">Không tìm thấy sản phẩm</h3>
+                <p className="mt-2 text-gray-500">Thử điều chỉnh bộ lọc của bạn để xem thêm kết quả</p>
+              </div>
             ) : (
               <>
-                <Row gutter={[24, 24]}>
-                  {paginatedProducts.map((product) => (
-                    <Col key={product.id} xs={24} sm={12} lg={8}>
-                      <ProductCard product={product} />
-                    </Col>
-                  ))}
-                </Row>
-                <div className="mt-6 flex justify-center">
-                  <Pagination
-                    current={currentPage}
-                    total={filteredAndSortedProducts.length}
-                    pageSize={pageSize}
-                    onChange={(page) => setCurrentPage(page)}
-                    showSizeChanger={false}
-                    showTotal={(total, range) => `${range[0]}-${range[1]} của ${total} sản phẩm`}
-                  />
+                {/* Results Count */}
+                <div className="mb-6 flex items-center justify-between">
+                  <p className="text-sm text-gray-600">
+                    Hiển thị <span className="font-semibold text-gray-900">{paginatedProducts.length}</span> trong tổng số{" "}
+                    <span className="font-semibold text-gray-900">{filteredAndSortedProducts.length}</span> sản phẩm
+                  </p>
                 </div>
+
+                {/* Products Grid */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                  {paginatedProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+
+                {/* Enhanced Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-10 flex flex-col items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white disabled:hover:shadow-sm"
+                      >
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Trước
+                      </button>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                          if (page === 1 || page === totalPages || (page >= currentPage - 1 && page <= currentPage + 1)) {
+                            return (
+                              <button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
+                                  currentPage === page
+                                    ? "bg-blue-600 text-white shadow-md"
+                                    : "border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 hover:shadow-md"
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            );
+                          } else if (page === currentPage - 2 || page === currentPage + 2) {
+                            return (
+                              <span key={page} className="px-2 text-gray-400">
+                                ...
+                              </span>
+                            );
+                          }
+                          return null;
+                        })}
+                      </div>
+                      <button
+                        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white disabled:hover:shadow-sm"
+                      >
+                        Sau
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Trang {currentPage} / {totalPages}
+                    </p>
+                  </div>
+                )}
               </>
             )}
-          </Col>
-        </Row>
+          </main>
+        </div>
       </div>
     </div>
   );
@@ -320,11 +423,13 @@ const AllProductsPage = () => {
 
 const AllProductsPageWrapper = () => {
   return (
-    <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center">
-        <Spin size="large" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
+        </div>
+      }
+    >
       <AllProductsPage />
     </Suspense>
   );

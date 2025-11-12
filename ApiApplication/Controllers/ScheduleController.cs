@@ -67,7 +67,7 @@ namespace ApiApplication.Controllers
             return Ok(ApiResponse<bool>.SuccessResponse(result, "Assign schedule successfully"));
         }
 
-        [HttpDelete("remove")]
+        [HttpPost("remove")]
         public async Task<ActionResult<ApiResponse<object?>>> RemoveSchedule(
             [FromBody] ScheduleRequest request
         )

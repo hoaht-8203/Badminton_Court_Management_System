@@ -1,14 +1,14 @@
 "use client";
 
-import { Button, Drawer, Tag, Select } from "antd";
-import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
+import { Button, Drawer, Tag, Select, Modal, message } from "antd";
+import { SearchOutlined, ReloadOutlined, CloseOutlined } from "@ant-design/icons";
 import { useListStaffs } from "@/hooks/useStaffs";
 import { ListStaffRequestFromJSON } from "@/types-openapi/api/models/ListStaffRequest";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import React, { useState, useMemo, useCallback } from "react";
 import ScheduleAssignModal from "./schedule-assign-modal";
-import { useGetScheduleByStaff } from "@/hooks/useSchedule";
+import { useGetScheduleByStaff, useRemoveSchedule } from "@/hooks/useSchedule";
 import { ScheduleRequest, WeeklyScheduleRequest } from "@/types-openapi/api";
 dayjs.extend(weekOfYear);
 
@@ -139,6 +139,15 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
     return m;
   }, [shiftList]);
 
+  // map shift label to shift key/id for remove API
+  const shiftLabelToKeyMap = useMemo(() => {
+    const m = new Map<string, string>();
+    shiftList.forEach((s) => m.set(String(s.label), String(s.key)));
+    return m;
+  }, [shiftList]);
+
+  const removeScheduleMutation = useRemoveSchedule();
+
   const handlePrevWeek = useCallback(() => setWeekStart((ws) => ws.subtract(1, "week")), []);
   const handleNextWeek = useCallback(() => setWeekStart((ws) => ws.add(1, "week")), []);
 
@@ -151,6 +160,38 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
     setModalDate(fullDate);
     setModalOpen(true);
   }, []);
+
+  const handleRemoveSchedule = useCallback(
+    (staffId: number, shiftName: string, date: string) => {
+      const shiftKey = shiftLabelToKeyMap.get(shiftName);
+      if (!shiftKey) {
+        message.error("Không tìm thấy thông tin ca làm việc");
+        return;
+      }
+
+      Modal.confirm({
+        title: "Xác nhận hủy lịch làm việc",
+        content: `Bạn có chắc chắn muốn hủy lịch làm việc "${shiftName}" vào ngày ${dayjs(date).format("DD/MM/YYYY")}?`,
+        okText: "Hủy lịch",
+        okType: "danger",
+        cancelText: "Không",
+        onOk: async () => {
+          try {
+            const request: ScheduleRequest = {
+              staffId: staffId,
+              shiftId: Number(shiftKey),
+              startDate: new Date(date),
+            };
+            await removeScheduleMutation.mutateAsync(request);
+            message.success("Hủy lịch làm việc thành công!");
+          } catch (error: any) {
+            message.error(error?.message || "Hủy lịch làm việc thất bại!");
+          }
+        },
+      });
+    },
+    [shiftLabelToKeyMap, removeScheduleMutation],
+  );
 
   // allow selecting day-of-week header; persist selectedDay across week navigation
   const selectDay = useCallback((dayValue: number) => setSelectedDay(dayValue), []);
@@ -284,16 +325,45 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                                 padding: 6,
                                 fontSize: 14,
                                 border: "1px solid #b7eb8f",
+                                position: "relative",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
                               }}
                             >
                               <span style={{ fontWeight: 500 }}>{shiftName}</span>
+                              <Button
+                                type="text"
+                                size="small"
+                                icon={<CloseOutlined />}
+                                style={{
+                                  padding: 0,
+                                  width: 20,
+                                  height: 20,
+                                  minWidth: 20,
+                                  color: "#ff4d4f",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveSchedule(staff.id, shiftName, d.fullDate);
+                                }}
+                              />
                             </div>
                           );
                         })}
                         {hoverCell && hoverCell.staffId === staff.id && hoverCell.day === d.value && (
                           <Button
                             type="link"
-                            style={{ position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)" }}
+                            style={{
+                              width: "100%",
+                              marginTop: shiftsOfDay.length > 0 ? 0 : 0,
+                              padding: "4px 0",
+                              fontSize: 14,
+                              color: "#1890ff",
+                            }}
                             onClick={() => openAssignModal({ id: staff.id, fullName: staff.fullName }, d.fullDate, d.value)}
                           >
                             + Thêm lịch

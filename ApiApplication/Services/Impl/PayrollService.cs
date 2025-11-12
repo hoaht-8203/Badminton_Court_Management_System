@@ -80,6 +80,25 @@ public class PayrollService : IPayrollService
                 _mapper
             );
 
+            // Remove cancelled shifts from standardized schedules
+            var cancelledShifts = await _context
+                .CancelledShifts.Where(cs =>
+                    cs.StaffId == staff.Id
+                    && cs.Date >= request.StartDate
+                    && cs.Date <= request.EndDate
+                )
+                .ToListAsync();
+
+            standardizedSchedules = standardizedSchedules
+                .Where(s =>
+                    !cancelledShifts.Any(cs =>
+                        cs.StaffId == s.Staff.Id
+                        && cs.ShiftId == s.Shift.Id
+                        && cs.Date == DateOnly.FromDateTime(s.Date)
+                    )
+                )
+                .ToList();
+
             decimal totalSalary = SalaryHelper.CalculateSalary(
                 staff,
                 attendance,
@@ -184,6 +203,25 @@ public class PayrollService : IPayrollService
                 payroll.EndDate,
                 _mapper
             );
+
+            // Remove cancelled shifts from standardized schedules
+            var cancelledShifts = await _context
+                .CancelledShifts.Where(cs =>
+                    cs.StaffId == staff.Id
+                    && cs.Date >= payroll.StartDate
+                    && cs.Date <= payroll.EndDate
+                )
+                .ToListAsync();
+
+            standardizedSchedules = standardizedSchedules
+                .Where(s =>
+                    !cancelledShifts.Any(cs =>
+                        cs.StaffId == s.Staff.Id
+                        && cs.ShiftId == s.Shift.Id
+                        && cs.Date == DateOnly.FromDateTime(s.Date)
+                    )
+                )
+                .ToList();
 
             decimal totalSalary = SalaryHelper.CalculateSalary(
                 staff,

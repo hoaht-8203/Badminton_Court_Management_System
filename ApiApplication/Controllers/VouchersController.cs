@@ -32,7 +32,9 @@ public class VouchersController(
     }
 
     [HttpGet("detail")]
-    public async Task<ApiResponse<VoucherResponse?>> Detail([FromQuery] DetailVoucherRequest request)
+    public async Task<ApiResponse<VoucherResponse?>> Detail(
+        [FromQuery] DetailVoucherRequest request
+    )
     {
         var data = await _voucherService.DetailAsync(request.Id);
         return ApiResponse<VoucherResponse?>.SuccessResponse(data);
@@ -50,13 +52,6 @@ public class VouchersController(
     {
         await _voucherService.UpdateAsync(id, request);
         return ApiResponse<object?>.SuccessResponse(null, "Cập nhật voucher thành công");
-    }
-
-    [HttpPatch("extend/{id}")]
-    public async Task<ApiResponse<object?>> Extend(int id, [FromBody] ExtendVoucherRequest request)
-    {
-        await _voucherService.ExtendAsync(id, request);
-        return ApiResponse<object?>.SuccessResponse(null, "Gia hạn voucher thành công");
     }
 
     [HttpDelete("delete")]
@@ -86,7 +81,9 @@ public class VouchersController(
         var customerIdResult = await ResolveCustomerIdAsync(request.CustomerId);
         if (!customerIdResult.Success)
         {
-            return ApiResponse<ValidateVoucherResponse>.ErrorResponse(customerIdResult.ErrorMessage!);
+            return ApiResponse<ValidateVoucherResponse>.ErrorResponse(
+                customerIdResult.ErrorMessage!
+            );
         }
 
         // Validate voucher with resolved customer ID
@@ -120,8 +117,8 @@ public class VouchersController(
         // If customer ID is explicitly provided (staff flow), validate it exists
         if (customerIdFromRequest.HasValue)
         {
-            var customerExists = await _context.Customers.AnyAsync(
-                c => c.Id == customerIdFromRequest.Value
+            var customerExists = await _context.Customers.AnyAsync(c =>
+                c.Id == customerIdFromRequest.Value
             );
             if (!customerExists)
             {
@@ -147,12 +144,38 @@ public class VouchersController(
             return (false, 0, "Người dùng không tồn tại");
         }
 
+        // Auto-create customer if it doesn't exist (similar to BookingCourtService)
         if (user.Customer == null)
         {
-            return (false, 0, "Vui lòng xác nhận email để tạo tài khoản khách hàng trước khi sử dụng voucher.");
+            await EnsureCustomerExistsForUserAsync(user);
         }
 
-        return (true, user.Customer.Id, null);
+        return (true, user.Customer!.Id, null);
+    }
+
+    /// <summary>
+    /// Creates a customer record for the given user if it doesn't exist.
+    /// </summary>
+    private async Task EnsureCustomerExistsForUserAsync(ApplicationUser user)
+    {
+        if (user.Customer != null)
+        {
+            return;
+        }
+
+        var customer = new Customer
+        {
+            FullName = user.FullName,
+            PhoneNumber = user.PhoneNumber ?? "",
+            Email = user.Email ?? "",
+            Status = CustomerStatus.Active,
+            UserId = user.Id,
+        };
+
+        await _context.Customers.AddAsync(customer);
+        user.Customer = customer;
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
     }
 
     #endregion

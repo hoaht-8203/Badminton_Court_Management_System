@@ -31,6 +31,7 @@ namespace ApiApplication.Helpers
                             Shift = _mapper.Map<ShiftResponse>(schedule.Shift),
                             Date = date.ToDateTime(TimeOnly.MinValue),
                             DayOfWeek = date.DayOfWeek,
+                            IsFixedShift = schedule.IsFixedShift,
                         };
                         normalizedSchedules.Add(scheduleResponse);
                     }
@@ -44,6 +45,7 @@ namespace ApiApplication.Helpers
                         Shift = _mapper.Map<ShiftResponse>(schedule.Shift),
                         Date = schedule.StartDate.ToDateTime(TimeOnly.MinValue),
                         DayOfWeek = schedule.StartDate.DayOfWeek,
+                        IsFixedShift = schedule.IsFixedShift,
                     };
                     result.Add(scheduleResponse);
                 }

@@ -33,9 +33,11 @@ export const voucherService = {
     const res = await axiosInstance.put<ApiResponse<null>>(`/api/vouchers/update/${id}`, payload);
     return res.data;
   },
-
-  async extend(id: number, payload: { endAt?: Date; usageLimitTotal?: number; usageLimitPerUser?: number }): Promise<ApiResponse<null>> {
-    const res = await axiosInstance.patch<ApiResponse<null>>(`/api/vouchers/extend/${id}`, payload);
+  
+  // Extend: allow partial updates for extending a voucher (only changed fields)
+  async extend(id: number, payload: Partial<UpdateVoucherRequest>): Promise<ApiResponse<null>> {
+    // Reuse the update endpoint which accepts UpdateVoucherRequest; server side handles optional fields
+    const res = await axiosInstance.put<ApiResponse<null>>(`/api/vouchers/update/${id}`, payload);
     return res.data;
   },
 

@@ -1,10 +1,10 @@
 "use client";
 
-import { useDetailVoucher, useExtendVoucher } from "@/hooks/useVouchers";
+import { useDetailVoucher, useUpdateVoucher } from "@/hooks/useVouchers";
 import { ApiError } from "@/lib/axios";
-import { DetailVoucherRequest, VoucherResponse } from "@/types-openapi/api";
+import { UpdateVoucherRequest, DetailVoucherRequest, VoucherResponse } from "@/types-openapi/api";
 import { CloseOutlined, SaveOutlined } from "@ant-design/icons";
-import { Button, DatePicker, Divider, Drawer, Form, FormProps, InputNumber, Tabs, message } from "antd";
+import { Button, Drawer, Form, FormProps, InputNumber, DatePicker, Tabs, message, Divider } from "antd";
 import FormItem from "antd/es/form/FormItem";
 import dayjs from "dayjs";
 import React from "react";
@@ -15,18 +15,12 @@ interface ExtendVoucherDrawerProps {
   voucherId: number | null;
 }
 
-interface ExtendVoucherFormValues {
-  endAt?: dayjs.Dayjs;
-  usageLimitTotal?: number;
-  usageLimitPerUser?: number;
-}
-
 // Use Tabs items API (TabPane is deprecated)
 
 const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerProps) => {
-  const [form] = Form.useForm<ExtendVoucherFormValues>();
+  const [form] = Form.useForm<UpdateVoucherRequest>();
   const { data: detailResp } = useDetailVoucher({ id: voucherId ?? 0 } as DetailVoucherRequest);
-  const extendMutation = useExtendVoucher();
+  const updateMutation = useUpdateVoucher();
 
   React.useEffect(() => {
     if (detailResp?.data) {
@@ -39,37 +33,48 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
     }
   }, [detailResp, form]);
 
-  const handleSubmit: FormProps<ExtendVoucherFormValues>["onFinish"] = (values) => {
+  const handleSubmit: FormProps<UpdateVoucherRequest>["onFinish"] = (values) => {
     if (!voucherId) {
       message.error("ID voucher không hợp lệ");
       return;
     }
 
-    // Build payload with only provided fields
-    const payload: { endAt?: Date; usageLimitTotal?: number; usageLimitPerUser?: number } = {};
+    // Build a minimal payload containing only fields that changed compared to the loaded voucher detail
+    const payload: UpdateVoucherRequest = {} as UpdateVoucherRequest;
+    const v = detailResp?.data as VoucherResponse | undefined;
 
-    // endAt
+    // endAt (compare timestamps)
     if (values.endAt) {
-      payload.endAt = dayjs(values.endAt).toDate();
+      const newEnd = dayjs(values.endAt).toDate();
+      const oldEnd = v?.endAt ? new Date(v.endAt) : undefined;
+      if (!oldEnd || newEnd.getTime() !== oldEnd.getTime()) {
+        payload.endAt = newEnd;
+      }
     }
 
     // usageLimitTotal
     if (values.usageLimitTotal !== undefined) {
-      payload.usageLimitTotal = values.usageLimitTotal;
+      const oldUsageTotal = v?.usageLimitTotal;
+      if (oldUsageTotal !== values.usageLimitTotal) {
+        payload.usageLimitTotal = values.usageLimitTotal;
+      }
     }
 
     // usageLimitPerUser
     if (values.usageLimitPerUser !== undefined) {
-      payload.usageLimitPerUser = values.usageLimitPerUser;
+      const oldUsagePerUser = v?.usageLimitPerUser;
+      if (oldUsagePerUser !== values.usageLimitPerUser) {
+        payload.usageLimitPerUser = values.usageLimitPerUser;
+      }
     }
 
-    // If nothing provided, inform the user and skip the request
+    // If nothing changed, inform the user and skip the request
     if (Object.keys(payload).length === 0) {
-      message.info("Vui lòng nhập ít nhất một trường để cập nhật");
+      message.info("Không có thay đổi để cập nhật");
       return;
     }
 
-    extendMutation.mutate(
+    updateMutation.mutate(
       { id: voucherId, data: payload },
       {
         onSuccess: () => {
@@ -104,7 +109,13 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
           >
             Đóng
           </Button>
-          <Button type="primary" style={{ marginLeft: 8 }} loading={extendMutation.isPending} onClick={() => form.submit()} icon={<SaveOutlined />}>
+          <Button
+            type="primary"
+            style={{ marginLeft: 8 }}
+            loading={updateMutation.status === "pending"}
+            onClick={() => form.submit()}
+            icon={<SaveOutlined />}
+          >
             Lưu
           </Button>
         </div>
@@ -117,7 +128,7 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
             label: "Thông tin cơ bản",
             children: (
               <Form form={form} onFinish={handleSubmit} layout="vertical">
-                <FormItem name="endAt" label="Ngày kết thúc mới">
+                <FormItem name="endAt" label="Ngày kết thúc mới" rules={[{ required: true }]}>
                   <DatePicker showTime style={{ width: "100%" }} format="DD/MM/YYYY HH:mm" />
                 </FormItem>
 

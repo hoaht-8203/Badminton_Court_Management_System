@@ -1,6 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { feedbackService } from "@/services/feedbackService";
-import { CreateFeedbackRequest, DetailFeedbackResponse, ListFeedbackRequest, ListFeedbackResponse } from "@/types-openapi/api";
+import { CreateFeedbackRequest, ListFeedbackRequest } from "@/types-openapi/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
 
 export function useCreateFeedback() {

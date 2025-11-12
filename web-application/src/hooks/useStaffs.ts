@@ -40,7 +40,9 @@ export function useUpdateStaff(staffId: number) {
 export function useUpdateStaffStatus(staffId: number) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { isActive: boolean }) => staffService.update(staffId, data),
+    // Use the dedicated changeStatus endpoint to avoid sending a full StaffRequest
+    mutationFn: async (data: { isActive: boolean }) =>
+      staffService.changeStatus({ staffId: staffId, isActive: data.isActive }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["staffs"] });
       queryClient.invalidateQueries({ queryKey: ["staff", staffId] });

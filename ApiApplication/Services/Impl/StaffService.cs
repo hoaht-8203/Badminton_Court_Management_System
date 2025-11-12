@@ -28,9 +28,18 @@ namespace ApiApplication.Services.Impl
                 );
             }
 
-            // Check uniqueness for IdentificationNumber
+            // Validate format for IdentificationNumber
             if (!string.IsNullOrEmpty(request.IdentificationNumber))
             {
+                if (request.IdentificationNumber.Length != 12 || !System.Text.RegularExpressions.Regex.IsMatch(request.IdentificationNumber, @"^\d{12}$"))
+                {
+                    throw new ApiException(
+                        "Căn cước công dân phải có đúng 12 chữ số",
+                        HttpStatusCode.BadRequest
+                    );
+                }
+
+                // Check uniqueness for IdentificationNumber
                 var exists = await _context.Staffs.AnyAsync(s =>
                     s.IdentificationNumber == request.IdentificationNumber && s.Id != id
                 );
@@ -42,9 +51,19 @@ namespace ApiApplication.Services.Impl
                     );
                 }
             }
-            // Check uniqueness for PhoneNumber
+
+            // Validate format for PhoneNumber
             if (!string.IsNullOrEmpty(request.PhoneNumber))
             {
+                if (request.PhoneNumber.Length < 9 || request.PhoneNumber.Length > 11 || !System.Text.RegularExpressions.Regex.IsMatch(request.PhoneNumber, @"^\d{9,11}$"))
+                {
+                    throw new ApiException(
+                        "Số điện thoại phải có từ 9 đến 11 chữ số",
+                        HttpStatusCode.BadRequest
+                    );
+                }
+
+                // Check uniqueness for PhoneNumber
                 var exists = await _context.Staffs.AnyAsync(s =>
                     s.PhoneNumber == request.PhoneNumber && s.Id != id
                 );
@@ -64,9 +83,18 @@ namespace ApiApplication.Services.Impl
 
         public async Task CreateStaffAsync(Dtos.StaffRequest request)
         {
-            // Check uniqueness for IdentificationNumber
+            // Validate format for IdentificationNumber
             if (!string.IsNullOrEmpty(request.IdentificationNumber))
             {
+                if (request.IdentificationNumber.Length != 12 || !System.Text.RegularExpressions.Regex.IsMatch(request.IdentificationNumber, @"^\d{12}$"))
+                {
+                    throw new ApiException(
+                        "Căn cước công dân phải có đúng 12 chữ số",
+                        HttpStatusCode.BadRequest
+                    );
+                }
+
+                // Check uniqueness for IdentificationNumber
                 var exists = await _context.Staffs.AnyAsync(s =>
                     s.IdentificationNumber == request.IdentificationNumber
                 );
@@ -78,9 +106,19 @@ namespace ApiApplication.Services.Impl
                     );
                 }
             }
-            // Check uniqueness for PhoneNumber
+
+            // Validate format for PhoneNumber
             if (!string.IsNullOrEmpty(request.PhoneNumber))
             {
+                if (request.PhoneNumber.Length < 9 || request.PhoneNumber.Length > 11 || !System.Text.RegularExpressions.Regex.IsMatch(request.PhoneNumber, @"^\d{9,11}$"))
+                {
+                    throw new ApiException(
+                        "Số điện thoại phải có từ 9 đến 11 chữ số",
+                        HttpStatusCode.BadRequest
+                    );
+                }
+
+                // Check uniqueness for PhoneNumber
                 var exists = await _context.Staffs.AnyAsync(s =>
                     s.PhoneNumber == request.PhoneNumber
                 );

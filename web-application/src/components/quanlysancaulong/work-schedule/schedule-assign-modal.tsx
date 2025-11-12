@@ -1,7 +1,7 @@
 import { useAssignSchedule } from "@/hooks/useSchedule";
 import { message } from "antd";
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Checkbox, Switch, DatePicker, Select, Tag } from "antd";
+import React, { useState, useEffect, useMemo } from "react";
+import { Modal, Button, Checkbox, Switch, DatePicker, Select, Tag, Alert } from "antd";
 import dayjs from "dayjs";
 import { ScheduleRequest } from "@/types-openapi/api";
 
@@ -35,6 +35,14 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
   const [repeatDays, setRepeatDays] = useState<number[]>([]);
   const [repeatEnd, setRepeatEnd] = useState<string | null>(null);
   const [workOnHoliday, setWorkOnHoliday] = useState(false);
+
+  // Check if the selected date is in the past
+  const isPastDate = useMemo(() => {
+    if (!date) return false;
+    const selectedDate = dayjs(date).startOf("day");
+    const today = dayjs().startOf("day");
+    return selectedDate.isBefore(today);
+  }, [date]);
 
   // Reset modal state each time it is opened
   useEffect(() => {
@@ -127,6 +135,15 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
         </div>
       }
     >
+      {isPastDate && (
+        <Alert
+          message="Cảnh báo"
+          description="Bạn đang xếp lịch làm việc cho một ngày trong quá khứ. Việc này có thể ảnh hưởng đến dữ liệu chấm công và báo cáo."
+          type="warning"
+          showIcon
+          style={{ marginBottom: 18 }}
+        />
+      )}
       <div style={{ marginBottom: 18 }}>
         <div style={{ fontWeight: 500, marginBottom: 8 }}>Chọn ca làm việc</div>
         <div style={{ display: "flex", gap: 24 }}>

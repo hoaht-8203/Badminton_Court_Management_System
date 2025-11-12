@@ -171,6 +171,7 @@ const WorkScheduleTable: React.FC = () => {
       <div style={{ overflowX: "auto" }}>
         {(() => {
           const monday = weekStart;
+          const today = dayjs().format("YYYY-MM-DD");
           const weekDays = daysOfWeek.map((d, idx) => {
             const day = monday.add(idx, "day");
             return { ...d, date: day.date(), fullDate: day.format("YYYY-MM-DD") };
@@ -183,20 +184,27 @@ const WorkScheduleTable: React.FC = () => {
                     <th style={{ width: 140, textAlign: "left", padding: 8, background: "#fafafa", borderRight: "1px solid #f0f0f0" }}>
                       Ca làm việc
                     </th>
-                    {weekDays.map((d, idx) => (
-                      <th
-                        key={d.value}
-                        style={{
-                          minWidth: 120,
-                          textAlign: "center",
-                          padding: 8,
-                          background: idx === dayjs().day() - 1 ? "#e6f7ff" : "#fafafa",
-                          borderRight: "1px solid #f0f0f0",
-                        }}
-                      >
-                        {d.label} <span style={{ color: "#bfbfbf", fontSize: 12, marginLeft: 2 }}>{d.date}</span>
-                      </th>
-                    ))}
+                    {weekDays.map((d, idx) => {
+                      const isToday = d.fullDate === today;
+                      return (
+                        <th
+                          key={d.value}
+                          style={{
+                            minWidth: 120,
+                            textAlign: "center",
+                            padding: 8,
+                            background: isToday ? "#bae7ff" : "#fafafa",
+                            borderRight: "1px solid #f0f0f0",
+                            borderBottom: "1px solid #f0f0f0",
+                          }}
+                        >
+                          {d.label}{" "}
+                          <span style={{ color: isToday ? "#1890ff" : "#bfbfbf", fontSize: 12, marginLeft: 2, fontWeight: isToday ? 700 : 400 }}>
+                            {d.date}
+                          </span>
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
@@ -209,6 +217,7 @@ const WorkScheduleTable: React.FC = () => {
                       {weekDays.map((d) => {
                         // Lấy lịch làm việc từ API cho từng ca và ngày
                         const cellData = scheduleByShift?.[String(shift.id)]?.[d.value] || [];
+                        const isToday = d.fullDate === today;
                         return (
                           <td
                             key={d.value}
@@ -219,7 +228,7 @@ const WorkScheduleTable: React.FC = () => {
                               position: "relative",
                               border: "1px solid #e0e0e0",
                               boxSizing: "border-box",
-                              background: "#fff",
+                              background: isToday ? "#f0f9ff" : "#fff",
                             }}
                           >
                             {cellData.map((item: any, idx: number) => {

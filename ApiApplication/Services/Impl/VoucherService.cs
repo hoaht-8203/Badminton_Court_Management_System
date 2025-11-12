@@ -179,20 +179,15 @@ public class VoucherService : IVoucherService
             throw new ApiException("Người dùng không tồn tại", HttpStatusCode.Unauthorized);
         }
 
-        // Auto-create customer if it doesn't exist (consistent with ValidateVoucher flow)
-        // This ensures that available vouchers are filtered correctly based on customer-specific rules
         if (user.Customer == null)
         {
-            await EnsureCustomerExistsForUserAsync(user);
-            // After SaveChangesAsync, the user.Customer should be set, but reload to be safe
-            await _context.Entry(user).Reference(u => u.Customer).LoadAsync();
+            throw new ApiException(
+                "Vui lòng xác nhận email để tạo tài khoản khách hàng trước khi sử dụng voucher.",
+                HttpStatusCode.BadRequest
+            );
         }
 
         var customer = user.Customer;
-
-        // Note: After auto-creation, customer should never be null for regular users.
-        // However, admin/receptionist accounts may still not have customers,
-        // so we handle that case below.
 
         // Get current time information (this will be different for each request)
         var now = DateTime.UtcNow;
@@ -355,31 +350,6 @@ public class VoucherService : IVoucherService
         return _mapper.Map<List<VoucherResponse>>(availableVouchers);
     }
 
-    /// <summary>
-    /// Creates a customer record for the given user if it doesn't exist.
-    /// This ensures consistency across voucher operations (available, validate, booking).
-    /// </summary>
-    private async Task EnsureCustomerExistsForUserAsync(ApplicationUser user)
-    {
-        if (user.Customer != null)
-        {
-            return;
-        }
-
-        var customer = new Customer
-        {
-            FullName = user.FullName,
-            PhoneNumber = user.PhoneNumber ?? "",
-            Email = user.Email ?? "",
-            Status = CustomerStatus.Active,
-            UserId = user.Id,
-        };
-
-        await _context.Customers.AddAsync(customer);
-        user.Customer = customer;
-        _context.Users.Update(user);
-        await _context.SaveChangesAsync();
-    }
 
     public async Task<ValidateVoucherResponse> ValidateAndCalculateDiscountAsync(
         ValidateVoucherRequest request,
@@ -438,12 +408,20 @@ public class VoucherService : IVoucherService
         }
 
         // Check date range against referenceDateTime
-        if (voucher.StartAt > referenceDateTime || voucher.EndAt < referenceDateTime)
+        if (voucher.StartAt > referenceDateTime)
         {
             return new ValidateVoucherResponse
             {
                 IsValid = false,
-                ErrorMessage = "Voucher đã hết hạn hoặc chưa đến thời gian sử dụng",
+                ErrorMessage = $"Voucher chưa đến thời gian sử dụng. Voucher có hiệu lực từ {voucher.StartAt:dd/MM/yyyy HH:mm}",
+            };
+        }
+        if (voucher.EndAt < referenceDateTime)
+        {
+            return new ValidateVoucherResponse
+            {
+                IsValid = false,
+                ErrorMessage = $"Voucher đã hết hạn. Voucher có hiệu lực đến {voucher.EndAt:dd/MM/yyyy HH:mm}",
             };
         }
 
@@ -493,6 +471,19 @@ public class VoucherService : IVoucherService
         if (voucher.TimeRules != null && voucher.TimeRules.Any())
         {
             var matchesTimeRule = false;
+            string? timeRuleError = null; // Ưu tiên hiển thị lỗi về giờ nếu đúng ngày/thứ
+            string? dateRuleError = null; // Lỗi về ngày/thứ nếu sai hoàn toàn
+            var dayNames = new Dictionary<DayOfWeek, string>
+            {
+                { DayOfWeek.Monday, "Thứ 2" },
+                { DayOfWeek.Tuesday, "Thứ 3" },
+                { DayOfWeek.Wednesday, "Thứ 4" },
+                { DayOfWeek.Thursday, "Thứ 5" },
+                { DayOfWeek.Friday, "Thứ 6" },
+                { DayOfWeek.Saturday, "Thứ 7" },
+                { DayOfWeek.Sunday, "Chủ nhật" },
+            };
+
             foreach (var timeRule in voucher.TimeRules)
             {
                 if (timeRule.SpecificDate.HasValue)
@@ -500,6 +491,7 @@ public class VoucherService : IVoucherService
                     var specificDate = DateOnly.FromDateTime(timeRule.SpecificDate.Value);
                     if (currentDate == specificDate)
                     {
+                        // Đúng ngày
                         if (timeRule.StartTime.HasValue && timeRule.EndTime.HasValue)
                         {
                             var ts = timeRule.StartTime.Value;
@@ -511,18 +503,45 @@ public class VoucherService : IVoucherService
                                 matchesTimeRule = true;
                                 break;
                             }
+                            else
+                            {
+                                // Đúng ngày nhưng sai giờ - đây là lỗi quan trọng nhất
+                                timeRuleError = $"Voucher chỉ áp dụng vào ngày {specificDate:dd/MM/yyyy} từ {startTime:HH:mm} đến {endTime:HH:mm}. Hiện tại là {currentTime:HH:mm}";
+                            }
                         }
                         else
                         {
+                            // Đúng ngày, không có giờ cụ thể -> hợp lệ
                             matchesTimeRule = true;
                             break;
+                        }
+                    }
+                    else
+                    {
+                        // Sai ngày - chỉ lưu nếu chưa có lỗi về giờ
+                        if (string.IsNullOrEmpty(timeRuleError))
+                        {
+                            if (timeRule.StartTime.HasValue && timeRule.EndTime.HasValue)
+                            {
+                                var ts = timeRule.StartTime.Value;
+                                var te = timeRule.EndTime.Value;
+                                var startTime = new TimeOnly(ts.Hours, ts.Minutes, ts.Seconds);
+                                var endTime = new TimeOnly(te.Hours, te.Minutes, te.Seconds);
+                                dateRuleError = $"Voucher chỉ áp dụng vào ngày {specificDate:dd/MM/yyyy} từ {startTime:HH:mm} đến {endTime:HH:mm}";
+                            }
+                            else
+                            {
+                                dateRuleError = $"Voucher chỉ áp dụng vào ngày {specificDate:dd/MM/yyyy}";
+                            }
                         }
                     }
                 }
                 else if (timeRule.DayOfWeek.HasValue)
                 {
-                    if (currentDayOfWeek == timeRule.DayOfWeek.Value)
+                    var ruleDayOfWeek = (DayOfWeek)timeRule.DayOfWeek.Value;
+                    if (currentDayOfWeek == ruleDayOfWeek)
                     {
+                        // Đúng thứ
                         if (timeRule.StartTime.HasValue && timeRule.EndTime.HasValue)
                         {
                             var ts = timeRule.StartTime.Value;
@@ -534,11 +553,36 @@ public class VoucherService : IVoucherService
                                 matchesTimeRule = true;
                                 break;
                             }
+                            else
+                            {
+                                // Đúng thứ nhưng sai giờ - đây là lỗi quan trọng nhất
+                                timeRuleError = $"Voucher chỉ áp dụng vào {dayNames[ruleDayOfWeek]} từ {startTime:HH:mm} đến {endTime:HH:mm}. Hiện tại là {currentTime:HH:mm}";
+                            }
                         }
                         else
                         {
+                            // Đúng thứ, không có giờ cụ thể -> hợp lệ
                             matchesTimeRule = true;
                             break;
+                        }
+                    }
+                    else
+                    {
+                        // Sai thứ - chỉ lưu nếu chưa có lỗi về giờ
+                        if (string.IsNullOrEmpty(timeRuleError))
+                        {
+                            if (timeRule.StartTime.HasValue && timeRule.EndTime.HasValue)
+                            {
+                                var ts = timeRule.StartTime.Value;
+                                var te = timeRule.EndTime.Value;
+                                var startTime = new TimeOnly(ts.Hours, ts.Minutes, ts.Seconds);
+                                var endTime = new TimeOnly(te.Hours, te.Minutes, te.Seconds);
+                                dateRuleError = $"Voucher chỉ áp dụng vào {dayNames[ruleDayOfWeek]} từ {startTime:HH:mm} đến {endTime:HH:mm}";
+                            }
+                            else
+                            {
+                                dateRuleError = $"Voucher chỉ áp dụng vào {dayNames[ruleDayOfWeek]}";
+                            }
                         }
                     }
                 }
@@ -546,10 +590,18 @@ public class VoucherService : IVoucherService
 
             if (!matchesTimeRule)
             {
+                // Ưu tiên hiển thị lỗi về giờ (nếu đúng ngày/thứ nhưng sai giờ)
+                // Nếu không có, hiển thị lỗi về ngày/thứ
+                var errorMessage = !string.IsNullOrEmpty(timeRuleError)
+                    ? timeRuleError
+                    : (!string.IsNullOrEmpty(dateRuleError)
+                        ? dateRuleError
+                        : "Voucher không khả dụng tại thời điểm này. Vui lòng kiểm tra điều kiện thời gian sử dụng.");
+
                 return new ValidateVoucherResponse
                 {
                     IsValid = false,
-                    ErrorMessage = "Voucher không khả dụng tại thời điểm này",
+                    ErrorMessage = errorMessage,
                 };
             }
         }
@@ -569,6 +621,7 @@ public class VoucherService : IVoucherService
         {
             var isNewCustomer = !await _context.Orders.AnyAsync(o => o.CustomerId == customerId);
             var matchesUserRule = false;
+            string? userRuleDescription = null;
 
             foreach (var userRule in voucher.UserRules)
             {
@@ -578,6 +631,12 @@ public class VoucherService : IVoucherService
                     {
                         matchesUserRule = true;
                         break;
+                    }
+                    else
+                    {
+                        userRuleDescription = userRule.IsNewCustomer.Value
+                            ? "Voucher này chỉ dành cho khách hàng mới (chưa từng đặt hàng)"
+                            : "Voucher này chỉ dành cho khách hàng đã từng đặt hàng";
                     }
                 }
                 else if (string.IsNullOrWhiteSpace(userRule.UserType))
@@ -592,7 +651,7 @@ public class VoucherService : IVoucherService
                 return new ValidateVoucherResponse
                 {
                     IsValid = false,
-                    ErrorMessage = "Bạn không đủ điều kiện sử dụng voucher này",
+                    ErrorMessage = userRuleDescription ?? "Bạn không đủ điều kiện sử dụng voucher này. Vui lòng kiểm tra điều kiện áp dụng.",
                 };
             }
         }

@@ -127,7 +127,18 @@ public class PayrollService : IPayrollService
             .FirstOrDefaultAsync(p => p.Id == payrollId);
 
         if (payroll == null)
-            return false;
+            throw new ApiException("Bảng lương không tồn tại", HttpStatusCode.NotFound);
+
+        // Check if payroll end date has passed at least 3 days
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var daysSinceEndDate = today.DayNumber - payroll.EndDate.DayNumber;
+        if (daysSinceEndDate >= 3)
+        {
+            throw new ApiException(
+                $"Không thể làm mới bảng lương. Kỳ lương đã kết thúc {daysSinceEndDate} ngày. Chỉ có thể làm mới trong vòng 3 ngày kể từ ngày kết thúc.",
+                HttpStatusCode.BadRequest
+            );
+        }
 
         var staffs = await _context.Staffs.ToListAsync();
 
@@ -227,7 +238,20 @@ public class PayrollService : IPayrollService
     public async Task<bool> RefreshPayrollAsync()
     {
         var payrolls = await _context.Payrolls.ToListAsync();
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var payrollsToRefresh = new List<Payroll>();
+
         foreach (var payroll in payrolls)
+        {
+            var daysSinceEndDate = today.DayNumber - payroll.EndDate.DayNumber;
+            // Only refresh payrolls that are within 3 days of end date
+            if (daysSinceEndDate < 3)
+            {
+                payrollsToRefresh.Add(payroll);
+            }
+        }
+
+        foreach (var payroll in payrollsToRefresh)
         {
             await RefreshPayrollAsync(payroll.Id);
         }

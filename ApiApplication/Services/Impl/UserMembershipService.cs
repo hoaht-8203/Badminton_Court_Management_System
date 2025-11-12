@@ -281,25 +281,12 @@ public class UserMembershipService(
         // Check if user already has a Customer record
         var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
 
-        // If customer doesn't exist, create one from user information
         if (customer == null)
         {
-            customer = new Customer
-            {
-                FullName = user.FullName,
-                PhoneNumber = user.PhoneNumber ?? string.Empty,
-                Email = user.Email ?? string.Empty,
-                DateOfBirth = user.DateOfBirth,
-                Address = user.Address,
-                City = user.City,
-                District = user.District,
-                Ward = user.Ward,
-                AvatarUrl = user.AvatarUrl,
-                Status = CustomerStatus.Active,
-                UserId = userId.Value,
-            };
-            _context.Customers.Add(customer);
-            await _context.SaveChangesAsync();
+            throw new ApiException(
+                "Vui lòng xác nhận email để tạo tài khoản khách hàng trước khi đăng ký gói hội viên.",
+                HttpStatusCode.BadRequest
+            );
         }
 
         // Now create membership using the existing CreateAsync logic

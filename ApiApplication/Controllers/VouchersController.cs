@@ -147,38 +147,12 @@ public class VouchersController(
             return (false, 0, "Người dùng không tồn tại");
         }
 
-        // Auto-create customer if it doesn't exist (similar to BookingCourtService)
         if (user.Customer == null)
         {
-            await EnsureCustomerExistsForUserAsync(user);
+            return (false, 0, "Vui lòng xác nhận email để tạo tài khoản khách hàng trước khi sử dụng voucher.");
         }
 
-        return (true, user.Customer!.Id, null);
-    }
-
-    /// <summary>
-    /// Creates a customer record for the given user if it doesn't exist.
-    /// </summary>
-    private async Task EnsureCustomerExistsForUserAsync(ApplicationUser user)
-    {
-        if (user.Customer != null)
-        {
-            return;
-        }
-
-        var customer = new Customer
-        {
-            FullName = user.FullName,
-            PhoneNumber = user.PhoneNumber ?? "",
-            Email = user.Email ?? "",
-            Status = CustomerStatus.Active,
-            UserId = user.Id,
-        };
-
-        await _context.Customers.AddAsync(customer);
-        user.Customer = customer;
-        _context.Users.Update(user);
-        await _context.SaveChangesAsync();
+        return (true, user.Customer.Id, null);
     }
 
     #endregion

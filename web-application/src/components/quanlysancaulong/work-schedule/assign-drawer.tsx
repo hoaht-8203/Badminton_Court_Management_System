@@ -56,6 +56,8 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
 
   const monday = weekStart;
 
+  const today = useMemo(() => dayjs().format("YYYY-MM-DD"), []);
+
   const weekDays = useMemo(() => {
     return daysOfWeek.map((d, idx) => {
       const day = monday.add(idx, "day");
@@ -140,22 +142,28 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
             <thead>
               <tr>
                 <th style={{ width: 180, textAlign: "left", padding: 8, background: "#f5f5f5", borderRight: "1px solid #f0f0f0" }}>Nhân viên</th>
-                {weekDays.map((d, idx) => (
-                  <th
-                    key={d.value}
-                    onClick={() => selectDay(d.value)}
-                    style={{
-                      minWidth: 120,
-                      textAlign: "center",
-                      padding: 8,
-                      cursor: "pointer",
-                      background: d.value === selectedDay ? "#e6f7ff" : "#f5f5f5",
-                      borderRight: "1px solid #f0f0f0",
-                    }}
-                  >
-                    {d.label} <span style={{ color: "#1890ff", fontWeight: d.value === selectedDay ? 700 : 400 }}>{d.date}</span>
-                  </th>
-                ))}
+                {weekDays.map((d, idx) => {
+                  const isToday = d.fullDate === today;
+                  const isSelected = d.value === selectedDay;
+                  return (
+                    <th
+                      key={d.value}
+                      onClick={() => selectDay(d.value)}
+                      style={{
+                        minWidth: 120,
+                        textAlign: "center",
+                        padding: 8,
+                        cursor: "pointer",
+                        background: isToday ? "#bae7ff" : isSelected ? "#e6f7ff" : "#f5f5f5",
+                        borderRight: "1px solid #f0f0f0",
+                        borderBottom: "1px solid #f0f0f0",
+                      }}
+                    >
+                      {d.label}{" "}
+                      <span style={{ color: isToday ? "#1890ff" : "#1890ff", fontWeight: isToday || isSelected ? 700 : 400 }}>{d.date}</span>
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
@@ -169,6 +177,7 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                     // shiftList: [{key, label}], staffScheduleMap lưu theo shift.name
                     // Để map màu đúng, cần lấy shiftId từ shiftList dựa vào tên ca
                     const shiftsOfDay = staffScheduleMap[staff.id]?.[d.value] || [];
+                    const isToday = d.fullDate === today;
                     return (
                       <td
                         key={d.value}
@@ -179,7 +188,7 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
                           position: "relative",
                           border: "1px solid #e0e0e0",
                           boxSizing: "border-box",
-                          background: "#fff",
+                          background: isToday ? "#f0f9ff" : "#fff",
                         }}
                         onMouseEnter={handleMouseEnter(staff.id, d.value)}
                         onMouseLeave={handleMouseLeave}

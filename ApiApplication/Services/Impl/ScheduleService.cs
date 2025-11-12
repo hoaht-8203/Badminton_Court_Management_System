@@ -25,22 +25,39 @@ namespace ApiApplication.Services.Impl
             var startDate = DateOnly.FromDateTime(request.StartDate);
             var endDate = DateOnly.FromDateTime(request.EndDate);
 
-            var notFixedSchedules = await _context
+            // Filter by StaffIds if provided
+            var hasStaffFilter = request.StaffIds != null && request.StaffIds.Count > 0;
+
+            var notFixedSchedulesQuery = _context
                 .Schedules.Where(s =>
                     !s.IsFixedShift && s.StartDate >= startDate && s.StartDate <= endDate
-                )
+                );
+            if (hasStaffFilter)
+            {
+                notFixedSchedulesQuery = notFixedSchedulesQuery.Where(s => request.StaffIds.Contains(s.StaffId));
+            }
+
+            var notFixedSchedules = await notFixedSchedulesQuery
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
                 .ToListAsync();
-            var fixedSchedules = await _context
+
+            var fixedSchedulesQuery = _context
                 .Schedules.Where(s =>
                     s.IsFixedShift
                     && s.StartDate <= endDate
                     && (s.EndDate >= startDate || s.EndDate == null)
-                )
+                );
+            if (hasStaffFilter)
+            {
+                fixedSchedulesQuery = fixedSchedulesQuery.Where(s => request.StaffIds.Contains(s.StaffId));
+            }
+
+            var fixedSchedules = await fixedSchedulesQuery
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
                 .ToListAsync();
+
             var allSchedules = notFixedSchedules.Concat(fixedSchedules).ToList();
             var standardizedSchedules = Helpers.ScheduleHelper.StandardizeSchedule(
                 allSchedules,
@@ -49,9 +66,14 @@ namespace ApiApplication.Services.Impl
                 _mapper
             );
 
-            var attendanceRecords = await _context
-                .AttendanceRecords.Where(ar => ar.Date >= startDate && ar.Date <= endDate)
-                .ToListAsync();
+            var attendanceRecordsQuery = _context
+                .AttendanceRecords.Where(ar => ar.Date >= startDate && ar.Date <= endDate);
+            if (hasStaffFilter)
+            {
+                attendanceRecordsQuery = attendanceRecordsQuery.Where(ar => request.StaffIds.Contains(ar.StaffId));
+            }
+
+            var attendanceRecords = await attendanceRecordsQuery.ToListAsync();
 
             // Group by Shift
             var grouped = standardizedSchedules
@@ -105,20 +127,38 @@ namespace ApiApplication.Services.Impl
         {
             var startDate = DateOnly.FromDateTime(request.StartDate);
             var endDate = DateOnly.FromDateTime(request.EndDate);
-            var notFixedSchedules = await _context
+
+            // Filter by StaffIds if provided
+            var hasStaffFilter = request.StaffIds != null && request.StaffIds.Count > 0;
+
+            var notFixedSchedulesQuery = _context
                 .Schedules.Where(s =>
                     !s.IsFixedShift && s.StartDate >= startDate && s.StartDate <= endDate
-                )
+                );
+            if (hasStaffFilter)
+            {
+                notFixedSchedulesQuery = notFixedSchedulesQuery.Where(s => request.StaffIds.Contains(s.StaffId));
+            }
+
+            var notFixedSchedules = await notFixedSchedulesQuery
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
                 .ToListAsync();
-            var fixedSchedules = await _context
+
+            var fixedSchedulesQuery = _context
                 .Schedules.Where(s =>
                     s.StartDate <= endDate && (s.EndDate >= startDate || s.EndDate == null)
-                )
+                );
+            if (hasStaffFilter)
+            {
+                fixedSchedulesQuery = fixedSchedulesQuery.Where(s => request.StaffIds.Contains(s.StaffId));
+            }
+
+            var fixedSchedules = await fixedSchedulesQuery
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
                 .ToListAsync();
+
             var allSchedules = notFixedSchedules.Concat(fixedSchedules).ToList();
             var standardizedSchedules = Helpers.ScheduleHelper.StandardizeSchedule(
                 allSchedules,

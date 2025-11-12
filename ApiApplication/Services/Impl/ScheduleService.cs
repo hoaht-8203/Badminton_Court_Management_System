@@ -27,6 +27,7 @@ namespace ApiApplication.Services.Impl
 
             // Filter by StaffIds if provided
             var hasStaffFilter = request.StaffIds != null && request.StaffIds.Count > 0;
+            var staffIds = request.StaffIds ?? new List<int>();
 
             var notFixedSchedulesQuery = _context
                 .Schedules.Where(s =>
@@ -34,7 +35,7 @@ namespace ApiApplication.Services.Impl
                 );
             if (hasStaffFilter)
             {
-                notFixedSchedulesQuery = notFixedSchedulesQuery.Where(s => request.StaffIds.Contains(s.StaffId));
+                notFixedSchedulesQuery = notFixedSchedulesQuery.Where(s => s.StaffId.HasValue && staffIds.Contains(s.StaffId.Value));
             }
 
             var notFixedSchedules = await notFixedSchedulesQuery
@@ -50,7 +51,7 @@ namespace ApiApplication.Services.Impl
                 );
             if (hasStaffFilter)
             {
-                fixedSchedulesQuery = fixedSchedulesQuery.Where(s => request.StaffIds.Contains(s.StaffId));
+                fixedSchedulesQuery = fixedSchedulesQuery.Where(s => s.StaffId.HasValue && staffIds.Contains(s.StaffId.Value));
             }
 
             var fixedSchedules = await fixedSchedulesQuery
@@ -70,7 +71,7 @@ namespace ApiApplication.Services.Impl
                 .AttendanceRecords.Where(ar => ar.Date >= startDate && ar.Date <= endDate);
             if (hasStaffFilter)
             {
-                attendanceRecordsQuery = attendanceRecordsQuery.Where(ar => request.StaffIds.Contains(ar.StaffId));
+                attendanceRecordsQuery = attendanceRecordsQuery.Where(ar => staffIds.Contains(ar.StaffId));
             }
 
             var attendanceRecords = await attendanceRecordsQuery.ToListAsync();
@@ -130,6 +131,7 @@ namespace ApiApplication.Services.Impl
 
             // Filter by StaffIds if provided
             var hasStaffFilter = request.StaffIds != null && request.StaffIds.Count > 0;
+            var staffIds = request.StaffIds ?? new List<int>();
 
             var notFixedSchedulesQuery = _context
                 .Schedules.Where(s =>
@@ -137,7 +139,7 @@ namespace ApiApplication.Services.Impl
                 );
             if (hasStaffFilter)
             {
-                notFixedSchedulesQuery = notFixedSchedulesQuery.Where(s => request.StaffIds.Contains(s.StaffId));
+                notFixedSchedulesQuery = notFixedSchedulesQuery.Where(s => s.StaffId.HasValue && staffIds.Contains(s.StaffId.Value));
             }
 
             var notFixedSchedules = await notFixedSchedulesQuery
@@ -147,11 +149,13 @@ namespace ApiApplication.Services.Impl
 
             var fixedSchedulesQuery = _context
                 .Schedules.Where(s =>
-                    s.StartDate <= endDate && (s.EndDate >= startDate || s.EndDate == null)
+                    s.IsFixedShift
+                    && s.StartDate <= endDate
+                    && (s.EndDate >= startDate || s.EndDate == null)
                 );
             if (hasStaffFilter)
             {
-                fixedSchedulesQuery = fixedSchedulesQuery.Where(s => request.StaffIds.Contains(s.StaffId));
+                fixedSchedulesQuery = fixedSchedulesQuery.Where(s => s.StaffId.HasValue && staffIds.Contains(s.StaffId.Value));
             }
 
             var fixedSchedules = await fixedSchedulesQuery

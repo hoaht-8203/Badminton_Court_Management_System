@@ -1,12 +1,15 @@
 "use client";
 
-import { Button, Drawer, Tag } from "antd";
+import { Button, Drawer, Tag, Select } from "antd";
+import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
+import { useListStaffs } from "@/hooks/useStaffs";
+import { ListStaffRequestFromJSON } from "@/types-openapi/api/models/ListStaffRequest";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import React, { useState, useMemo, useCallback } from "react";
 import ScheduleAssignModal from "./schedule-assign-modal";
 import { useGetScheduleByStaff } from "@/hooks/useSchedule";
-import { ScheduleRequest } from "@/types-openapi/api";
+import { ScheduleRequest, WeeklyScheduleRequest } from "@/types-openapi/api";
 dayjs.extend(weekOfYear);
 
 interface AssignDrawerProps {
@@ -48,6 +51,37 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
   // selected day of week should persist when iterating weeks (0..6, 0 = Sunday)
   const [selectedDay, setSelectedDay] = useState<number>(() => dayjs().day());
 
+  // Filter staff by search
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStaffIds, setSelectedStaffIds] = useState<number[]>([]);
+  const [appliedSelectedStaffIds, setAppliedSelectedStaffIds] = useState<number[]>([]);
+  const [searchParams, setSearchParams] = useState(ListStaffRequestFromJSON({}));
+  const { data: staffs, isFetching: loadingStaffs } = useListStaffs(searchParams);
+
+  // Debounce searchQuery into searchParams.keyword
+  React.useEffect(() => {
+    const t = setTimeout(() => {
+      setSearchParams((prev) => ({ ...prev, keyword: searchQuery || null }));
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Filter staffList based on appliedSelectedStaffIds
+  const filteredStaffList = useMemo(() => {
+    if (appliedSelectedStaffIds.length === 0) {
+      return staffList;
+    }
+    return staffList.filter((staff) => appliedSelectedStaffIds.includes(staff.id));
+  }, [staffList, appliedSelectedStaffIds]);
+
+  const availableStaffsForSearch = useMemo(() => {
+    return (
+      staffs?.data
+        ?.filter((s) => typeof s.id === "number" && typeof s.fullName === "string")
+        .map((s) => ({ id: s.id as number, fullName: s.fullName as string })) || []
+    );
+  }, [staffs]);
+
   // State tuần hiện tại (monday start)
   const [weekStart, setWeekStart] = useState(() => {
     const today = dayjs();
@@ -68,8 +102,16 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
   const { startDate, endDate, request } = useMemo(() => {
     const s = weekStart.toDate();
     const e = weekStart.add(6, "day").toDate();
-    return { startDate: s, endDate: e, request: { startDate: s, endDate: e } as ScheduleRequest };
-  }, [weekStart]);
+    return {
+      startDate: s,
+      endDate: e,
+      request: {
+        startDate: s,
+        endDate: e,
+        staffIds: appliedSelectedStaffIds.length > 0 ? appliedSelectedStaffIds : undefined,
+      } as WeeklyScheduleRequest,
+    };
+  }, [weekStart, appliedSelectedStaffIds]);
 
   // Lấy dữ liệu lịch làm việc của tất cả nhân viên trong tuần hiện tại
   const { data: scheduleByStaffRaw } = useGetScheduleByStaff(request);
@@ -126,16 +168,51 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
           </div>
         }
       >
-        <div style={{ marginBottom: 24 }}>
-          <Button type="default" style={{ marginRight: 8 }} onClick={handlePrevWeek}>
-            {"<"}
-          </Button>
-          <span style={{ fontWeight: 500, fontSize: 16 }}>
-            Tuần {monday.week()} - Th.{monday.month() + 1} {monday.year()}
-          </span>
-          <Button type="default" style={{ marginLeft: 8 }} onClick={handleNextWeek}>
-            {">"}
-          </Button>
+        <div style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Select
+              showSearch
+              mode="multiple"
+              placeholder="Tìm kiếm nhân viên"
+              style={{ width: 360 }}
+              value={selectedStaffIds.map(String)}
+              onSearch={(val) => setSearchQuery(val)}
+              onChange={(values) => setSelectedStaffIds(values.map((v) => Number(v)))}
+              filterOption={false}
+              options={availableStaffsForSearch.map((s) => ({ label: s.fullName ?? s.id?.toString(), value: String(s.id) }))}
+              notFoundContent={loadingStaffs ? "Đang tìm..." : "Không tìm thấy"}
+            />
+            <Button
+              type="primary"
+              icon={<SearchOutlined />}
+              onClick={() => {
+                setAppliedSelectedStaffIds(selectedStaffIds);
+              }}
+            >
+              Tìm
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => {
+                setSelectedStaffIds([]);
+                setAppliedSelectedStaffIds([]);
+                setSearchQuery("");
+              }}
+            >
+              Reset
+            </Button>
+          </div>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
+            <Button type="default" onClick={handlePrevWeek}>
+              {"<"}
+            </Button>
+            <span style={{ fontWeight: 500, fontSize: 16 }}>
+              Tuần {monday.week()} - Th.{monday.month() + 1} {monday.year()}
+            </span>
+            <Button type="default" onClick={handleNextWeek}>
+              {">"}
+            </Button>
+          </div>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff" }}>
@@ -167,7 +244,7 @@ const AssignDrawer: React.FC<AssignDrawerProps> = ({ open, onClose, staffList, s
               </tr>
             </thead>
             <tbody>
-              {staffList.map((staff) => (
+              {filteredStaffList.map((staff) => (
                 <tr key={staff.id}>
                   <td style={{ borderRight: "1px solid #f0f0f0", padding: 8 }}>
                     <div style={{ fontWeight: 600 }}>{staff.fullName}</div>

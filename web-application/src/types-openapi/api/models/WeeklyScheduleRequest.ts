@@ -21,6 +21,12 @@ import { mapValues } from '../runtime';
 export interface WeeklyScheduleRequest {
     /**
      * 
+     * @type {Array<number>}
+     * @memberof WeeklyScheduleRequest
+     */
+    staffIds?: Array<number> | null;
+    /**
+     * 
      * @type {Date}
      * @memberof WeeklyScheduleRequest
      */
@@ -50,6 +56,7 @@ export function WeeklyScheduleRequestFromJSONTyped(json: any, ignoreDiscriminato
     }
     return {
         
+        'staffIds': json['staffIds'] == null ? undefined : json['staffIds'],
         'startDate': json['startDate'] == null ? undefined : (new Date(json['startDate'])),
         'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
     };
@@ -66,6 +73,7 @@ export function WeeklyScheduleRequestToJSONTyped(value?: WeeklyScheduleRequest |
 
     return {
         
+        'staffIds': value['staffIds'],
         'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString()),
         'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString()),
     };

@@ -42,11 +42,13 @@ export interface ApiScheduleAssignPostRequest {
 }
 
 export interface ApiScheduleByShiftGetRequest {
+    staffIds?: Array<number>;
     startDate?: Date;
     endDate?: Date;
 }
 
 export interface ApiScheduleByStaffGetRequest {
+    staffIds?: Array<number>;
     startDate?: Date;
     endDate?: Date;
 }
@@ -87,6 +89,7 @@ export interface ScheduleApiInterface {
 
     /**
      * 
+     * @param {Array<number>} [staffIds] 
      * @param {Date} [startDate] 
      * @param {Date} [endDate] 
      * @param {*} [options] Override http request option.
@@ -101,6 +104,7 @@ export interface ScheduleApiInterface {
 
     /**
      * 
+     * @param {Array<number>} [staffIds] 
      * @param {Date} [startDate] 
      * @param {Date} [endDate] 
      * @param {*} [options] Override http request option.
@@ -187,6 +191,10 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
     async apiScheduleByShiftGetRaw(requestParameters: ApiScheduleByShiftGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ScheduleByShiftResponseListApiResponse>> {
         const queryParameters: any = {};
 
+        if (requestParameters['staffIds'] != null) {
+            queryParameters['StaffIds'] = requestParameters['staffIds'];
+        }
+
         if (requestParameters['startDate'] != null) {
             queryParameters['StartDate'] = (requestParameters['startDate'] as any).toISOString();
         }
@@ -221,6 +229,10 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
      */
     async apiScheduleByStaffGetRaw(requestParameters: ApiScheduleByStaffGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ScheduleByStaffResponseListApiResponse>> {
         const queryParameters: any = {};
+
+        if (requestParameters['staffIds'] != null) {
+            queryParameters['StaffIds'] = requestParameters['staffIds'];
+        }
 
         if (requestParameters['startDate'] != null) {
             queryParameters['StartDate'] = (requestParameters['startDate'] as any).toISOString();

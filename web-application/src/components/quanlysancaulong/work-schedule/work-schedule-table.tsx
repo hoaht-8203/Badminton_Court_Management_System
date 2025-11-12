@@ -3,7 +3,7 @@ import { useGetScheduleByShift } from "@/hooks/useSchedule";
 import { useListShifts } from "@/hooks/useShift";
 import { useListStaffs } from "@/hooks/useStaffs";
 import { ListStaffRequestFromJSON } from "@/types-openapi/api/models/ListStaffRequest";
-import { FileExcelOutlined, SearchOutlined } from "@ant-design/icons";
+import { FileExcelOutlined, SearchOutlined, ReloadOutlined } from "@ant-design/icons";
 import { Button, Select, Tag } from "antd";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
@@ -71,7 +71,15 @@ const WorkScheduleTable: React.FC = () => {
   const startDate = weekStart.toDate();
   const endDate = weekStart.add(6, "day").toDate();
   // Lấy lịch làm việc theo ca cho tuần hiện tại
-  const { data: scheduleByShiftRaw, isFetching: loadingSchedule, refetch } = useGetScheduleByShift({ startDate, endDate });
+  const {
+    data: scheduleByShiftRaw,
+    isFetching: loadingSchedule,
+    refetch,
+  } = useGetScheduleByShift({
+    startDate,
+    endDate,
+    staffIds: appliedSelectedStaffIds.length > 0 ? appliedSelectedStaffIds : undefined,
+  });
 
   // Format lại dữ liệu trả về từ API thành dạng { [shiftId]: { [dayOfWeek]: ScheduleCell[] } }
   const scheduleByShift: Record<string, Record<number, ScheduleCell[]>> = React.useMemo(() => {
@@ -135,13 +143,22 @@ const WorkScheduleTable: React.FC = () => {
             type="primary"
             icon={<SearchOutlined />}
             onClick={() => {
-              // Placeholder: capture current selection. Actual filtering logic to be implemented later.
               setAppliedSelectedStaffIds(selectedStaffIds);
-              console.log("Apply staff search", { selectedStaffIds, searchQuery });
             }}
             style={{ marginLeft: 8 }}
           >
             Tìm
+          </Button>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => {
+              setSelectedStaffIds([]);
+              setAppliedSelectedStaffIds([]);
+              setSearchQuery("");
+            }}
+            style={{ marginLeft: 8 }}
+          >
+            Reset
           </Button>
         </div>
 

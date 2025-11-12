@@ -76,7 +76,7 @@ export interface Staff {
      * @type {string}
      * @memberof Staff
      */
-    fullName?: string | null;
+    fullName: string;
     /**
      * 
      * @type {number}
@@ -85,16 +85,16 @@ export interface Staff {
     departmentId?: number | null;
     /**
      * 
-     * @type {string}
-     * @memberof Staff
-     */
-    identificationNumber?: string | null;
-    /**
-     * 
      * @type {Department}
      * @memberof Staff
      */
     department?: Department;
+    /**
+     * 
+     * @type {string}
+     * @memberof Staff
+     */
+    identificationNumber?: string | null;
     /**
      * 
      * @type {number}
@@ -166,13 +166,15 @@ export interface Staff {
      * @type {string}
      * @memberof Staff
      */
-    salarySettings?: string | null;
+    salarySettings: string;
 }
 
 /**
  * Check if a given object implements the Staff interface.
  */
 export function instanceOfStaff(value: object): value is Staff {
+    if (!('fullName' in value) || value['fullName'] === undefined) return false;
+    if (!('salarySettings' in value) || value['salarySettings'] === undefined) return false;
     return true;
 }
 
@@ -191,10 +193,10 @@ export function StaffFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sta
         'createdBy': json['createdBy'] == null ? undefined : json['createdBy'],
         'updatedBy': json['updatedBy'] == null ? undefined : json['updatedBy'],
         'id': json['id'] == null ? undefined : json['id'],
-        'fullName': json['fullName'] == null ? undefined : json['fullName'],
+        'fullName': json['fullName'],
         'departmentId': json['departmentId'] == null ? undefined : json['departmentId'],
-        'identificationNumber': json['identificationNumber'] == null ? undefined : json['identificationNumber'],
         'department': json['department'] == null ? undefined : DepartmentFromJSON(json['department']),
+        'identificationNumber': json['identificationNumber'] == null ? undefined : json['identificationNumber'],
         'branchId': json['branchId'] == null ? undefined : json['branchId'],
         'branch': json['branch'] == null ? undefined : BranchFromJSON(json['branch']),
         'dateOfBirth': json['dateOfBirth'] == null ? undefined : (new Date(json['dateOfBirth'])),
@@ -206,7 +208,7 @@ export function StaffFromJSONTyped(json: any, ignoreDiscriminator: boolean): Sta
         'note': json['note'] == null ? undefined : json['note'],
         'userId': json['userId'] == null ? undefined : json['userId'],
         'user': json['user'] == null ? undefined : ApplicationUserFromJSON(json['user']),
-        'salarySettings': json['salarySettings'] == null ? undefined : json['salarySettings'],
+        'salarySettings': json['salarySettings'],
     };
 }
 
@@ -228,8 +230,8 @@ export function StaffToJSONTyped(value?: Staff | null, ignoreDiscriminator: bool
         'id': value['id'],
         'fullName': value['fullName'],
         'departmentId': value['departmentId'],
-        'identificationNumber': value['identificationNumber'],
         'department': DepartmentToJSON(value['department']),
+        'identificationNumber': value['identificationNumber'],
         'branchId': value['branchId'],
         'branch': BranchToJSON(value['branch']),
         'dateOfBirth': value['dateOfBirth'] === null ? null : ((value['dateOfBirth'] as any)?.toISOString().substring(0,10)),

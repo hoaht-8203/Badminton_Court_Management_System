@@ -102,6 +102,13 @@ public class VouchersController(
         return ApiResponse<ValidateVoucherResponse>.SuccessResponse(result);
     }
 
+    [HttpPost("extend/{id}")]
+    public async Task<ApiResponse<object?>> Extend(int id, [FromBody] ExtendVoucherRequest request)
+    {
+        await _voucherService.ExtendAsync(id, request);
+        return ApiResponse<object?>.SuccessResponse(null, "Gia hạn voucher thành công");
+    }
+
     #endregion
 
     #region Private Helper Methods

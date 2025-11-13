@@ -1,8 +1,8 @@
 "use client";
 
-import { useDetailVoucher, useUpdateVoucher } from "@/hooks/useVouchers";
+import { useDetailVoucher, useExtendVoucher } from "@/hooks/useVouchers";
 import { ApiError } from "@/lib/axios";
-import { UpdateVoucherRequest, DetailVoucherRequest, VoucherResponse } from "@/types-openapi/api";
+import { ExtendVoucherRequest, DetailVoucherRequest, VoucherResponse } from "@/types-openapi/api";
 import { CloseOutlined, SaveOutlined } from "@ant-design/icons";
 import { Button, Drawer, Form, FormProps, InputNumber, DatePicker, Tabs, message, Divider } from "antd";
 import FormItem from "antd/es/form/FormItem";
@@ -18,9 +18,9 @@ interface ExtendVoucherDrawerProps {
 // Use Tabs items API (TabPane is deprecated)
 
 const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerProps) => {
-  const [form] = Form.useForm<UpdateVoucherRequest>();
+  const [form] = Form.useForm<ExtendVoucherRequest>();
   const { data: detailResp } = useDetailVoucher({ id: voucherId ?? 0 } as DetailVoucherRequest);
-  const updateMutation = useUpdateVoucher();
+  const extendMutation = useExtendVoucher();
 
   React.useEffect(() => {
     if (detailResp?.data) {
@@ -33,14 +33,14 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
     }
   }, [detailResp, form]);
 
-  const handleSubmit: FormProps<UpdateVoucherRequest>["onFinish"] = (values) => {
+  const handleSubmit: FormProps<ExtendVoucherRequest>["onFinish"] = (values) => {
     if (!voucherId) {
       message.error("ID voucher không hợp lệ");
       return;
     }
 
     // Build a minimal payload containing only fields that changed compared to the loaded voucher detail
-    const payload: UpdateVoucherRequest = {} as UpdateVoucherRequest;
+    const payload: { endAt?: Date; usageLimitTotal?: number; usageLimitPerUser?: number } = {};
     const v = detailResp?.data as VoucherResponse | undefined;
 
     // endAt (compare timestamps)
@@ -53,18 +53,18 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
     }
 
     // usageLimitTotal
-    if (values.usageLimitTotal !== undefined) {
+    if (values.usageLimitTotal != null) {
       const oldUsageTotal = v?.usageLimitTotal;
       if (oldUsageTotal !== values.usageLimitTotal) {
-        payload.usageLimitTotal = values.usageLimitTotal;
+        payload.usageLimitTotal = Number(values.usageLimitTotal);
       }
     }
 
     // usageLimitPerUser
-    if (values.usageLimitPerUser !== undefined) {
+    if (values.usageLimitPerUser != null) {
       const oldUsagePerUser = v?.usageLimitPerUser;
       if (oldUsagePerUser !== values.usageLimitPerUser) {
-        payload.usageLimitPerUser = values.usageLimitPerUser;
+        payload.usageLimitPerUser = Number(values.usageLimitPerUser);
       }
     }
 
@@ -74,18 +74,15 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
       return;
     }
 
-    updateMutation.mutate(
-      { id: voucherId, data: payload },
-      {
-        onSuccess: () => {
-          message.success("Gia hạn voucher thành công!");
-          onClose();
-        },
-        onError: (err: ApiError) => {
-          message.error(err.message);
-        },
+    extendMutation.mutate({ id: voucherId, data: payload }, {
+      onSuccess: () => {
+        message.success("Gia hạn voucher thành công!");
+        onClose();
       },
-    );
+      onError: (err: ApiError) => {
+        message.error(err.message);
+      },
+    });
   };
 
   return (
@@ -99,7 +96,7 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
       }}
       open={open}
       width={720}
-      extra={
+          extra={
         <div>
           <Button
             onClick={() => {
@@ -112,7 +109,7 @@ const ExtendVoucherDrawer = ({ open, onClose, voucherId }: ExtendVoucherDrawerPr
           <Button
             type="primary"
             style={{ marginLeft: 8 }}
-            loading={updateMutation.status === "pending"}
+            loading={extendMutation.status === "pending"}
             onClick={() => form.submit()}
             icon={<SaveOutlined />}
           >

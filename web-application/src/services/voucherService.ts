@@ -34,10 +34,9 @@ export const voucherService = {
     return res.data;
   },
   
-  // Extend: allow partial updates for extending a voucher (only changed fields)
-  async extend(id: number, payload: Partial<UpdateVoucherRequest>): Promise<ApiResponse<null>> {
-    // Reuse the update endpoint which accepts UpdateVoucherRequest; server side handles optional fields
-    const res = await axiosInstance.put<ApiResponse<null>>(`/api/vouchers/update/${id}`, payload);
+  // Extend: call dedicated extend endpoint to patch only time/usage-related fields
+  async extend(id: number, payload: Partial<import("@/types-openapi/api").ExtendVoucherRequest>): Promise<ApiResponse<null>> {
+    const res = await axiosInstance.post<ApiResponse<null>>(`/api/vouchers/extend/${id}`, payload);
     return res.data;
   },
 

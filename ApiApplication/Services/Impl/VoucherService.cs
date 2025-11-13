@@ -628,4 +628,30 @@ public class VoucherService : IVoucherService
 
         await _context.SaveChangesAsync();
     }
+
+    public async Task ExtendAsync(int id, ExtendVoucherRequest request)
+    {
+        var v = await _context.Vouchers.FindAsync(id);
+        if (v == null)
+            throw new ApiException("Voucher không tồn tại", HttpStatusCode.NotFound);
+
+        // Chỉ update những trường có giá trị (partial update)
+        if (request.EndAt.HasValue)
+        {
+            v.EndAt = request.EndAt.Value;
+        }
+
+        if (request.UsageLimitTotal.HasValue)
+        {
+            v.UsageLimitTotal = request.UsageLimitTotal.Value;
+        }
+
+        if (request.UsageLimitPerUser.HasValue)
+        {
+            v.UsageLimitPerUser = request.UsageLimitPerUser.Value;
+        }
+
+        _context.Vouchers.Update(v);
+        await _context.SaveChangesAsync();
+    }
 }

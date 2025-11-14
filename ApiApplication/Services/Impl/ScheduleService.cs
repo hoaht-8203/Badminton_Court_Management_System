@@ -267,8 +267,10 @@ namespace ApiApplication.Services.Impl
             var requestDate = DateOnly.FromDateTime(request.StartDate);
 
             // Check attendance first - if there's attendance that overlaps with shift time, throw error
-            var attendances = await _context.AttendanceRecords
-                .Where(ar => ar.StaffId == request.StaffId && ar.Date == requestDate)
+            var attendances = await _context
+                .AttendanceRecords.Where(ar =>
+                    ar.StaffId == request.StaffId && ar.Date == requestDate
+                )
                 .ToListAsync();
 
             if (attendances.Any())
@@ -312,18 +314,8 @@ namespace ApiApplication.Services.Impl
                 return await _context.SaveChangesAsync() > 0;
             }
 
-            try
-            {
-                _context.Schedules.Remove(schedule);
-                return await _context.SaveChangesAsync() > 0;
-            }
-            catch (Exception ex)
-            {
-                throw new ApiException(
-                    "Không thể xóa lịch làm việc",
-                    System.Net.HttpStatusCode.InternalServerError
-                );
-            }
+            _context.Schedules.Remove(schedule);
+            return await _context.SaveChangesAsync() > 0;
         }
     }
 }

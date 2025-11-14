@@ -14,7 +14,6 @@ public class DetailProductResponse
     public decimal CostPrice { get; set; }
     public decimal SalePrice { get; set; }
     public bool IsDirectSale { get; set; }
-    public bool IsExtraTopping { get; set; }
     public bool IsActive { get; set; }
     public bool IsDisplayOnWeb { get; set; }
     public bool ManageInventory { get; set; }

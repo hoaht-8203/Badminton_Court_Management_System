@@ -185,6 +185,9 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
               const cost = (d as any)?.data?.costPrice ?? 0;
               const stock = (d as any)?.data?.stock ?? 0;
               console.log(`Stock-out auto-add product ${p.name} (${p.id}) stock:`, stock); // Debug log
+              if (stock <= 0) {
+                continue;
+              }
               const newItem: StockOutItem = {
                 productId: p.id,
                 code: p.code || String(p.id),
@@ -198,17 +201,7 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
               setItems((prev) => (prev.some((x) => x.productId === p.id) ? prev : [...prev, newItem]));
             } catch (error) {
               console.log(`Error auto-adding stock-out product ${p.name} (${p.id}):`, error); // Debug log
-              const newItem: StockOutItem = {
-                productId: p.id,
-                code: p.code || String(p.id),
-                name: p.name,
-                quantity: 1,
-                costPrice: 0,
-                lineTotal: 0,
-                note: "",
-                stock: 0,
-              };
-              setItems((prev) => (prev.some((x) => x.productId === p.id) ? prev : [...prev, newItem]));
+              // Không thêm sản phẩm khi không xác định được tồn kho
             }
           }
         }
@@ -222,6 +215,10 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
     const cost = p.costPrice ?? 0;
     const stock = p.stock ?? 0;
     console.log(`Stock-out click product ${p.name} (${id}) stock:`, stock); // Debug log
+    if (stock <= 0) {
+      message.warning("Sản phẩm đã hết hàng, không thể xuất hủy.");
+      return;
+    }
     const newItem: StockOutItem = {
       productId: id,
       code: p.code || String(id),
@@ -285,6 +282,7 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
       render: (_, r) => (
         <InputNumber
           min={0}
+          max={Math.max(0, r.stock ?? 0)}
           value={r.quantity}
           onChange={(val) => updateQuantity(r.productId, Number(val))}
           style={{ width: 100 }}
@@ -359,6 +357,12 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
     const invalidItems = items.filter((item) => item.quantity > item.stock);
     if (invalidItems.length > 0) {
       message.error("Số lượng xuất hủy không được vượt quá tồn kho");
+      return;
+    }
+
+    const outOfStockSelectedItems = items.filter((item) => (item.stock ?? 0) <= 0 && (item.quantity ?? 0) > 0);
+    if (outOfStockSelectedItems.length > 0) {
+      message.error("Một số sản phẩm đã hết hàng, không thể xuất kho/điều chỉnh.");
       return;
     }
 

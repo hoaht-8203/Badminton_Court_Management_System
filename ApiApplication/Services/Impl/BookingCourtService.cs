@@ -371,19 +371,10 @@ public class BookingCourtService(
 
         if (user.Customer == null)
         {
-            var customer = new Customer()
-            {
-                FullName = user.FullName,
-                PhoneNumber = user.PhoneNumber ?? "",
-                Email = user.Email ?? "",
-                Status = CustomerStatus.Active,
-                UserId = user.Id,
-            };
-
-            await _context.Customers.AddAsync(customer);
-            user.Customer = customer;
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
+            throw new ApiException(
+                "Vui lòng xác nhận email để tạo tài khoản khách hàng trước khi đặt sân.",
+                HttpStatusCode.BadRequest
+            );
         }
 
         var startDate = DateOnly.FromDateTime(request.StartDate);

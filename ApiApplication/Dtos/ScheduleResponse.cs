@@ -10,5 +10,6 @@ namespace ApiApplication.Dtos
         public ShiftResponse Shift { get; set; } = new();
         public DateTime Date { get; set; }
         public DayOfWeek DayOfWeek { get; set; }
+        public bool IsFixedShift { get; set; }
     }
 }

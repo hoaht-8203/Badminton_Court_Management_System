@@ -150,6 +150,28 @@ public class AuthService(
         await _userManager.UpdateAsync(user);
 
         _context.ApplicationUserTokens.Remove(userToken);
+
+        // Auto-create customer when email is confirmed
+        // Load user from context to ensure tracking
+        var userFromContext = await _context
+            .Users.Include(u => u.Customer)
+            .FirstOrDefaultAsync(u => u.Id == user.Id);
+
+        if (userFromContext != null && userFromContext.Customer == null)
+        {
+            var customer = new Customer
+            {
+                FullName = userFromContext.FullName,
+                PhoneNumber = userFromContext.PhoneNumber ?? "",
+                Email = userFromContext.Email ?? "",
+                Status = CustomerStatus.Active,
+                UserId = userFromContext.Id,
+            };
+
+            await _context.Customers.AddAsync(customer);
+            userFromContext.Customer = customer;
+        }
+
         await _context.SaveChangesAsync();
     }
 

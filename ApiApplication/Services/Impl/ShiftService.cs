@@ -13,6 +13,12 @@ public class ShiftService(ApplicationDbContext context, IMapper mapper) : IShift
 
     public async Task CreateShiftAsync(ShiftRequest request)
     {
+        // Check if start time is before end time
+        if (request.StartTime >= request.EndTime)
+            throw new ApiException(
+                "Lỗi: Thời gian bắt đầu phải trước thời gian kết thúc.",
+                System.Net.HttpStatusCode.BadRequest
+            );
         // Check for overlapping shifts
         if (IsTimeOverlap(request.StartTime, request.EndTime))
             throw new ApiException(
@@ -27,6 +33,12 @@ public class ShiftService(ApplicationDbContext context, IMapper mapper) : IShift
 
     public async Task UpdateShiftAsync(int id, ShiftRequest request)
     {
+        // Check if start time is before end time
+        if (request.StartTime >= request.EndTime)
+            throw new ApiException(
+                "Lỗi: Thời gian bắt đầu phải trước thời gian kết thúc.",
+                System.Net.HttpStatusCode.BadRequest
+            );
         // Check for overlapping shifts excluding the current shift
         if (IsTimeOverlap(request.StartTime, request.EndTime, id))
             throw new ApiException(
@@ -51,6 +63,18 @@ public class ShiftService(ApplicationDbContext context, IMapper mapper) : IShift
             throw new ApiException(
                 $"Ca làm việc với Id {id} không tồn tại",
                 System.Net.HttpStatusCode.NotFound
+            );
+        var schedules = await _context.Schedules.Where(s => s.ShiftId == id).ToListAsync();
+        if (schedules.Count > 0)
+            throw new ApiException(
+                "Không thể xóa ca làm việc vì đã được gán cho nhân viên.",
+                System.Net.HttpStatusCode.BadRequest
+            );
+        var cancelledShifts = await _context.CancelledShifts.Where(s => s.ShiftId == id).ToListAsync();
+        if (cancelledShifts.Count > 0)
+            throw new ApiException(
+                "Không thể xóa ca làm việc vì đã bị hủy.",
+                System.Net.HttpStatusCode.BadRequest
             );
         _context.Shifts.Remove(shift);
         await _context.SaveChangesAsync();

@@ -33,9 +33,10 @@ export const voucherService = {
     const res = await axiosInstance.put<ApiResponse<null>>(`/api/vouchers/update/${id}`, payload);
     return res.data;
   },
-
-  async extend(id: number, payload: { endAt?: Date; usageLimitTotal?: number; usageLimitPerUser?: number }): Promise<ApiResponse<null>> {
-    const res = await axiosInstance.patch<ApiResponse<null>>(`/api/vouchers/extend/${id}`, payload);
+  
+  // Extend: call dedicated extend endpoint to patch only time/usage-related fields
+  async extend(id: number, payload: Partial<import("@/types-openapi/api").ExtendVoucherRequest>): Promise<ApiResponse<null>> {
+    const res = await axiosInstance.post<ApiResponse<null>>(`/api/vouchers/extend/${id}`, payload);
     return res.data;
   },
 

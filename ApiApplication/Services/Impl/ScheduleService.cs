@@ -1,6 +1,7 @@
 using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Entities.Shared;
+using ApiApplication.Exceptions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,21 @@ namespace ApiApplication.Services.Impl
 
         public async Task<bool> AssignShiftToStaffAsync(ScheduleRequest request)
         {
+            // Check if there's a cancelled shift for this assignment
+            var assignDate = DateOnly.FromDateTime(request.StartDate);
+            var cancelledShift = await _context.CancelledShifts.FirstOrDefaultAsync(cs =>
+                cs.StaffId == request.StaffId
+                && cs.ShiftId == request.ShiftId
+                && cs.Date == assignDate
+            );
+
+            // If there's a cancelled shift, remove it
+            if (cancelledShift != null)
+            {
+                _context.CancelledShifts.Remove(cancelledShift);
+                return await _context.SaveChangesAsync() > 0;
+            }
+
             var entity = _mapper.Map<Entities.Schedule>(request);
             _context.Schedules.Add(entity);
             return await _context.SaveChangesAsync() > 0;
@@ -25,22 +41,42 @@ namespace ApiApplication.Services.Impl
             var startDate = DateOnly.FromDateTime(request.StartDate);
             var endDate = DateOnly.FromDateTime(request.EndDate);
 
-            var notFixedSchedules = await _context
-                .Schedules.Where(s =>
-                    !s.IsFixedShift && s.StartDate >= startDate && s.StartDate <= endDate
-                )
+            // Filter by StaffIds if provided
+            var hasStaffFilter = request.StaffIds != null && request.StaffIds.Count > 0;
+            var staffIds = request.StaffIds ?? new List<int>();
+
+            var notFixedSchedulesQuery = _context.Schedules.Where(s =>
+                !s.IsFixedShift && s.StartDate >= startDate && s.StartDate <= endDate
+            );
+            if (hasStaffFilter)
+            {
+                notFixedSchedulesQuery = notFixedSchedulesQuery.Where(s =>
+                    s.StaffId.HasValue && staffIds.Contains(s.StaffId.Value)
+                );
+            }
+
+            var notFixedSchedules = await notFixedSchedulesQuery
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
                 .ToListAsync();
-            var fixedSchedules = await _context
-                .Schedules.Where(s =>
-                    s.IsFixedShift
-                    && s.StartDate <= endDate
-                    && (s.EndDate >= startDate || s.EndDate == null)
-                )
+
+            var fixedSchedulesQuery = _context.Schedules.Where(s =>
+                s.IsFixedShift
+                && s.StartDate <= endDate
+                && (s.EndDate >= startDate || s.EndDate == null)
+            );
+            if (hasStaffFilter)
+            {
+                fixedSchedulesQuery = fixedSchedulesQuery.Where(s =>
+                    s.StaffId.HasValue && staffIds.Contains(s.StaffId.Value)
+                );
+            }
+
+            var fixedSchedules = await fixedSchedulesQuery
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
                 .ToListAsync();
+
             var allSchedules = notFixedSchedules.Concat(fixedSchedules).ToList();
             var standardizedSchedules = Helpers.ScheduleHelper.StandardizeSchedule(
                 allSchedules,
@@ -49,9 +85,33 @@ namespace ApiApplication.Services.Impl
                 _mapper
             );
 
-            var attendanceRecords = await _context
-                .AttendanceRecords.Where(ar => ar.Date >= startDate && ar.Date <= endDate)
+            //remove the cancelled shifts schedules from the standardized schedules
+            var cancelledShifts = await _context
+                .CancelledShifts.Where(cs => cs.Date >= startDate && cs.Date <= endDate)
                 .ToListAsync();
+
+            // Filter out cancelled shifts from standardized schedules
+            standardizedSchedules = standardizedSchedules
+                .Where(s =>
+                    !cancelledShifts.Any(cs =>
+                        cs.StaffId == s.Staff.Id
+                        && cs.ShiftId == s.Shift.Id
+                        && cs.Date == DateOnly.FromDateTime(s.Date)
+                    )
+                )
+                .ToList();
+
+            var attendanceRecordsQuery = _context.AttendanceRecords.Where(ar =>
+                ar.Date >= startDate && ar.Date <= endDate
+            );
+            if (hasStaffFilter)
+            {
+                attendanceRecordsQuery = attendanceRecordsQuery.Where(ar =>
+                    staffIds.Contains(ar.StaffId)
+                );
+            }
+
+            var attendanceRecords = await attendanceRecordsQuery.ToListAsync();
 
             // Group by Shift
             var grouped = standardizedSchedules
@@ -105,20 +165,43 @@ namespace ApiApplication.Services.Impl
         {
             var startDate = DateOnly.FromDateTime(request.StartDate);
             var endDate = DateOnly.FromDateTime(request.EndDate);
-            var notFixedSchedules = await _context
-                .Schedules.Where(s =>
-                    !s.IsFixedShift && s.StartDate >= startDate && s.StartDate <= endDate
-                )
+
+            // Filter by StaffIds if provided
+            var hasStaffFilter = request.StaffIds != null && request.StaffIds.Count > 0;
+            var staffIds = request.StaffIds ?? new List<int>();
+
+            var notFixedSchedulesQuery = _context.Schedules.Where(s =>
+                !s.IsFixedShift && s.StartDate >= startDate && s.StartDate <= endDate
+            );
+            if (hasStaffFilter)
+            {
+                notFixedSchedulesQuery = notFixedSchedulesQuery.Where(s =>
+                    s.StaffId.HasValue && staffIds.Contains(s.StaffId.Value)
+                );
+            }
+
+            var notFixedSchedules = await notFixedSchedulesQuery
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
                 .ToListAsync();
-            var fixedSchedules = await _context
-                .Schedules.Where(s =>
-                    s.StartDate <= endDate && (s.EndDate >= startDate || s.EndDate == null)
-                )
+
+            var fixedSchedulesQuery = _context.Schedules.Where(s =>
+                s.IsFixedShift
+                && s.StartDate <= endDate
+                && (s.EndDate >= startDate || s.EndDate == null)
+            );
+            if (hasStaffFilter)
+            {
+                fixedSchedulesQuery = fixedSchedulesQuery.Where(s =>
+                    s.StaffId.HasValue && staffIds.Contains(s.StaffId.Value)
+                );
+            }
+
+            var fixedSchedules = await fixedSchedulesQuery
                 .Include(s => s.Shift)
                 .Include(s => s.Staff)
                 .ToListAsync();
+
             var allSchedules = notFixedSchedules.Concat(fixedSchedules).ToList();
             var standardizedSchedules = Helpers.ScheduleHelper.StandardizeSchedule(
                 allSchedules,
@@ -126,6 +209,21 @@ namespace ApiApplication.Services.Impl
                 endDate,
                 _mapper
             );
+            //remove the cancelled shifts schedules from the standardized schedules
+            var cancelledShifts = await _context
+                .CancelledShifts.Where(cs => cs.Date >= startDate && cs.Date <= endDate)
+                .ToListAsync();
+
+            // Filter out cancelled shifts from standardized schedules
+            standardizedSchedules = standardizedSchedules
+                .Where(s =>
+                    !cancelledShifts.Any(cs =>
+                        cs.StaffId == s.Staff.Id
+                        && cs.ShiftId == s.Shift.Id
+                        && cs.Date == DateOnly.FromDateTime(s.Date)
+                    )
+                )
+                .ToList();
 
             // Group by Staff
             var grouped = standardizedSchedules
@@ -166,24 +264,57 @@ namespace ApiApplication.Services.Impl
 
         public async Task<bool> RemoveStaffFromShiftAsync(ScheduleRequest request)
         {
+            var requestDate = DateOnly.FromDateTime(request.StartDate);
+
+            // Check attendance first - if there's attendance that overlaps with shift time, throw error
+            var attendances = await _context
+                .AttendanceRecords.Where(ar =>
+                    ar.StaffId == request.StaffId && ar.Date == requestDate
+                )
+                .ToListAsync();
+
+            if (attendances.Any())
+            {
+                // Get shift to check time overlap
+                var shift = await _context.Shifts.FindAsync(request.ShiftId);
+                if (shift != null)
+                {
+                    var shiftResponse = _mapper.Map<ShiftResponse>(shift);
+                    var status = Helpers.AttendanceHelper.DetermineStatusOfShift(
+                        attendances,
+                        shiftResponse
+                    );
+
+                    // If attendance overlaps with shift (not Absent), throw error
+                    if (status != AttendanceStatus.Absent)
+                    {
+                        throw new ApiException(
+                            "Không thể xóa lịch làm việc vì đã có điểm danh",
+                            System.Net.HttpStatusCode.BadRequest
+                        );
+                    }
+                }
+            }
+
             var schedule = await _context.Schedules.FirstOrDefaultAsync(s =>
                 s.StaffId == request.StaffId
                 && s.ShiftId == request.ShiftId
-                && s.StartDate == DateOnly.FromDateTime(request.StartDate)
+                && s.StartDate == requestDate
             );
-            if (schedule != null)
+            if (schedule == null)
             {
-                _context.Schedules.Remove(schedule);
+                _context.CancelledShifts.Add(
+                    new Entities.CancelledShift
+                    {
+                        StaffId = request.StaffId,
+                        ShiftId = request.ShiftId,
+                        Date = requestDate,
+                    }
+                );
                 return await _context.SaveChangesAsync() > 0;
             }
-            _context.CancelledShifts.Add(
-                new Entities.CancelledShift
-                {
-                    StaffId = request.StaffId,
-                    ShiftId = request.ShiftId,
-                    Date = DateOnly.FromDateTime(request.StartDate),
-                }
-            );
+
+            _context.Schedules.Remove(schedule);
             return await _context.SaveChangesAsync() > 0;
         }
     }

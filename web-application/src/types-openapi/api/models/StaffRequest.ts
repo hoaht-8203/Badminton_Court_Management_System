@@ -24,7 +24,7 @@ export interface StaffRequest {
      * @type {string}
      * @memberof StaffRequest
      */
-    fullName?: string | null;
+    fullName: string;
     /**
      * 
      * @type {string}
@@ -84,7 +84,7 @@ export interface StaffRequest {
      * @type {string}
      * @memberof StaffRequest
      */
-    salarySettings?: string | null;
+    salarySettings: string;
     /**
      * 
      * @type {string}
@@ -97,6 +97,8 @@ export interface StaffRequest {
  * Check if a given object implements the StaffRequest interface.
  */
 export function instanceOfStaffRequest(value: object): value is StaffRequest {
+    if (!('fullName' in value) || value['fullName'] === undefined) return false;
+    if (!('salarySettings' in value) || value['salarySettings'] === undefined) return false;
     return true;
 }
 
@@ -110,7 +112,7 @@ export function StaffRequestFromJSONTyped(json: any, ignoreDiscriminator: boolea
     }
     return {
         
-        'fullName': json['fullName'] == null ? undefined : json['fullName'],
+        'fullName': json['fullName'],
         'identificationNumber': json['identificationNumber'] == null ? undefined : json['identificationNumber'],
         'departmentId': json['departmentId'] == null ? undefined : json['departmentId'],
         'branchId': json['branchId'] == null ? undefined : json['branchId'],
@@ -120,7 +122,7 @@ export function StaffRequestFromJSONTyped(json: any, ignoreDiscriminator: boolea
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'avatarUrl': json['avatarUrl'] == null ? undefined : json['avatarUrl'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
-        'salarySettings': json['salarySettings'] == null ? undefined : json['salarySettings'],
+        'salarySettings': json['salarySettings'],
         'accountId': json['accountId'] == null ? undefined : json['accountId'],
     };
 }

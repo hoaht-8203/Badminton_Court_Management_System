@@ -19,7 +19,6 @@ import {
   Row,
   Select,
   TimePicker,
-  Tag,
 } from "antd";
 import { CheckboxGroupProps } from "antd/es/checkbox";
 import FormItem from "antd/es/form/FormItem";
@@ -31,7 +30,6 @@ import { useGetAvailableVouchers, useValidateVoucher } from "@/hooks/useVouchers
 import { useUserCreateBookingCourt } from "@/hooks/useBookingCourt";
 import QrPaymentDrawer from "@/components/quanlysancaulong/court-schedule/qr-payment-drawer";
 import { useAuth } from "@/context/AuthContext";
-import { useDetailMembership } from "@/hooks/useMembership";
 
 interface UserCreateBookingModalProps {
   open: boolean;
@@ -91,24 +89,6 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
   const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [modalSelectedVoucherId, setModalSelectedVoucherId] = useState<number | null>(null);
   const [modalValidateLoading, setModalValidateLoading] = useState(false);
-
-  // Get active membership from current user
-  const activeMembership = useMemo(() => {
-    if (!user?.membership) return null;
-    const now = dayjs();
-    // Check if membership is active: isActive = true, status = "Paid", endDate > now
-    if (user.membership.isActive && user.membership.status === "Paid" && user.membership.endDate && dayjs(user.membership.endDate).isAfter(now)) {
-      return user.membership;
-    }
-    return null;
-  }, [user?.membership]);
-
-  // Fetch membership detail to get discountPercent (only when activeMembership exists)
-  const shouldFetchMembershipDetail = !!activeMembership?.membershipId;
-  const { data: membershipDetailData } = useDetailMembership({
-    id: activeMembership?.membershipId || 0,
-  });
-  const membershipDetail = shouldFetchMembershipDetail ? membershipDetailData?.data || null : null;
 
   // Tổng số buổi trong khoảng ngày theo các thứ đã chọn (chỉ cho chế độ cố định)
   const totalSessions = useMemo(() => {
@@ -206,20 +186,10 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
     return Math.round(total);
   }, [startTimeWatch, endTimeWatch, pricingRules, startDateWatch, createBookingCourtDaysOfWeek, daysOfWeek, dateRangeWatch]);
 
-  // Calculate price with membership discount
-  const priceWithDiscount = useMemo(() => {
-    if (!calculatedPrice || !membershipDetail?.discountPercent) {
-      return calculatedPrice;
-    }
-    const discountPercent = membershipDetail.discountPercent || 0;
-    const discountAmount = (calculatedPrice * discountPercent) / 100;
-    return Math.round(calculatedPrice - discountAmount);
-  }, [calculatedPrice, membershipDetail]);
-
-  // Tổng tiền toàn bộ = priceWithDiscount (đã áp dụng discount nếu có)
+  // Tổng tiền toàn bộ = calculatedPrice (đã bao gồm logic vãng lai/cố định)
   const fullAmount = useMemo(() => {
-    return priceWithDiscount;
-  }, [priceWithDiscount]);
+    return calculatedPrice;
+  }, [calculatedPrice]);
 
   const depositPercent = 0.3; // 30% default
   const discountedTotal = useMemo(() => Math.max(fullAmount - (voucherDiscount ?? 0), 0), [fullAmount, voucherDiscount]);
@@ -776,40 +746,12 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
                         },
                         {
                           key: "8",
-                          label: "Gói hội viên",
-                          children: activeMembership ? <Tag color="green">{activeMembership.membershipName || "N/A"}</Tag> : "-",
-                          span: 1,
-                        },
-                        {
-                          key: "9",
-                          label: "Giảm giá hội viên",
-                          children: membershipDetail?.discountPercent ? `${membershipDetail.discountPercent}%` : "-",
-                          span: 1,
-                        },
-                        {
-                          key: "10",
                           label: "Tổng số tiền cần trả (tạm tính)",
-                          children:
-                            priceWithDiscount > 0 ? (
-                              <div>
-                                {membershipDetail?.discountPercent && calculatedPrice !== priceWithDiscount ? (
-                                  <div>
-                                    <div style={{ textDecoration: "line-through", color: "#999", fontSize: "12px" }}>
-                                      {calculatedPrice.toLocaleString("vi-VN")} đ
-                                    </div>
-                                    <div style={{ color: "#52c41a", fontWeight: "bold" }}>{priceWithDiscount.toLocaleString("vi-VN")} đ</div>
-                                  </div>
-                                ) : (
-                                  <span>{priceWithDiscount.toLocaleString("vi-VN")} đ</span>
-                                )}
-                              </div>
-                            ) : (
-                              "Chưa xác định"
-                            ),
+                          children: calculatedPrice > 0 ? `${calculatedPrice.toLocaleString("vi-VN")} đ` : "Chưa xác định",
                           span: 1,
                           style: {
-                            color: priceWithDiscount > 0 ? "inherit" : "orange",
-                            fontWeight: priceWithDiscount > 0 ? "bold" : "normal",
+                            color: calculatedPrice > 0 ? "inherit" : "orange",
+                            fontWeight: calculatedPrice > 0 ? "bold" : "normal",
                           },
                         },
                       ]}
@@ -883,40 +825,12 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
                         },
                         {
                           key: "9",
-                          label: "Gói hội viên",
-                          children: activeMembership ? <Tag color="green">{activeMembership.membershipName || "N/A"}</Tag> : "-",
-                          span: 1,
-                        },
-                        {
-                          key: "10",
-                          label: "Giảm giá hội viên",
-                          children: membershipDetail?.discountPercent ? `${membershipDetail.discountPercent}%` : "-",
-                          span: 1,
-                        },
-                        {
-                          key: "11",
                           label: "Tổng số tiền cần trả (tạm tính)",
-                          children:
-                            priceWithDiscount > 0 ? (
-                              <div>
-                                {membershipDetail?.discountPercent && calculatedPrice !== priceWithDiscount ? (
-                                  <div>
-                                    <div style={{ textDecoration: "line-through", color: "#999", fontSize: "12px" }}>
-                                      {calculatedPrice.toLocaleString("vi-VN")} đ
-                                    </div>
-                                    <div style={{ color: "#52c41a", fontWeight: "bold" }}>{priceWithDiscount.toLocaleString("vi-VN")} đ</div>
-                                  </div>
-                                ) : (
-                                  <span>{priceWithDiscount.toLocaleString("vi-VN")} đ</span>
-                                )}
-                              </div>
-                            ) : (
-                              "Chưa xác định"
-                            ),
-                          span: 2,
+                          children: calculatedPrice > 0 ? `${calculatedPrice.toLocaleString("vi-VN")} đ` : "Chưa xác định",
+                          span: 1,
                           style: {
-                            color: priceWithDiscount > 0 ? "inherit" : "orange",
-                            fontWeight: priceWithDiscount > 0 ? "bold" : "normal",
+                            color: calculatedPrice > 0 ? "inherit" : "orange",
+                            fontWeight: calculatedPrice > 0 ? "bold" : "normal",
                           },
                         },
                       ]}

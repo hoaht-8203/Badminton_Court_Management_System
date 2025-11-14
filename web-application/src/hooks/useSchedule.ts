@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { scheduleService } from "@/services/schechuleService";
 import { courtScheduleService } from "@/services/courtScheduleService";
-import { ListUserBookingHistoryResponse, ScheduleRequest } from "@/types-openapi/api";
+import { ListUserBookingHistoryResponse, ScheduleRequest, WeeklyScheduleRequest } from "@/types-openapi/api";
 import { ApiError } from "@/lib/axios";
 import { ApiResponse } from "@/types/api";
 
-export function useGetScheduleByShift(request: ScheduleRequest) {
+export function useGetScheduleByShift(request: WeeklyScheduleRequest) {
   return useQuery({
     queryKey: ["schedule", "by-shift", request],
     queryFn: async () => {
@@ -15,7 +15,7 @@ export function useGetScheduleByShift(request: ScheduleRequest) {
   });
 }
 
-export function useGetScheduleByStaff(request: ScheduleRequest) {
+export function useGetScheduleByStaff(request: WeeklyScheduleRequest) {
   return useQuery({
     queryKey: ["schedule", "by-staff", request],
     queryFn: () => scheduleService.getScheduleByStaff(request),

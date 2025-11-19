@@ -28,7 +28,7 @@ public class BookingCourtsController(
     private readonly IConfiguration _configuration = configuration;
 
     [HttpPost("create")]
-    public async Task<ActionResult<ApiResponse<DetailBookingCourtResponse>>> Create(
+    public async Task<ActionResult<ApiResponse<CreateBookingCourtResponse>>> Create(
         [FromBody] CreateBookingCourtRequest request
     )
     {
@@ -103,12 +103,12 @@ public class BookingCourtsController(
         }
 
         return Ok(
-            ApiResponse<DetailBookingCourtResponse>.SuccessResponse(result, "Đặt sân thành công")
+            ApiResponse<CreateBookingCourtResponse>.SuccessResponse(result, "Đặt sân thành công")
         );
     }
 
     [HttpPost("user/create")]
-    public async Task<ActionResult<ApiResponse<DetailBookingCourtResponse>>> UserCreate(
+    public async Task<ActionResult<ApiResponse<CreateBookingCourtResponse>>> UserCreate(
         [FromBody] UserCreateBookingCourtRequest request
     )
     {
@@ -183,7 +183,7 @@ public class BookingCourtsController(
         }
 
         return Ok(
-            ApiResponse<DetailBookingCourtResponse>.SuccessResponse(result, "Đặt sân thành công")
+            ApiResponse<CreateBookingCourtResponse>.SuccessResponse(result, "Đặt sân thành công")
         );
     }
 

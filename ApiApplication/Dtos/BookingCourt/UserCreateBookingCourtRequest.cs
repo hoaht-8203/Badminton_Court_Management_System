@@ -4,7 +4,6 @@ namespace ApiApplication.Dtos.BookingCourt;
 
 public class UserCreateBookingCourtRequest
 {
-    public Guid UserId { get; set; }
     public Guid CourtId { get; set; }
 
     public DateTime StartDate { get; set; }

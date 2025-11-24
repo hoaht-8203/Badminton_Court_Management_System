@@ -1,25 +1,26 @@
 import { axiosInstance } from "@/lib/axios";
 import {
-  CreateUserMembershipRequest,
   CreateUserMembershipForCurrentUserRequest,
+  CreateUserMembershipRequest,
   CreateUserMembershipResponse,
+  DetailUserMembershipResponse,
   ExtendPaymentRequest,
   ListUserMembershipRequest,
+  ListUserMembershipResponse,
   UpdateUserMembershipStatusRequest,
-  UserMembershipResponse,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 
 export const userMembershipService = {
-  async list(payload: ListUserMembershipRequest): Promise<ApiResponse<UserMembershipResponse[]>> {
-    const res = await axiosInstance.get<ApiResponse<UserMembershipResponse[]>>("/api/usermemberships/list", {
+  async list(payload: ListUserMembershipRequest): Promise<ApiResponse<ListUserMembershipResponse[]>> {
+    const res = await axiosInstance.get<ApiResponse<ListUserMembershipResponse[]>>("/api/usermemberships/list", {
       params: payload,
     });
     return res.data;
   },
 
-  async detail(id: number): Promise<ApiResponse<UserMembershipResponse>> {
-    const res = await axiosInstance.get<ApiResponse<UserMembershipResponse>>("/api/usermemberships/detail", {
+  async detail(id: number): Promise<ApiResponse<DetailUserMembershipResponse>> {
+    const res = await axiosInstance.get<ApiResponse<DetailUserMembershipResponse>>("/api/usermemberships/detail", {
       params: { id },
     });
     return res.data;

@@ -24,12 +24,6 @@ export interface UserCreateBookingCourtRequest {
      * @type {string}
      * @memberof UserCreateBookingCourtRequest
      */
-    userId?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof UserCreateBookingCourtRequest
-     */
     courtId?: string;
     /**
      * 
@@ -98,7 +92,6 @@ export function UserCreateBookingCourtRequestFromJSONTyped(json: any, ignoreDisc
     }
     return {
         
-        'userId': json['userId'] == null ? undefined : json['userId'],
         'courtId': json['courtId'] == null ? undefined : json['courtId'],
         'startDate': json['startDate'] == null ? undefined : (new Date(json['startDate'])),
         'endDate': json['endDate'] == null ? undefined : (new Date(json['endDate'])),
@@ -122,7 +115,6 @@ export function UserCreateBookingCourtRequestToJSONTyped(value?: UserCreateBooki
 
     return {
         
-        'userId': value['userId'],
         'courtId': value['courtId'],
         'startDate': value['startDate'] == null ? undefined : ((value['startDate']).toISOString()),
         'endDate': value['endDate'] == null ? undefined : ((value['endDate']).toISOString()),

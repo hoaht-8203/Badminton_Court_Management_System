@@ -23,8 +23,10 @@ export const userMembershipKeys = {
 
 // List UserMemberships Query
 export const useListUserMemberships = (params: ListUserMembershipRequest) => {
-  // Only enable query when customerId is provided
-  const enabled = params.customerId !== null && params.customerId !== undefined;
+  // Enable query when membershipId or customerId is provided
+  const enabled =
+    (params.membershipId !== null && params.membershipId !== undefined && params.membershipId > 0) ||
+    (params.customerId !== null && params.customerId !== undefined);
   return useQuery<ApiResponse<UserMembershipResponse[]>, ApiError>({
     queryKey: userMembershipKeys.list(params),
     queryFn: () => userMembershipService.list(params),

@@ -5,7 +5,7 @@ import SearchMembership from "@/components/quanlysancaulong/memberships/search-m
 import { useListMemberships, useUpdateMembershipStatus } from "@/hooks/useMembership";
 import { useCreateUserMembership, useListUserMemberships } from "@/hooks/useUserMembershipService";
 import { ApiError } from "@/lib/axios";
-import { ListMembershipRequest, ListMembershipResponse, UserMembershipResponse } from "@/types-openapi/api";
+import { ListMembershipRequest, ListMembershipResponse, ListUserMembershipResponse, UserMembershipResponse } from "@/types-openapi/api";
 import { CheckOutlined, EditOutlined, PlusOutlined, ReloadOutlined, StopOutlined } from "@ant-design/icons";
 import {
   Breadcrumb,
@@ -99,13 +99,10 @@ const MembershipsPage = () => {
     [selectedId, updateStatusMutation, refetch],
   );
 
-  const handleClickMembership = useCallback(
-    (id: number) => {
-      setSelectedId(id);
-      refetchUserMembership();
-    },
-    [refetchUserMembership],
-  );
+  const handleClickMembership = useCallback((id: number) => {
+    setSelectedId(id);
+    // React Query will automatically refetch when selectedId changes (queryKey changes)
+  }, []);
 
   const userMembershipColumns: TableProps<UserMembershipResponse>["columns"] = useMemo(
     () => [
@@ -211,7 +208,6 @@ const MembershipsPage = () => {
           rowClassName={(record) => (record.id === selectedId ? "!bg-blue-50" : "")}
           onRow={(record) => ({
             onClick: () => {
-              setSelectedId(record.id ?? null);
               handleClickMembership(record.id ?? 0);
             },
           })}
@@ -230,7 +226,7 @@ const MembershipsPage = () => {
             ),
             onExpand: (expanded, record) => {
               if (expanded && record.id) {
-                setSelectedId(record.id);
+                handleClickMembership(record.id);
               }
             },
           }}
@@ -445,7 +441,7 @@ const MembershipInformation = React.memo(function MembershipInformation({
   );
 });
 
-const UserMembershipExpanded = ({ record, onOpenQr }: { record: UserMembershipResponse; onOpenQr: (detail: any) => void }) => {
+const UserMembershipExpanded = ({ record, onOpenQr }: { record: ListUserMembershipResponse; onOpenQr: (detail: any) => void }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "PendingPayment":
@@ -613,7 +609,7 @@ const UserMembershipExpanded = ({ record, onOpenQr }: { record: UserMembershipRe
       label: "Lịch sử thanh toán",
       children: (
         <div>
-          {record.payment ? (
+          {record.payments ? (
             <Table columns={paymentColumns as any} dataSource={record.payments ?? []} pagination={false} size="small" rowKey="id" bordered />
           ) : (
             <div className="py-8 text-center text-gray-500">Không có lịch sử thanh toán</div>

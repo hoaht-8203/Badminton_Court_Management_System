@@ -71,6 +71,12 @@ export interface ScheduleResponse {
      * @memberof ScheduleResponse
      */
     dayOfWeek?: DayOfWeek;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof ScheduleResponse
+     */
+    isFixedShift?: boolean;
 }
 
 
@@ -97,6 +103,7 @@ export function ScheduleResponseFromJSONTyped(json: any, ignoreDiscriminator: bo
         'shift': json['shift'] == null ? undefined : ShiftResponseFromJSON(json['shift']),
         'date': json['date'] == null ? undefined : (new Date(json['date'])),
         'dayOfWeek': json['dayOfWeek'] == null ? undefined : DayOfWeekFromJSON(json['dayOfWeek']),
+        'isFixedShift': json['isFixedShift'] == null ? undefined : json['isFixedShift'],
     };
 }
 
@@ -116,6 +123,7 @@ export function ScheduleResponseToJSONTyped(value?: ScheduleResponse | null, ign
         'shift': ShiftResponseToJSON(value['shift']),
         'date': value['date'] == null ? undefined : ((value['date']).toISOString()),
         'dayOfWeek': DayOfWeekToJSON(value['dayOfWeek']),
+        'isFixedShift': value['isFixedShift'],
     };
 }
 

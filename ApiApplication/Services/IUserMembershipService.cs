@@ -4,8 +4,8 @@ namespace ApiApplication.Services;
 
 public interface IUserMembershipService
 {
-    Task<List<UserMembershipResponse>> ListAsync(ListUserMembershipRequest request);
-    Task<UserMembershipResponse> DetailAsync(int id);
+    Task<List<ListUserMembershipResponse>> ListAsync(ListUserMembershipRequest request);
+    Task<DetailUserMembershipResponse> DetailAsync(int id);
     Task<CreateUserMembershipResponse> CreateAsync(CreateUserMembershipRequest request);
     Task<CreateUserMembershipResponse> CreateForCurrentUserAsync(
         CreateUserMembershipForCurrentUserRequest request

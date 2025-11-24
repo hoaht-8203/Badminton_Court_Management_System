@@ -203,7 +203,6 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
     const isFixedSchedule = createBookingCourtDaysOfWeek === "2";
 
     const payload: UserCreateBookingCourtRequest = {
-      userId: user?.userId,
       courtId: values.courtId,
       startDate:
         isFixedSchedule && dateRange?.[0]

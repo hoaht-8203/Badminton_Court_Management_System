@@ -40,7 +40,6 @@ export interface ApiStaffChangeStatusPostRequest {
 
 export interface ApiStaffGetRequest {
     status?: number;
-    departmentIds?: Array<number>;
     branchIds?: Array<number>;
     keyword?: string;
 }
@@ -195,10 +194,6 @@ export class StaffApi extends runtime.BaseAPI implements StaffApiInterface {
 
         if (requestParameters['status'] != null) {
             queryParameters['Status'] = requestParameters['status'];
-        }
-
-        if (requestParameters['departmentIds'] != null) {
-            queryParameters['DepartmentIds'] = requestParameters['departmentIds'];
         }
 
         if (requestParameters['branchIds'] != null) {

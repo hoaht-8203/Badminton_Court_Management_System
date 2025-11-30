@@ -30,7 +30,6 @@ export interface ListStaffRequest {
      * @type {Array<number>}
      * @memberof ListStaffRequest
      */
-    departmentIds?: Array<number> | null;
     /**
      * 
      * @type {Array<number>}
@@ -63,7 +62,6 @@ export function ListStaffRequestFromJSONTyped(json: any, ignoreDiscriminator: bo
     return {
         
         'status': json['status'] == null ? undefined : json['status'],
-        'departmentIds': json['departmentIds'] == null ? undefined : json['departmentIds'],
         'branchIds': json['branchIds'] == null ? undefined : json['branchIds'],
         'keyword': json['keyword'] == null ? undefined : json['keyword'],
     };
@@ -81,7 +79,6 @@ export function ListStaffRequestToJSONTyped(value?: ListStaffRequest | null, ign
     return {
         
         'status': value['status'],
-        'departmentIds': value['departmentIds'],
         'branchIds': value['branchIds'],
         'keyword': value['keyword'],
     };

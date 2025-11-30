@@ -57,7 +57,7 @@ const getColumns = (): ColumnsType<any> => [
 
 interface StaffListProps {
   staffList: any[];
-  onEditStaff?: (staff: any) => void;
+  onEditStaff?: (staff: any, tab?: string) => void;
   onChangeStaffStatus?: (staffId: number, isActive: boolean) => void;
 }
 
@@ -88,7 +88,7 @@ const StaffList: React.FC<StaffListProps> = ({ staffList, onEditStaff, onChangeS
                     children: <StaffInfoTab staff={record} onEditStaff={onEditStaff} onChangeStaffStatus={onChangeStaffStatus} />,
                   },
                   { key: "2", label: "Lịch làm việc", children: <WorkScheduleTab staff={record} /> },
-                  { key: "3", label: "Thiết lập lương", children: <SalaryConfigTab staff={record} /> },
+                  { key: "3", label: "Thiết lập lương", children: <SalaryConfigTab staff={record} onEditStaff={onEditStaff} /> },
                   { key: "4", label: "Phiếu lương", children: <SalarySlipTab staff={record} /> },
                 ]}
               />

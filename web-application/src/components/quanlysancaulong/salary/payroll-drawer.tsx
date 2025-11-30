@@ -3,6 +3,7 @@ import { Drawer, Button, Form, Input, DatePicker, message } from "antd";
 import dayjs from "dayjs";
 import { useCreatePayroll } from "@/hooks/usePayroll";
 import type { CreatePayrollRequest } from "@/types-openapi/api";
+import { ApiError } from "@/lib/axios";
 
 export default function PayrollDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [form] = Form.useForm<CreatePayrollRequest>();
@@ -11,8 +12,8 @@ export default function PayrollDrawer({ open, onClose }: { open: boolean; onClos
   const handleFinish = async (values: any) => {
     const payload: CreatePayrollRequest = {
       name: values.name,
-      startDate: dayjs(values.startDate).toISOString().slice(0, 10),
-      endDate: dayjs(values.endDate).toISOString().slice(0, 10),
+      startDate: dayjs(values.startDate).format("YYYY-MM-DD"),
+      endDate: dayjs(values.endDate).format("YYYY-MM-DD"),
       note: values.note ?? undefined,
     } as any;
 
@@ -21,9 +22,17 @@ export default function PayrollDrawer({ open, onClose }: { open: boolean; onClos
       message.success("Tạo bảng lương thành công");
       form.resetFields();
       onClose();
-    } catch (err) {
-      console.error(err);
-      message.error("Có lỗi khi tạo bảng lương");
+    } catch (err: any) {
+      const apiError = err as ApiError;
+      if (apiError?.errors) {
+        for (const key in apiError.errors) {
+          message.error(apiError.errors[key]);
+        }
+      } else if (apiError?.message) {
+        message.error(apiError.message);
+      } else {
+        message.error("Có lỗi khi tạo bảng lương");
+      }
     }
   };
 
@@ -51,12 +60,64 @@ export default function PayrollDrawer({ open, onClose }: { open: boolean; onClos
           <Input />
         </Form.Item>
 
-        <Form.Item name="startDate" label="Ngày bắt đầu" rules={[{ required: true, message: "Chọn ngày bắt đầu" }]}>
-          <DatePicker style={{ width: "100%" }} />
+        <Form.Item
+          name="startDate"
+          label="Ngày bắt đầu"
+          rules={[
+            { required: true, message: "Chọn ngày bắt đầu" },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                const endDate = getFieldValue("endDate");
+                if (!value || !endDate) {
+                  return Promise.resolve();
+                }
+                if (dayjs(value).isAfter(dayjs(endDate), "day")) {
+                  return Promise.reject(new Error("Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc"));
+                }
+                return Promise.resolve();
+              },
+            }),
+          ]}
+          dependencies={["endDate"]}
+        >
+          <DatePicker
+            style={{ width: "100%" }}
+            disabledDate={(current) => {
+              const endDate = form.getFieldValue("endDate");
+              if (!endDate) return false;
+              return current && current.isAfter(dayjs(endDate), "day");
+            }}
+          />
         </Form.Item>
 
-        <Form.Item name="endDate" label="Ngày kết thúc" rules={[{ required: true, message: "Chọn ngày kết thúc" }]}>
-          <DatePicker style={{ width: "100%" }} />
+        <Form.Item
+          name="endDate"
+          label="Ngày kết thúc"
+          rules={[
+            { required: true, message: "Chọn ngày kết thúc" },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                const startDate = getFieldValue("startDate");
+                if (!value || !startDate) {
+                  return Promise.resolve();
+                }
+                if (dayjs(value).isBefore(dayjs(startDate), "day")) {
+                  return Promise.reject(new Error("Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu"));
+                }
+                return Promise.resolve();
+              },
+            }),
+          ]}
+          dependencies={["startDate"]}
+        >
+          <DatePicker
+            style={{ width: "100%" }}
+            disabledDate={(current) => {
+              const startDate = form.getFieldValue("startDate");
+              if (!startDate) return false;
+              return current && current.isBefore(dayjs(startDate), "day");
+            }}
+          />
         </Form.Item>
 
         <Form.Item name="note" label="Ghi chú">

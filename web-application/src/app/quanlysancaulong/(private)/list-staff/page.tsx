@@ -2,10 +2,11 @@
 import dynamic from "next/dynamic";
 import React, { useCallback, useMemo, useState, Suspense } from "react";
 import { useChangeStaffStatus, useCreateStaff, useListStaffs, useUpdateStaff } from "@/hooks/useStaffs";
+import { ApiError } from "@/lib/axios";
 
 import { ListStaffRequest, ListStaffRequestFromJSON, StaffRequest } from "@/types-openapi/api";
 import { FileExcelOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
-import { Breadcrumb, Button, Card, Col, Form, Input, Radio, Row, Select, message, Spin } from "antd";
+import { Breadcrumb, Button, Card, Col, Form, Input, Radio, Row, message, Spin } from "antd";
 
 const StaffList = dynamic(() => import("@/components/quanlysancaulong/staffs/list-staff/staffs-list"), {
   ssr: false,
@@ -15,11 +16,7 @@ const StaffModal = dynamic(() => import("@/components/quanlysancaulong/staffs/li
   ssr: false,
   loading: () => <Spin />,
 });
-// Dummy roles and status for filter
-const departments = [
-  { value: 1, label: "Phòng ban A" },
-  { value: 2, label: "Phòng ban B" },
-];
+// Dummy status for filter
 const statusOptions = [
   { value: 0, label: "Tất cả" },
   { value: 1, label: "Đang làm việc" },
@@ -32,6 +29,7 @@ export default React.memo(function ListStaffPage() {
   const { data: staffsData, isFetching: loadingStaffs, refetch: refetchStaffs } = useListStaffs(searchParams);
   const [openStaffModal, setOpenStaffModal] = useState(false);
   const [editingStaff, setEditingStaff] = useState<any | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("info");
   // show advanced filter by default (no branch filter available yet)
   const [showAdvancedFilter] = useState(true);
 
@@ -54,14 +52,25 @@ export default React.memo(function ListStaffPage() {
     [changeStaffStatus],
   );
 
-  const handleSearch = useCallback((values: ListStaffRequest) => {
+  const handleSearch = useCallback((values: any) => {
     // Backend expects: 1 = active, 0 = inactive. UI uses 2 = "Đã nghỉ việc".
     // Map UI value 2 -> backend 0. Keep 0 as 'all' -> null.
     const mappedStatus = values.status === 0 ? null : values.status === 2 ? 0 : values.status;
+
+    // Compose keyword from name and phone so backend can search both
+    // Backend will search keyword in FullName, PhoneNumber, and IdentificationNumber
+    const parts: string[] = [];
+    if (values.name && typeof values.name === "string" && values.name.trim()) {
+      parts.push(values.name.trim());
+    }
+    if (values.phone && typeof values.phone === "string" && values.phone.trim()) {
+      parts.push(values.phone.trim());
+    }
+    const keyword = parts.length > 0 ? parts.join(" ") : null;
+
     setSearchParams({
-      keyword: values.keyword ?? null,
+      keyword: keyword,
       status: mappedStatus,
-      // departmentIds, branchIds nếu có
     });
   }, []);
 
@@ -72,17 +81,20 @@ export default React.memo(function ListStaffPage() {
 
   const handleAddStaff = useCallback(() => {
     setEditingStaff(null);
+    setActiveTab("info");
     setOpenStaffModal(true);
   }, []);
 
-  const handleEditStaff = useCallback((staff: StaffRequest) => {
+  const handleEditStaff = useCallback((staff: StaffRequest, tab?: string) => {
     setEditingStaff(staff);
+    setActiveTab(tab || "info");
     setOpenStaffModal(true);
   }, []);
 
   const handleStaffModalClose = useCallback(() => {
     setOpenStaffModal(false);
     setEditingStaff(null);
+    setActiveTab("info");
   }, []);
 
   const handleStaffModalSubmit = useCallback(
@@ -98,7 +110,19 @@ export default React.memo(function ListStaffPage() {
         setOpenStaffModal(false);
         setEditingStaff(null);
       } catch (error: any) {
-        message.error(error?.message || "Có lỗi xảy ra, vui lòng thử lại");
+        // error is ApiError from axios interceptor
+        const apiError = error as ApiError;
+        if (apiError?.errors) {
+          // Hiển thị các field errors
+          for (const key in apiError.errors) {
+            message.error(apiError.errors[key]);
+          }
+        } else if (apiError?.message) {
+          // Hiển thị message từ API
+          message.error(apiError.message);
+        } else {
+          message.error("Có lỗi xảy ra, vui lòng thử lại");
+        }
       }
     },
     [createStaff, updateStaff, editingStaff],
@@ -116,18 +140,17 @@ export default React.memo(function ListStaffPage() {
 
       <Card
         title={
-          <Form form={form} layout="inline" onFinish={handleSearch} initialValues={{ status: 0 }} style={{ marginBottom: 0 }}>
-            <Form.Item label="Tìm kiếm theo tên, email" name="keyword" style={{ marginRight: 8 }}>
-              <Input placeholder="Nhập thông tin" allowClear style={{ width: 440 }} />
-            </Form.Item>
-            <Button type="primary" icon={<SearchOutlined />} htmlType="submit" style={{ marginRight: 8 }}>
-              Tìm kiếm
-            </Button>
-            <Button icon={<ReloadOutlined />} onClick={handleReset} style={{ marginRight: 8 }}>
-              Reset
-            </Button>
-            {/* Advanced filter always shown */}
-          </Form>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+            <div style={{ fontWeight: 600 }}>Tìm kiếm nhân viên</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Button type="primary" icon={<SearchOutlined />} onClick={() => form.submit()} style={{ marginRight: 8 }}>
+                Tìm kiếm
+              </Button>
+              <Button icon={<ReloadOutlined />} onClick={handleReset}>
+                Reset
+              </Button>
+            </div>
+          </div>
         }
         style={{ marginBottom: 16 }}
         styles={{ body: { paddingTop: showAdvancedFilter ? 16 : 0, paddingBottom: showAdvancedFilter ? 16 : 0 } }}
@@ -136,10 +159,17 @@ export default React.memo(function ListStaffPage() {
           <Form form={form} layout="vertical" onFinish={handleSearch} initialValues={{ status: 0 }}>
             <Row gutter={28} align="middle">
               <Col span={12}>
-                <Form.Item label="Phòng ban" name="departmentId">
-                  <Select options={departments} allowClear showSearch placeholder="Chọn phòng ban" />
+                <Form.Item label="Tên" name="name">
+                  <Input placeholder="Nhập tên" allowClear />
                 </Form.Item>
               </Col>
+              <Col span={12}>
+                <Form.Item label="Số điện thoại" name="phone">
+                  <Input placeholder="Nhập số điện thoại" allowClear />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={28} align="middle">
               <Col span={12}>
                 <Form.Item label="Trạng thái" name="status">
                   <Radio.Group options={statusOptions} optionType="button" />
@@ -168,7 +198,13 @@ export default React.memo(function ListStaffPage() {
         <StaffList staffList={staffList} onEditStaff={handleEditStaff} onChangeStaffStatus={handleChangeStaffStatus} />
       </Suspense>
       <Suspense fallback={<Spin />}>
-        <StaffModal open={openStaffModal} onClose={handleStaffModalClose} onSubmit={handleStaffModalSubmit} staff={editingStaff} />
+        <StaffModal
+          open={openStaffModal}
+          onClose={handleStaffModalClose}
+          onSubmit={handleStaffModalSubmit}
+          staff={editingStaff}
+          activeTab={activeTab}
+        />
       </Suspense>
     </section>
   );

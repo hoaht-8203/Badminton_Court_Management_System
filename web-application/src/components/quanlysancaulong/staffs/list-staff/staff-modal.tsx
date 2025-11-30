@@ -11,6 +11,7 @@ interface StaffModalProps {
   onClose: () => void;
   onSubmit: (values: StaffRequest) => void;
   staff?: Partial<StaffRequest & { id?: number }>;
+  activeTab?: string;
 }
 
 const initialFields = ["fullName", "phoneNumber", "avatarUrl"];
@@ -24,7 +25,7 @@ const allFields = [
   { name: "address", label: "Địa chỉ", type: "text" },
 ];
 
-const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff }) => {
+const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff, activeTab: initialActiveTab = "info" }) => {
   const [salaryData, setSalaryData] = React.useState<any>({});
   const [salarySettingsLoaded, setSalarySettingsLoaded] = useState(false);
   const [form] = Form.useForm();
@@ -35,6 +36,14 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarFileName, setAvatarFileName] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(initialActiveTab);
+
+  // Sync activeTab with prop when it changes (e.g., when opening modal with specific tab)
+  React.useEffect(() => {
+    if (open) {
+      setActiveTab(initialActiveTab);
+    }
+  }, [open, initialActiveTab]);
 
   // Fill form when staff changes (edit mode)
   React.useEffect(() => {
@@ -223,11 +232,13 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
       }
     >
       <Tabs
-        defaultActiveKey="info"
+        activeKey={activeTab}
+        onChange={setActiveTab}
         items={[
           {
             key: "info",
             label: "Thông tin",
+            forceRender: true, // Force render to avoid form connection warning
             children: (
               <Form form={form} layout="vertical" onFinish={handleFinish}>
                 {renderBasicFields()}
@@ -243,6 +254,7 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff 
           {
             key: "salary",
             label: "Thiết lập lương",
+            forceRender: true, // Force render to avoid form connection warning
             children: salaryForm ? <SalarySetupForm form={salaryForm} onSalaryDataChange={setSalaryData} staff={staff} /> : null,
           },
         ]}

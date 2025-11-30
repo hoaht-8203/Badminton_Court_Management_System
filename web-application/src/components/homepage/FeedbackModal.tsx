@@ -146,7 +146,7 @@ export default function FeedbackModal({ open, onClose, bookingCourtOccurrenceId,
           cleanliness: values.cleanliness,
           lighting: values.lighting,
           valueForMoney: values.valueForMoney,
-          mediaUrl: mediaUrls.length > 0 ? mediaUrls : undefined,
+          mediaUrl: mediaUrls.length > 0 ? mediaUrls : null, // Send null instead of undefined to ensure backend processes it
         };
         console.log("Create request:", request);
         await createMutation.mutateAsync(request);

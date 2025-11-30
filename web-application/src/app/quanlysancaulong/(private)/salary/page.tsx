@@ -4,6 +4,7 @@ import React, { useState, useCallback, useMemo, Suspense } from "react";
 import { useListPayrolls, useRefreshPayroll } from "@/hooks/usePayroll";
 import { FileExcelOutlined, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Form, message, Table, Spin } from "antd";
+import { ApiError } from "@/lib/axios";
 
 // Dynamically load heavier UI pieces to reduce initial bundle and defer non-critical UI
 const PayrollDrawer = dynamic(() => import("@/components/quanlysancaulong/salary/payroll-drawer"), {
@@ -39,12 +40,10 @@ export default React.memo(function SalaryPage() {
 
   const handleSearch = useCallback((values: any) => {
     setSearchParams(values);
-    message.info("Tìm kiếm bảng lương");
   }, []);
 
   const handleReset = useCallback(() => {
     setSearchParams({});
-    message.info("Reset filter");
   }, []);
 
   const handleAddSalary = useCallback(() => {
@@ -54,7 +53,23 @@ export default React.memo(function SalaryPage() {
   const handleReload = useCallback(
     (id?: number) => {
       if (id) {
-        refreshMutation.mutate(id);
+        refreshMutation.mutate(id, {
+          onSuccess: () => {
+            message.success("Tải lại dữ liệu thành công");
+          },
+          onError: (error: any) => {
+            const apiError = error as ApiError;
+            if (apiError?.errors) {
+              for (const key in apiError.errors) {
+                message.error(apiError.errors[key]);
+              }
+            } else if (apiError?.message) {
+              message.error(apiError.message);
+            } else {
+              message.error("Có lỗi khi tải lại dữ liệu");
+            }
+          },
+        });
       } else {
         // refresh current listing
         refetchPayrolls();

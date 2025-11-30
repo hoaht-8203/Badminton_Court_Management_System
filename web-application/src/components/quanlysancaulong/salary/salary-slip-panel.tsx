@@ -2,6 +2,7 @@ import { PayrollItemResponse } from "@/types-openapi/api";
 import { Button, message, Table } from "antd";
 import { useMemo, useState } from "react";
 import BulkPayDrawer from "./bulk-pay-drawer";
+import { ApiError } from "@/lib/axios";
 
 export default function SalarySlipPanel({
   items,
@@ -73,9 +74,17 @@ export default function SalarySlipPanel({
       setDrawerOpen(false);
       setSelectedRowKeys([]);
       message.success("Thanh toán thành công");
-    } catch (err) {
-      console.error(err);
-      message.error("Có lỗi xảy ra khi thanh toán");
+    } catch (err: any) {
+      const apiError = err as ApiError;
+      if (apiError?.errors) {
+        for (const key in apiError.errors) {
+          message.error(apiError.errors[key]);
+        }
+      } else if (apiError?.message) {
+        message.error(apiError.message);
+      } else {
+        message.error("Có lỗi xảy ra khi thanh toán");
+      }
       throw err;
     } finally {
       setConfirmLoading(false);

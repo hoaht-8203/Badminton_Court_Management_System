@@ -1,12 +1,13 @@
 "use client";
 
 import type { CashflowResponse } from "@/types-openapi/api";
-import { Table, TableProps } from "antd";
+import { ConfigProvider, Table, TableProps } from "antd";
+import viVN from "antd/locale/vi_VN";
 import dayjs from "dayjs";
 import CashflowExpanded from "./cashflow-expanded";
 
 const tableProps: TableProps<CashflowResponse> = {
-  rowKey: (r) => r.referenceNumber ?? r.id?.toString() ?? Math.random().toString(),
+  rowKey: (r) => r.id?.toString() ?? Math.random().toString(),
   //   size: "small",
   scroll: { x: "max-content" },
   expandable: { expandRowByClick: true },
@@ -39,6 +40,12 @@ export default function CashflowList({
       title: "Thời gian",
       dataIndex: "time",
       key: "time",
+      sorter: (a: CashflowResponse, b: CashflowResponse) => {
+        if (!a.time && !b.time) return 0;
+        if (!a.time) return 1;
+        if (!b.time) return -1;
+        return new Date(a.time).getTime() - new Date(b.time).getTime();
+      },
       render: (v: any) => (v ? dayjs(v).format("DD/MM/YYYY HH:mm") : ""),
     },
     {
@@ -54,9 +61,20 @@ export default function CashflowList({
       render: (v: any) => v ?? "",
     },
     {
+      title: "Người trả/nhận",
+      dataIndex: "relatedPerson",
+      key: "relatedPerson",
+      render: (v: any) => v ?? "-",
+    },
+    {
       title: "Giá trị",
       dataIndex: "value",
       key: "value",
+      sorter: (a: CashflowResponse, b: CashflowResponse) => {
+        const valA = a.value ?? 0;
+        const valB = b.value ?? 0;
+        return valA - valB;
+      },
       render: (v: any) => v?.toLocaleString?.() ?? v,
     },
     {
@@ -69,16 +87,20 @@ export default function CashflowList({
   return (
     <div>
       {contextHolder}
-      <Table<CashflowResponse>
-        {...tableProps}
-        columns={columns}
-        dataSource={data}
-        loading={loading}
-        expandable={{
-          expandRowByClick: true,
-          expandedRowRender: (record: CashflowResponse) => <CashflowExpanded record={record} onOpen={(r) => onOpenDrawer?.(r)} onPrint={() => {}} />,
-        }}
-      />
+      <ConfigProvider locale={viVN}>
+        <Table<CashflowResponse>
+          {...tableProps}
+          columns={columns}
+          dataSource={data}
+          loading={loading}
+          expandable={{
+            expandRowByClick: true,
+            expandedRowRender: (record: CashflowResponse) => (
+              <CashflowExpanded record={record} onOpen={(r) => onOpenDrawer?.(r)} onPrint={() => {}} />
+            ),
+          }}
+        />
+      </ConfigProvider>
     </div>
   );
 }

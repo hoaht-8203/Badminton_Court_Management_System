@@ -27,12 +27,13 @@ public class UserMembershipService(
     private readonly ICurrentUser _currentUser = currentUser;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
 
-    public async Task<List<UserMembershipResponse>> ListAsync(ListUserMembershipRequest request)
+    public async Task<List<ListUserMembershipResponse>> ListAsync(ListUserMembershipRequest request)
     {
         var query = _context
             .UserMemberships.Include(x => x.Membership)
             .Include(x => x.Customer)
             .Include(x => x.Payments)
+            .ThenInclude(p => p.Customer)
             .AsQueryable();
 
         if (request.CustomerId.HasValue)
@@ -49,51 +50,21 @@ public class UserMembershipService(
         }
 
         var items = await query.OrderByDescending(x => x.StartDate).ToListAsync();
-        var responses = _mapper.Map<List<UserMembershipResponse>>(items);
-
-        // Attach payment info for each membership (all payments and the latest)
-        var membershipIds = items.Select(i => i.Id).ToList();
-        var allPayments = await _context
-            .Payments.Where(p =>
-                p.UserMembershipId != null && membershipIds.Contains(p.UserMembershipId.Value)
-            )
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
-
-        var membershipIdToAllPayments = allPayments
-            .GroupBy(p => p.UserMembershipId!.Value)
-            .ToDictionary(g => g.Key, g => g.ToList());
-        foreach (var resp in responses)
-        {
-            if (membershipIdToAllPayments.TryGetValue(resp.Id, out var pays))
-            {
-                resp.Payments = pays.Select(pay => new ApiApplication.Dtos.Payment.PaymentDto
-                    {
-                        Id = pay.Id,
-                        BookingId = pay.BookingId ?? Guid.Empty,
-                        PaymentCreatedAt = pay.CreatedAt,
-                        Amount = pay.Amount,
-                        Status = pay.Status.ToString(),
-                        CustomerId = pay.CustomerId,
-                        CustomerName = pay.Customer?.FullName ?? string.Empty,
-                        CustomerPhone = pay.Customer?.PhoneNumber,
-                        CustomerEmail = pay.Customer?.Email,
-                        CourtId = pay.Booking?.CourtId ?? Guid.Empty,
-                        CourtName = pay.Booking?.Court?.Name ?? string.Empty,
-                        Note = pay.Note,
-                    })
-                    .ToList();
-                resp.Payment = resp.Payments.FirstOrDefault();
-            }
-        }
+        var responses = _mapper.Map<List<ListUserMembershipResponse>>(items);
 
         return responses;
     }
 
-    public async Task<UserMembershipResponse> DetailAsync(int id)
+    public async Task<DetailUserMembershipResponse> DetailAsync(int id)
     {
         var item = await _context
             .UserMemberships.Include(x => x.Membership)
+            .Include(x => x.Customer)
+            .Include(x => x.Payments)
+            .ThenInclude(p => p.Customer)
+            .Include(x => x.Payments)
+            .ThenInclude(p => p.Booking)
+            .ThenInclude(b => b!.Court)
             .FirstOrDefaultAsync(x => x.Id == id);
         if (item == null)
         {
@@ -102,34 +73,7 @@ public class UserMembershipService(
                 System.Net.HttpStatusCode.NotFound
             );
         }
-        var resp = _mapper.Map<UserMembershipResponse>(item);
-
-        // attach all payments and set latest
-        var payments = await _context
-            .Payments.Where(p => p.UserMembershipId == item.Id)
-            .OrderByDescending(p => p.CreatedAt)
-            .ToListAsync();
-        if (payments.Count > 0)
-        {
-            resp.Payments = payments
-                .Select(payment => new ApiApplication.Dtos.Payment.PaymentDto
-                {
-                    Id = payment.Id,
-                    BookingId = payment.BookingId ?? Guid.Empty,
-                    PaymentCreatedAt = payment.CreatedAt,
-                    Amount = payment.Amount,
-                    Status = payment.Status.ToString(),
-                    CustomerId = payment.CustomerId,
-                    CustomerName = payment.Customer?.FullName ?? string.Empty,
-                    CustomerPhone = payment.Customer?.PhoneNumber,
-                    CustomerEmail = payment.Customer?.Email,
-                    CourtId = payment.Booking?.CourtId ?? Guid.Empty,
-                    CourtName = payment.Booking?.Court?.Name ?? string.Empty,
-                    Note = payment.Note,
-                })
-                .ToList();
-            resp.Payment = resp.Payments.FirstOrDefault();
-        }
+        var resp = _mapper.Map<DetailUserMembershipResponse>(item);
 
         return resp;
     }

@@ -32,6 +32,15 @@ public class PayrollService : IPayrollService
 
     public async Task<bool> CreatePayrollAsync(CreatePayrollRequest request)
     {
+        // Validate: EndDate must be >= StartDate
+        if (request.EndDate < request.StartDate)
+        {
+            throw new ApiException(
+                "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu",
+                HttpStatusCode.BadRequest
+            );
+        }
+
         var newPayroll = _mapper.Map<Payroll>(request);
 
         var staffs = await _context.Staffs.ToListAsync();
@@ -130,12 +139,95 @@ public class PayrollService : IPayrollService
         return true;
     }
 
-    public async Task<List<ListPayrollResponse>> GetPayrollsAsync()
+    public async Task<List<ListPayrollResponse>> GetPayrollsAsync(ListPayrollRequest? request = null)
     {
-        var payrolls = await _context
+        var query = _context
             .Payrolls.Include(p => p.PayrollItems)
             .ThenInclude(pi => pi.Staff)
-            .ToListAsync();
+            .AsQueryable();
+
+        // Filter by keyword (name or code)
+        if (!string.IsNullOrWhiteSpace(request?.Keyword))
+        {
+            var keyword = $"%{request.Keyword.Trim()}%";
+            var keywordTrimmed = request.Keyword.Trim();
+            
+            // Try to extract ID from keyword (e.g., "BL000001" or "1" -> 1)
+            int? extractedId = null;
+            var keywordLower = keywordTrimmed.ToLower();
+            if (keywordLower.StartsWith("bl"))
+            {
+                var idPart = keywordTrimmed.Substring(2).TrimStart('0');
+                if (int.TryParse(idPart, out var id))
+                {
+                    extractedId = id;
+                }
+            }
+            else if (int.TryParse(keywordTrimmed, out var directId))
+            {
+                extractedId = directId;
+            }
+
+            if (extractedId.HasValue)
+            {
+                query = query.Where(p =>
+                    (p.Name != null && EF.Functions.ILike(p.Name, keyword))
+                    || p.Id == extractedId.Value
+                );
+            }
+            else
+            {
+                query = query.Where(p => p.Name != null && EF.Functions.ILike(p.Name, keyword));
+            }
+        }
+
+        // Filter by status
+        if (!string.IsNullOrWhiteSpace(request?.Status))
+        {
+            query = query.Where(p => p.Status == request.Status);
+        }
+
+        // Filter by start date with operator (>, =, <)
+        if (!string.IsNullOrWhiteSpace(request?.StartDateOperator) && request?.StartDate.HasValue == true)
+        {
+            var startDate = DateOnly.FromDateTime(request.StartDate.Value);
+            var dateOperator = request.StartDateOperator.Trim();
+            
+            if (dateOperator == ">")
+            {
+                query = query.Where(p => p.StartDate > startDate);
+            }
+            else if (dateOperator == "=")
+            {
+                query = query.Where(p => p.StartDate == startDate);
+            }
+            else if (dateOperator == "<")
+            {
+                query = query.Where(p => p.StartDate < startDate);
+            }
+        }
+
+        // Filter by end date with operator (>, =, <)
+        if (!string.IsNullOrWhiteSpace(request?.EndDateOperator) && request?.EndDate.HasValue == true)
+        {
+            var endDate = DateOnly.FromDateTime(request.EndDate.Value);
+            var dateOperator = request.EndDateOperator.Trim();
+            
+            if (dateOperator == ">")
+            {
+                query = query.Where(p => p.EndDate > endDate);
+            }
+            else if (dateOperator == "=")
+            {
+                query = query.Where(p => p.EndDate == endDate);
+            }
+            else if (dateOperator == "<")
+            {
+                query = query.Where(p => p.EndDate < endDate);
+            }
+        }
+
+        var payrolls = await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
         return _mapper.Map<List<ListPayrollResponse>>(payrolls);
     }
 
@@ -148,15 +240,36 @@ public class PayrollService : IPayrollService
         if (payroll == null)
             throw new ApiException("Bảng lương không tồn tại", HttpStatusCode.NotFound);
 
-        // Check if payroll end date has passed at least 3 days
         var today = DateOnly.FromDateTime(DateTime.Now);
-        var daysSinceEndDate = today.DayNumber - payroll.EndDate.DayNumber;
-        if (daysSinceEndDate >= 3)
+        bool isEnded = payroll.EndDate < today;
+
+        // If payroll has ended, only recalculate totals from existing items, don't recalculate salaries
+        if (isEnded)
         {
-            throw new ApiException(
-                $"Không thể làm mới bảng lương. Kỳ lương đã kết thúc {daysSinceEndDate} ngày. Chỉ có thể làm mới trong vòng 3 ngày kể từ ngày kết thúc.",
-                HttpStatusCode.BadRequest
-            );
+            // Update status of each PayrollItem based on current PaidAmount and NetSalary
+            foreach (var item in payroll.PayrollItems)
+            {
+                item.Status = item.PaidAmount >= item.NetSalary
+                    ? PayrollStatus.Completed
+                    : PayrollStatus.Pending;
+            }
+            
+            // Recalculate totals from existing PayrollItems only
+            payroll.TotalNetSalary = payroll.PayrollItems.Sum(pi => pi.NetSalary);
+            payroll.TotalPaidAmount = payroll.PayrollItems.Sum(pi => pi.PaidAmount);
+            payroll.Status = payroll.TotalPaidAmount >= payroll.TotalNetSalary
+                ? PayrollStatus.Completed
+                : PayrollStatus.Pending;
+            
+            _context.Payrolls.Update(payroll);
+            var saveResult = await _context.SaveChangesAsync();
+            
+            if (saveResult <= 0)
+                throw new ApiException(
+                    "Cập nhật bảng lương thất bại",
+                    HttpStatusCode.InternalServerError
+                );
+            return true;
         }
 
         var staffs = await _context.Staffs.ToListAsync();
@@ -281,9 +394,8 @@ public class PayrollService : IPayrollService
 
         foreach (var payroll in payrolls)
         {
-            var daysSinceEndDate = today.DayNumber - payroll.EndDate.DayNumber;
-            // Only refresh payrolls that are within 3 days of end date
-            if (daysSinceEndDate < 3)
+            // Only refresh payrolls that haven't ended yet (endDate >= today)
+            if (payroll.EndDate >= today)
             {
                 payrollsToRefresh.Add(payroll);
             }
@@ -305,17 +417,23 @@ public class PayrollService : IPayrollService
 
         if (payroll == null)
             return null;
-        var payrollItemIds = payroll.PayrollItems.Select(pi => pi.Id).ToList();
+        var payrollItemIds = payroll.PayrollItems.Select(pi => pi.Id.ToString()).ToHashSet();
         var response = _mapper.Map<PayrollDetailResponse>(payroll);
-        response.Cashflows = await _context
+        
+        // Get all cashflows matching the criteria first, then filter by payrollItemIds in memory
+        var allCashflows = await _context
             .Cashflows.Where(c =>
                 c.RelatedId != null
-                && payrollItemIds.Contains(Int32.Parse(c.RelatedId))
                 && c.PersonType == RelatedPeopleGroup.Staff
                 && c.CashflowTypeId == CashflowTypeIdMapping.PayStaff
             )
-            .Select(c => _mapper.Map<CashflowResponse>(c))
             .ToListAsync();
+        
+        // Filter in memory using HashSet for O(1) lookup
+        response.Cashflows = allCashflows
+            .Where(c => c.RelatedId != null && payrollItemIds.Contains(c.RelatedId))
+            .Select(c => _mapper.Map<CashflowResponse>(c))
+            .ToList();
         return response;
     }
 
@@ -383,6 +501,84 @@ public class PayrollService : IPayrollService
         {
             throw new ApiException("Tạo phiếu quỹ thất bại", HttpStatusCode.InternalServerError);
         }
+
+        // Recalculate payroll totals after payment
+        var payroll = await _context
+            .Payrolls.Include(p => p.PayrollItems)
+            .FirstOrDefaultAsync(p => p.Id == payrollItem.PayrollId);
+        
+        if (payroll != null)
+        {
+            payroll.TotalNetSalary = payroll.PayrollItems.Sum(pi => pi.NetSalary);
+            payroll.TotalPaidAmount = payroll.PayrollItems.Sum(pi => pi.PaidAmount);
+            payroll.Status = payroll.TotalPaidAmount >= payroll.TotalNetSalary
+                ? PayrollStatus.Completed
+                : PayrollStatus.Pending;
+            _context.Payrolls.Update(payroll);
+            await _context.SaveChangesAsync();
+        }
+
+        return true;
+    }
+
+    public async Task<bool> DeletePayrollAsync(int payrollId)
+    {
+        var payroll = await _context
+            .Payrolls.Include(p => p.PayrollItems)
+            .FirstOrDefaultAsync(p => p.Id == payrollId);
+
+        if (payroll == null)
+            throw new ApiException("Bảng lương không tồn tại", HttpStatusCode.NotFound);
+
+        // Check if payroll has no items
+        if (payroll.PayrollItems == null || payroll.PayrollItems.Count == 0)
+        {
+            // Delete payroll if it has no items
+            _context.Payrolls.Remove(payroll);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        // Check if all payroll items are unpaid (PaidAmount = 0)
+        var hasPaidItems = payroll.PayrollItems.Any(pi => pi.PaidAmount > 0);
+        if (hasPaidItems)
+        {
+            throw new ApiException(
+                "Không thể hủy bảng lương. Bảng lương đã có phiếu lương được thanh toán. Chỉ có thể hủy khi tất cả phiếu lương chưa được thanh toán hoặc bảng lương không có phiếu lương nào.",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        // Get all payroll item IDs to delete related cashflows
+        var payrollItemIds = payroll.PayrollItems.Select(pi => pi.Id.ToString()).ToList();
+
+        // Delete related cashflows
+        var relatedCashflows = await _context
+            .Cashflows.Where(c =>
+                c.RelatedId != null
+                && payrollItemIds.Contains(c.RelatedId)
+                && c.PersonType == RelatedPeopleGroup.Staff
+                && c.CashflowTypeId == CashflowTypeIdMapping.PayStaff
+            )
+            .ToListAsync();
+
+        if (relatedCashflows.Any())
+        {
+            _context.Cashflows.RemoveRange(relatedCashflows);
+        }
+
+        // Delete all payroll items
+        _context.PayrollItems.RemoveRange(payroll.PayrollItems);
+
+        // Delete payroll
+        _context.Payrolls.Remove(payroll);
+
+        var result = await _context.SaveChangesAsync();
+        if (result <= 0)
+            throw new ApiException(
+                "Xóa bảng lương thất bại",
+                HttpStatusCode.InternalServerError
+            );
 
         return true;
     }

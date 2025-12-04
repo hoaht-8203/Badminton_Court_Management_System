@@ -798,7 +798,9 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                               const api = res as any;
                               const result = api?.data ?? null;
                               if (!api?.success || !result || result?.isValid === false) {
-                                message.error(result?.errorMessage ?? "Voucher không hợp lệ");
+                                // Priority: api.message (from ErrorResponse) > result.errorMessage > fallback
+                                const errorMsg = api?.message || result?.errorMessage || "Voucher không hợp lệ";
+                                message.error(errorMsg);
                                 setSelectedVoucherId(null);
                                 setVoucherDiscount(0);
                                 return;
@@ -808,7 +810,8 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                               setVoucherDiscount(discount);
                             },
                             onError: (err: any) => {
-                              message.error(err?.message ?? "Voucher không hợp lệ");
+                              // err.message is already extracted from API response by axios interceptor
+                              message.error(err?.message || "Voucher không hợp lệ");
                               setSelectedVoucherId(null);
                               setVoucherDiscount(0);
                             },

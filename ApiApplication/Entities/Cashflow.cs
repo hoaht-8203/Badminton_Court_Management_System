@@ -13,7 +13,7 @@ public class Cashflow : BaseEntity
     public required bool IsPayment { get; set; }
     public required int CashflowTypeId { get; set; }
     public CashflowType CashflowType { get; set; } = null!;
-    public string RelatedId { get; set; } = string.Empty;
+    public string? RelatedId { get; set; }
     public string? PersonType { get; set; } = RelatedPeopleGroup.Other;
     public string? RelatedPerson { get; set; }
     public required decimal Value { get; set; }

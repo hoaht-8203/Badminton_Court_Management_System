@@ -15,7 +15,7 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
 
   if (!series.length) {
     return (
-      <Card title="Doanh thu theo thời gian" style={{ minHeight: 240 }}>
+      <Card title="Doanh thu theo thời gian" style={{ minHeight: 400 }}>
         <div>Không có dữ liệu</div>
       </Card>
     );
@@ -49,19 +49,19 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
     .concat(Array.from({ length: padRight }, () => ({ date: "", revenue: 0, profit: 0 })));
 
   // SVG layout - make width scale with number of slots so bars don't cluster and space looks balanced
-  const width = Math.max(600, displayCount * 60); // logical width in user units
-  const height = 200;
+  const width = Math.max(800, displayCount * 80); // logical width in user units - increased for better visibility
+  const height = 350; // increased height for better visibility
   // tighten margins to reduce empty space, especially left margin
   // increase bottom margin to make room for rotated x labels
-  const margin = { top: 8, right: 16, bottom: 64, left: 36 };
+  const margin = { top: 20, right: 24, bottom: 80, left: 50 }; // increased margins for better spacing
   const innerW = width - margin.left - margin.right;
   const innerH = height - margin.top - margin.bottom;
 
   const xStep = innerW / displayCount;
   // group width and per-bar width for grouped bars (two bars per group)
   // make the group's total width a smaller fraction of xStep so there's a larger gap between months
-  const groupWidth = xStep * 0.5; // half of slot reserved for the two bars, leaving bigger inter-month gap
-  const barWidth = Math.max(8, (groupWidth / 2) * 0.9);
+  const groupWidth = xStep * 0.6; // increased from 0.5 to 0.6 for wider bars
+  const barWidth = Math.max(14, (groupWidth / 2) * 0.9); // increased minimum width from 8 to 14
 
   // y ticks: generate a small number of ticks between min and max
   const tickCount = 5;
@@ -78,20 +78,19 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
   const tickIndices = labelPositions; // show all positions (usually 12)
   const xTicks = tickIndices.map((i) => ({ i, label: adjustedSeries[i]?.date ?? "" }));
 
-
   return (
-    <Card title="Doanh thu theo thời gian" style={{ minHeight: 240 }}>
+    <Card title="Doanh thu theo thời gian" style={{ minHeight: 450 }}>
       <div style={{ overflowX: "auto" }}>
-        <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height }}>
+        <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height: height, minHeight: height }}>
           {/* axis lines */}
-          <line x1={margin.left} y1={margin.top} x2={margin.left} y2={margin.top + innerH} stroke="#e8e8e8" />
-          <line x1={margin.left} y1={margin.top + innerH} x2={margin.left + innerW} y2={margin.top + innerH} stroke="#e8e8e8" />
+          <line x1={margin.left} y1={margin.top} x2={margin.left} y2={margin.top + innerH} stroke="#d9d9d9" strokeWidth={2} />
+          <line x1={margin.left} y1={margin.top + innerH} x2={margin.left + innerW} y2={margin.top + innerH} stroke="#d9d9d9" strokeWidth={2} />
 
           {/* y ticks and labels */}
           {yTicks.map((t, idx) => (
             <g key={idx}>
-              <line x1={margin.left - 6} x2={margin.left} y1={t.y} y2={t.y} stroke="#e8e8e8" />
-              <text x={margin.left - 10} y={t.y + 4} fontSize={11} textAnchor="end" fill="#666">
+              <line x1={margin.left - 6} x2={margin.left} y1={t.y} y2={t.y} stroke="#e8e8e8" strokeWidth={1.5} />
+              <text x={margin.left - 12} y={t.y + 5} fontSize={14} textAnchor="end" fill="#333" fontWeight={500}>
                 {/* display values in millions (divide by 1,000,000) to drop last 6 digits */}
                 {Math.round(t.value / 1000000).toLocaleString()}
               </text>
@@ -100,12 +99,13 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
 
           {/* Y axis label: indicate units are millions */}
           <text
-            x={margin.left - 48}
+            x={margin.left - 60}
             y={margin.top + innerH / 2}
-            fontSize={12}
-            fill="#666"
+            fontSize={14}
+            fill="#333"
+            fontWeight={600}
             textAnchor="middle"
-            transform={`rotate(-90 ${margin.left - 48} ${margin.top + innerH / 2})`}
+            transform={`rotate(-90 ${margin.left - 60} ${margin.top + innerH / 2})`}
           >
             Tiền (triệu)
           </text>
@@ -115,7 +115,17 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
             ? (() => {
                 const norm0 = (0 - min) / (max - min);
                 const yZeroPos = margin.top + innerH - norm0 * innerH;
-                return <line x1={margin.left} y1={yZeroPos} x2={margin.left + innerW} y2={yZeroPos} stroke="#999" strokeDasharray="4 4" />;
+                return (
+                  <line
+                    x1={margin.left}
+                    y1={yZeroPos}
+                    x2={margin.left + innerW}
+                    y2={yZeroPos}
+                    stroke="#999"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                  />
+                );
               })()
             : null}
 
@@ -124,9 +134,9 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
             const x = margin.left + (t.i + 0.5) * xStep;
             return (
               <g key={idx} transform={`translate(${x}, ${margin.top + innerH})`}>
-                <line x1={0} x2={0} y1={0} y2={6} stroke="#e8e8e8" />
+                <line x1={0} x2={0} y1={0} y2={8} stroke="#e8e8e8" strokeWidth={1.5} />
                 {t.label ? (
-                  <text x={0} y={20} fontSize={11} textAnchor="middle" fill="#666" transform={`rotate(-45 0 20)`}>
+                  <text x={0} y={28} fontSize={13} textAnchor="middle" fill="#333" fontWeight={500} transform={`rotate(-45 0 28)`}>
                     {t.label}
                   </text>
                 ) : null}
@@ -171,8 +181,8 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
                       style={{ cursor: "pointer" }}
                       opacity={groupOpacity}
                     >
-                      <rect x={revX} y={revY} width={barWidth} height={revHeight} fill="#1890ff" opacity={0.95} />
-                      <rect x={pfX} y={pfY} width={barWidth} height={pfHeight} fill="#52c41a" opacity={0.95} />
+                      <rect x={revX} y={revY} width={barWidth} height={revHeight} fill="#1890ff" opacity={0.9} rx={2} />
+                      <rect x={pfX} y={pfY} width={barWidth} height={pfHeight} fill="#52c41a" opacity={0.9} rx={2} />
                     </g>
                   );
                 })}
@@ -190,13 +200,13 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
                       `Doanh thu: ${Math.round(rev).toLocaleString()}`,
                       `Lợi nhuận: ${Math.round(pf).toLocaleString()}`,
                     ];
-                    const boxWidth = 160;
-                    const boxHeight = 18 * lines.length + 8;
+                    const boxWidth = 200;
+                    const boxHeight = 22 * lines.length + 12;
                     return (
                       <g transform={`translate(${tx - boxWidth / 2}, ${ty})`}>
-                        <rect x={0} y={0} width={boxWidth} height={boxHeight} fill="#fff" stroke="#ddd" rx={6} />
+                        <rect x={0} y={0} width={boxWidth} height={boxHeight} fill="#fff" stroke="#999" strokeWidth={1.5} rx={8} opacity={0.95} />
                         {lines.map((line, idx) => (
-                          <text key={idx} x={8} y={14 + idx * 18} fontSize={12} fill="#222">
+                          <text key={idx} x={12} y={18 + idx * 22} fontSize={13} fill="#222" fontWeight={idx === 0 ? 600 : 500}>
                             {line}
                           </text>
                         ))}
@@ -208,14 +218,14 @@ const RevenueChart: React.FC<Props> = ({ series = [] }) => {
           })()}
         </svg>
         {/* HTML legend below the SVG so it never overlaps bars or labels */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 24, paddingTop: 8 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 6, display: "inline-block", background: "#1890ff" }} />
-            <span style={{ color: "#333", fontSize: 12 }}>Doanh thu</span>
+        <div style={{ display: "flex", justifyContent: "center", gap: 32, paddingTop: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ width: 14, height: 14, borderRadius: 7, display: "inline-block", background: "#1890ff" }} />
+            <span style={{ color: "#333", fontSize: 14, fontWeight: 500 }}>Doanh thu</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ width: 10, height: 10, borderRadius: 6, display: "inline-block", background: "#52c41a" }} />
-            <span style={{ color: "#333", fontSize: 12 }}>Lợi nhuận</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ width: 14, height: 14, borderRadius: 7, display: "inline-block", background: "#52c41a" }} />
+            <span style={{ color: "#333", fontSize: 14, fontWeight: 500 }}>Lợi nhuận</span>
           </div>
         </div>
       </div>

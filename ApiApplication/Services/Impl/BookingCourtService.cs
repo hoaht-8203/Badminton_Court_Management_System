@@ -9,6 +9,7 @@ using ApiApplication.Entities.Shared;
 using ApiApplication.Enums;
 using ApiApplication.Exceptions;
 using ApiApplication.Services;
+using ApiApplication.Sessions;
 using ApiApplication.SignalR;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
@@ -26,7 +27,8 @@ public class BookingCourtService(
     INotificationService notificationService,
     IVoucherService voucherService,
     IHttpContextAccessor httpContextAccessor,
-    UserManager<ApplicationUser> userManager
+    UserManager<ApplicationUser> userManager,
+    ICurrentUser currentUser
 ) : IBookingCourtService
 {
     private readonly ApplicationDbContext _context = context;
@@ -38,8 +40,9 @@ public class BookingCourtService(
     private readonly IVoucherService _voucherService = voucherService;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
+    private readonly ICurrentUser _currentUser = currentUser;
 
-    public async Task<DetailBookingCourtResponse> CreateBookingCourtAsync(
+    public async Task<CreateBookingCourtResponse> CreateBookingCourtAsync(
         CreateBookingCourtRequest request
     )
     {
@@ -335,14 +338,72 @@ public class BookingCourtService(
 
         // Note: email sending with payment link handled in higher layer (e.g., BookingCourtsController)
 
-        // Return enriched detail (includes payment summary and QR info if applicable)
-        return await DetailBookingCourtAsync(new DetailBookingCourtRequest { Id = entity.Id });
+        // Load customer info for response
+        var customer =
+            await _context.Customers.FirstOrDefaultAsync(c => c.Id == entity.CustomerId)
+            ?? throw new ApiException(
+                "Không tìm thấy thông tin khách hàng.",
+                HttpStatusCode.InternalServerError
+            );
+
+        // Build response with minimal data needed for UI
+        var response = new CreateBookingCourtResponse
+        {
+            Id = entity.Id,
+            CourtName = court.Name,
+            StartDate = entity.StartDate,
+            EndDate = entity.EndDate,
+            StartTime = entity.StartTime,
+            EndTime = entity.EndTime,
+            DaysOfWeek = entity.DaysOfWeek,
+            Status = entity.Status.ToString(),
+            Customer = new CreateBookingCourtResponse.CustomerInfo
+            {
+                FullName = customer.FullName,
+                PhoneNumber = customer.PhoneNumber,
+            },
+        };
+
+        // Add payment/QR info only for Bank payment method and if payment is pending
+        if (
+            string.Equals(paymentMethod, "Bank", StringComparison.OrdinalIgnoreCase)
+            && createdPayment != null
+            && !string.Equals(createdPayment.Status, "Paid", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            response.PaymentId = createdPayment.Id;
+            response.PaymentAmount = createdPayment.Amount;
+
+            // Generate QR URL
+            var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
+            var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
+            var amount = ((long)Math.Ceiling(createdPayment.Amount)).ToString();
+            var des = Uri.EscapeDataString(createdPayment.Id);
+            response.QrUrl =
+                $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
+
+            // Set expiry time
+            var paymentHoldMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
+            response.ExpiresAtUtc = createdPayment.PaymentCreatedAt.AddMinutes(paymentHoldMins);
+        }
+
+        return response;
     }
 
-    public async Task<DetailBookingCourtResponse> UserCreateBookingCourtAsync(
+    public async Task<CreateBookingCourtResponse> UserCreateBookingCourtAsync(
         UserCreateBookingCourtRequest request
     )
     {
+        // Get current user ID
+        var userId = _currentUser.UserId;
+        if (userId == null)
+        {
+            throw new ApiException(
+                "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
+                HttpStatusCode.Unauthorized
+            );
+        }
+
         var court =
             await _context.Courts.FirstOrDefaultAsync(c => c.Id == request.CourtId)
             ?? throw new ApiException("Sân này không tồn tại.", HttpStatusCode.BadRequest);
@@ -363,13 +424,17 @@ public class BookingCourtService(
             throw new ApiException("Sân này đang được sử dụng.", HttpStatusCode.BadRequest);
         }
 
-        var user =
-            await _context
-                .Users.Include(u => u.Customer)
-                .FirstOrDefaultAsync(u => u.Id == request.UserId)
-            ?? throw new ApiException("Người dùng không tồn tại.", HttpStatusCode.BadRequest);
+        // Get ApplicationUser
+        var user = await _userManager.FindByIdAsync(userId.Value.ToString());
+        if (user == null)
+        {
+            throw new ApiException("Không tìm thấy tài khoản người dùng.", HttpStatusCode.NotFound);
+        }
 
-        if (user.Customer == null)
+        // Check if user already has a Customer record
+        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (customer == null)
         {
             throw new ApiException(
                 "Vui lòng xác nhận email để tạo tài khoản khách hàng trước khi đặt sân.",
@@ -531,7 +596,7 @@ public class BookingCourtService(
         }
 
         var entity = _mapper.Map<BookingCourt>(request);
-        entity.CustomerId = user.Customer!.Id;
+        entity.CustomerId = customer.Id;
         entity.DaysOfWeek = reqDaysArr;
         // For receptionist flow, create booking as PendingPayment until SePay confirms
         entity.Status = BookingCourtStatus.PendingPayment;
@@ -652,8 +717,56 @@ public class BookingCourtService(
 
         // Note: email sending with payment link handled in higher layer (e.g., BookingCourtsController)
 
-        // Return enriched detail (includes payment summary and QR info if applicable)
-        return await DetailBookingCourtAsync(new DetailBookingCourtRequest { Id = entity.Id });
+        // Load customer info for response
+        var responseCustomer =
+            await _context.Customers.FirstOrDefaultAsync(c => c.Id == entity.CustomerId)
+            ?? throw new ApiException(
+                "Không tìm thấy thông tin khách hàng.",
+                HttpStatusCode.InternalServerError
+            );
+
+        // Build response with minimal data needed for UI
+        var response = new CreateBookingCourtResponse
+        {
+            Id = entity.Id,
+            CourtName = court.Name,
+            StartDate = entity.StartDate,
+            EndDate = entity.EndDate,
+            StartTime = entity.StartTime,
+            EndTime = entity.EndTime,
+            DaysOfWeek = entity.DaysOfWeek,
+            Status = entity.Status.ToString(),
+            Customer = new CreateBookingCourtResponse.CustomerInfo
+            {
+                FullName = responseCustomer.FullName,
+                PhoneNumber = responseCustomer.PhoneNumber,
+            },
+        };
+
+        // Add payment/QR info only for Bank payment method and if payment is pending
+        if (
+            string.Equals(paymentMethod, "Bank", StringComparison.OrdinalIgnoreCase)
+            && createdPayment != null
+            && !string.Equals(createdPayment.Status, "Paid", StringComparison.OrdinalIgnoreCase)
+        )
+        {
+            response.PaymentId = createdPayment.Id;
+            response.PaymentAmount = createdPayment.Amount;
+
+            // Generate QR URL
+            var acc = Environment.GetEnvironmentVariable("SEPAY_ACC") ?? "VQRQAEMLF5363";
+            var bank = Environment.GetEnvironmentVariable("SEPAY_BANK") ?? "MBBank";
+            var amount = ((long)Math.Ceiling(createdPayment.Amount)).ToString();
+            var des = Uri.EscapeDataString(createdPayment.Id);
+            response.QrUrl =
+                $"https://qr.sepay.vn/img?acc={acc}&bank={bank}&amount={amount}&des={des}";
+
+            // Set expiry time
+            var userPaymentHoldMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
+            response.ExpiresAtUtc = createdPayment.PaymentCreatedAt.AddMinutes(userPaymentHoldMins);
+        }
+
+        return response;
     }
 
     private static int GetCustomDayOfWeek(DateOnly date)

@@ -7,7 +7,14 @@ export const payrollService = {
     const response = await axiosInstance.post("api/payroll", data);
     return response.data;
   },
-  async list(params?: any): Promise<ApiResponse<ListPayrollResponse[]>> {
+  async list(params?: {
+    keyword?: string;
+    status?: string;
+    startDateOperator?: string;
+    startDate?: string;
+    endDateOperator?: string;
+    endDate?: string;
+  }): Promise<ApiResponse<ListPayrollResponse[]>> {
     const response = await axiosInstance.get("api/payroll", { params });
     return response.data;
   },
@@ -27,6 +34,10 @@ export const payrollService = {
   },
   async getItemsByStaff(staffId: number): Promise<ApiResponse<PayrollItemResponse[]>> {
     const response = await axiosInstance.get(`api/payroll/items/by-staff/${staffId}`);
+    return response.data;
+  },
+  async delete(payrollId: number): Promise<ApiResponse<null>> {
+    const response = await axiosInstance.delete(`api/payroll/${payrollId}`);
     return response.data;
   },
 };

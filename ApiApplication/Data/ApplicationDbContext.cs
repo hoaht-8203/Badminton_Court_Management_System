@@ -469,6 +469,12 @@ public class ApplicationDbContext(
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // Feedback mappings
+        builder.Entity<Feedback>(entity =>
+        {
+            entity.Property(f => f.MediaUrl).HasColumnType("text[]");
+        });
+
         SeedAdministratorUser(builder);
         SeedCustomerData(builder);
         SeedSupplierData(builder);

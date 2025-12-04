@@ -28,9 +28,9 @@ namespace ApiApplication.Controllers
 
         // GET: api/Payroll
         [HttpGet]
-        public async Task<IActionResult> GetPayrolls()
+        public async Task<IActionResult> GetPayrolls([FromQuery] ListPayrollRequest? request)
         {
-            var result = await _payrollService.GetPayrollsAsync();
+            var result = await _payrollService.GetPayrollsAsync(request);
             return Ok(
                 ApiResponse<List<ListPayrollResponse>>.SuccessResponse(
                     result,
@@ -92,6 +92,16 @@ namespace ApiApplication.Controllers
                     result,
                     "Lấy phiếu lương theo nhân viên thành công"
                 )
+            );
+        }
+
+        // DELETE: api/Payroll/{payrollId}
+        [HttpDelete("{payrollId}")]
+        public async Task<IActionResult> DeletePayroll(int payrollId)
+        {
+            var result = await _payrollService.DeletePayrollAsync(payrollId);
+            return Ok(
+                ApiResponse<object?>.SuccessResponse(result, "Hủy bảng lương thành công")
             );
         }
     }

@@ -10,7 +10,7 @@ const StaffInfoTab = ({
   onChangeStaffStatus,
 }: {
   staff: StaffResponse;
-  onEditStaff?: (staff: StaffResponse) => void;
+  onEditStaff?: (staff: StaffResponse, tab?: string) => void;
   onChangeStaffStatus?: (staffId: number, isActive: boolean) => void;
 }) => {
   const [isActive, setIsActive] = useState(staff.isActive !== false);
@@ -62,10 +62,6 @@ const StaffInfoTab = ({
           <div style={{ marginBottom: 8 }}>
             <span style={{ fontWeight: 500 }}>Địa chỉ:</span> <span>{staff.address}</span>
           </div>
-        </Col>
-        <Col span={4}>
-          <div style={{ fontWeight: 500 }}>Ghi chú:</div>
-          <div style={{ color: "#888" }}>...</div>
         </Col>
       </Row>
       <div style={{ marginTop: 24, display: "flex", gap: 12 }}>

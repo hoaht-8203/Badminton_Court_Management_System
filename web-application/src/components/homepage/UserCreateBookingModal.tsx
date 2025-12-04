@@ -203,7 +203,6 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
     const isFixedSchedule = createBookingCourtDaysOfWeek === "2";
 
     const payload: UserCreateBookingCourtRequest = {
-      userId: user?.userId,
       courtId: values.courtId,
       startDate:
         isFixedSchedule && dateRange?.[0]
@@ -462,7 +461,9 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
                               const api = res as any;
                               const result = api?.data ?? null;
                               if (!api?.success || !result || result?.isValid === false) {
-                                message.error(result?.errorMessage ?? "Voucher không hợp lệ");
+                                // Priority: api.message (from ErrorResponse) > result.errorMessage > fallback
+                                const errorMsg = api?.message || result?.errorMessage || "Voucher không hợp lệ";
+                                message.error(errorMsg);
                                 setSelectedVoucherId(null);
                                 setVoucherDiscount(0);
                                 return;
@@ -472,7 +473,8 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
                               setVoucherDiscount(discount);
                             },
                             onError: (err: any) => {
-                              message.error(err?.message ?? "Voucher không hợp lệ");
+                              // err.message is already extracted from API response by axios interceptor
+                              message.error(err?.message || "Voucher không hợp lệ");
                               setSelectedVoucherId(null);
                               setVoucherDiscount(0);
                             },

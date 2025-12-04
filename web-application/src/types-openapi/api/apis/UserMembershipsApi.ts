@@ -18,11 +18,11 @@ import type {
   CreateUserMembershipForCurrentUserRequest,
   CreateUserMembershipRequest,
   CreateUserMembershipResponseApiResponse,
+  DetailUserMembershipResponseApiResponse,
   ExtendPaymentRequest,
+  ListUserMembershipResponseArrayApiResponse,
   ObjectApiResponse,
   UpdateUserMembershipStatusRequest,
-  UserMembershipResponseApiResponse,
-  UserMembershipResponseArrayApiResponse,
 } from '../models/index';
 import {
     CreateUserMembershipForCurrentUserRequestFromJSON,
@@ -31,16 +31,16 @@ import {
     CreateUserMembershipRequestToJSON,
     CreateUserMembershipResponseApiResponseFromJSON,
     CreateUserMembershipResponseApiResponseToJSON,
+    DetailUserMembershipResponseApiResponseFromJSON,
+    DetailUserMembershipResponseApiResponseToJSON,
     ExtendPaymentRequestFromJSON,
     ExtendPaymentRequestToJSON,
+    ListUserMembershipResponseArrayApiResponseFromJSON,
+    ListUserMembershipResponseArrayApiResponseToJSON,
     ObjectApiResponseFromJSON,
     ObjectApiResponseToJSON,
     UpdateUserMembershipStatusRequestFromJSON,
     UpdateUserMembershipStatusRequestToJSON,
-    UserMembershipResponseApiResponseFromJSON,
-    UserMembershipResponseApiResponseToJSON,
-    UserMembershipResponseArrayApiResponseFromJSON,
-    UserMembershipResponseArrayApiResponseToJSON,
 } from '../models/index';
 
 export interface ApiUserMembershipsCreateForCurrentUserPostRequest {
@@ -126,11 +126,11 @@ export interface UserMembershipsApiInterface {
      * @throws {RequiredError}
      * @memberof UserMembershipsApiInterface
      */
-    apiUserMembershipsDetailGetRaw(requestParameters: ApiUserMembershipsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserMembershipResponseApiResponse>>;
+    apiUserMembershipsDetailGetRaw(requestParameters: ApiUserMembershipsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DetailUserMembershipResponseApiResponse>>;
 
     /**
      */
-    apiUserMembershipsDetailGet(requestParameters: ApiUserMembershipsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserMembershipResponseApiResponse>;
+    apiUserMembershipsDetailGet(requestParameters: ApiUserMembershipsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailUserMembershipResponseApiResponse>;
 
     /**
      * 
@@ -154,11 +154,11 @@ export interface UserMembershipsApiInterface {
      * @throws {RequiredError}
      * @memberof UserMembershipsApiInterface
      */
-    apiUserMembershipsListGetRaw(requestParameters: ApiUserMembershipsListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserMembershipResponseArrayApiResponse>>;
+    apiUserMembershipsListGetRaw(requestParameters: ApiUserMembershipsListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListUserMembershipResponseArrayApiResponse>>;
 
     /**
      */
-    apiUserMembershipsListGet(requestParameters: ApiUserMembershipsListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserMembershipResponseArrayApiResponse>;
+    apiUserMembershipsListGet(requestParameters: ApiUserMembershipsListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListUserMembershipResponseArrayApiResponse>;
 
     /**
      * 
@@ -273,7 +273,7 @@ export class UserMembershipsApi extends runtime.BaseAPI implements UserMembershi
 
     /**
      */
-    async apiUserMembershipsDetailGetRaw(requestParameters: ApiUserMembershipsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserMembershipResponseApiResponse>> {
+    async apiUserMembershipsDetailGetRaw(requestParameters: ApiUserMembershipsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DetailUserMembershipResponseApiResponse>> {
         const queryParameters: any = {};
 
         if (requestParameters['id'] != null) {
@@ -292,12 +292,12 @@ export class UserMembershipsApi extends runtime.BaseAPI implements UserMembershi
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => UserMembershipResponseApiResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => DetailUserMembershipResponseApiResponseFromJSON(jsonValue));
     }
 
     /**
      */
-    async apiUserMembershipsDetailGet(requestParameters: ApiUserMembershipsDetailGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserMembershipResponseApiResponse> {
+    async apiUserMembershipsDetailGet(requestParameters: ApiUserMembershipsDetailGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailUserMembershipResponseApiResponse> {
         const response = await this.apiUserMembershipsDetailGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
@@ -334,7 +334,7 @@ export class UserMembershipsApi extends runtime.BaseAPI implements UserMembershi
 
     /**
      */
-    async apiUserMembershipsListGetRaw(requestParameters: ApiUserMembershipsListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserMembershipResponseArrayApiResponse>> {
+    async apiUserMembershipsListGetRaw(requestParameters: ApiUserMembershipsListGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListUserMembershipResponseArrayApiResponse>> {
         const queryParameters: any = {};
 
         if (requestParameters['customerId'] != null) {
@@ -361,12 +361,12 @@ export class UserMembershipsApi extends runtime.BaseAPI implements UserMembershi
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => UserMembershipResponseArrayApiResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListUserMembershipResponseArrayApiResponseFromJSON(jsonValue));
     }
 
     /**
      */
-    async apiUserMembershipsListGet(requestParameters: ApiUserMembershipsListGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserMembershipResponseArrayApiResponse> {
+    async apiUserMembershipsListGet(requestParameters: ApiUserMembershipsListGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListUserMembershipResponseArrayApiResponse> {
         const response = await this.apiUserMembershipsListGetRaw(requestParameters, initOverrides);
         return await response.value();
     }

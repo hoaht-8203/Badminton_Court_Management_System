@@ -4,8 +4,8 @@ namespace ApiApplication.Services;
 
 public interface IBookingCourtService
 {
-    Task<DetailBookingCourtResponse> CreateBookingCourtAsync(CreateBookingCourtRequest request);
-    Task<DetailBookingCourtResponse> UserCreateBookingCourtAsync(
+    Task<CreateBookingCourtResponse> CreateBookingCourtAsync(CreateBookingCourtRequest request);
+    Task<CreateBookingCourtResponse> UserCreateBookingCourtAsync(
         UserCreateBookingCourtRequest request
     );
     Task<List<ListBookingCourtResponse>> ListBookingCourtsAsync(ListBookingCourtRequest request);

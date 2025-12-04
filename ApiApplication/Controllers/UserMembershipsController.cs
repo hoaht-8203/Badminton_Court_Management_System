@@ -15,19 +15,19 @@ public class UserMembershipsController(IUserMembershipService userMembershipServ
     private readonly IUserMembershipService _userMembershipService = userMembershipService;
 
     [HttpGet("list")]
-    public async Task<ApiResponse<UserMembershipResponse[]>> List(
+    public async Task<ApiResponse<ListUserMembershipResponse[]>> List(
         [FromQuery] ListUserMembershipRequest request
     )
     {
         var data = await _userMembershipService.ListAsync(request);
-        return ApiResponse<UserMembershipResponse[]>.SuccessResponse(data.ToArray());
+        return ApiResponse<ListUserMembershipResponse[]>.SuccessResponse(data.ToArray());
     }
 
     [HttpGet("detail")]
-    public async Task<ApiResponse<UserMembershipResponse>> Detail([FromQuery] int id)
+    public async Task<ApiResponse<DetailUserMembershipResponse>> Detail([FromQuery] int id)
     {
         var data = await _userMembershipService.DetailAsync(id);
-        return ApiResponse<UserMembershipResponse>.SuccessResponse(data);
+        return ApiResponse<DetailUserMembershipResponse>.SuccessResponse(data);
     }
 
     [HttpPost("create")]

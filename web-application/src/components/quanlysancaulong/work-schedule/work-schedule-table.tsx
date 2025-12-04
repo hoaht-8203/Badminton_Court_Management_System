@@ -65,7 +65,14 @@ const WorkScheduleTable: React.FC = () => {
     staffs?.data
       ?.filter((s) => typeof s.id === "number" && typeof s.fullName === "string")
       .map((s) => ({ id: s.id as number, fullName: s.fullName as string })) || [];
-  const shiftList = shifts?.map((s) => ({ id: s.id, name: s.name, time: s.startTime?.substring(0, 5) + " - " + s.endTime?.substring(0, 5) })) || [];
+  const shiftList =
+    shifts?.map((s) => ({
+      id: s.id,
+      name: s.name,
+      time: s.startTime?.substring(0, 5) + " - " + s.endTime?.substring(0, 5),
+      startTime: s.startTime,
+      endTime: s.endTime,
+    })) || [];
 
   // Tính ngày bắt đầu và kết thúc tuần hiện tại
   const startDate = weekStart.toDate();
@@ -114,6 +121,8 @@ const WorkScheduleTable: React.FC = () => {
         id: shift?.id,
         name: shift?.name,
         time: shift?.time,
+        startTime: shift?.startTime,
+        endTime: shift?.endTime,
       },
       date,
       status: staff?.status ?? "NotYet",

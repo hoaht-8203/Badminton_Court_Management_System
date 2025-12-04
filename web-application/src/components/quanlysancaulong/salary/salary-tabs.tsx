@@ -1,10 +1,11 @@
 "use client";
 import { useGetPayrollById, usePayPayrollItem, useRefreshPayroll } from "@/hooks/usePayroll";
 import { PayrollItemResponse } from "@/types-openapi/api";
-import { Spin, Tabs } from "antd";
+import { Spin, Tabs, message } from "antd";
 import SalaryHistoryPanel from "./salary-history-panel";
 import SalaryInfoPanel from "./salary-info-panel";
 import SalarySlipPanel from "./salary-slip-panel";
+import { ApiError } from "@/lib/axios";
 
 export default function SalaryTabs({ payrollId }: { payrollId: number }) {
   // unwrapped payroll detail or null
@@ -15,7 +16,25 @@ export default function SalaryTabs({ payrollId }: { payrollId: number }) {
   const payMutation = usePayPayrollItem();
 
   const handleRefresh = () => {
-    if (payrollId) refreshMutation.mutate(payrollId);
+    if (payrollId) {
+      refreshMutation.mutate(payrollId, {
+        onSuccess: () => {
+          message.success("Tải lại dữ liệu thành công");
+        },
+        onError: (error: any) => {
+          const apiError = error as ApiError;
+          if (apiError?.errors) {
+            for (const key in apiError.errors) {
+              message.error(apiError.errors[key]);
+            }
+          } else if (apiError?.message) {
+            message.error(apiError.message);
+          } else {
+            message.error("Có lỗi khi tải lại dữ liệu");
+          }
+        },
+      });
+    }
   };
 
   const handlePayItem = (payrollItemId: number, amount: number) => {
@@ -23,8 +42,21 @@ export default function SalaryTabs({ payrollId }: { payrollId: number }) {
       { payrollItemId, amount },
       {
         onSuccess: () => {
+          message.success("Thanh toán thành công");
           // after paying an item, refresh payroll detail
           if (payrollId) refreshMutation.mutate(payrollId);
+        },
+        onError: (error: any) => {
+          const apiError = error as ApiError;
+          if (apiError?.errors) {
+            for (const key in apiError.errors) {
+              message.error(apiError.errors[key]);
+            }
+          } else if (apiError?.message) {
+            message.error(apiError.message);
+          } else {
+            message.error("Có lỗi khi thanh toán");
+          }
         },
       },
     );
@@ -34,8 +66,17 @@ export default function SalaryTabs({ payrollId }: { payrollId: number }) {
     try {
       await Promise.all(payload.map((p) => payMutation.mutateAsync(p)));
       if (payrollId) refreshMutation.mutate(payrollId);
-    } catch (err) {
-      console.error("Bulk pay error", err);
+    } catch (err: any) {
+      const apiError = err as ApiError;
+      if (apiError?.errors) {
+        for (const key in apiError.errors) {
+          message.error(apiError.errors[key]);
+        }
+      } else if (apiError?.message) {
+        message.error(apiError.message);
+      } else {
+        message.error("Có lỗi xảy ra khi thanh toán");
+      }
       throw err;
     }
   };

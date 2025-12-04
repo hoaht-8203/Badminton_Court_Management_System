@@ -62,3 +62,13 @@ export function useGetPayrollItemsByStaff(staffId?: number) {
     enabled: !!staffId,
   });
 }
+
+export function useDeletePayroll() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payrollId: number) => payrollService.delete(payrollId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payrolls"] });
+    },
+  });
+}

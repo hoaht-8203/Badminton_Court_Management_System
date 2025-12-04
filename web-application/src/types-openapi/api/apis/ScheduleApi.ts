@@ -63,7 +63,7 @@ export interface ApiScheduleByStaffStaffIdGetRequest {
     isFixedShift?: boolean;
 }
 
-export interface ApiScheduleRemoveDeleteRequest {
+export interface ApiScheduleRemovePostRequest {
     scheduleRequest?: ScheduleRequest;
 }
 
@@ -143,11 +143,11 @@ export interface ScheduleApiInterface {
      * @throws {RequiredError}
      * @memberof ScheduleApiInterface
      */
-    apiScheduleRemoveDeleteRaw(requestParameters: ApiScheduleRemoveDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+    apiScheduleRemovePostRaw(requestParameters: ApiScheduleRemovePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
 
     /**
      */
-    apiScheduleRemoveDelete(requestParameters: ApiScheduleRemoveDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+    apiScheduleRemovePost(requestParameters: ApiScheduleRemovePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
 }
 
@@ -325,7 +325,7 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
 
     /**
      */
-    async apiScheduleRemoveDeleteRaw(requestParameters: ApiScheduleRemoveDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+    async apiScheduleRemovePostRaw(requestParameters: ApiScheduleRemovePostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -337,7 +337,7 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
 
         const response = await this.request({
             path: urlPath,
-            method: 'DELETE',
+            method: 'POST',
             headers: headerParameters,
             query: queryParameters,
             body: ScheduleRequestToJSON(requestParameters['scheduleRequest']),
@@ -348,8 +348,8 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
 
     /**
      */
-    async apiScheduleRemoveDelete(requestParameters: ApiScheduleRemoveDeleteRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
-        const response = await this.apiScheduleRemoveDeleteRaw(requestParameters, initOverrides);
+    async apiScheduleRemovePost(requestParameters: ApiScheduleRemovePostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiScheduleRemovePostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

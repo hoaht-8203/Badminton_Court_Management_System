@@ -106,6 +106,8 @@ models/CreateActivityRequest.ts
 models/CreateAdministratorRequest.ts
 models/CreateBlogRequest.ts
 models/CreateBookingCourtRequest.ts
+models/CreateBookingCourtResponse.ts
+models/CreateBookingCourtResponseApiResponse.ts
 models/CreateCashflowRequest.ts
 models/CreateCategoryRequest.ts
 models/CreateCourtAreaRequest.ts
@@ -149,6 +151,7 @@ models/CurrentUserResponse.ts
 models/CurrentUserResponseApiResponse.ts
 models/Customer.ts
 models/CustomerDto.ts
+models/CustomerInfo.ts
 models/DashboardSummaryResponse.ts
 models/DashboardSummaryResponseApiResponse.ts
 models/DayOfWeek.ts
@@ -238,6 +241,8 @@ models/DetailStockOutResponseApiResponse.ts
 models/DetailSupplierRequest.ts
 models/DetailSupplierResponse.ts
 models/DetailSupplierResponseApiResponse.ts
+models/DetailUserMembershipResponse.ts
+models/DetailUserMembershipResponseApiResponse.ts
 models/DetailVoucherRequest.ts
 models/EmailAttachment.ts
 models/EmailRequest.ts
@@ -348,6 +353,8 @@ models/ListSupplierResponseListApiResponse.ts
 models/ListUserBookingHistoryResponse.ts
 models/ListUserBookingHistoryResponseListApiResponse.ts
 models/ListUserMembershipRequest.ts
+models/ListUserMembershipResponse.ts
+models/ListUserMembershipResponseArrayApiResponse.ts
 models/ListUserRoleItemResponse.ts
 models/ListUserRoleItemResponseListApiResponse.ts
 models/ListUserRolesRequest.ts
@@ -495,8 +502,6 @@ models/UserCreateBookingCourtRequest.ts
 models/UserMembership.ts
 models/UserMembershipInfo.ts
 models/UserMembershipResponse.ts
-models/UserMembershipResponseApiResponse.ts
-models/UserMembershipResponseArrayApiResponse.ts
 models/ValidateForgotPasswordRequest.ts
 models/ValidateVoucherRequest.ts
 models/ValidateVoucherResponse.ts

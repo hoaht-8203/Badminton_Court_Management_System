@@ -34,7 +34,8 @@ export default function CashflowDrawer({
 
   // watch personType, default to 'other' if not selected
   const personType = Form.useWatch("personType", form) ?? "other";
-  const { data: relatedPersonsData, isLoading: relatedPersonsLoading } = useRelatedPersons(personType);
+  // Only fetch related persons when personType is NOT "other"
+  const { data: relatedPersonsData, isLoading: relatedPersonsLoading } = useRelatedPersons(personType !== "other" ? personType : "");
   const relatedPersonOptions = useMemo(() => {
     if (!relatedPersonsData?.data) return [];
     return relatedPersonsData.data.map((name: string) => ({ value: name, label: name }));
@@ -181,15 +182,19 @@ export default function CashflowDrawer({
         </Form.Item>
 
         <Form.Item label="Tên người nộp/nhận" name="relatedPerson">
-          <Select
-            showSearch
-            allowClear
-            options={relatedPersonOptions}
-            loading={relatedPersonsLoading}
-            placeholder={relatedPersonsLoading ? "Đang tải..." : "Chọn hoặc nhập tên"}
-            filterOption={(input, option) => (option?.label ?? "").toLowerCase().includes(input.toLowerCase())}
-            notFoundContent={relatedPersonsLoading ? "Đang tải..." : "Không có dữ liệu"}
-          />
+          {personType === "other" ? (
+            <Input placeholder="Nhập tên người nộp/nhận" allowClear />
+          ) : (
+            <Select
+              showSearch
+              allowClear
+              options={relatedPersonOptions}
+              loading={relatedPersonsLoading}
+              placeholder={relatedPersonsLoading ? "Đang tải..." : "Chọn hoặc nhập tên"}
+              filterOption={(input, option) => (option?.label ?? "").toLowerCase().includes(input.toLowerCase())}
+              notFoundContent={relatedPersonsLoading ? "Đang tải..." : "Không có dữ liệu"}
+            />
+          )}
         </Form.Item>
         <Form.Item label="Giá trị" name="value" rules={[{ required: true, message: "Nhập giá trị" }]}>
           <InputNumber style={{ width: "100%" }} min={0} />

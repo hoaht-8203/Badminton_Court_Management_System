@@ -2,7 +2,7 @@
 import dynamic from "next/dynamic";
 import React, { useState, useCallback, useMemo, Suspense } from "react";
 import { useListPayrolls, useRefreshPayroll } from "@/hooks/usePayroll";
-import { FileExcelOutlined, PlusOutlined, ReloadOutlined } from "@ant-design/icons";
+import { PlusOutlined, ReloadOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Form, message, Table, Spin } from "antd";
 import { ApiError } from "@/lib/axios";
 
@@ -79,10 +79,6 @@ export default React.memo(function SalaryPage() {
     [refreshMutation, refetchPayrolls],
   );
 
-  const handleExportExcel = useCallback(() => {
-    message.info("Xuất Excel (demo)");
-  }, []);
-
   // memoize data and columns to prevent unnecessary re-renders
   const dataSource = useMemo(() => payrolls?.data || [], [payrolls]);
 
@@ -135,9 +131,6 @@ export default React.memo(function SalaryPage() {
           </Button>
           <Button type="primary" icon={<ReloadOutlined />} onClick={() => handleReload()}>
             Tải lại
-          </Button>
-          <Button icon={<FileExcelOutlined />} onClick={handleExportExcel}>
-            Xuất file
           </Button>
         </div>
       </div>

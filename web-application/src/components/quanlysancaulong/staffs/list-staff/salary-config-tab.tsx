@@ -138,7 +138,8 @@ const SalaryConfigTab = ({ staff, onEditStaff }: { staff: any; onEditStaff?: (st
             salaryObj.deductionLateParam ||
             salaryObj.deductionEarlyMethod ||
             salaryObj.deductionEarlyValue ||
-            salaryObj.deductionEarlyParam) && (
+            salaryObj.deductionEarlyParam ||
+            salaryObj.deductionAbsentValue) && (
             <>
               <Divider />
               <div>
@@ -154,6 +155,11 @@ const SalaryConfigTab = ({ staff, onEditStaff }: { staff: any; onEditStaff?: (st
                     <Descriptions.Item label="Về sớm" span={1}>
                       <b>{salaryObj.deductionEarlyValue}</b> VNĐ / {salaryObj.deductionEarlyParam}{" "}
                       {salaryObj.deductionEarlyMethod === "count" ? "lần" : "phút"}
+                    </Descriptions.Item>
+                  )}
+                  {salaryObj.deductionAbsentValue && (
+                    <Descriptions.Item label="Nghỉ làm" span={1}>
+                      <b>{salaryObj.deductionAbsentValue}</b> VNĐ / buổi nghỉ
                     </Descriptions.Item>
                   )}
                 </Descriptions>

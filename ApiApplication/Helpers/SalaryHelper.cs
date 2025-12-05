@@ -319,8 +319,228 @@ public static class SalaryHelper
             }
         }
 
-        // //deduct for late and absent (chưa triển khai, có thể bổ sung sau)
-        return (int)totalSalary;
+        // Áp dụng giảm trừ
+        var deduction = CalculateDeduction(salarySettings, attendances, schedules);
+        totalSalary -= deduction;
+
+        return totalSalary < 0 ? 0 : (int)totalSalary;
+    }
+
+    private static decimal CalculateDeduction(
+        Dictionary<string, object> salarySettings,
+        List<AttendanceRecord> attendances,
+        List<ScheduleResponse> schedules
+    )
+    {
+        decimal totalDeduction = 0m;
+
+        // 1. Giảm trừ cho đi muộn
+        if (
+            salarySettings.ContainsKey("deductionLateMethod")
+            && salarySettings.ContainsKey("deductionLateValue")
+            && salarySettings.ContainsKey("deductionLateParam")
+        )
+        {
+            var method = salarySettings["deductionLateMethod"]?.ToString();
+            var valueObj = salarySettings["deductionLateValue"];
+            var paramObj = salarySettings["deductionLateParam"];
+
+            if (method != null && valueObj != null && paramObj != null)
+            {
+                decimal deductionValue = ParseDecimal(valueObj);
+                decimal deductionParam = ParseDecimal(paramObj);
+
+                if (method == "count")
+                {
+                    // Đếm số lần đi muộn
+                    int lateCount = 0;
+                    foreach (var schedule in schedules)
+                    {
+                        var attendanceForDay = attendances
+                            .Where(a => a.Date == DateOnly.FromDateTime(schedule.Date))
+                            .ToList();
+                        var overlapAttendance = attendanceForDay
+                            .Where(a =>
+                                a.CheckInTime < schedule.Shift.EndTime
+                                && a.CheckOutTime != null
+                                && a.CheckOutTime > schedule.Shift.StartTime
+                            )
+                            .FirstOrDefault();
+
+                        if (
+                            overlapAttendance != null
+                            && overlapAttendance.CheckInTime > schedule.Shift.StartTime
+                        )
+                        {
+                            lateCount++;
+                        }
+                    }
+                    // Tính tiền phạt: (số lần / param) * value
+                    totalDeduction += (lateCount / deductionParam) * deductionValue;
+                }
+                else if (method == "minute")
+                {
+                    // Đếm tổng số phút đi muộn
+                    int totalLateMinutes = 0;
+                    foreach (var schedule in schedules)
+                    {
+                        var attendanceForDay = attendances
+                            .Where(a => a.Date == DateOnly.FromDateTime(schedule.Date))
+                            .ToList();
+                        var overlapAttendance = attendanceForDay
+                            .Where(a =>
+                                a.CheckInTime < schedule.Shift.EndTime
+                                && a.CheckOutTime != null
+                                && a.CheckOutTime > schedule.Shift.StartTime
+                            )
+                            .FirstOrDefault();
+
+                        if (
+                            overlapAttendance != null
+                            && overlapAttendance.CheckInTime > schedule.Shift.StartTime
+                        )
+                        {
+                            var lateMinutes = (int)
+                                (
+                                    overlapAttendance.CheckInTime - schedule.Shift.StartTime
+                                ).TotalMinutes;
+                            totalLateMinutes += lateMinutes;
+                        }
+                    }
+                    // Tính tiền phạt: (tổng phút / param) * value
+                    totalDeduction += (totalLateMinutes / deductionParam) * deductionValue;
+                }
+            }
+        }
+
+        // 2. Giảm trừ cho về sớm
+        if (
+            salarySettings.ContainsKey("deductionEarlyMethod")
+            && salarySettings.ContainsKey("deductionEarlyValue")
+            && salarySettings.ContainsKey("deductionEarlyParam")
+        )
+        {
+            var method = salarySettings["deductionEarlyMethod"]?.ToString();
+            var valueObj = salarySettings["deductionEarlyValue"];
+            var paramObj = salarySettings["deductionEarlyParam"];
+
+            if (method != null && valueObj != null && paramObj != null)
+            {
+                decimal deductionValue = ParseDecimal(valueObj);
+                decimal deductionParam = ParseDecimal(paramObj);
+
+                if (method == "count")
+                {
+                    // Đếm số lần về sớm
+                    int earlyCount = 0;
+                    foreach (var schedule in schedules)
+                    {
+                        var attendanceForDay = attendances
+                            .Where(a => a.Date == DateOnly.FromDateTime(schedule.Date))
+                            .ToList();
+                        var overlapAttendance = attendanceForDay
+                            .Where(a =>
+                                a.CheckInTime < schedule.Shift.EndTime
+                                && a.CheckOutTime != null
+                                && a.CheckOutTime > schedule.Shift.StartTime
+                            )
+                            .FirstOrDefault();
+
+                        if (
+                            overlapAttendance != null
+                            && overlapAttendance.CheckOutTime.HasValue
+                            && overlapAttendance.CheckOutTime.Value < schedule.Shift.EndTime
+                        )
+                        {
+                            earlyCount++;
+                        }
+                    }
+                    // Tính tiền phạt: (số lần / param) * value
+                    totalDeduction += (earlyCount / deductionParam) * deductionValue;
+                }
+                else if (method == "minute")
+                {
+                    // Đếm tổng số phút về sớm
+                    int totalEarlyMinutes = 0;
+                    foreach (var schedule in schedules)
+                    {
+                        var attendanceForDay = attendances
+                            .Where(a => a.Date == DateOnly.FromDateTime(schedule.Date))
+                            .ToList();
+                        var overlapAttendance = attendanceForDay
+                            .Where(a =>
+                                a.CheckInTime < schedule.Shift.EndTime
+                                && a.CheckOutTime != null
+                                && a.CheckOutTime > schedule.Shift.StartTime
+                            )
+                            .FirstOrDefault();
+
+                        if (
+                            overlapAttendance != null
+                            && overlapAttendance.CheckOutTime.HasValue
+                            && overlapAttendance.CheckOutTime.Value < schedule.Shift.EndTime
+                        )
+                        {
+                            var earlyMinutes = (int)
+                                (
+                                    schedule.Shift.EndTime - overlapAttendance.CheckOutTime.Value
+                                ).TotalMinutes;
+                            totalEarlyMinutes += earlyMinutes;
+                        }
+                    }
+                    // Tính tiền phạt: (tổng phút / param) * value
+                    totalDeduction += (totalEarlyMinutes / deductionParam) * deductionValue;
+                }
+            }
+        }
+
+        // 3. Giảm trừ cho nghỉ làm
+        if (salarySettings.ContainsKey("deductionAbsentValue"))
+        {
+            var valueObj = salarySettings["deductionAbsentValue"];
+            if (valueObj != null)
+            {
+                decimal deductionValue = ParseDecimal(valueObj);
+
+                // Đếm số buổi nghỉ (schedule có nhưng không có attendance hoặc attendance status = Absent)
+                int absentCount = 0;
+                foreach (var schedule in schedules)
+                {
+                    var attendanceForDay = attendances
+                        .Where(a => a.Date == DateOnly.FromDateTime(schedule.Date))
+                        .ToList();
+                    var overlapAttendance = attendanceForDay
+                        .Where(a =>
+                            a.CheckInTime < schedule.Shift.EndTime
+                            && a.CheckOutTime != null
+                            && a.CheckOutTime > schedule.Shift.StartTime
+                        )
+                        .FirstOrDefault();
+
+                    // Nếu không có attendance hoặc không có overlap thì tính là nghỉ
+                    if (overlapAttendance == null)
+                    {
+                        absentCount++;
+                    }
+                }
+                // Tính tiền phạt: số buổi nghỉ * value
+                totalDeduction += absentCount * deductionValue;
+            }
+        }
+
+        return totalDeduction;
+    }
+
+    private static decimal ParseDecimal(object value)
+    {
+        if (value is JsonElement elem)
+        {
+            if (elem.ValueKind == JsonValueKind.Number)
+                return elem.GetDecimal();
+            else if (elem.ValueKind == JsonValueKind.String)
+                return Convert.ToDecimal(elem.GetString());
+        }
+        return Convert.ToDecimal(value);
     }
 
     private static decimal ParsePercent(string percent)

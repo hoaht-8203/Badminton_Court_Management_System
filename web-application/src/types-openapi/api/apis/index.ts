@@ -39,6 +39,7 @@ export * from './StockOutsApi';
 export * from './StoreBankAccountsApi';
 export * from './SupplierBankAccountsApi';
 export * from './SuppliersApi';
+export * from './SystemConfigApi';
 export * from './UserMembershipsApi';
 export * from './UsersApi';
 export * from './VouchersApi';

@@ -2,11 +2,20 @@ using System.Text.Json;
 using ApiApplication.Dtos;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
+using ApiApplication.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Helpers;
 
 public static class SalaryHelper
 {
+    private static ApplicationDbContext? _context;
+
+    public static void Initialize(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
     public static decimal CalculateSalary(
         Staff staff,
         List<AttendanceRecord> attendances,
@@ -103,10 +112,7 @@ public static class SalaryHelper
                             ? overlapAttendance.CheckInTime
                             : schedule.Shift.StartTime;
                     var overlapEnd =
-                        (
-                            overlapAttendance.CheckOutTime.HasValue
-                            && overlapAttendance.CheckOutTime.Value < schedule.Shift.EndTime
-                        )
+                        overlapAttendance.CheckOutTime!.Value < schedule.Shift.EndTime
                             ? overlapAttendance.CheckOutTime.Value
                             : schedule.Shift.EndTime;
                     var overlapTime = (overlapEnd - overlapStart).TotalHours;
@@ -135,23 +141,7 @@ public static class SalaryHelper
                             rate = Convert.ToDecimal(amountObj);
                         }
                     }
-                    var factor = 1m;
-                    // Chủ nhật
-                    if (
-                        schedule.Date.DayOfWeek == DayOfWeek.Sunday
-                        && row.ContainsKey("sunday")
-                        && row["sunday"] != null
-                    )
-                        factor = ParsePercent(row["sunday"]?.ToString() ?? "100%");
-                    // Thứ 7
-                    else if (
-                        schedule.Date.DayOfWeek == DayOfWeek.Saturday
-                        && row.ContainsKey("saturday")
-                        && row["saturday"] != null
-                    )
-                        factor = ParsePercent(row["saturday"]?.ToString() ?? "100%");
-                    // Ngày nghỉ lễ, đặc biệt: có thể bổ sung logic nhận diện ngày nghỉ lễ/specialDay ở đây
-
+                    var factor = GetDayFactor(schedule.Date, row);
                     totalSalary += (decimal)overlapTime * rate * factor;
                 }
             }
@@ -261,23 +251,7 @@ public static class SalaryHelper
                             rate = Convert.ToDecimal(amountObj);
                         }
                     }
-                    var factor = 1m;
-                    // Chủ nhật
-                    if (
-                        schedule.Date.DayOfWeek == DayOfWeek.Sunday
-                        && row.ContainsKey("sunday")
-                        && row["sunday"] != null
-                    )
-                        factor = ParsePercent(row["sunday"]?.ToString() ?? "100%");
-                    // Thứ 7
-                    else if (
-                        schedule.Date.DayOfWeek == DayOfWeek.Saturday
-                        && row.ContainsKey("saturday")
-                        && row["saturday"] != null
-                    )
-                        factor = ParsePercent(row["saturday"]?.ToString() ?? "100%");
-                    // Ngày nghỉ lễ, đặc biệt: có thể bổ sung logic nhận diện ngày nghỉ lễ/specialDay ở đây
-
+                    var factor = GetDayFactor(schedule.Date, row);
                     totalSalary += rate * factor;
                 }
             }
@@ -555,27 +529,101 @@ public static class SalaryHelper
         return 1m;
     }
 
-    // // Xác định hệ số ngày đặc biệt dựa vào ngày
-    // private static decimal GetDayFactor(DateTime date, Dictionary<string, object> row)
-    // {
-    //     // Chủ nhật
-    //     if (date.DayOfWeek == DayOfWeek.Sunday && row.ContainsKey("sunday"))
-    //         return ParsePercent(row["sunday"].ToString());
-    //     // Thứ 7
-    //     if (date.DayOfWeek == DayOfWeek.Saturday && row.ContainsKey("saturday"))
-    //         return ParsePercent(row["saturday"].ToString());
-    //     // Ngày nghỉ lễ (cần bổ sung logic nhận diện ngày nghỉ lễ nếu có)
-    //     if (row.ContainsKey("holiday"))
-    //     {
-    //         // Nếu có logic nhận diện ngày nghỉ lễ thì kiểm tra ở đây
-    //         // Ví dụ: if (IsHoliday(date)) return ParsePercent(row["holiday"].ToString());
-    //     }
-    //     // Ngày đặc biệt (cần bổ sung logic nhận diện ngày đặc biệt nếu có)
-    //     if (row.ContainsKey("specialDay"))
-    //     {
-    //         // Nếu có logic nhận diện ngày đặc biệt thì kiểm tra ở đây
-    //         // Ví dụ: if (IsSpecialDay(date)) return ParsePercent(row["specialDay"].ToString());
-    //     }
-    //     return 1m;
-    // }
+    // Xác định hệ số ngày đặc biệt dựa vào ngày
+    private static decimal GetDayFactor(DateTime date, Dictionary<string, object> row)
+    {
+        var dateOnly = DateOnly.FromDateTime(date);
+        
+        // Kiểm tra ngày đặc biệt (ưu tiên cao nhất)
+        if (row.ContainsKey("specialDay") && IsSpecialDay(dateOnly))
+        {
+            return ParsePercent(row["specialDay"]?.ToString() ?? "100%");
+        }
+        
+        // Kiểm tra ngày nghỉ lễ
+        if (row.ContainsKey("holiday") && IsHoliday(dateOnly))
+        {
+            return ParsePercent(row["holiday"]?.ToString() ?? "100%");
+        }
+        
+        // Chủ nhật
+        if (date.DayOfWeek == DayOfWeek.Sunday && row.ContainsKey("sunday"))
+        {
+            return ParsePercent(row["sunday"]?.ToString() ?? "100%");
+        }
+        
+        // Thứ 7
+        if (date.DayOfWeek == DayOfWeek.Saturday && row.ContainsKey("saturday"))
+        {
+            return ParsePercent(row["saturday"]?.ToString() ?? "100%");
+        }
+        
+        return 1m;
+    }
+
+    private static bool IsHoliday(DateOnly date)
+    {
+        if (_context == null) return false;
+        
+        try
+        {
+            var holidayConfig = _context.SystemConfigs
+                .FirstOrDefault(c => c.Key == "Holidays");
+            
+            if (holidayConfig == null || string.IsNullOrEmpty(holidayConfig.Value))
+                return false;
+            
+            var holidays = JsonSerializer.Deserialize<List<HolidayDto>>(holidayConfig.Value);
+            if (holidays == null || holidays.Count == 0)
+                return false;
+            
+            return holidays.Any(h => 
+                !h.IsSpecialDay && 
+                date >= DateOnly.Parse(h.StartDate) && 
+                date <= DateOnly.Parse(h.EndDate)
+            );
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsSpecialDay(DateOnly date)
+    {
+        if (_context == null) return false;
+        
+        try
+        {
+            var holidayConfig = _context.SystemConfigs
+                .FirstOrDefault(c => c.Key == "Holidays");
+            
+            if (holidayConfig == null || string.IsNullOrEmpty(holidayConfig.Value))
+                return false;
+            
+            var holidays = JsonSerializer.Deserialize<List<HolidayDto>>(holidayConfig.Value);
+            if (holidays == null || holidays.Count == 0)
+                return false;
+            
+            return holidays.Any(h => 
+                h.IsSpecialDay && 
+                date >= DateOnly.Parse(h.StartDate) && 
+                date <= DateOnly.Parse(h.EndDate)
+            );
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private class HolidayDto
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string StartDate { get; set; } = string.Empty;
+        public string EndDate { get; set; } = string.Empty;
+        public bool IsSpecialDay { get; set; }
+        public string? Note { get; set; }
+    }
 }

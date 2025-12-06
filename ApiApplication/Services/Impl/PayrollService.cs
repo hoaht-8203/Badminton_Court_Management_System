@@ -434,7 +434,7 @@ public class PayrollService : IPayrollService
         
         // Filter in memory using HashSet for O(1) lookup
         response.Cashflows = allCashflows
-            .Where(c => payrollItemIds.Contains(c.RelatedId))
+            .Where(c => c.RelatedId != null && payrollItemIds.Contains(c.RelatedId))
             .Select(c => _mapper.Map<CashflowResponse>(c))
             .ToList();
         return response;

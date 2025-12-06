@@ -27,6 +27,18 @@ export interface GetAvailableVouchersRequest {
     bookingDateTime?: Date | null;
     /**
      * 
+     * @type {Date}
+     * @memberof GetAvailableVouchersRequest
+     */
+    endTime?: Date | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof GetAvailableVouchersRequest
+     */
+    originalAmount?: number | null;
+    /**
+     * 
      * @type {number}
      * @memberof GetAvailableVouchersRequest
      */
@@ -51,6 +63,8 @@ export function GetAvailableVouchersRequestFromJSONTyped(json: any, ignoreDiscri
     return {
         
         'bookingDateTime': json['bookingDateTime'] == null ? undefined : (new Date(json['bookingDateTime'])),
+        'endTime': json['endTime'] == null ? undefined : (new Date(json['endTime'])),
+        'originalAmount': json['originalAmount'] == null ? undefined : json['originalAmount'],
         'customerId': json['customerId'] == null ? undefined : json['customerId'],
     };
 }
@@ -67,6 +81,8 @@ export function GetAvailableVouchersRequestToJSONTyped(value?: GetAvailableVouch
     return {
         
         'bookingDateTime': value['bookingDateTime'] === null ? null : ((value['bookingDateTime'] as any)?.toISOString()),
+        'endTime': value['endTime'] === null ? null : ((value['endTime'] as any)?.toISOString()),
+        'originalAmount': value['originalAmount'],
         'customerId': value['customerId'],
     };
 }

@@ -9,6 +9,7 @@ import {
   ValidateVoucherResponseApiResponse,
   ValidateVoucherResponse,
   GetAvailableVouchersRequest,
+  GetAvailableVouchersRequestToJSON,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 
@@ -50,10 +51,7 @@ export const voucherService = {
 
   async getAvailable(params?: GetAvailableVouchersRequest): Promise<ApiResponse<VoucherResponse[]>> {
     const res = await axiosInstance.get<ApiResponse<VoucherResponse[]>>("/api/vouchers/available", {
-      params: params ? {
-        bookingDateTime: params.bookingDateTime?.toISOString(),
-        customerId: params.customerId,
-      } : undefined,
+      params: params ? GetAvailableVouchersRequestToJSON(params) : undefined,
     });
     return res.data;
   },

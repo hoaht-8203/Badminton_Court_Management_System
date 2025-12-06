@@ -144,7 +144,7 @@ const VouchersList = ({ vouchers, loading, onEdit, onDelete, onExtend }: Voucher
                   const hasNewCustomer = (record.userRules || []).some((u) => u.isNewCustomer === true);
                   const membershipIds = [...new Set((record.userRules || []).filter((u) => u.membershipId).map((u) => u.membershipId))];
                   const allCustomerIds = [...new Set((record.userRules || []).flatMap((u) => u.specificCustomerIds || []))];
-                  
+
                   const memberships = membershipIds.map((id) => membershipsData?.data?.find((m) => m.id === id)).filter(Boolean);
                   const customers = customersData?.data?.filter((c) => allCustomerIds.includes(c.id ?? 0)) || [];
 

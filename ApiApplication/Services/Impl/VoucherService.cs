@@ -17,7 +17,12 @@ public class VoucherService : IVoucherService
     private readonly ICurrentUser _currentUser;
     private readonly ILogger<VoucherService> _logger;
 
-    public VoucherService(ApplicationDbContext context, IMapper mapper, ICurrentUser currentUser, ILogger<VoucherService> logger)
+    public VoucherService(
+        ApplicationDbContext context,
+        IMapper mapper,
+        ICurrentUser currentUser,
+        ILogger<VoucherService> logger
+    )
     {
         _context = context;
         _mapper = mapper;
@@ -43,8 +48,8 @@ public class VoucherService : IVoucherService
         // Map TimeRules - only keep valid rules
         if (request.TimeRules != null)
         {
-            var validTimeRules = request.TimeRules
-                .Where(tr => tr.SpecificDate.HasValue || tr.DayOfWeek.HasValue)
+            var validTimeRules = request
+                .TimeRules.Where(tr => tr.SpecificDate.HasValue || tr.DayOfWeek.HasValue)
                 .ToList();
             entity.TimeRules = _mapper.Map<List<VoucherTimeRule>>(validTimeRules);
         }
@@ -52,12 +57,13 @@ public class VoucherService : IVoucherService
         // Map UserRules - only keep valid rules
         if (request.UserRules != null)
         {
-            var validUserRules = request.UserRules
-                .Where(ur => 
-                    (ur.SpecificCustomerIds != null && ur.SpecificCustomerIds.Any()) ||
-                    ur.MembershipId.HasValue ||
-                    ur.IsNewCustomer.HasValue
-                ).ToList();
+            var validUserRules = request
+                .UserRules.Where(ur =>
+                    (ur.SpecificCustomerIds != null && ur.SpecificCustomerIds.Any())
+                    || ur.MembershipId.HasValue
+                    || ur.IsNewCustomer.HasValue
+                )
+                .ToList();
             entity.UserRules = _mapper.Map<List<VoucherUserRule>>(validUserRules);
         }
 
@@ -114,8 +120,8 @@ public class VoucherService : IVoucherService
         // Map TimeRules - only keep valid rules
         if (request.TimeRules != null)
         {
-            var validTimeRules = request.TimeRules
-                .Where(tr => tr.SpecificDate.HasValue || tr.DayOfWeek.HasValue)
+            var validTimeRules = request
+                .TimeRules.Where(tr => tr.SpecificDate.HasValue || tr.DayOfWeek.HasValue)
                 .ToList();
             v.TimeRules = _mapper.Map<List<VoucherTimeRule>>(validTimeRules);
         }
@@ -127,12 +133,13 @@ public class VoucherService : IVoucherService
         // Map UserRules - only keep valid rules
         if (request.UserRules != null)
         {
-            var validUserRules = request.UserRules
-                .Where(ur => 
-                    (ur.SpecificCustomerIds != null && ur.SpecificCustomerIds.Any()) ||
-                    ur.MembershipId.HasValue ||
-                    ur.IsNewCustomer.HasValue
-                ).ToList();
+            var validUserRules = request
+                .UserRules.Where(ur =>
+                    (ur.SpecificCustomerIds != null && ur.SpecificCustomerIds.Any())
+                    || ur.MembershipId.HasValue
+                    || ur.IsNewCustomer.HasValue
+                )
+                .ToList();
             v.UserRules = _mapper.Map<List<VoucherUserRule>>(validUserRules);
         }
         else
@@ -148,12 +155,15 @@ public class VoucherService : IVoucherService
         GetAvailableVouchersRequest request
     )
     {
-        _logger.LogInformation("GetAvailableVouchers - Request: CustomerId={CustomerId}, BookingDateTime={BookingDateTime}",
-            request.CustomerId, request.BookingDateTime);
-        
+        _logger.LogInformation(
+            "GetAvailableVouchers - Request: CustomerId={CustomerId}, BookingDateTime={BookingDateTime}",
+            request.CustomerId,
+            request.BookingDateTime
+        );
+
         // Determine which customer to use
         Customer? customer;
-        
+
         if (request.CustomerId.HasValue)
         {
             // Staff is checking vouchers for a specific customer
@@ -175,7 +185,10 @@ public class VoucherService : IVoucherService
             customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
             if (customer == null)
             {
-                throw new ApiException("Không tìm thấy thông tin khách hàng", HttpStatusCode.BadRequest);
+                throw new ApiException(
+                    "Không tìm thấy thông tin khách hàng",
+                    HttpStatusCode.BadRequest
+                );
             }
         }
 
@@ -185,8 +198,15 @@ public class VoucherService : IVoucherService
         var currentTime = TimeOnly.FromDateTime(referenceTime);
         var currentDayOfWeek = referenceTime.DayOfWeek;
 
+        // Parse end time if provided (for time range check)
+        TimeOnly? endTime = null;
+        if (request.EndTime.HasValue)
+        {
+            endTime = TimeOnly.FromDateTime(request.EndTime.Value);
+        }
+
         // Step 1: Get all active vouchers within date range (base filter)
-        // This checks: IsActive, StartAt, EndAt, and total usage limit
+        // This checks: IsActive, StartAt, EndAt, total usage limit, and MinOrderValue
         var vouchers = await _context
             .Vouchers.Include(v => v.TimeRules)
             .Include(v => v.UserRules)
@@ -195,10 +215,18 @@ public class VoucherService : IVoucherService
                 && v.StartAt <= referenceTime // Check start date
                 && v.EndAt >= referenceTime // Check end date
                 && (v.UsageLimitTotal == 0 || v.UsedCount < v.UsageLimitTotal) // Check total usage limit
+                && (
+                    !v.MinOrderValue.HasValue
+                    || !request.OriginalAmount.HasValue
+                    || request.OriginalAmount.Value >= v.MinOrderValue.Value
+                ) // Check min order value if provided
             )
             .ToListAsync();
-        
-        _logger.LogInformation("Step 1: Found {Count} vouchers after base filter (active, date range, total usage)", vouchers.Count);
+
+        _logger.LogInformation(
+            "Step 1: Found {Count} vouchers after base filter (active, date range, total usage)",
+            vouchers.Count
+        );
 
         // Step 2: Pre-load voucher usages for this specific customer to avoid N+1 queries
         var voucherIds = vouchers.Select(v => v.Id).ToList();
@@ -212,33 +240,49 @@ public class VoucherService : IVoucherService
 
         // Step 3: Check if customer is new (has no orders)
         var isNewCustomer = !await _context.Orders.AnyAsync(o => o.CustomerId == customer.Id);
-        
-        _logger.LogInformation("Step 3: Customer {CustomerId} is new customer: {IsNew}", customer.Id, isNewCustomer);
+
+        _logger.LogInformation(
+            "Step 3: Customer {CustomerId} is new customer: {IsNew}",
+            customer.Id,
+            isNewCustomer
+        );
 
         var availableVouchers = new List<Voucher>();
 
         foreach (var voucher in vouchers)
         {
-            _logger.LogInformation("Checking voucher {VoucherCode} (ID: {VoucherId})", voucher.Code, voucher.Id);
-            
+            _logger.LogInformation(
+                "Checking voucher {VoucherCode} (ID: {VoucherId})",
+                voucher.Code,
+                voucher.Id
+            );
+
             // Step 4: Check usage limit per user (user-specific check)
             var userUsageCount = userVoucherUsages.GetValueOrDefault(voucher.Id, 0);
 
             if (voucher.UsageLimitPerUser > 0 && userUsageCount >= voucher.UsageLimitPerUser)
             {
-                _logger.LogInformation("  ❌ Failed Step 4: User usage limit reached ({Used}/{Limit})", 
-                    userUsageCount, voucher.UsageLimitPerUser);
+                _logger.LogInformation(
+                    "  ❌ Failed Step 4: User usage limit reached ({Used}/{Limit})",
+                    userUsageCount,
+                    voucher.UsageLimitPerUser
+                );
                 continue; // This specific user has reached their usage limit
             }
 
             // Step 5: Check time rules (time-specific check - different for each request time)
             // If voucher has time rules, it must match at least one rule
             // If no time rules (or all rules are empty), voucher is available at any time (within StartAt/EndAt)
-            var validTimeRules = voucher.TimeRules?.Where(tr => tr.SpecificDate.HasValue || tr.DayOfWeek.HasValue).ToList();
+            var validTimeRules = voucher
+                .TimeRules?.Where(tr => tr.SpecificDate.HasValue || tr.DayOfWeek.HasValue)
+                .ToList();
             if (validTimeRules != null && validTimeRules.Any())
             {
-                _logger.LogInformation("  Checking {Count} valid time rules (out of {Total} total)", 
-                    validTimeRules.Count, voucher.TimeRules?.Count ?? 0);
+                _logger.LogInformation(
+                    "  Checking {Count} valid time rules (out of {Total} total)",
+                    validTimeRules.Count,
+                    voucher.TimeRules?.Count ?? 0
+                );
                 var matchesTimeRule = false;
                 foreach (var timeRule in validTimeRules)
                 {
@@ -246,8 +290,11 @@ public class VoucherService : IVoucherService
                     if (timeRule.SpecificDate.HasValue)
                     {
                         var specificDate = DateOnly.FromDateTime(timeRule.SpecificDate.Value);
-                        _logger.LogInformation("    Time rule: SpecificDate={Date}, Current={Current}", 
-                            specificDate, currentDate);
+                        _logger.LogInformation(
+                            "    Time rule: SpecificDate={Date}, Current={Current}",
+                            specificDate,
+                            currentDate
+                        );
                         if (currentDate == specificDate)
                         {
                             // If specific date matches, check time range if specified
@@ -255,12 +302,27 @@ public class VoucherService : IVoucherService
                             {
                                 var ts = timeRule.StartTime.Value;
                                 var te = timeRule.EndTime.Value;
-                                var startTime = new TimeOnly(ts.Hours, ts.Minutes, ts.Seconds);
-                                var endTime = new TimeOnly(te.Hours, te.Minutes, te.Seconds);
-                                if (currentTime >= startTime && currentTime <= endTime)
+                                var ruleStartTime = new TimeOnly(ts.Hours, ts.Minutes, ts.Seconds);
+                                var ruleEndTime = new TimeOnly(te.Hours, te.Minutes, te.Seconds);
+
+                                // Check if booking time range overlaps with rule time range
+                                if (endTime.HasValue)
                                 {
-                                    matchesTimeRule = true;
-                                    break; // Matches this time rule
+                                    // Booking has both start and end time - check overlap
+                                    if (currentTime < ruleEndTime && endTime.Value > ruleStartTime)
+                                    {
+                                        matchesTimeRule = true;
+                                        break; // Matches this time rule
+                                    }
+                                }
+                                else
+                                {
+                                    // Only start time - check if within range
+                                    if (currentTime >= ruleStartTime && currentTime <= ruleEndTime)
+                                    {
+                                        matchesTimeRule = true;
+                                        break; // Matches this time rule
+                                    }
                                 }
                             }
                             else
@@ -274,8 +336,11 @@ public class VoucherService : IVoucherService
                     // Check day of week rule (only if no specific date)
                     else if (timeRule.DayOfWeek.HasValue)
                     {
-                        _logger.LogInformation("    Time rule: DayOfWeek={DoW}, Current={Current}", 
-                            timeRule.DayOfWeek.Value, currentDayOfWeek);
+                        _logger.LogInformation(
+                            "    Time rule: DayOfWeek={DoW}, Current={Current}",
+                            timeRule.DayOfWeek.Value,
+                            currentDayOfWeek
+                        );
                         if (currentDayOfWeek == timeRule.DayOfWeek.Value)
                         {
                             // Check time range if specified
@@ -283,12 +348,27 @@ public class VoucherService : IVoucherService
                             {
                                 var ts = timeRule.StartTime.Value;
                                 var te = timeRule.EndTime.Value;
-                                var startTime = new TimeOnly(ts.Hours, ts.Minutes, ts.Seconds);
-                                var endTime = new TimeOnly(te.Hours, te.Minutes, te.Seconds);
-                                if (currentTime >= startTime && currentTime <= endTime)
+                                var ruleStartTime = new TimeOnly(ts.Hours, ts.Minutes, ts.Seconds);
+                                var ruleEndTime = new TimeOnly(te.Hours, te.Minutes, te.Seconds);
+
+                                // Check if booking time range overlaps with rule time range
+                                if (endTime.HasValue)
                                 {
-                                    matchesTimeRule = true;
-                                    break; // Matches this time rule
+                                    // Booking has both start and end time - check overlap
+                                    if (currentTime < ruleEndTime && endTime.Value > ruleStartTime)
+                                    {
+                                        matchesTimeRule = true;
+                                        break; // Matches this time rule
+                                    }
+                                }
+                                else
+                                {
+                                    // Only start time - check if within range
+                                    if (currentTime >= ruleStartTime && currentTime <= ruleEndTime)
+                                    {
+                                        matchesTimeRule = true;
+                                        break; // Matches this time rule
+                                    }
                                 }
                             }
                             else
@@ -311,16 +391,21 @@ public class VoucherService : IVoucherService
             // Step 6: Check user/customer rules (user-specific check)
             // If voucher has user rules, it must match at least one rule
             // If no user rules (or all rules are empty), voucher is available to all users
-            var validUserRules = voucher.UserRules?.Where(ur => 
-                (ur.SpecificCustomerIds != null && ur.SpecificCustomerIds.Any()) ||
-                ur.MembershipId.HasValue ||
-                ur.IsNewCustomer.HasValue
-            ).ToList();
-            
+            var validUserRules = voucher
+                .UserRules?.Where(ur =>
+                    (ur.SpecificCustomerIds != null && ur.SpecificCustomerIds.Any())
+                    || ur.MembershipId.HasValue
+                    || ur.IsNewCustomer.HasValue
+                )
+                .ToList();
+
             if (validUserRules != null && validUserRules.Any())
             {
-                _logger.LogInformation("  Checking {Count} valid user rules (out of {Total} total)", 
-                    validUserRules.Count, voucher.UserRules?.Count ?? 0);
+                _logger.LogInformation(
+                    "  Checking {Count} valid user rules (out of {Total} total)",
+                    validUserRules.Count,
+                    voucher.UserRules?.Count ?? 0
+                );
                 var matchesUserRule = false;
 
                 foreach (var userRule in validUserRules)
@@ -328,8 +413,11 @@ public class VoucherService : IVoucherService
                     // Check specific customer IDs first (highest priority)
                     if (userRule.SpecificCustomerIds != null && userRule.SpecificCustomerIds.Any())
                     {
-                        _logger.LogInformation("    User rule: SpecificCustomerIds={Ids}, Current={Current}",
-                            string.Join(",", userRule.SpecificCustomerIds), customer.Id);
+                        _logger.LogInformation(
+                            "    User rule: SpecificCustomerIds={Ids}, Current={Current}",
+                            string.Join(",", userRule.SpecificCustomerIds),
+                            customer.Id
+                        );
                         if (userRule.SpecificCustomerIds.Contains(customer.Id))
                         {
                             matchesUserRule = true;
@@ -337,16 +425,20 @@ public class VoucherService : IVoucherService
                         }
                         continue; // Don't check other rules if SpecificCustomerIds is set
                     }
-                    
+
                     // Check membership (second priority)
                     if (userRule.MembershipId.HasValue)
                     {
-                        var hasActiveMembership = await _context.UserMemberships
-                            .AnyAsync(um => um.CustomerId == customer.Id && 
-                                           um.MembershipId == userRule.MembershipId.Value &&
-                                           um.IsActive);
-                        _logger.LogInformation("    User rule: MembershipId={MembershipId}, HasActive={HasActive}",
-                            userRule.MembershipId.Value, hasActiveMembership);
+                        var hasActiveMembership = await _context.UserMemberships.AnyAsync(um =>
+                            um.CustomerId == customer.Id
+                            && um.MembershipId == userRule.MembershipId.Value
+                            && um.IsActive
+                        );
+                        _logger.LogInformation(
+                            "    User rule: MembershipId={MembershipId}, HasActive={HasActive}",
+                            userRule.MembershipId.Value,
+                            hasActiveMembership
+                        );
                         if (hasActiveMembership)
                         {
                             matchesUserRule = true;
@@ -354,12 +446,15 @@ public class VoucherService : IVoucherService
                         }
                         continue;
                     }
-                    
+
                     // Check new customer (third priority)
                     if (userRule.IsNewCustomer.HasValue)
                     {
-                        _logger.LogInformation("    User rule: IsNewCustomer={Required}, Actual={Actual}",
-                            userRule.IsNewCustomer.Value, isNewCustomer);
+                        _logger.LogInformation(
+                            "    User rule: IsNewCustomer={Required}, Actual={Actual}",
+                            userRule.IsNewCustomer.Value,
+                            isNewCustomer
+                        );
                         if (userRule.IsNewCustomer.Value == isNewCustomer)
                         {
                             matchesUserRule = true;
@@ -468,12 +563,21 @@ public class VoucherService : IVoucherService
         }
 
         // Check date range against referenceDateTime
-        if (voucher.StartAt > referenceDateTime || voucher.EndAt < referenceDateTime)
+        if (voucher.StartAt > referenceDateTime)
         {
             return new ValidateVoucherResponse
             {
                 IsValid = false,
-                ErrorMessage = "Voucher đã hết hạn hoặc chưa đến thời gian sử dụng",
+                ErrorMessage = $"Voucher chưa đến thời gian sử dụng. Có hiệu lực từ {voucher.StartAt:dd/MM/yyyy HH:mm}",
+            };
+        }
+        
+        if (voucher.EndAt < referenceDateTime)
+        {
+            return new ValidateVoucherResponse
+            {
+                IsValid = false,
+                ErrorMessage = $"Voucher đã hết hạn sử dụng vào {voucher.EndAt:dd/MM/yyyy HH:mm}",
             };
         }
 
@@ -483,7 +587,7 @@ public class VoucherService : IVoucherService
             return new ValidateVoucherResponse
             {
                 IsValid = false,
-                ErrorMessage = "Voucher đã hết lượt sử dụng",
+                ErrorMessage = $"Voucher đã hết lượt sử dụng ({voucher.UsedCount}/{voucher.UsageLimitTotal})",
             };
         }
 
@@ -497,7 +601,7 @@ public class VoucherService : IVoucherService
             return new ValidateVoucherResponse
             {
                 IsValid = false,
-                ErrorMessage = "Bạn đã sử dụng hết lượt voucher này",
+                ErrorMessage = $"Bạn đã sử dụng hết lượt voucher này ({userUsageCount}/{voucher.UsageLimitPerUser})",
             };
         }
 
@@ -612,14 +716,15 @@ public class VoucherService : IVoucherService
                     }
                     continue; // Don't check other rules if SpecificCustomerIds is set
                 }
-                
+
                 // Check membership
                 if (userRule.MembershipId.HasValue)
                 {
-                    var hasActiveMembership = await _context.UserMemberships
-                        .AnyAsync(um => um.CustomerId == customerId && 
-                                       um.MembershipId == userRule.MembershipId.Value &&
-                                       um.IsActive);
+                    var hasActiveMembership = await _context.UserMemberships.AnyAsync(um =>
+                        um.CustomerId == customerId
+                        && um.MembershipId == userRule.MembershipId.Value
+                        && um.IsActive
+                    );
                     if (hasActiveMembership)
                     {
                         matchesUserRule = true;
@@ -627,7 +732,7 @@ public class VoucherService : IVoucherService
                     }
                     continue;
                 }
-                
+
                 // Check new customer
                 if (userRule.IsNewCustomer.HasValue)
                 {
@@ -638,7 +743,7 @@ public class VoucherService : IVoucherService
                     }
                     continue;
                 }
-                
+
                 // If no specific rule, consider it as matching (voucher available to all)
                 matchesUserRule = true;
                 break;
@@ -646,10 +751,33 @@ public class VoucherService : IVoucherService
 
             if (!matchesUserRule)
             {
+                // Build detailed error message based on user rules
+                var errorDetails = new List<string>();
+                foreach (var userRule in voucher.UserRules)
+                {
+                    if (userRule.SpecificCustomerIds != null && userRule.SpecificCustomerIds.Any())
+                    {
+                        errorDetails.Add("chỉ dành cho khách hàng được chỉ định");
+                    }
+                    else if (userRule.MembershipId.HasValue)
+                    {
+                        var membership = await _context.Memberships.FindAsync(userRule.MembershipId.Value);
+                        errorDetails.Add($"yêu cầu gói thành viên {membership?.Name ?? "đặc biệt"}");
+                    }
+                    else if (userRule.IsNewCustomer.HasValue)
+                    {
+                        errorDetails.Add(userRule.IsNewCustomer.Value ? "chỉ dành cho khách hàng mới" : "chỉ dành cho khách hàng cũ");
+                    }
+                }
+                
+                var errorMessage = errorDetails.Any() 
+                    ? $"Voucher {string.Join(" hoặc ", errorDetails)}" 
+                    : "Bạn không đủ điều kiện sử dụng voucher này";
+                
                 return new ValidateVoucherResponse
                 {
                     IsValid = false,
-                    ErrorMessage = "Bạn không đủ điều kiện sử dụng voucher này",
+                    ErrorMessage = errorMessage,
                 };
             }
         }

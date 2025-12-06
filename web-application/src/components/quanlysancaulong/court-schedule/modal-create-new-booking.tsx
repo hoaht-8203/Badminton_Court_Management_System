@@ -72,7 +72,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
   const [createdDetail, setCreatedDetail] = useState<DetailBookingCourtResponse | null>(null);
   const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
   const [voucherDiscount, setVoucherDiscount] = useState<number>(0);
-  
+
   // Chễ fetch vouchers khi đã chọn customer và thời gian
   const shouldFetchVouchers = useMemo(() => {
     if (userMode) {
@@ -82,30 +82,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
     // Staff mode: cần customer và thời gian
     return !!customerWatch && !!startTimeWatch && !!endTimeWatch && !!startDateWatch;
   }, [userMode, customerWatch, startTimeWatch, endTimeWatch, startDateWatch]);
-  
-  // Chuẩn bị params cho API
-  const voucherParams = useMemo(() => {
-    if (!shouldFetchVouchers) return undefined;
-    
-    const params: GetAvailableVouchersRequest = {};
-    
-    // Nếu có startDate và startTime, tạo bookingDateTime
-    if (startDateWatch && startTimeWatch) {
-      const bookingDate = startDateWatch.hour(startTimeWatch.hour()).minute(startTimeWatch.minute()).second(0);
-      params.bookingDateTime = bookingDate.toDate();
-    }
-    
-    // Nếu là staff mode và đã chọn customer
-    if (!userMode && customerWatch) {
-      // Extract customerId - có thể là number hoặc object {value: number}
-      params.customerId = typeof customerWatch === 'number' ? customerWatch : customerWatch?.value;
-    }
-    
-    return params;
-  }, [shouldFetchVouchers, startDateWatch, startTimeWatch, customerWatch, userMode]);
-  
-  const availableVouchers = useGetAvailableVouchers(shouldFetchVouchers, voucherParams);
-  const validateVoucherMutation = useValidateVoucher();
+
   const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [modalSelectedVoucherId, setModalSelectedVoucherId] = useState<number | null>(null);
   const [modalValidateLoading, setModalValidateLoading] = useState(false);
@@ -212,6 +189,41 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
     return calculatedPrice;
   }, [calculatedPrice]);
 
+  // Chuẩn bị params cho API
+  const voucherParams = useMemo(() => {
+    if (!shouldFetchVouchers) return undefined;
+
+    const params: GetAvailableVouchersRequest = {};
+
+    // Nếu có startDate và startTime, tạo bookingDateTime
+    if (startDateWatch && startTimeWatch) {
+      const bookingDate = startDateWatch.hour(startTimeWatch.hour()).minute(startTimeWatch.minute()).second(0);
+      params.bookingDateTime = bookingDate.toDate();
+    }
+
+    // Nếu có endTime, thêm vào params
+    if (startDateWatch && endTimeWatch) {
+      const bookingEndDate = startDateWatch.hour(endTimeWatch.hour()).minute(endTimeWatch.minute()).second(0);
+      params.endTime = bookingEndDate.toDate();
+    }
+
+    // Thêm originalAmount (giá gốc chưa giảm) - dùng calculatedPrice
+    if (calculatedPrice > 0) {
+      params.originalAmount = calculatedPrice;
+    }
+
+    // Nếu là staff mode và đã chọn customer
+    if (!userMode && customerWatch) {
+      // Extract customerId - có thể là number hoặc object {value: number}
+      params.customerId = typeof customerWatch === "number" ? customerWatch : customerWatch?.value;
+    }
+
+    return params;
+  }, [shouldFetchVouchers, startDateWatch, startTimeWatch, endTimeWatch, calculatedPrice, customerWatch, userMode]);
+
+  const availableVouchers = useGetAvailableVouchers(shouldFetchVouchers, voucherParams);
+  const validateVoucherMutation = useValidateVoucher();
+
   // Tính toán voucher có mức giảm tốt nhất
   const bestVoucherId = useMemo(() => {
     const vouchers = availableVouchers?.data?.data ?? [];
@@ -228,8 +240,8 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
         estimatedDiscount = (fullAmount * v.discountPercentage) / 100;
       }
 
-      if (v.maxDiscountAmount && estimatedDiscount > v.maxDiscountAmount) {
-        estimatedDiscount = v.maxDiscountAmount;
+      if (v.maxDiscountValue && estimatedDiscount > v.maxDiscountValue) {
+        estimatedDiscount = v.maxDiscountValue;
       }
 
       if (estimatedDiscount > maxDiscount) {
@@ -942,9 +954,9 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                                               ? `Giảm ${v.discountPercentage}%`
                                               : ""}
                                         </span>
-                                        {v.maxDiscountAmount && (
+                                        {v.maxDiscountValue && (
                                           <span style={{ fontSize: 11, color: "#999", marginLeft: 4 }}>
-                                            (Tối đa {v.maxDiscountAmount.toLocaleString("vi-VN")}đ)
+                                            (Tối đa {v.maxDiscountValue.toLocaleString("vi-VN")}đ)
                                           </span>
                                         )}
                                       </div>

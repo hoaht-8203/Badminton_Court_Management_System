@@ -90,23 +90,6 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
     return !!startTimeWatch && !!endTimeWatch && !!startDateWatch;
   }, [startTimeWatch, endTimeWatch, startDateWatch]);
   
-  // Chuẩn bị params cho API
-  const voucherParams = useMemo(() => {
-    if (!shouldFetchVouchers) return undefined;
-    
-    const params: GetAvailableVouchersRequest = {};
-    
-    // Nếu có startDate và startTime, tạo bookingDateTime
-    if (startDateWatch && startTimeWatch) {
-      const bookingDate = startDateWatch.hour(startTimeWatch.hour()).minute(startTimeWatch.minute()).second(0);
-      params.bookingDateTime = bookingDate.toDate();
-    }
-    
-    return params;
-  }, [shouldFetchVouchers, startDateWatch, startTimeWatch]);
-  
-  const availableVouchers = useGetAvailableVouchers(shouldFetchVouchers, voucherParams);
-  const validateVoucherMutation = useValidateVoucher();
   const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [modalSelectedVoucherId, setModalSelectedVoucherId] = useState<number | null>(null);
   const [modalValidateLoading, setModalValidateLoading] = useState(false);
@@ -211,6 +194,35 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
   const fullAmount = useMemo(() => {
     return calculatedPrice;
   }, [calculatedPrice]);
+
+  // Chuẩn bị params cho API
+  const voucherParams = useMemo(() => {
+    if (!shouldFetchVouchers) return undefined;
+    
+    const params: GetAvailableVouchersRequest = {};
+    
+    // Nếu có startDate và startTime, tạo bookingDateTime
+    if (startDateWatch && startTimeWatch) {
+      const bookingDate = startDateWatch.hour(startTimeWatch.hour()).minute(startTimeWatch.minute()).second(0);
+      params.bookingDateTime = bookingDate.toDate();
+    }
+    
+    // Nếu có endTime, thêm vào params
+    if (startDateWatch && endTimeWatch) {
+      const bookingEndDate = startDateWatch.hour(endTimeWatch.hour()).minute(endTimeWatch.minute()).second(0);
+      params.endTime = bookingEndDate.toDate();
+    }
+    
+    // Thêm originalAmount (giá gốc chưa giảm) - dùng calculatedPrice
+    if (calculatedPrice > 0) {
+      params.originalAmount = calculatedPrice;
+    }
+    
+    return params;
+  }, [shouldFetchVouchers, startDateWatch, startTimeWatch, endTimeWatch, calculatedPrice]);
+  
+  const availableVouchers = useGetAvailableVouchers(shouldFetchVouchers, voucherParams);
+  const validateVoucherMutation = useValidateVoucher();
 
   // Tính toán voucher có mức giảm tốt nhất
   const bestVoucherId = useMemo(() => {

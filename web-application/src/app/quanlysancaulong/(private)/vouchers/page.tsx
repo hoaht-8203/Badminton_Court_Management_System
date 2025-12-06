@@ -82,7 +82,7 @@ const VouchersPage = () => {
 
       <SearchVoucher onSearch={(s) => setFilters(s)} onReset={() => setFilters({})} />
 
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-4 mt-4 flex items-center justify-between">
         <div>
           <span className="font-bold text-green-500">
             Tổng số voucher: {filtered.length} / {vouchersResp?.data?.length ?? 0}

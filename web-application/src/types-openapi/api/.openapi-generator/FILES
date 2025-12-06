@@ -256,6 +256,7 @@ models/ExtendPaymentRequest.ts
 models/ExtendVoucherRequest.ts
 models/Feedback.ts
 models/ForgotPasswordRequest.ts
+models/GetAvailableVouchersRequest.ts
 models/HeatmapCellDto.ts
 models/HeatmapCellDtoArrayApiResponse.ts
 models/Int32ApiResponse.ts

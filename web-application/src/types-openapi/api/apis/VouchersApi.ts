@@ -43,6 +43,11 @@ import {
     VoucherResponseArrayApiResponseToJSON,
 } from '../models/index';
 
+export interface ApiVouchersAvailableGetRequest {
+    bookingDateTime?: Date;
+    customerId?: number;
+}
+
 export interface ApiVouchersCreatePostRequest {
     createVoucherRequest?: CreateVoucherRequest;
 }
@@ -78,15 +83,17 @@ export interface ApiVouchersValidatePostRequest {
 export interface VouchersApiInterface {
     /**
      * 
+     * @param {Date} [bookingDateTime] 
+     * @param {number} [customerId] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof VouchersApiInterface
      */
-    apiVouchersAvailableGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<VoucherResponseArrayApiResponse>>;
+    apiVouchersAvailableGetRaw(requestParameters: ApiVouchersAvailableGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<VoucherResponseArrayApiResponse>>;
 
     /**
      */
-    apiVouchersAvailableGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<VoucherResponseArrayApiResponse>;
+    apiVouchersAvailableGet(requestParameters: ApiVouchersAvailableGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<VoucherResponseArrayApiResponse>;
 
     /**
      * 
@@ -189,8 +196,16 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
 
     /**
      */
-    async apiVouchersAvailableGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<VoucherResponseArrayApiResponse>> {
+    async apiVouchersAvailableGetRaw(requestParameters: ApiVouchersAvailableGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<VoucherResponseArrayApiResponse>> {
         const queryParameters: any = {};
+
+        if (requestParameters['bookingDateTime'] != null) {
+            queryParameters['bookingDateTime'] = (requestParameters['bookingDateTime'] as any).toISOString();
+        }
+
+        if (requestParameters['customerId'] != null) {
+            queryParameters['customerId'] = requestParameters['customerId'];
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -209,8 +224,8 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
 
     /**
      */
-    async apiVouchersAvailableGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<VoucherResponseArrayApiResponse> {
-        const response = await this.apiVouchersAvailableGetRaw(initOverrides);
+    async apiVouchersAvailableGet(requestParameters: ApiVouchersAvailableGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<VoucherResponseArrayApiResponse> {
+        const response = await this.apiVouchersAvailableGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

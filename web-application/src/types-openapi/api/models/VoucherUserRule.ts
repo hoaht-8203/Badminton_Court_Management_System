@@ -13,6 +13,13 @@
  */
 
 import { mapValues } from '../runtime';
+import type { Membership } from './Membership';
+import {
+    MembershipFromJSON,
+    MembershipFromJSONTyped,
+    MembershipToJSON,
+    MembershipToJSONTyped,
+} from './Membership';
 import type { Voucher } from './Voucher';
 import {
     VoucherFromJSON,
@@ -47,16 +54,28 @@ export interface VoucherUserRule {
     voucher?: Voucher;
     /**
      * 
-     * @type {string}
-     * @memberof VoucherUserRule
-     */
-    userType?: string | null;
-    /**
-     * 
      * @type {boolean}
      * @memberof VoucherUserRule
      */
     isNewCustomer?: boolean | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof VoucherUserRule
+     */
+    membershipId?: number | null;
+    /**
+     * 
+     * @type {Membership}
+     * @memberof VoucherUserRule
+     */
+    membership?: Membership;
+    /**
+     * 
+     * @type {Array<number>}
+     * @memberof VoucherUserRule
+     */
+    specificCustomerIds?: Array<number> | null;
 }
 
 /**
@@ -79,8 +98,10 @@ export function VoucherUserRuleFromJSONTyped(json: any, ignoreDiscriminator: boo
         'id': json['id'] == null ? undefined : json['id'],
         'voucherId': json['voucherId'] == null ? undefined : json['voucherId'],
         'voucher': json['voucher'] == null ? undefined : VoucherFromJSON(json['voucher']),
-        'userType': json['userType'] == null ? undefined : json['userType'],
         'isNewCustomer': json['isNewCustomer'] == null ? undefined : json['isNewCustomer'],
+        'membershipId': json['membershipId'] == null ? undefined : json['membershipId'],
+        'membership': json['membership'] == null ? undefined : MembershipFromJSON(json['membership']),
+        'specificCustomerIds': json['specificCustomerIds'] == null ? undefined : json['specificCustomerIds'],
     };
 }
 
@@ -98,8 +119,10 @@ export function VoucherUserRuleToJSONTyped(value?: VoucherUserRule | null, ignor
         'id': value['id'],
         'voucherId': value['voucherId'],
         'voucher': VoucherToJSON(value['voucher']),
-        'userType': value['userType'],
         'isNewCustomer': value['isNewCustomer'],
+        'membershipId': value['membershipId'],
+        'membership': MembershipToJSON(value['membership']),
+        'specificCustomerIds': value['specificCustomerIds'],
     };
 }
 

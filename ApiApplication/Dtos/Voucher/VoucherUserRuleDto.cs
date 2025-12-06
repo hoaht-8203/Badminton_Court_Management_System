@@ -4,6 +4,7 @@ namespace ApiApplication.Dtos.Voucher;
 
 public class VoucherUserRuleDto
 {
-    public string? UserType { get; set; }
     public bool? IsNewCustomer { get; set; }
+    public int? MembershipId { get; set; }
+    public List<int>? SpecificCustomerIds { get; set; }
 }

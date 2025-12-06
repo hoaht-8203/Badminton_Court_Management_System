@@ -21,16 +21,22 @@ import { mapValues } from '../runtime';
 export interface VoucherUserRuleDto {
     /**
      * 
-     * @type {string}
-     * @memberof VoucherUserRuleDto
-     */
-    userType?: string | null;
-    /**
-     * 
      * @type {boolean}
      * @memberof VoucherUserRuleDto
      */
     isNewCustomer?: boolean | null;
+    /**
+     * 
+     * @type {number}
+     * @memberof VoucherUserRuleDto
+     */
+    membershipId?: number | null;
+    /**
+     * 
+     * @type {Array<number>}
+     * @memberof VoucherUserRuleDto
+     */
+    specificCustomerIds?: Array<number> | null;
 }
 
 /**
@@ -50,8 +56,9 @@ export function VoucherUserRuleDtoFromJSONTyped(json: any, ignoreDiscriminator: 
     }
     return {
         
-        'userType': json['userType'] == null ? undefined : json['userType'],
         'isNewCustomer': json['isNewCustomer'] == null ? undefined : json['isNewCustomer'],
+        'membershipId': json['membershipId'] == null ? undefined : json['membershipId'],
+        'specificCustomerIds': json['specificCustomerIds'] == null ? undefined : json['specificCustomerIds'],
     };
 }
 
@@ -66,8 +73,9 @@ export function VoucherUserRuleDtoToJSONTyped(value?: VoucherUserRuleDto | null,
 
     return {
         
-        'userType': value['userType'],
         'isNewCustomer': value['isNewCustomer'],
+        'membershipId': value['membershipId'],
+        'specificCustomerIds': value['specificCustomerIds'],
     };
 }
 

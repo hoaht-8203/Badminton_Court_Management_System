@@ -867,6 +867,18 @@ public class ApplicationDbContext(
                     UpdatedBy = "System",
                 }
             );
+
+        // Voucher configurations
+        builder.Entity<VoucherUserRule>(entity =>
+        {
+            entity.Property(v => v.SpecificCustomerIds).HasColumnType("integer[]");
+
+            entity
+                .HasOne(v => v.Membership)
+                .WithMany()
+                .HasForeignKey(v => v.MembershipId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

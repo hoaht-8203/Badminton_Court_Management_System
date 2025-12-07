@@ -36,6 +36,9 @@ public class VoucherService : IVoucherService
         if (string.IsNullOrWhiteSpace(request.Code))
             throw new ApiException("Mã voucher không được để trống", HttpStatusCode.BadRequest);
 
+        if (request.StartAt >= request.EndAt)
+            throw new ApiException("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc", HttpStatusCode.BadRequest);
+
         var exists = await _context.Vouchers.AnyAsync(v => v.Code == request.Code);
         if (exists)
             throw new ApiException("Mã voucher đã tồn tại", HttpStatusCode.BadRequest);
@@ -109,6 +112,18 @@ public class VoucherService : IVoucherService
             .FirstOrDefaultAsync(x => x.Id == id);
         if (v == null)
             throw new ApiException("Voucher không tồn tại", HttpStatusCode.NotFound);
+
+        // Validate dates
+        if (request.StartAt >= request.EndAt)
+            throw new ApiException("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc", HttpStatusCode.BadRequest);
+
+        // Check code uniqueness (if code is being changed)
+        if (!string.IsNullOrWhiteSpace(request.Code) && request.Code != v.Code)
+        {
+            var codeExists = await _context.Vouchers.AnyAsync(vx => vx.Code == request.Code && vx.Id != id);
+            if (codeExists)
+                throw new ApiException("Mã voucher đã tồn tại", HttpStatusCode.BadRequest);
+        }
 
         // Update fields using AutoMapper
         _mapper.Map(request, v);

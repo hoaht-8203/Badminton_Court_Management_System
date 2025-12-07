@@ -149,7 +149,7 @@ const UpdateVoucherDrawer = ({ open, onClose, voucherId }: UpdateVoucherDrawerPr
                     <Input.TextArea rows={3} placeholder="Nhập mô tả" />
                   </FormItem>
 
-                  <FormItem name="discountType" label="Loại giảm giá" rules={[{ required: true }]}>
+                  <FormItem name="discountType" label="Loại giảm giá" rules={[{ required: true, message: "Loại giảm giá là bắt buộc" }]}>
                     <Select
                       options={[
                         { value: "fixed", label: "Giảm giá cố định" },
@@ -165,7 +165,7 @@ const UpdateVoucherDrawer = ({ open, onClose, voucherId }: UpdateVoucherDrawerPr
                         <>
                           {discountType === "percentage" ? (
                             <>
-                              <FormItem name="discountPercentage" label="% Giảm giá" rules={[{ required: true }]}>
+                              <FormItem name="discountPercentage" label="% Giảm giá" rules={[{ required: true, message: "Phần trăm giảm giá là bắt buộc" }]}>
                                 <InputNumber min={0} max={100} style={{ width: "100%" }} placeholder="Nhập % giảm" />
                               </FormItem>
                               <FormItem name="maxDiscountValue" label="Giá trị giảm tối đa (VNĐ)">
@@ -173,7 +173,7 @@ const UpdateVoucherDrawer = ({ open, onClose, voucherId }: UpdateVoucherDrawerPr
                               </FormItem>
                             </>
                           ) : (
-                            <FormItem name="discountValue" label="Giá trị giảm (VNĐ)" rules={[{ required: true }]}>
+                            <FormItem name="discountValue" label="Giá trị giảm (VNĐ)" rules={[{ required: true, message: "Giá trị giảm là bắt buộc" }]}>
                               <InputNumber min={0} style={{ width: "100%" }} placeholder="Nhập giá trị giảm" />
                             </FormItem>
                           )}
@@ -186,11 +186,11 @@ const UpdateVoucherDrawer = ({ open, onClose, voucherId }: UpdateVoucherDrawerPr
                     <InputNumber min={0} style={{ width: "100%" }} placeholder="Nhập giá trị tối thiểu" />
                   </FormItem>
 
-                  <FormItem name="startAt" label="Ngày bắt đầu" rules={[{ required: true }]}>
+                  <FormItem name="startAt" label="Ngày bắt đầu" rules={[{ required: true, message: "Ngày bắt đầu là bắt buộc" }]}>
                     <DatePicker showTime style={{ width: "100%" }} format="DD/MM/YYYY HH:mm" />
                   </FormItem>
 
-                  <FormItem name="endAt" label="Ngày kết thúc" rules={[{ required: true }]}>
+                  <FormItem name="endAt" label="Ngày kết thúc" rules={[{ required: true, message: "Ngày kết thúc là bắt buộc" }]}>
                     <DatePicker showTime style={{ width: "100%" }} format="DD/MM/YYYY HH:mm" />
                   </FormItem>
 

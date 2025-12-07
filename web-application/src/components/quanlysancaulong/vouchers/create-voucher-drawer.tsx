@@ -96,7 +96,7 @@ const CreateVoucherDrawer = ({ open, onClose }: CreateVoucherDrawerProps) => {
                     <Input.TextArea rows={3} placeholder="Nhập mô tả" />
                   </FormItem>
 
-                  <FormItem<CreateVoucherRequest> name="discountType" label="Loại giảm giá" rules={[{ required: true }]}>
+                  <FormItem<CreateVoucherRequest> name="discountType" label="Loại giảm giá" rules={[{ required: true, message: "Loại giảm giá là bắt buộc" }]}>
                     <Select
                       options={[
                         { value: "fixed", label: "Giảm giá cố định" },
@@ -112,7 +112,7 @@ const CreateVoucherDrawer = ({ open, onClose }: CreateVoucherDrawerProps) => {
                         <>
                           {discountType === "percentage" ? (
                             <>
-                              <FormItem<CreateVoucherRequest> name="discountPercentage" label="% Giảm giá" rules={[{ required: true }]}>
+                              <FormItem<CreateVoucherRequest> name="discountPercentage" label="% Giảm giá" rules={[{ required: true, message: "Phần trăm giảm giá là bắt buộc" }]}>
                                 <InputNumber min={0} max={100} style={{ width: "100%" }} placeholder="Nhập % giảm" />
                               </FormItem>
                               <FormItem<CreateVoucherRequest> name="maxDiscountValue" label="Giá trị giảm tối đa (VNĐ)">
@@ -120,7 +120,7 @@ const CreateVoucherDrawer = ({ open, onClose }: CreateVoucherDrawerProps) => {
                               </FormItem>
                             </>
                           ) : (
-                            <FormItem<CreateVoucherRequest> name="discountValue" label="Giá trị giảm (VNĐ)" rules={[{ required: true }]}>
+                            <FormItem<CreateVoucherRequest> name="discountValue" label="Giá trị giảm (VNĐ)" rules={[{ required: true, message: "Giá trị giảm là bắt buộc" }]}>
                               <InputNumber min={0} style={{ width: "100%" }} placeholder="Nhập giá trị giảm" />
                             </FormItem>
                           )}
@@ -133,11 +133,11 @@ const CreateVoucherDrawer = ({ open, onClose }: CreateVoucherDrawerProps) => {
                     <InputNumber min={0} style={{ width: "100%" }} placeholder="Nhập giá trị tối thiểu" />
                   </FormItem>
 
-                  <FormItem<CreateVoucherRequest> name="startAt" label="Ngày bắt đầu" rules={[{ required: true }]}>
+                  <FormItem<CreateVoucherRequest> name="startAt" label="Ngày bắt đầu" rules={[{ required: true, message: "Ngày bắt đầu là bắt buộc" }]}>
                     <DatePicker showTime style={{ width: "100%" }} format="DD/MM/YYYY HH:mm" />
                   </FormItem>
 
-                  <FormItem<CreateVoucherRequest> name="endAt" label="Ngày kết thúc" rules={[{ required: true }]}>
+                  <FormItem<CreateVoucherRequest> name="endAt" label="Ngày kết thúc" rules={[{ required: true, message: "Ngày kết thúc là bắt buộc" }]}>
                     <DatePicker showTime style={{ width: "100%" }} format="DD/MM/YYYY HH:mm" />
                   </FormItem>
 

@@ -14,14 +14,12 @@ public class UpdateProductRequest
     [MaxLength(255)]
     public string? Name { get; set; }
 
-    public string? MenuType { get; set; }
     public int? CategoryId { get; set; }
     public string? Position { get; set; }
 
     public decimal? CostPrice { get; set; }
     public decimal? SalePrice { get; set; }
 
-    public bool? IsDirectSale { get; set; }
     public bool? IsActive { get; set; }
     public bool? IsDisplayOnWeb { get; set; }
 

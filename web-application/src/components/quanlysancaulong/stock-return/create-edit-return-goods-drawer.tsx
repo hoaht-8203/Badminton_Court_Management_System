@@ -403,6 +403,13 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
 
   const doSave = async (complete: boolean) => {
     try {
+      await form.validateFields();
+    } catch (error) {
+      message.warning("Vui lòng điền đầy đủ thông tin bắt buộc");
+      return;
+    }
+
+    try {
       const values = form.getFieldsValue();
 
       // Validate supplier selection
@@ -411,9 +418,21 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         return;
       }
 
-      // Validate stock quantity - đơn giản
-      const invalidItems = items.filter((item) => item.quantity > item.stock);
+      if ((items || []).length === 0) {
+        message.warning("Vui lòng thêm ít nhất một sản phẩm");
+        return;
+      }
+
+      // Validate items có quantity > 0
+      const invalidItems = items.filter((item) => !item.quantity || item.quantity <= 0);
       if (invalidItems.length > 0) {
+        message.warning("Vui lòng nhập số lượng cho tất cả sản phẩm");
+        return;
+      }
+
+      // Validate stock quantity - đơn giản
+      const exceedStockItems = items.filter((item) => item.quantity > item.stock);
+      if (exceedStockItems.length > 0) {
         message.error("Số lượng trả hàng không được vượt quá tồn kho");
         return;
       }
@@ -421,6 +440,12 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
       const outOfStockSelectedItems = items.filter((item) => (item.stock ?? 0) <= 0 && (item.quantity ?? 0) > 0);
       if (outOfStockSelectedItems.length > 0) {
         message.error("Một số sản phẩm đã hết hàng, không thể trả hàng hoặc hủy kho");
+        return;
+      }
+
+      // Validate chuyển khoản phải chọn bank
+      if (paymentMethod === "transfer" && !values.storeBankAccountId) {
+        message.warning("Vui lòng chọn tài khoản ngân hàng cửa hàng khi thanh toán bằng chuyển khoản");
         return;
       }
 

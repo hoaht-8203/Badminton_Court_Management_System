@@ -42,12 +42,6 @@ export interface DetailProductResponse {
      * @type {string}
      * @memberof DetailProductResponse
      */
-    menuType?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof DetailProductResponse
-     */
     category?: string | null;
     /**
      * 
@@ -73,18 +67,6 @@ export interface DetailProductResponse {
      * @memberof DetailProductResponse
      */
     salePrice?: number;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof DetailProductResponse
-     */
-    isDirectSale?: boolean;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof DetailProductResponse
-     */
-    isExtraTopping?: boolean;
     /**
      * 
      * @type {boolean}
@@ -169,14 +151,11 @@ export function DetailProductResponseFromJSONTyped(json: any, ignoreDiscriminato
         'id': json['id'],
         'code': json['code'] == null ? undefined : json['code'],
         'name': json['name'],
-        'menuType': json['menuType'] == null ? undefined : json['menuType'],
         'category': json['category'] == null ? undefined : json['category'],
         'categoryId': json['categoryId'] == null ? undefined : json['categoryId'],
         'position': json['position'] == null ? undefined : json['position'],
         'costPrice': json['costPrice'] == null ? undefined : json['costPrice'],
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
-        'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
-        'isExtraTopping': json['isExtraTopping'] == null ? undefined : json['isExtraTopping'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'isDisplayOnWeb': json['isDisplayOnWeb'] == null ? undefined : json['isDisplayOnWeb'],
         'manageInventory': json['manageInventory'] == null ? undefined : json['manageInventory'],
@@ -204,14 +183,11 @@ export function DetailProductResponseToJSONTyped(value?: DetailProductResponse |
         'id': value['id'],
         'code': value['code'],
         'name': value['name'],
-        'menuType': value['menuType'],
         'category': value['category'],
         'categoryId': value['categoryId'],
         'position': value['position'],
         'costPrice': value['costPrice'],
         'salePrice': value['salePrice'],
-        'isDirectSale': value['isDirectSale'],
-        'isExtraTopping': value['isExtraTopping'],
         'isActive': value['isActive'],
         'isDisplayOnWeb': value['isDisplayOnWeb'],
         'manageInventory': value['manageInventory'],

@@ -18,4 +18,8 @@ public interface IProductService
     Task<List<ListProductsByPriceTableResponse>> ListByPriceTableAsync(
         ListProductsByPriceTableRequest request
     );
+
+    Task<List<GetCurrentAppliedPriceResponse>> GetCurrentAppliedPriceAsync(
+        GetCurrentAppliedPriceRequest request
+    );
 }

@@ -33,12 +33,6 @@ export interface CreateProductRequest {
     name: string;
     /**
      * 
-     * @type {string}
-     * @memberof CreateProductRequest
-     */
-    menuType?: string | null;
-    /**
-     * 
      * @type {number}
      * @memberof CreateProductRequest
      */
@@ -61,12 +55,6 @@ export interface CreateProductRequest {
      * @memberof CreateProductRequest
      */
     salePrice?: number;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof CreateProductRequest
-     */
-    isDirectSale?: boolean;
     /**
      * 
      * @type {boolean}
@@ -149,12 +137,10 @@ export function CreateProductRequestFromJSONTyped(json: any, ignoreDiscriminator
         
         'code': json['code'] == null ? undefined : json['code'],
         'name': json['name'],
-        'menuType': json['menuType'] == null ? undefined : json['menuType'],
         'categoryId': json['categoryId'] == null ? undefined : json['categoryId'],
         'position': json['position'] == null ? undefined : json['position'],
         'costPrice': json['costPrice'] == null ? undefined : json['costPrice'],
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
-        'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'isDisplayOnWeb': json['isDisplayOnWeb'] == null ? undefined : json['isDisplayOnWeb'],
         'manageInventory': json['manageInventory'] == null ? undefined : json['manageInventory'],
@@ -181,12 +167,10 @@ export function CreateProductRequestToJSONTyped(value?: CreateProductRequest | n
         
         'code': value['code'],
         'name': value['name'],
-        'menuType': value['menuType'],
         'categoryId': value['categoryId'],
         'position': value['position'],
         'costPrice': value['costPrice'],
         'salePrice': value['salePrice'],
-        'isDirectSale': value['isDirectSale'],
         'isActive': value['isActive'],
         'isDisplayOnWeb': value['isDisplayOnWeb'],
         'manageInventory': value['manageInventory'],

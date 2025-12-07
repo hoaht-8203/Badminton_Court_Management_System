@@ -60,18 +60,14 @@ export interface ApiProductsListForWebGetRequest {
     id?: number;
     code?: string;
     name?: string;
-    menuType?: string;
     category?: string;
-    isDirectSale?: boolean;
 }
 
 export interface ApiProductsListGetRequest {
     id?: number;
     code?: string;
     name?: string;
-    menuType?: string;
     category?: string;
-    isDirectSale?: boolean;
 }
 
 export interface ApiProductsUpdateImagesPostRequest {
@@ -160,9 +156,7 @@ export interface ProductsApiInterface {
      * @param {number} [id] 
      * @param {string} [code] 
      * @param {string} [name] 
-     * @param {string} [menuType] 
      * @param {string} [category] 
-     * @param {boolean} [isDirectSale] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ProductsApiInterface
@@ -178,9 +172,7 @@ export interface ProductsApiInterface {
      * @param {number} [id] 
      * @param {string} [code] 
      * @param {string} [name] 
-     * @param {string} [menuType] 
      * @param {string} [category] 
-     * @param {boolean} [isDirectSale] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ProductsApiInterface
@@ -426,16 +418,8 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
             queryParameters['Name'] = requestParameters['name'];
         }
 
-        if (requestParameters['menuType'] != null) {
-            queryParameters['MenuType'] = requestParameters['menuType'];
-        }
-
         if (requestParameters['category'] != null) {
             queryParameters['Category'] = requestParameters['category'];
-        }
-
-        if (requestParameters['isDirectSale'] != null) {
-            queryParameters['IsDirectSale'] = requestParameters['isDirectSale'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -477,16 +461,8 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
             queryParameters['Name'] = requestParameters['name'];
         }
 
-        if (requestParameters['menuType'] != null) {
-            queryParameters['MenuType'] = requestParameters['menuType'];
-        }
-
         if (requestParameters['category'] != null) {
             queryParameters['Category'] = requestParameters['category'];
-        }
-
-        if (requestParameters['isDirectSale'] != null) {
-            queryParameters['IsDirectSale'] = requestParameters['isDirectSale'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

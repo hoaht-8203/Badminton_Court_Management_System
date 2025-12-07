@@ -340,6 +340,13 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
   }, [items]);
 
   const doSave = async (complete: boolean) => {
+    try {
+      await form.validateFields();
+    } catch (error) {
+      message.warning("Vui lòng điền đầy đủ thông tin bắt buộc");
+      return;
+    }
+
     const values = form.getFieldsValue();
 
     // Validate supplier selection
@@ -349,13 +356,20 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
     }
 
     if ((items || []).length === 0) {
-      message.warning("Vui lòng thêm sản phẩm");
+      message.warning("Vui lòng thêm ít nhất một sản phẩm");
+      return;
+    }
+
+    // Validate items có quantity > 0
+    const invalidItems = items.filter((item) => !item.quantity || item.quantity <= 0);
+    if (invalidItems.length > 0) {
+      message.warning("Vui lòng nhập số lượng cho tất cả sản phẩm");
       return;
     }
 
     // Validate stock quantity - đơn giản
-    const invalidItems = items.filter((item) => item.quantity > item.stock);
-    if (invalidItems.length > 0) {
+    const exceedStockItems = items.filter((item) => item.quantity > item.stock);
+    if (exceedStockItems.length > 0) {
       message.error("Số lượng xuất hủy không được vượt quá tồn kho");
       return;
     }

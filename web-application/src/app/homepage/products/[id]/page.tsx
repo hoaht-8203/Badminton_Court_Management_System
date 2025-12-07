@@ -1,11 +1,10 @@
 "use client";
 
 import ProductCard from "@/components/homepage/ProductCard";
-import SnowEffect from "@/components/homepage/SnowEffect";
 import { useDetailProduct, useListProductsForWeb } from "@/hooks/useProducts";
 import { DetailProductResponse } from "@/types-openapi/api";
-import { Avatar, Button, Col, Empty, Image, InputNumber, Rate, Row, Spin, Tabs, Typography } from "antd";
-import { UserOutlined, GiftOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { Button, Col, Empty, Image, InputNumber, Row, Spin, Typography } from "antd";
+import { GiftOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
@@ -99,15 +98,8 @@ const ProductDetailPage = () => {
   const isOutOfStock = stock === 0;
   const maxQuantity = Math.min(stock, 999);
 
-  const handleZaloContact = () => {
-    // TODO: Thay bằng số Zalo thực tế
-    const zaloPhone = "0123456789"; // Số Zalo
-    window.open(`https://zalo.me/${zaloPhone}`, "_blank");
-  };
-
   return (
     <div className="min-h-screen bg-gray-100">
-      <SnowEffect />
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="mb-6 text-sm text-gray-600">
@@ -230,11 +222,6 @@ const ProductDetailPage = () => {
                 >
                   {formatPrice(product.salePrice)}
                 </Text>
-              </div>
-
-              <div className="mb-4 flex items-center gap-2">
-                <Rate disabled defaultValue={5} />
-                <Text type="secondary">(70 đánh giá của khách hàng)</Text>
               </div>
 
               {product.category && (
@@ -366,44 +353,6 @@ const ProductDetailPage = () => {
                     </Text>
                   </div>
                 </div>
-              </div>
-
-                  <div className="mb-4">
-                    <style dangerouslySetInnerHTML={{__html: `
-                      @keyframes gentlePulse {
-                        0%, 100% { transform: scale(1); }
-                        50% { transform: scale(1.03); }
-                      }
-                      .zalo-button-pulse {
-                        animation: gentlePulse 2s ease-in-out infinite;
-                      }
-                    `}} />
-                    <Button
-                      type="default"
-                      size="large"
-                      onClick={handleZaloContact}
-                      className="zalo-button-pulse w-full transition-all duration-300 hover:opacity-90 hover:shadow-lg"
-                      style={{ backgroundColor: "#0068FF", color: "white", borderColor: "#0068FF" }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#0052CC";
-                        e.currentTarget.style.animation = "none";
-                        e.currentTarget.style.transform = "translateY(-2px) scale(1.05)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "#0068FF";
-                        e.currentTarget.style.animation = "";
-                        e.currentTarget.style.transform = "";
-                      }}
-                    >
-                      <div className="flex items-center justify-center gap-2">
-                        <img
-                          src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Icon_of_Zalo.svg/2048px-Icon_of_Zalo.svg.png"
-                          alt="Zalo"
-                          className="h-5 w-5 transition-transform duration-300 group-hover:scale-110"
-                        />
-                        <span>Liên hệ Zalo</span>
-                      </div>
-                    </Button>
                   </div>
                 </>
               )}
@@ -411,15 +360,11 @@ const ProductDetailPage = () => {
           </Col>
         </Row>
 
-        {/* Product Description Tabs */}
+        {/* Product Description */}
         <div className="mb-12 rounded-lg bg-white p-6 shadow-sm">
-          <Tabs
-            defaultActiveKey="description"
-            items={[
-              {
-                key: "description",
-                label: "Mô tả sản phẩm",
-                children: (
+          <Title level={3} className="mb-4">
+            Mô tả sản phẩm
+          </Title>
                   <div className="py-4">
                     {product.description ? (
                       <div dangerouslySetInnerHTML={{ __html: product.description }} />
@@ -427,15 +372,6 @@ const ProductDetailPage = () => {
                       <Text type="secondary">Chưa có mô tả sản phẩm</Text>
                     )}
                   </div>
-                ),
-              },
-              {
-                key: "reviews",
-                label: "Đánh giá",
-                children: <ProductReviews productId={productId} />,
-              },
-            ]}
-          />
         </div>
 
         {/* Related Products */}
@@ -472,116 +408,6 @@ const ProductDetailPage = () => {
               ))}
             </Row>
           </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// Component hiển thị đánh giá sản phẩm
-const ProductReviews = ({ productId: _productId }: { productId: number }) => {
-  // TODO: Lấy đánh giá từ API sử dụng _productId
-  // Tạm thời sử dụng dữ liệu mẫu
-  const reviews = [
-    {
-      id: 1,
-      customerName: "Nguyễn Văn A",
-      rating: 5,
-      comment: "Sản phẩm rất đẹp, chất lượng tốt. Đóng gói cẩn thận, giao hàng nhanh. Rất hài lòng!",
-      date: "2024-11-01",
-      images: [] as string[],
-    },
-    {
-      id: 2,
-      customerName: "Trần Thị B",
-      rating: 5,
-      comment: "Hộp quà rất tinh tế, sản phẩm bên trong chất lượng cao. Sẽ mua lại!",
-      date: "2024-10-28",
-      images: [] as string[],
-    },
-    {
-      id: 3,
-      customerName: "Lê Văn C",
-      rating: 4,
-      comment: "Sản phẩm đẹp nhưng giá hơi cao. Chất lượng tốt.",
-      date: "2024-10-25",
-      images: [] as string[],
-    },
-  ];
-
-  const averageRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
-  const ratingCounts = [5, 4, 3, 2, 1].map((star) => ({
-    star,
-    count: reviews.filter((r) => r.rating === star).length,
-    percentage: reviews.length > 0 ? (reviews.filter((r) => r.rating === star).length / reviews.length) * 100 : 0,
-  }));
-
-  return (
-    <div className="py-4">
-      {/* Rating Summary */}
-      <div className="mb-8 rounded-lg bg-gray-50 p-6">
-        <Row gutter={24}>
-          <Col xs={24} md={8} className="text-center">
-            <div className="mb-2">
-              <Text strong className="text-4xl">
-                {averageRating.toFixed(1)}
-              </Text>
-              <Text className="text-xl text-gray-500">/5</Text>
-            </div>
-            <Rate disabled value={averageRating} allowHalf className="mb-2" />
-            <div>
-              <Text type="secondary">({reviews.length} đánh giá)</Text>
-            </div>
-          </Col>
-          <Col xs={24} md={16}>
-            <div className="space-y-2">
-              {ratingCounts.map(({ star, count, percentage }) => (
-                <div key={star} className="flex items-center gap-2">
-                  <Text className="w-12 text-sm">{star} sao</Text>
-                  <div className="flex-1">
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                      <div className="h-full bg-yellow-400" style={{ width: `${percentage}%` }} />
-                    </div>
-                  </div>
-                  <Text className="w-12 text-right text-sm text-gray-500">({count})</Text>
-                </div>
-              ))}
-            </div>
-          </Col>
-        </Row>
-      </div>
-
-      {/* Reviews List */}
-      <div className="space-y-6">
-        {reviews.length === 0 ? (
-          <div className="py-8 text-center">
-            <Text type="secondary">Chưa có đánh giá nào</Text>
-          </div>
-        ) : (
-          reviews.map((review) => (
-            <div key={review.id} className="border-b border-gray-200 pb-6 last:border-b-0">
-              <div className="mb-3 flex items-start gap-3">
-                <Avatar icon={<UserOutlined />} />
-                <div className="flex-1">
-                  <div className="mb-2 flex items-center gap-2">
-                    <Text strong>{review.customerName}</Text>
-                    <Rate disabled value={review.rating} className="text-sm" />
-                    <Text type="secondary" className="text-xs">
-                      {new Date(review.date).toLocaleDateString("vi-VN")}
-                    </Text>
-                  </div>
-                  <Text>{review.comment}</Text>
-                  {review.images && review.images.length > 0 && (
-                    <div className="mt-3 flex gap-2">
-                      {review.images.map((img, idx) => (
-                        <Image key={idx} src={img} alt={`Review image ${idx + 1}`} width={80} height={80} className="rounded" />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))
         )}
       </div>
     </div>

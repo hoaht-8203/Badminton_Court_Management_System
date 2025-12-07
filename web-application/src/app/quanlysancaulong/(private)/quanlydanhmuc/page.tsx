@@ -226,12 +226,6 @@ const ProductInformation = ({
                           <Divider size="small" style={{ margin: "4px 0" }} />
 
                           <div className="flex">
-                            <div className="w-32 font-medium">Loại thực đơn:</div>
-                            <div>{record.menuType || "-"}</div>
-                          </div>
-                          <Divider size="small" style={{ margin: "4px 0" }} />
-
-                          <div className="flex">
                             <div className="w-32 font-medium">Kinh doanh:</div>
                             <div>
                               <Tag color={isActive ? "green" : "red"}>{isActive ? "Kinh doanh" : "Ngừng kinh doanh"}</Tag>

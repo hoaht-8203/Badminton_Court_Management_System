@@ -57,7 +57,116 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
                 }
             }
 
+            // Validate không trùng thời gian với các bảng giá khác
+            var existingPriceTables = await _context.PriceTables
+                .Where(pt => pt.IsActive)
+                .ToListAsync();
+
+            foreach (var existing in existingPriceTables)
+            {
+                // Nếu bảng giá hiện tại không giới hạn thời gian
+                if (!existing.EffectiveFrom.HasValue && !existing.EffectiveTo.HasValue)
+                {
+                    throw new ApiException(
+                        "Không thể tạo bảng giá khi đã có bảng giá không giới hạn thời gian đang hoạt động",
+                        System.Net.HttpStatusCode.BadRequest
+                    );
+                }
+
+                // Nếu bảng giá mới không giới hạn thời gian
+                if (!request.EffectiveFrom.HasValue && !request.EffectiveTo.HasValue)
+                {
+                    throw new ApiException(
+                        "Không thể tạo bảng giá không giới hạn thời gian khi đã có bảng giá khác đang hoạt động",
+                        System.Net.HttpStatusCode.BadRequest
+                    );
+                }
+
+                // Kiểm tra overlap
+                bool hasOverlap = false;
+                if (request.EffectiveFrom.HasValue && request.EffectiveTo.HasValue &&
+                    existing.EffectiveFrom.HasValue && existing.EffectiveTo.HasValue)
+                {
+                    // Cả hai đều có thời gian cụ thể
+                    hasOverlap = request.EffectiveFrom.Value <= existing.EffectiveTo.Value &&
+                                 request.EffectiveTo.Value >= existing.EffectiveFrom.Value;
+                }
+                else if (request.EffectiveFrom.HasValue && request.EffectiveTo.HasValue)
+                {
+                    // Bảng giá mới có thời gian, bảng giá cũ không giới hạn
+                    if (!existing.EffectiveFrom.HasValue && !existing.EffectiveTo.HasValue)
+                    {
+                        hasOverlap = true;
+                    }
+                    // Bảng giá mới có thời gian, bảng giá cũ chỉ có từ ngày
+                    else if (existing.EffectiveFrom.HasValue && !existing.EffectiveTo.HasValue)
+                    {
+                        hasOverlap = request.EffectiveTo.Value >= existing.EffectiveFrom.Value;
+                    }
+                    // Bảng giá mới có thời gian, bảng giá cũ chỉ có đến ngày
+                    else if (!existing.EffectiveFrom.HasValue && existing.EffectiveTo.HasValue)
+                    {
+                        hasOverlap = request.EffectiveFrom.Value <= existing.EffectiveTo.Value;
+                    }
+                }
+                else if (!request.EffectiveFrom.HasValue && !request.EffectiveTo.HasValue)
+                {
+                    // Bảng giá mới không giới hạn
+                    hasOverlap = true;
+                }
+                else if (request.EffectiveFrom.HasValue && !request.EffectiveTo.HasValue)
+                {
+                    // Bảng giá mới chỉ có từ ngày
+                    if (!existing.EffectiveFrom.HasValue && !existing.EffectiveTo.HasValue)
+                    {
+                        hasOverlap = true;
+                    }
+                    else if (existing.EffectiveFrom.HasValue && existing.EffectiveTo.HasValue)
+                    {
+                        hasOverlap = request.EffectiveFrom.Value <= existing.EffectiveTo.Value;
+                    }
+                    else if (existing.EffectiveFrom.HasValue && !existing.EffectiveTo.HasValue)
+                    {
+                        hasOverlap = true; // Cả hai đều không có ngày kết thúc
+                    }
+                    else if (!existing.EffectiveFrom.HasValue && existing.EffectiveTo.HasValue)
+                    {
+                        hasOverlap = request.EffectiveFrom.Value <= existing.EffectiveTo.Value;
+                    }
+                }
+                else if (!request.EffectiveFrom.HasValue && request.EffectiveTo.HasValue)
+                {
+                    // Bảng giá mới chỉ có đến ngày
+                    if (!existing.EffectiveFrom.HasValue && !existing.EffectiveTo.HasValue)
+                    {
+                        hasOverlap = true;
+                    }
+                    else if (existing.EffectiveFrom.HasValue && existing.EffectiveTo.HasValue)
+                    {
+                        hasOverlap = request.EffectiveTo.Value >= existing.EffectiveFrom.Value;
+                    }
+                    else if (existing.EffectiveFrom.HasValue && !existing.EffectiveTo.HasValue)
+                    {
+                        hasOverlap = request.EffectiveTo.Value >= existing.EffectiveFrom.Value;
+                    }
+                    else if (!existing.EffectiveFrom.HasValue && existing.EffectiveTo.HasValue)
+                    {
+                        hasOverlap = true; // Cả hai đều không có ngày bắt đầu
+                    }
+                }
+
+                if (hasOverlap)
+                {
+                    throw new ApiException(
+                        $"Không thể tạo bảng giá trùng thời gian với bảng giá '{existing.Name}' đang hoạt động",
+                        System.Net.HttpStatusCode.BadRequest
+                    );
+                }
+            }
+
             var entity = _mapper.Map<PriceTable>(request);
+            // Tự động set isActive = false khi tạo mới
+            entity.IsActive = false;
             var ranges = request.TimeRanges ?? new List<PriceTimeRangeDto>();
             entity.TimeRanges = ranges
                 .Where(r => r != null)
@@ -65,6 +174,51 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
                 .ToList();
             _context.Add(entity);
             await _context.SaveChangesAsync();
+
+            // Xử lý products nếu có
+            if (request.Products != null && request.Products.Any())
+            {
+                var productIds = request.Products.Select(i => i.ProductId).ToList();
+                var validProducts = await _context
+                    .Products.Where(p => productIds.Contains(p.Id))
+                    .ToListAsync();
+
+                // Validate giá >= giá vốn
+                foreach (var item in request.Products)
+                {
+                    var product = validProducts.FirstOrDefault(p => p.Id == item.ProductId);
+                    if (product != null && item.OverrideSalePrice.HasValue)
+                    {
+                        if (item.OverrideSalePrice.Value < product.CostPrice)
+                        {
+                            throw new ApiException(
+                                $"Giá áp dụng của sản phẩm '{product.Name}' phải lớn hơn hoặc bằng giá vốn ({product.CostPrice})",
+                                System.Net.HttpStatusCode.BadRequest
+                            );
+                        }
+                    }
+                }
+
+                // Thêm products vào bảng giá
+                foreach (var it in request.Products)
+                {
+                    if (!validProducts.Any(p => p.Id == it.ProductId))
+                        continue;
+                    entity.PriceTableProducts.Add(
+                        new PriceTableProduct
+                        {
+                            PriceTableId = entity.Id,
+                            ProductId = it.ProductId,
+                            OverrideSalePrice = it.OverrideSalePrice,
+                        }
+                    );
+                }
+                await _context.SaveChangesAsync();
+            }
+        }
+        catch (ApiException)
+        {
+            throw;
         }
         catch (DbUpdateException ex)
         {
@@ -164,6 +318,16 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
         var entity = await _context.Set<PriceTable>().FirstOrDefaultAsync(x => x.Id == request.Id);
         if (entity == null)
             throw new ArgumentException($"Bảng giá không tồn tại: {request.Id}");
+
+        // Không cho phép xóa bảng giá đang được kích hoạt
+        if (entity.IsActive)
+        {
+            throw new ApiException(
+                $"Không thể xóa bảng giá '{entity.Name}' vì đang được kích hoạt. Vui lòng tắt kích hoạt trước khi xóa.",
+                System.Net.HttpStatusCode.BadRequest
+            );
+        }
+
         _context.Remove(entity);
         await _context.SaveChangesAsync();
     }
@@ -179,15 +343,30 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
         var productIds = (request.Products ?? new List<PriceTableProductItem>())
             .Select(i => i.ProductId)
             .ToList();
-        var validIds = await _context
+        var validProducts = await _context
             .Products.Where(p => productIds.Contains(p.Id))
-            .Select(p => p.Id)
             .ToListAsync();
+
+        // Validate giá >= giá vốn
+        foreach (var item in request.Products ?? new List<PriceTableProductItem>())
+        {
+            var product = validProducts.FirstOrDefault(p => p.Id == item.ProductId);
+            if (product != null && item.OverrideSalePrice.HasValue)
+            {
+                if (item.OverrideSalePrice.Value < product.CostPrice)
+                {
+                    throw new ApiException(
+                        $"Giá áp dụng của sản phẩm '{product.Name}' phải lớn hơn hoặc bằng giá vốn ({product.CostPrice})",
+                        System.Net.HttpStatusCode.BadRequest
+                    );
+                }
+            }
+        }
 
         table.PriceTableProducts.Clear();
         foreach (var it in request.Products ?? new List<PriceTableProductItem>())
         {
-            if (!validIds.Contains(it.ProductId))
+            if (!validProducts.Any(p => p.Id == it.ProductId))
                 continue;
             table.PriceTableProducts.Add(
                 new PriceTableProduct
@@ -235,6 +414,23 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
         var entity = await _context.PriceTables.FirstOrDefaultAsync(x => x.Id == id);
         if (entity == null)
             throw new ArgumentException($"Bảng giá không tồn tại: {id}");
+
+        // Nếu đang cố kích hoạt bảng giá
+        if (isActive)
+        {
+            // Kiểm tra xem đã có bảng giá nào đang kích hoạt chưa
+            var activePriceTable = await _context.PriceTables
+                .FirstOrDefaultAsync(x => x.IsActive && x.Id != id);
+
+            if (activePriceTable != null)
+            {
+                throw new ApiException(
+                    $"Hiện có bảng giá '{activePriceTable.Name}' đang được áp dụng. Vui lòng tắt bảng giá đó trước khi kích hoạt bảng giá mới.",
+                    System.Net.HttpStatusCode.BadRequest
+                );
+            }
+        }
+
         entity.IsActive = isActive;
         await _context.SaveChangesAsync();
     }

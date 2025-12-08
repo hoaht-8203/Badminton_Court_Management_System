@@ -42,19 +42,7 @@ export interface ListProductRequest {
      * @type {string}
      * @memberof ListProductRequest
      */
-    menuType?: string | null;
-    /**
-     * 
-     * @type {string}
-     * @memberof ListProductRequest
-     */
     category?: string | null;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ListProductRequest
-     */
-    isDirectSale?: boolean | null;
 }
 
 /**
@@ -77,9 +65,7 @@ export function ListProductRequestFromJSONTyped(json: any, ignoreDiscriminator: 
         'id': json['id'] == null ? undefined : json['id'],
         'code': json['code'] == null ? undefined : json['code'],
         'name': json['name'] == null ? undefined : json['name'],
-        'menuType': json['menuType'] == null ? undefined : json['menuType'],
         'category': json['category'] == null ? undefined : json['category'],
-        'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
     };
 }
 
@@ -97,9 +83,7 @@ export function ListProductRequestToJSONTyped(value?: ListProductRequest | null,
         'id': value['id'],
         'code': value['code'],
         'name': value['name'],
-        'menuType': value['menuType'],
         'category': value['category'],
-        'isDirectSale': value['isDirectSale'],
     };
 }
 

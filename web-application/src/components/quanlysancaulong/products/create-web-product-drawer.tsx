@@ -5,7 +5,7 @@ import { useListCategories, useCreateCategory } from "@/hooks/useCategories";
 import { ApiError } from "@/lib/axios";
 import { productService } from "@/services/productService";
 import { CreateProductRequest } from "@/types-openapi/api";
-import { Button, Checkbox, Col, Drawer, Form, Input, InputNumber, Row, Space, Upload, UploadFile, UploadProps, message, Select, Divider } from "antd";
+import { Button, Checkbox, Col, Drawer, Form, Input, InputNumber, Row, Space, Upload, UploadFile, UploadProps, message, Select, Divider, Alert } from "antd";
 import { Tooltip } from "antd";
 import { InfoCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
@@ -55,8 +55,8 @@ const CreateWebProductDrawer = ({ open, onClose }: CreateWebProductDrawerProps) 
 
   useEffect(() => {
     if (open) {
-      // Auto set menuType to "Khác" and isDisplayOnWeb to true
-      form.setFieldsValue({ menuType: "Khác", isDisplayOnWeb: true });
+      // Auto set isDisplayOnWeb to true
+      form.setFieldsValue({ isDisplayOnWeb: true });
       // generate code on open
       generateNextCode();
     } else {
@@ -69,10 +69,9 @@ const CreateWebProductDrawer = ({ open, onClose }: CreateWebProductDrawerProps) 
   }, [open]);
 
   const onSubmit = async (values: CreateProductRequest) => {
-    // Ensure menuType is "Khác" and isDisplayOnWeb is true
+    // Ensure isDisplayOnWeb is true
     const finalValues = {
       ...values,
-      menuType: "Khác",
       isDisplayOnWeb: true,
     };
 
@@ -114,15 +113,20 @@ const CreateWebProductDrawer = ({ open, onClose }: CreateWebProductDrawerProps) 
 
   return (
     <Drawer title="Thêm sản phẩm bán hàng" width={720} onClose={onClose} open={open} destroyOnClose>
+      <Alert
+        message="Lưu ý"
+        description="Các sản phẩm được thêm ở đây sẽ hiển thị ở trang chủ sản phẩm."
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+      />
       <Form
         form={form}
         layout="vertical"
         onFinish={onSubmit}
         initialValues={{
-          isDirectSale: true,
           manageInventory: false,
           isDisplayOnWeb: true,
-          menuType: "Khác",
           maxStock: 999,
           stock: 0,
           minStock: 0,
@@ -173,7 +177,7 @@ const CreateWebProductDrawer = ({ open, onClose }: CreateWebProductDrawerProps) 
         </Row>
 
         <Row gutter={16}>
-          <Col span={24}>
+          <Col span={12}>
             <Form.Item name="categoryId" label="Nhóm hàng" rules={[{ required: true, message: "Vui lòng chọn nhóm hàng" }]}>
               <Select
                 placeholder="Chọn nhóm hàng"
@@ -221,14 +225,6 @@ const CreateWebProductDrawer = ({ open, onClose }: CreateWebProductDrawerProps) 
                   </div>
                 )}
               />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item name="position" label="Vị trí">
-              <Input />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -287,11 +283,6 @@ const CreateWebProductDrawer = ({ open, onClose }: CreateWebProductDrawerProps) 
         </Row>
 
         <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item name="isDirectSale" valuePropName="checked" label="Bán trực tiếp">
-              <Checkbox />
-            </Form.Item>
-          </Col>
           <Col span={12}>
             <Form.Item name="manageInventory" valuePropName="checked" label="Quản lý tồn kho">
               <Checkbox onChange={(e) => setManageInventory(e.target.checked)} />

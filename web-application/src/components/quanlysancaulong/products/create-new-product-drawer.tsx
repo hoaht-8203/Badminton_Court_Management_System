@@ -15,11 +15,10 @@ type CreateNewProductDrawerProps = {
   open: boolean;
   onClose: () => void;
   title?: string;
-  presetMenuType?: string; // e.g. "Khác"
   isService?: boolean; // when true, hide inventory management controls
 };
 
-const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isService }: CreateNewProductDrawerProps) => {
+const CreateNewProductDrawer = ({ open, onClose, title, isService }: CreateNewProductDrawerProps) => {
   const [form] = Form.useForm<CreateProductRequest>();
   const createMutation = useCreateProduct();
   const createCategoryMutation = useCreateCategory();
@@ -60,10 +59,6 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
 
   useEffect(() => {
     if (open) {
-      // preset menu type if provided
-      if (presetMenuType) {
-        form.setFieldsValue({ menuType: presetMenuType });
-      }
       // generate code on open
       generateNextCode();
     } else {
@@ -120,10 +115,8 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
         layout="vertical"
         onFinish={onSubmit}
         initialValues={{
-          isDirectSale: true,
           manageInventory: false,
           isDisplayOnWeb: false,
-          menuType: presetMenuType,
           maxStock: 999,
           stock: 0,
           minStock: 0,
@@ -175,20 +168,6 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
 
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item name="menuType" label="Loại thực đơn" rules={[{ required: true, message: "Vui lòng chọn loại thực đơn" }]}>
-              <Select
-                options={[
-                  { label: "Đồ ăn", value: "Đồ ăn" },
-                  { label: "Đồ uống", value: "Đồ uống" },
-                  { label: "Khác", value: "Khác" },
-                ]}
-                placeholder="Chọn loại thực đơn"
-                allowClear={!isService}
-                disabled={!!isService}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
             <Form.Item name="categoryId" label="Nhóm hàng" rules={[{ required: true, message: "Vui lòng chọn nhóm hàng" }]}>
               <Select
                 placeholder="Chọn nhóm hàng"
@@ -236,14 +215,6 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
                   </div>
                 )}
               />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item name="position" label="Vị trí">
-              <Input />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -303,11 +274,6 @@ const CreateNewProductDrawer = ({ open, onClose, title, presetMenuType, isServic
 
         {!isService && (
           <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="isDirectSale" valuePropName="checked" label="Bán trực tiếp">
-                <Checkbox />
-              </Form.Item>
-            </Col>
             <Col span={12}>
               <Form.Item name="manageInventory" valuePropName="checked" label="Quản lý tồn kho">
                 <Checkbox onChange={(e) => setManageInventory(e.target.checked)} />

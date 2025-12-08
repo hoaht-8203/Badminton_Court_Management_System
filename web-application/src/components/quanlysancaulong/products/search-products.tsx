@@ -25,7 +25,6 @@ const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
       code: values.code || undefined,
       name: values.name || undefined,
       category: values.category || undefined,
-      menuType: values.menuType || undefined,
       isActive: typeof values.isActive === "boolean" ? values.isActive : undefined,
       priceSort: values.priceSort,
     });
@@ -78,15 +77,6 @@ const SearchProducts = ({ onSearch, onReset }: SearchProductsProps) => {
                   })),
                 ]}
               />
-            </Form.Item>
-          </Col>
-          <Col span={6}>
-            <Form.Item<ProductFilters> label="Loại thực đơn" name="menuType">
-              <Select allowClear placeholder="Chọn loại">
-                <Select.Option value="Đồ ăn">Đồ ăn</Select.Option>
-                <Select.Option value="Đồ uống">Đồ uống</Select.Option>
-                <Select.Option value="Khác">Khác</Select.Option>
-              </Select>
             </Form.Item>
           </Col>
           <Col span={6}>

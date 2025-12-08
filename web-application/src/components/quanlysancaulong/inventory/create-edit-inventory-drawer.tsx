@@ -103,6 +103,10 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
 
   const onFinish = async (values: any, isComplete = false) => {
     try {
+      if (items.length === 0) {
+        messageApi.warning("Vui lòng thêm ít nhất một sản phẩm vào danh sách kiểm kê");
+        return;
+      }
       if (isEdit && !isDraft) {
         messageApi.error("Chỉ phiếu tạm mới được phép cập nhật");
         return;
@@ -201,6 +205,10 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
   };
 
   const handleSaveDraft = () => {
+    if (items.length === 0) {
+      messageApi.warning("Vui lòng thêm ít nhất một sản phẩm vào danh sách kiểm kê");
+      return;
+    }
     Modal.confirm({
       title: "Xác nhận lưu nháp",
       content: "Bạn có chắc chắn muốn lưu nháp phiếu kiểm kê? Trạng thái sẽ là: Phiếu tạm",
@@ -213,6 +221,10 @@ const CreateEditInventoryDrawer: React.FC<CreateEditInventoryDrawerProps> = ({ o
   };
 
   const handleComplete = () => {
+    if (items.length === 0) {
+      messageApi.warning("Vui lòng thêm ít nhất một sản phẩm vào danh sách kiểm kê");
+      return;
+    }
     Modal.confirm({
       title: "Xác nhận hoàn thành",
       content: "Bạn có chắc chắn muốn hoàn thành phiếu kiểm kê? Trạng thái sẽ là: Đã cân bằng",

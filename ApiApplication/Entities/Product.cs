@@ -16,9 +16,6 @@ public class Product : BaseEntity
     [MaxLength(255)]
     public required string Name { get; set; }
 
-    [MaxLength(100)]
-    public string? MenuType { get; set; }
-
     public int? CategoryId { get; set; }
     public virtual Category? Category { get; set; }
 
@@ -28,7 +25,6 @@ public class Product : BaseEntity
     public decimal CostPrice { get; set; }
     public decimal SalePrice { get; set; }
 
-    public bool IsDirectSale { get; set; } = true;
     public bool IsActive { get; set; } = true;
     public bool IsDisplayOnWeb { get; set; } = false;
 

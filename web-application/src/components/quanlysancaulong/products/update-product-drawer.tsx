@@ -131,18 +131,6 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
 
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="menuType" label="Loại thực đơn" rules={[{ required: true, message: "Vui lòng chọn loại thực đơn" }]}>
-                <Select
-                  options={[
-                    { label: "Đồ ăn", value: "Đồ ăn" },
-                    { label: "Đồ uống", value: "Đồ uống" },
-                    { label: "Khác", value: "Khác" },
-                  ]}
-                  allowClear
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
               <Form.Item name="categoryId" label="Nhóm hàng" rules={[{ required: true, message: "Vui lòng chọn nhóm hàng" }]}>
                 <Select
                   placeholder="Chọn nhóm hàng"
@@ -190,14 +178,6 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
                     </div>
                   )}
                 />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item name="position" label="Vị trí">
-                <Input />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -253,17 +233,12 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
           </Row>
 
           <Row gutter={16}>
-            <Col span={8}>
-              <Form.Item name="isDirectSale" valuePropName="checked" label="Bán trực tiếp">
-                <Checkbox />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
+            <Col span={12}>
               <Form.Item name="manageInventory" valuePropName="checked" label="Quản lý tồn kho">
                 <Checkbox onChange={(e) => setManageInventory(e.target.checked)} />
               </Form.Item>
             </Col>
-            <Col span={8}>
+            <Col span={12}>
               <Form.Item name="isDisplayOnWeb" valuePropName="checked" label="Hiện trên web">
                 <Checkbox />
               </Form.Item>

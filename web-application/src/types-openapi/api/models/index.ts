@@ -213,6 +213,8 @@ export * from './ExtendVoucherRequest';
 export * from './Feedback';
 export * from './ForgotPasswordRequest';
 export * from './GetAvailableVouchersRequest';
+export * from './GetCurrentAppliedPriceResponse';
+export * from './GetCurrentAppliedPriceResponseListApiResponse';
 export * from './HeatmapCellDto';
 export * from './HeatmapCellDtoArrayApiResponse';
 export * from './Int32ApiResponse';

@@ -778,16 +778,16 @@ const ProductsSelector = ({
     }
 
     if (priceId) {
-    const products: PriceTableProductItem[] = selected.map((id) => {
-      const row = rows.find((r: any) => r.id === id);
-      const value = rowsState[id] ?? row?.salePrice;
-      return { productId: id, overrideSalePrice: value };
-    });
+      const products: PriceTableProductItem[] = selected.map((id) => {
+        const row = rows.find((r: any) => r.id === id);
+        const value = rowsState[id] ?? row?.salePrice;
+        return { productId: id, overrideSalePrice: value };
+      });
 
-    const payload: SetPriceTableProductsRequest = {
-      priceTableId: priceId,
-      products: products,
-    };
+      const payload: SetPriceTableProductsRequest = {
+        priceTableId: priceId,
+        products: products,
+      };
 
       setProducts.mutate(payload, {
         onSuccess: () => message.success("Đã lưu sản phẩm áp dụng"),
@@ -876,9 +876,9 @@ const ProductsSelector = ({
                   // Khi tạo mới (isCreate), để trống. Khi edit (có priceId), hiển thị giá từ rowsState hoặc giá mặc định
                   const displayValue = isCreate ? currentPrice : (currentPrice ?? r.salePrice);
                   return (
-                <InputNumber
+                    <InputNumber
                       min={costPrice}
-                  style={{ width: 140 }}
+                      style={{ width: 140 }}
                       value={displayValue}
                       placeholder={isCreate ? "Nhập giá" : undefined}
                       onChange={async (val) => {
@@ -889,9 +889,9 @@ const ProductsSelector = ({
                         }
                         setRowsState((s) => ({ ...s, [r.id]: newPrice ?? undefined }));
                       }}
-                  formatter={(value) => value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""}
-                  parser={(value) => value ? value.replace(/\$\s?|(,*)/g, "") : ""}
-                />
+                      formatter={(value) => (value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "")}
+                      parser={(value) => (value ? value.replace(/\$\s?|(,*)/g, "") : "")}
+                    />
                   );
                 };
                 return <CostCellForValidation productId={r.id} currentPrice={rowsState[r.id]} />;
@@ -908,13 +908,13 @@ const ProductsSelector = ({
 
       <div className="mt-4 text-right">
         {!isCreate && (
-        <Button type="primary" onClick={onSave}>
-          Lưu
-        </Button>
+          <Button type="primary" onClick={onSave}>
+            Lưu
+          </Button>
         )}
         {isCreate && (
           <div className="text-sm text-gray-500">
-            Sản phẩm đã chọn sẽ được lưu cùng với bảng giá khi bạn nhấn "Lưu" ở tab "Thông tin"
+            Sản phẩm đã chọn sẽ được lưu cùng với bảng giá khi bạn nhấn &quot;Lưu&quot; ở tab &quot;Thông tin&quot;
           </div>
         )}
       </div>

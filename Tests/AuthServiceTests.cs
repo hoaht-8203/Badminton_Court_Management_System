@@ -207,21 +207,17 @@ public class AuthServiceTests
     }
 
     [TestMethod]
-    public async Task FUNC01_TC05_UserRegisterAsync_WithOptionalFields_ShouldCreateUserSuccessfully()
+    public async Task FUNC01_TC05_UserRegisterAsync_WithMinimalRequiredFields_ShouldCreateUserSuccessfully()
     {
         // Arrange
+        // Test với chỉ các trường bắt buộc có trong form đăng ký: UserName, FullName, Email, Password, PhoneNumber
         var request = new RegisterRequest
         {
-            Email = "test@example.com",
-            UserName = "testuser",
+            Email = "test2@example.com",
+            UserName = "testuser2",
             Password = "Test123!@#",
-            FullName = "Test User",
-            PhoneNumber = "0123456789",
-            DateOfBirth = DateOnly.FromDateTime(DateTime.Now.AddYears(-25)),
-            Address = "123 Test St",
-            City = "Test City",
-            District = "Test District",
-            Ward = "Test Ward",
+            FullName = "Test User 2",
+            PhoneNumber = "0987654321",
         };
 
         _userManagerMock.Setup(x => x.FindByEmailAsync(It.IsAny<string>())).ReturnsAsync((ApplicationUser?)null);
@@ -238,10 +234,13 @@ public class AuthServiceTests
 
         // Assert
         Assert.IsNotNull(result);
-        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Email == request.Email);
+        Assert.AreEqual(request.Email, result.Email);
+        Assert.AreEqual(request.UserName, result.UserName);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        Assert.IsNotNull(user);
+        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == user.Id);
         Assert.IsNotNull(customer);
-        Assert.AreEqual(request.DateOfBirth, customer.DateOfBirth);
-        Assert.AreEqual(request.Address, customer.Address);
+        Assert.AreEqual(request.PhoneNumber, customer.PhoneNumber);
     }
 
     // FUNC02: LoginAsync

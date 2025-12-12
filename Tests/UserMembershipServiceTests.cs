@@ -35,6 +35,7 @@ public class UserMembershipServiceTests
     private ApplicationDbContext _context = null!;
     private Mock<IPaymentService> _paymentServiceMock = null!;
     private Mock<IConfiguration> _configurationMock = null!;
+    private IConfiguration _configuration = null!;
     private Mock<ICurrentUser> _currentUserMock = null!;
     private Mock<UserManager<ApplicationUser>> _userManagerMock = null!;
     private IMapper _mapper = null!;
@@ -64,7 +65,24 @@ public class UserMembershipServiceTests
         );
 
         _paymentServiceMock = new Mock<IPaymentService>();
+        
+        // Create a real IConfiguration instead of mock for GetValue extension method
+        var configurationBuilder = new Microsoft.Extensions.Configuration.ConfigurationBuilder();
+        configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            { "Booking:HoldMinutes", "5" }
+        });
+        var configuration = configurationBuilder.Build();
         _configurationMock = new Mock<IConfiguration>();
+        _configurationMock.Setup(x => x["Booking:HoldMinutes"]).Returns("5");
+        // Setup GetSection to return a section that has the value
+        var sectionMock = new Mock<IConfigurationSection>();
+        sectionMock.Setup(x => x["HoldMinutes"]).Returns("5");
+        sectionMock.Setup(x => x.Value).Returns("5");
+        _configurationMock.Setup(x => x.GetSection("Booking")).Returns(sectionMock.Object);
+        
+        // Use real configuration for GetValue to work
+        _configuration = configuration;
 
         _mapper = TestHelpers.BuildMapper();
 
@@ -72,7 +90,7 @@ public class UserMembershipServiceTests
             _context,
             _mapper,
             _paymentServiceMock.Object,
-            _configurationMock.Object,
+            _configuration, // Use real configuration for GetValue extension method
             _currentUserMock.Object,
             _userManagerMock.Object
         );
@@ -152,6 +170,8 @@ public class UserMembershipServiceTests
         _paymentServiceMock.Setup(x => x.CreatePaymentForMembershipAsync(It.IsAny<CreatePaymentForMembershipRequest>()))
             .ReturnsAsync(new DetailPaymentResponse { Id = Guid.NewGuid().ToString(), Amount = membership.Price });
         _configurationMock.Setup(x => x["Booking:HoldMinutes"]).Returns("5");
+        // GetValue is an extension method, setup the indexer instead
+        // The extension method will use the indexer internally
 
         // Act
         var result = await _sut.CreateForCurrentUserAsync(request);
@@ -304,6 +324,8 @@ public class UserMembershipServiceTests
         _paymentServiceMock.Setup(x => x.CreatePaymentForMembershipAsync(It.IsAny<CreatePaymentForMembershipRequest>()))
             .ReturnsAsync(new DetailPaymentResponse { Id = Guid.NewGuid().ToString(), Amount = membership.Price });
         _configurationMock.Setup(x => x["Booking:HoldMinutes"]).Returns("5");
+        // GetValue is an extension method, setup the indexer instead
+        // The extension method will use the indexer internally
 
         // Act
         var result = await _sut.ExtendPaymentAsync(request);
@@ -387,6 +409,8 @@ public class UserMembershipServiceTests
         _paymentServiceMock.Setup(x => x.CreatePaymentForMembershipAsync(It.IsAny<CreatePaymentForMembershipRequest>()))
             .ReturnsAsync(new DetailPaymentResponse { Id = Guid.NewGuid().ToString(), Amount = membership.Price });
         _configurationMock.Setup(x => x["Booking:HoldMinutes"]).Returns("5");
+        // GetValue is an extension method, setup the indexer instead
+        // The extension method will use the indexer internally
 
         // Act
         var result = await _sut.ExtendPaymentAsync(request);
@@ -424,6 +448,8 @@ public class UserMembershipServiceTests
         _paymentServiceMock.Setup(x => x.CreatePaymentForMembershipAsync(It.IsAny<CreatePaymentForMembershipRequest>()))
             .ReturnsAsync(new DetailPaymentResponse { Id = Guid.NewGuid().ToString(), Amount = membership.Price });
         _configurationMock.Setup(x => x["Booking:HoldMinutes"]).Returns("5");
+        // GetValue is an extension method, setup the indexer instead
+        // The extension method will use the indexer internally
 
         // Act
         await _sut.ExtendPaymentAsync(request);

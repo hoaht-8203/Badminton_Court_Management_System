@@ -39,6 +39,7 @@ public class BookingCourtServiceTests
     private Mock<UserManager<ApplicationUser>> _userManagerMock = null!;
     private Mock<IPaymentService> _paymentServiceMock = null!;
     private Mock<IConfiguration> _configurationMock = null!;
+    private IConfiguration _configuration = null!;
     private Mock<IHubContext<BookingHub>> _hubMock = null!;
     private Mock<INotificationService> _notificationServiceMock = null!;
     private Mock<IVoucherService> _voucherServiceMock = null!;
@@ -72,6 +73,15 @@ public class BookingCourtServiceTests
 
         _paymentServiceMock = new Mock<IPaymentService>();
         _configurationMock = new Mock<IConfiguration>();
+        
+        // Create a real IConfiguration instead of mock for GetValue extension method
+        var configurationBuilder = new Microsoft.Extensions.Configuration.ConfigurationBuilder();
+        configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            { "Booking:HoldMinutes", "5" }
+        });
+        _configuration = configurationBuilder.Build();
+        
         _hubMock = new Mock<IHubContext<BookingHub>>();
         _notificationServiceMock = new Mock<INotificationService>();
         _voucherServiceMock = new Mock<IVoucherService>();
@@ -83,7 +93,7 @@ public class BookingCourtServiceTests
             _context,
             _mapper,
             _paymentServiceMock.Object,
-            _configurationMock.Object,
+            _configuration, // Use real configuration for GetValue extension method
             _hubMock.Object,
             _notificationServiceMock.Object,
             _voucherServiceMock.Object,
@@ -128,14 +138,21 @@ public class BookingCourtServiceTests
         return customer;
     }
 
-    private async Task<CourtPricingRules> SeedPricingRule(Guid courtId)
+    private async Task<CourtPricingRules> SeedPricingRule(Guid courtId, int[]? daysOfWeek = null)
     {
+        // Ensure court exists before creating pricing rule
+        var court = await _context.Courts.FindAsync(courtId);
+        if (court == null)
+        {
+            throw new InvalidOperationException($"Court with id {courtId} not found");
+        }
+        
         var rule = new CourtPricingRules
         {
             Id = Guid.NewGuid(),
             CourtId = courtId,
-            Court = await _context.Courts.FindAsync(courtId)!,
-            DaysOfWeek = new[] { 2, 3, 4, 5, 6 },
+            Court = court,
+            DaysOfWeek = daysOfWeek ?? new[] { 2, 3, 4, 5, 6 },
             StartTime = new TimeOnly(6, 0),
             EndTime = new TimeOnly(22, 0),
             PricePerHour = 100000m,
@@ -169,14 +186,17 @@ public class BookingCourtServiceTests
         // Arrange
         var court = await SeedCourt();
         var customer = await SeedCustomer();
-        await SeedPricingRule(court.Id);
-
+        // Seed pricing rule for tomorrow's day of week (convert to custom format: Monday=2..Sunday=8)
+        var tomorrow = DateTime.UtcNow.AddDays(1).Date;
+        var dayOfWeekEnum = tomorrow.DayOfWeek; // Sunday=0..Saturday=6
+        var customDayOfWeek = dayOfWeekEnum == DayOfWeek.Sunday ? 8 : (int)dayOfWeekEnum + 1; // Monday=2..Sunday=8
+        await SeedPricingRule(court.Id, daysOfWeek: new[] { customDayOfWeek });
         var request = new CreateBookingCourtRequest
         {
             CustomerId = customer.Id,
             CourtId = court.Id,
-            StartDate = DateTime.UtcNow.AddDays(1),
-            EndDate = DateTime.UtcNow.AddDays(1),
+            StartDate = tomorrow,
+            EndDate = tomorrow,
             StartTime = new TimeOnly(10, 0),
             EndTime = new TimeOnly(11, 0),
             DaysOfWeek = null,
@@ -186,6 +206,12 @@ public class BookingCourtServiceTests
         _configurationMock.Setup(x => x["Booking:HoldMinutes"]).Returns("5");
         _paymentServiceMock.Setup(x => x.CreatePaymentAsync(It.IsAny<CreatePaymentRequest>()))
             .ReturnsAsync(new DetailPaymentResponse { Id = Guid.NewGuid().ToString() });
+        
+        // Setup hub mock for SignalR
+        var clientsMock = new Mock<IClientProxy>();
+        var hubClientsMock = new Mock<IHubClients>();
+        hubClientsMock.Setup(x => x.All).Returns(clientsMock.Object);
+        _hubMock.Setup(x => x.Clients).Returns(hubClientsMock.Object);
 
         // Act
         var result = await _sut.CreateBookingCourtAsync(request);
@@ -283,14 +309,18 @@ public class BookingCourtServiceTests
         // Arrange
         var court = await SeedCourt();
         var customer = await SeedCustomer();
-        await SeedPricingRule(court.Id);
+        // Seed pricing rule for tomorrow's day of week (convert to custom format: Monday=2..Sunday=8)
+        var tomorrow = DateTime.UtcNow.AddDays(1).Date;
+        var dayOfWeekEnum = tomorrow.DayOfWeek; // Sunday=0..Saturday=6
+        var customDayOfWeek = dayOfWeekEnum == DayOfWeek.Sunday ? 8 : (int)dayOfWeekEnum + 1; // Monday=2..Sunday=8
+        await SeedPricingRule(court.Id, daysOfWeek: new[] { customDayOfWeek });
 
         var request = new CreateBookingCourtRequest
         {
             CustomerId = customer.Id,
             CourtId = court.Id,
-            StartDate = DateTime.UtcNow.AddDays(1),
-            EndDate = DateTime.UtcNow.AddDays(1),
+            StartDate = tomorrow,
+            EndDate = tomorrow,
             StartTime = new TimeOnly(10, 0),
             EndTime = new TimeOnly(11, 0),
             VoucherId = 1,
@@ -302,6 +332,12 @@ public class BookingCourtServiceTests
             .ReturnsAsync(new ValidateVoucherResponse { IsValid = true, DiscountAmount = 10000m });
         _paymentServiceMock.Setup(x => x.CreatePaymentAsync(It.IsAny<CreatePaymentRequest>()))
             .ReturnsAsync(new DetailPaymentResponse { Id = Guid.NewGuid().ToString() });
+        
+        // Setup hub mock for SignalR
+        var clientsMock = new Mock<IClientProxy>();
+        var hubClientsMock = new Mock<IHubClients>();
+        hubClientsMock.Setup(x => x.All).Returns(clientsMock.Object);
+        _hubMock.Setup(x => x.Clients).Returns(hubClientsMock.Object);
 
         // Act
         var result = await _sut.CreateBookingCourtAsync(request);
@@ -322,13 +358,17 @@ public class BookingCourtServiceTests
         await _context.SaveChangesAsync();
 
         var court = await SeedCourt();
-        await SeedPricingRule(court.Id);
+        // Seed pricing rule for tomorrow's day of week (convert to custom format: Monday=2..Sunday=8)
+        var tomorrow = DateTime.UtcNow.AddDays(1).Date;
+        var dayOfWeekEnum = tomorrow.DayOfWeek; // Sunday=0..Saturday=6
+        var customDayOfWeek = dayOfWeekEnum == DayOfWeek.Sunday ? 8 : (int)dayOfWeekEnum + 1; // Monday=2..Sunday=8
+        await SeedPricingRule(court.Id, daysOfWeek: new[] { customDayOfWeek });
 
         var request = new UserCreateBookingCourtRequest
         {
             CourtId = court.Id,
-            StartDate = DateTime.UtcNow.AddDays(1),
-            EndDate = DateTime.UtcNow.AddDays(1),
+            StartDate = tomorrow,
+            EndDate = tomorrow,
             StartTime = new TimeOnly(10, 0),
             EndTime = new TimeOnly(11, 0),
         };
@@ -338,6 +378,12 @@ public class BookingCourtServiceTests
         _configurationMock.Setup(x => x["Booking:HoldMinutes"]).Returns("5");
         _paymentServiceMock.Setup(x => x.CreatePaymentAsync(It.IsAny<CreatePaymentRequest>()))
             .ReturnsAsync(new DetailPaymentResponse { Id = Guid.NewGuid().ToString() });
+        
+        // Setup hub mock for SignalR
+        var clientsMock = new Mock<IClientProxy>();
+        var hubClientsMock = new Mock<IHubClients>();
+        hubClientsMock.Setup(x => x.All).Returns(clientsMock.Object);
+        _hubMock.Setup(x => x.Clients).Returns(hubClientsMock.Object);
 
         // Act
         var result = await _sut.UserCreateBookingCourtAsync(request);
@@ -513,10 +559,15 @@ public class BookingCourtServiceTests
         await _context.BookingCourts.AddAsync(booking);
 
         // Set occurrence time to allow check-in (within -10 minutes to end time window)
-        var now = DateTime.UtcNow;
-        var occurrenceDate = DateOnly.FromDateTime(now);
-        var occurrenceStartTime = TimeOnly.FromDateTime(now.AddMinutes(-5)); // 5 minutes ago
-        var occurrenceEndTime = TimeOnly.FromDateTime(now.AddHours(1)); // 1 hour from now
+        // Need to account for Vietnam timezone (UTC+7) conversion
+        var tz = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+        var nowUtc = DateTime.UtcNow;
+        var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(nowUtc, tz);
+        
+        // Set occurrence to current local time to ensure check-in window is valid
+        var occurrenceDate = DateOnly.FromDateTime(nowLocal);
+        var occurrenceStartTime = TimeOnly.FromDateTime(nowLocal);
+        var occurrenceEndTime = TimeOnly.FromDateTime(nowLocal.AddHours(1)); // 1 hour from now
 
         var occurrence = new BookingCourtOccurrence
         {

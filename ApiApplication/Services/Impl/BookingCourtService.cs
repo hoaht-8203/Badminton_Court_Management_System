@@ -91,7 +91,10 @@ public class BookingCourtService(
 
         if (request.DaysOfWeek == null)
         {
-            if (request.StartDate != request.EndDate)
+            // Compare only the date part, ignoring time component
+            var startDateOnly = DateOnly.FromDateTime(request.StartDate);
+            var endDateOnly = DateOnly.FromDateTime(request.EndDate);
+            if (startDateOnly != endDateOnly)
             {
                 throw new ApiException(
                     "Booking vãng lai phải có StartDate = EndDate và DayOfWeek = null.",
@@ -471,7 +474,10 @@ public class BookingCourtService(
 
         if (request.DaysOfWeek == null)
         {
-            if (request.StartDate != request.EndDate)
+            // Compare only the date part, ignoring time component
+            var startDateOnly = DateOnly.FromDateTime(request.StartDate);
+            var endDateOnly = DateOnly.FromDateTime(request.EndDate);
+            if (startDateOnly != endDateOnly)
             {
                 throw new ApiException(
                     "Booking vãng lai phải có StartDate = EndDate và DayOfWeek = null.",

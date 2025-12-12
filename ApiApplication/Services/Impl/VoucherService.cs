@@ -800,7 +800,10 @@ public class VoucherService : IVoucherService
         // Calculate discount amount
         decimal discountAmount = 0;
 
-        if (voucher.DiscountType == "percentage" && voucher.DiscountPercentage.HasValue)
+        // Normalize discount type to lowercase for comparison
+        var discountType = voucher.DiscountType?.ToLowerInvariant() ?? "";
+
+        if (discountType == "percentage" && voucher.DiscountPercentage.HasValue)
         {
             // Percentage discount
             discountAmount = request.OrderTotalAmount * voucher.DiscountPercentage.Value / 100;
@@ -814,7 +817,7 @@ public class VoucherService : IVoucherService
                 discountAmount = voucher.MaxDiscountValue.Value;
             }
         }
-        else if (voucher.DiscountType == "fixed")
+        else if (discountType == "fixed")
         {
             // Fixed amount discount
             discountAmount = voucher.DiscountValue;

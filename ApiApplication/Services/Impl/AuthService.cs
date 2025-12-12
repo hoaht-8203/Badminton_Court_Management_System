@@ -528,6 +528,10 @@ public class AuthService(
 
         var user = _mapper.Map<ApplicationUser>(registerRequest);
         user.UserName = registerRequest.UserName;
+        if (_userManager.PasswordHasher == null)
+        {
+            throw new ApiException("Hệ thống xác thực chưa được cấu hình đúng", HttpStatusCode.InternalServerError);
+        }
         user.PasswordHash = _userManager.PasswordHasher.HashPassword(
             user,
             registerRequest.Password

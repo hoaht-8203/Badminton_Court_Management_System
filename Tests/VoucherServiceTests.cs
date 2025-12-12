@@ -90,6 +90,8 @@ public class VoucherServiceTests
             UsedCount = 0,
             IsActive = isActive,
             MinOrderValue = minOrderValue,
+            TimeRules = new List<VoucherTimeRule>(), // Ensure no time rules that could block validation
+            UserRules = new List<VoucherUserRule>(), // Ensure no user rules that could block validation
         };
         await _context.Vouchers.AddAsync(voucher);
         await _context.SaveChangesAsync();

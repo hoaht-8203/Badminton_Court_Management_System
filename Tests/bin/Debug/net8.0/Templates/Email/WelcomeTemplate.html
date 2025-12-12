@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chào mừng đến với hệ thống quản lý sân cầu lông</title>
+    <style>
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f8f8f8;
+        margin: 0;
+        padding: 0;
+      }
+      .heart {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        background-color: red;
+        position: relative;
+        transform: rotate(-45deg);
+        margin-left: 3px;
+      }
+      .heart::before,
+      .heart::after {
+        content: "";
+        width: 12px;
+        height: 12px;
+        background-color: red;
+        border-radius: 50%;
+        position: absolute;
+      }
+      .heart::before {
+        top: -6px;
+        left: 0;
+      }
+      .heart::after {
+        left: 6px;
+        top: 0;
+      }
+      .container {
+        max-width: 480px;
+        margin: 40px auto;
+        background: #fff;
+        padding: 32px 24px;
+        border-radius: 8px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.07);
+      }
+      h2 {
+        color: #228b22;
+        margin-top: 0;
+      }
+      .content {
+        margin-bottom: 24px;
+        color: #444;
+      }
+      .info {
+        background: #f0f5f0;
+        padding: 12px 18px;
+        border-radius: 6px;
+        margin-bottom: 18px;
+      }
+      .footer {
+        font-size: 12px;
+        color: #888;
+        margin-top: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Chào mừng bạn đến với hệ thống quản lý sân cầu lông!</h2>
+      <div class="content">
+        Xin chào <b>{{FullName}}</b>,<br /><br />
+        Chúng tôi rất vui mừng thông báo rằng bạn đã đăng ký thành công tài
+        khoản tại hệ thống quản lý sân cầu lông.<br /><br />( Bạn hãy đổi mật khẩu trong vòng 7 ngày nhé )<br />
+      </div>
+      <div class="info">
+        <h3>Thông tin đăng nhập</h3>
+        <p>Tên đăng nhập: {{UserName}}</p>
+        <p>Email: {{Email}}</p>
+        <p>Mật khẩu: {{Password}}</p>
+      </div>
+      <div class="footer">
+        Trân trọng,<br />
+        Đội ngũ quản lý sân cầu lông
+      </div>
+    </div>
+  </body>
+</html>

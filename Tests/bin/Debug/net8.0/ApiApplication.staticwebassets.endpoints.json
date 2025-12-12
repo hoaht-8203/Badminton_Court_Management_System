@@ -1,0 +1,88 @@
+{
+  "Version": 1,
+  "ManifestType": "Build",
+  "Endpoints": [
+    {
+      "Route": "swagger-custom.9qwb3jyj0j.html",
+      "AssetFile": "swagger-custom.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "5521"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"j5ZlXbsCWGLnRaJQR7L01f3bKGPcFqnHPCbeGMizLR8=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Dec 2025 13:22:04 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "9qwb3jyj0j"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-j5ZlXbsCWGLnRaJQR7L01f3bKGPcFqnHPCbeGMizLR8="
+        },
+        {
+          "Name": "label",
+          "Value": "swagger-custom.html"
+        }
+      ]
+    },
+    {
+      "Route": "swagger-custom.html",
+      "AssetFile": "swagger-custom.html",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "5521"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/html"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"j5ZlXbsCWGLnRaJQR7L01f3bKGPcFqnHPCbeGMizLR8=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 08 Dec 2025 13:22:04 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-j5ZlXbsCWGLnRaJQR7L01f3bKGPcFqnHPCbeGMizLR8="
+        }
+      ]
+    }
+  ]
+}

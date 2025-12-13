@@ -3,27 +3,12 @@
 import { useGetHolidays, useUpdateHolidays } from "@/hooks/useSystemConfig";
 import type { Holiday } from "@/services/systemConfigService";
 import { CalendarOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
-import {
-  Breadcrumb,
-  Button,
-  Card,
-  Checkbox,
-  DatePicker,
-  Empty,
-  Form,
-  Input,
-  Modal,
-  Space,
-  Tabs,
-  Typography,
-  message,
-} from "antd";
+import { Breadcrumb, Button, Card, Checkbox, DatePicker, Empty, Form, Input, Modal, Space, Tabs, Typography, message } from "antd";
 import dayjs from "dayjs";
 import { useState } from "react";
 
 const { TextArea } = Input;
 const { Title, Paragraph } = Typography;
-
 
 export default function EmployeeConfigurationPage() {
   return (
@@ -112,12 +97,7 @@ function HolidayManagement() {
       ) : holidays && holidays.length > 0 ? (
         <div className="space-y-2">
           {holidays.map((holiday) => (
-            <HolidayItem
-              key={holiday.id}
-              holiday={holiday}
-              holidays={holidays}
-              onEdit={() => handleOpenModal(holiday)}
-            />
+            <HolidayItem key={holiday.id} holiday={holiday} holidays={holidays} onEdit={() => handleOpenModal(holiday)} />
           ))}
         </div>
       ) : (
@@ -126,19 +106,13 @@ function HolidayManagement() {
           description={
             <div>
               <p>Chưa có ngày nghỉ lễ nào</p>
-              <p className="text-sm text-gray-400">Nhấn vào nút "Thêm ngày lễ" để bắt đầu</p>
+              <p className="text-sm text-gray-400">Nhấn vào nút Thêm ngày lễ để bắt đầu</p>
             </div>
           }
         />
       )}
 
-      <HolidayModal
-        open={isModalOpen}
-        holiday={editingHoliday}
-        holidays={holidays || []}
-        onSuccess={handleSuccess}
-        onCancel={handleCloseModal}
-      />
+      <HolidayModal open={isModalOpen} holiday={editingHoliday} holidays={holidays || []} onSuccess={handleSuccess} onCancel={handleCloseModal} />
     </Card>
   );
 }
@@ -156,7 +130,7 @@ function HolidayItem({ holiday, holidays, onEdit }: HolidayItemProps) {
   const handleDelete = () => {
     modal.confirm({
       title: "Xác nhận",
-      content: `Bạn có chắc chắn muốn xóa ngày lễ "${holiday.name}"?`,
+      content: `Bạn có chắc chắn muốn xóa ngày lễ &ldquo;${holiday.name}&rdquo;?`,
       onOk: async () => {
         const updatedHolidays = holidays.filter((h) => h.id !== holiday.id);
         const result = await updateHolidays.mutateAsync(updatedHolidays);
@@ -183,22 +157,14 @@ function HolidayItem({ holiday, holidays, onEdit }: HolidayItemProps) {
         extra={
           <Space>
             <Button type="text" icon={<EditOutlined />} onClick={onEdit} />
-            <Button
-              type="text"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={handleDelete}
-              loading={updateHolidays.isPending}
-            />
+            <Button type="text" danger icon={<DeleteOutlined />} onClick={handleDelete} loading={updateHolidays.isPending} />
           </Space>
         }
       >
         <div>
           <div className="mb-2 flex items-center gap-2">
             <span className="font-semibold">{holiday.name}</span>
-            {holiday.isSpecialDay && (
-              <span className="rounded bg-red-100 px-2 py-0.5 text-xs text-red-700">Ngày đặc biệt</span>
-            )}
+            {holiday.isSpecialDay && <span className="rounded bg-red-100 px-2 py-0.5 text-xs text-red-700">Ngày đặc biệt</span>}
           </div>
           <p className="text-sm text-gray-500">
             {formatDate(holiday.startDate)} - {formatDate(holiday.endDate)}
@@ -246,7 +212,7 @@ function HolidayModal({ open, holiday, holidays, onSuccess, onCancel }: HolidayM
                 isSpecialDay: values.isSpecialDay || false,
                 note: values.note,
               }
-            : h
+            : h,
         );
       } else {
         const newHoliday: Holiday = {
@@ -307,28 +273,16 @@ function HolidayModal({ open, holiday, holidays, onSuccess, onCancel }: HolidayM
       </Paragraph>
 
       <Form form={form} layout="vertical" initialValues={initialValues}>
-        <Form.Item
-          label="Tên ngày lễ"
-          name="name"
-          rules={[{ required: true, message: "Vui lòng nhập tên ngày lễ" }]}
-        >
+        <Form.Item label="Tên ngày lễ" name="name" rules={[{ required: true, message: "Vui lòng nhập tên ngày lễ" }]}>
           <Input placeholder="VD: Tết Nguyên Đán, Quốc Khánh..." />
         </Form.Item>
 
         <div className="grid grid-cols-2 gap-4">
-          <Form.Item
-            label="Ngày bắt đầu"
-            name="startDate"
-            rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu" }]}
-          >
+          <Form.Item label="Ngày bắt đầu" name="startDate" rules={[{ required: true, message: "Vui lòng chọn ngày bắt đầu" }]}>
             <DatePicker format="DD/MM/YYYY" className="w-full" placeholder="Chọn ngày" />
           </Form.Item>
 
-          <Form.Item
-            label="Ngày kết thúc"
-            name="endDate"
-            rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc" }]}
-          >
+          <Form.Item label="Ngày kết thúc" name="endDate" rules={[{ required: true, message: "Vui lòng chọn ngày kết thúc" }]}>
             <DatePicker format="DD/MM/YYYY" className="w-full" placeholder="Chọn ngày" />
           </Form.Item>
         </div>

@@ -84,12 +84,12 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
   const [createdDetail, setCreatedDetail] = useState<DetailBookingCourtResponse | null>(null);
   const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
   const [voucherDiscount, setVoucherDiscount] = useState<number>(0);
-  
+
   // Chỉ fetch vouchers khi đã chọn thời gian
   const shouldFetchVouchers = useMemo(() => {
     return !!startTimeWatch && !!endTimeWatch && !!startDateWatch;
   }, [startTimeWatch, endTimeWatch, startDateWatch]);
-  
+
   const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [modalSelectedVoucherId, setModalSelectedVoucherId] = useState<number | null>(null);
   const [modalValidateLoading, setModalValidateLoading] = useState(false);
@@ -198,29 +198,29 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
   // Chuẩn bị params cho API
   const voucherParams = useMemo(() => {
     if (!shouldFetchVouchers) return undefined;
-    
+
     const params: GetAvailableVouchersRequest = {};
-    
+
     // Nếu có startDate và startTime, tạo bookingDateTime
     if (startDateWatch && startTimeWatch) {
       const bookingDate = startDateWatch.hour(startTimeWatch.hour()).minute(startTimeWatch.minute()).second(0);
       params.bookingDateTime = bookingDate.toDate();
     }
-    
+
     // Nếu có endTime, thêm vào params
     if (startDateWatch && endTimeWatch) {
       const bookingEndDate = startDateWatch.hour(endTimeWatch.hour()).minute(endTimeWatch.minute()).second(0);
       params.endTime = bookingEndDate.toDate();
     }
-    
+
     // Thêm originalAmount (giá gốc chưa giảm) - dùng calculatedPrice
     if (calculatedPrice > 0) {
       params.originalAmount = calculatedPrice;
     }
-    
+
     return params;
   }, [shouldFetchVouchers, startDateWatch, startTimeWatch, endTimeWatch, calculatedPrice]);
-  
+
   const availableVouchers = useGetAvailableVouchers(shouldFetchVouchers, voucherParams);
   const validateVoucherMutation = useValidateVoucher();
 
@@ -240,8 +240,8 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
         estimatedDiscount = (fullAmount * v.discountPercentage) / 100;
       }
 
-      if (v.maxDiscountAmount && estimatedDiscount > v.maxDiscountAmount) {
-        estimatedDiscount = v.maxDiscountAmount;
+      if (v.maxDiscountValue && estimatedDiscount > v.maxDiscountValue) {
+        estimatedDiscount = v.maxDiscountValue;
       }
 
       if (estimatedDiscount > maxDiscount) {
@@ -491,7 +491,7 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
                       confirmLoading={modalValidateLoading}
                       onOk={() => {
                         const val = modalSelectedVoucherId;
-                        
+
                         if (!val) {
                           setSelectedVoucherId(null);
                           setVoucherDiscount(0);
@@ -603,9 +603,9 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
                                               ? `Giảm ${v.discountPercentage}%`
                                               : ""}
                                         </span>
-                                        {v.maxDiscountAmount && (
+                                        {v.maxDiscountValue && (
                                           <span style={{ fontSize: 11, color: "#999", marginLeft: 4 }}>
-                                            (Tối đa {v.maxDiscountAmount.toLocaleString("vi-VN")}đ)
+                                            (Tối đa {v.maxDiscountValue.toLocaleString("vi-VN")}đ)
                                           </span>
                                         )}
                                       </div>

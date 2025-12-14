@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Avatar, Button, Divider, Row, Col } from "antd";
+import { Avatar, Button, Divider, Modal, Row, Col } from "antd";
 import { EditOutlined, StopOutlined, CheckOutlined } from "@ant-design/icons";
 import { StaffResponse } from "@/types-openapi/api";
 import dayjs from "dayjs";
@@ -16,16 +16,27 @@ const StaffInfoTab = ({
   const [isActive, setIsActive] = useState(staff.isActive !== false);
   const [confirming, setConfirming] = useState(false);
 
-  const handleToggleStatus = async () => {
+  const handleToggleStatus = () => {
     if (!confirming) {
-      if (window.confirm(isActive ? "Bạn có chắc muốn ngừng làm việc nhân viên này?" : "Bạn có chắc muốn bắt đầu làm việc lại cho nhân viên này?")) {
-        setIsActive(!isActive);
-        setConfirming(true);
-        if (onChangeStaffStatus && typeof staff.id === "number") {
-          await onChangeStaffStatus(staff.id, !isActive);
-        }
-        setTimeout(() => setConfirming(false), 1000);
-      }
+      const title = isActive ? "Ngừng làm việc" : "Bắt đầu làm việc";
+      const content = isActive 
+        ? "Bạn có chắc muốn ngừng làm việc nhân viên này?" 
+        : "Bạn có chắc muốn bắt đầu làm việc lại cho nhân viên này?";
+      
+      Modal.confirm({
+        title,
+        content,
+        okText: "Xác nhận",
+        cancelText: "Hủy",
+        onOk: async () => {
+          setIsActive(!isActive);
+          setConfirming(true);
+          if (onChangeStaffStatus && typeof staff.id === "number") {
+            await onChangeStaffStatus(staff.id, !isActive);
+          }
+          setTimeout(() => setConfirming(false), 1000);
+        },
+      });
     }
   };
 

@@ -45,6 +45,8 @@ import {
 
 export interface ApiVouchersAvailableGetRequest {
     bookingDateTime?: Date;
+    endTime?: Date;
+    originalAmount?: number;
     customerId?: number;
 }
 
@@ -84,6 +86,8 @@ export interface VouchersApiInterface {
     /**
      * 
      * @param {Date} [bookingDateTime] 
+     * @param {Date} [endTime] 
+     * @param {number} [originalAmount] 
      * @param {number} [customerId] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -200,11 +204,19 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
         const queryParameters: any = {};
 
         if (requestParameters['bookingDateTime'] != null) {
-            queryParameters['bookingDateTime'] = (requestParameters['bookingDateTime'] as any).toISOString();
+            queryParameters['BookingDateTime'] = (requestParameters['bookingDateTime'] as any).toISOString();
+        }
+
+        if (requestParameters['endTime'] != null) {
+            queryParameters['EndTime'] = (requestParameters['endTime'] as any).toISOString();
+        }
+
+        if (requestParameters['originalAmount'] != null) {
+            queryParameters['OriginalAmount'] = requestParameters['originalAmount'];
         }
 
         if (requestParameters['customerId'] != null) {
-            queryParameters['customerId'] = requestParameters['customerId'];
+            queryParameters['CustomerId'] = requestParameters['customerId'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

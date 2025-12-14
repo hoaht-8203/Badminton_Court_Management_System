@@ -17,6 +17,7 @@ import * as runtime from '../runtime';
 import type {
   CreateProductRequest,
   DetailProductResponseApiResponse,
+  GetCurrentAppliedPriceResponseListApiResponse,
   ListProductResponseListApiResponse,
   ListProductsByPriceTableResponseListApiResponse,
   ObjectApiResponse,
@@ -27,6 +28,8 @@ import {
     CreateProductRequestToJSON,
     DetailProductResponseApiResponseFromJSON,
     DetailProductResponseApiResponseToJSON,
+    GetCurrentAppliedPriceResponseListApiResponseFromJSON,
+    GetCurrentAppliedPriceResponseListApiResponseToJSON,
     ListProductResponseListApiResponseFromJSON,
     ListProductResponseListApiResponseToJSON,
     ListProductsByPriceTableResponseListApiResponseFromJSON,
@@ -134,6 +137,18 @@ export interface ProductsApiInterface {
     /**
      */
     apiProductsDetailGet(requestParameters: ApiProductsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailProductResponseApiResponse>;
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProductsApiInterface
+     */
+    apiProductsGetCurrentAppliedPriceGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetCurrentAppliedPriceResponseListApiResponse>>;
+
+    /**
+     */
+    apiProductsGetCurrentAppliedPriceGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetCurrentAppliedPriceResponseListApiResponse>;
 
     /**
      * 
@@ -348,6 +363,33 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
      */
     async apiProductsDetailGet(requestParameters: ApiProductsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailProductResponseApiResponse> {
         const response = await this.apiProductsDetailGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProductsGetCurrentAppliedPriceGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetCurrentAppliedPriceResponseListApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Products/get-current-applied-price`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetCurrentAppliedPriceResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProductsGetCurrentAppliedPriceGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetCurrentAppliedPriceResponseListApiResponse> {
+        const response = await this.apiProductsGetCurrentAppliedPriceGetRaw(initOverrides);
         return await response.value();
     }
 

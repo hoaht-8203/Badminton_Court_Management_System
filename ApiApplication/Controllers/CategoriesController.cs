@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Category;
 using ApiApplication.Services;
@@ -8,7 +9,7 @@ namespace ApiApplication.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = PolicyConstants.WarehouseAccess)]
 public class CategoriesController(ICategoryService categoryService) : ControllerBase
 {
     private readonly ICategoryService _categoryService = categoryService;

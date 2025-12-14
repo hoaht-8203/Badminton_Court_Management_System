@@ -1,12 +1,15 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.StockOut;
 using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Policy = PolicyConstants.WarehouseAccess)]
 public class StockOutsController(IStockOutService stockOutService) : ControllerBase
 {
     private readonly IStockOutService _stockOutService = stockOutService;

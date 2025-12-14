@@ -1,16 +1,23 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.PriceTable;
 using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Policy = PolicyConstants.ManagementOnly)]
 public class PricesController(IPriceTableService service) : ControllerBase
 {
     private readonly IPriceTableService _service = service;
 
+    /// <summary>
+    /// List price tables - Accessible by customers to view pricing
+    /// </summary>
+    [AllowAnonymous]
     [HttpGet("list")]
     public async Task<ActionResult<ApiResponse<List<ListPriceTableResponse>>>> List(
         [FromQuery] ListPriceTableRequest request
@@ -25,6 +32,10 @@ public class PricesController(IPriceTableService service) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Get price table details - Accessible by customers to view pricing details
+    /// </summary>
+    [AllowAnonymous]
     [HttpGet("detail")]
     public async Task<ActionResult<ApiResponse<DetailPriceTableResponse>>> Detail(
         [FromQuery] DetailPriceTableRequest request
@@ -89,6 +100,10 @@ public class PricesController(IPriceTableService service) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Get products in price table - Accessible by customers to view product pricing
+    /// </summary>
+    [AllowAnonymous]
     [HttpGet("get-products")]
     public async Task<ActionResult<ApiResponse<ListPriceTableProductsResponse>>> GetProducts(
         [FromQuery] int priceTableId

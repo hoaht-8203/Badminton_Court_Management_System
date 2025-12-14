@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Activity;
 using ApiApplication.Services;
@@ -8,7 +9,7 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = PolicyConstants.ManagementOnly)]
 public class ActivityController(IActivityService activityService) : ControllerBase
 {
     private readonly IActivityService _activityService = activityService;

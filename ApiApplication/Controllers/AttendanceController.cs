@@ -1,6 +1,8 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Attendance;
 using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +10,7 @@ namespace ApiApplication.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policy = PolicyConstants.OfficeStaffAccess)]
     public class AttendanceController : ControllerBase
     {
         private readonly IAttendanceService _attendanceService;

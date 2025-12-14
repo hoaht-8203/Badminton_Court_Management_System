@@ -333,9 +333,33 @@ public class ApplicationDbContext(
                     },
                     new()
                     {
-                        Id = IdentityRoleConstants.UserRoleGuid,
-                        Name = IdentityRoleConstants.User,
-                        NormalizedName = IdentityRoleConstants.User.ToUpper(),
+                        Id = IdentityRoleConstants.BranchAdministratorRoleGuid,
+                        Name = IdentityRoleConstants.BranchAdministrator,
+                        NormalizedName = IdentityRoleConstants.BranchAdministrator.ToUpper(),
+                    },
+                    new()
+                    {
+                        Id = IdentityRoleConstants.StaffRoleGuid,
+                        Name = IdentityRoleConstants.Staff,
+                        NormalizedName = IdentityRoleConstants.Staff.ToUpper(),
+                    },
+                    new()
+                    {
+                        Id = IdentityRoleConstants.WarehouseStaffRoleGuid,
+                        Name = IdentityRoleConstants.WarehouseStaff,
+                        NormalizedName = IdentityRoleConstants.WarehouseStaff.ToUpper(),
+                    },
+                    new()
+                    {
+                        Id = IdentityRoleConstants.ReceptionistRoleGuid,
+                        Name = IdentityRoleConstants.Receptionist,
+                        NormalizedName = IdentityRoleConstants.Receptionist.ToUpper(),
+                    },
+                    new()
+                    {
+                        Id = IdentityRoleConstants.CustomerRoleGuid,
+                        Name = IdentityRoleConstants.Customer,
+                        NormalizedName = IdentityRoleConstants.Customer.ToUpper(),
                     },
                 }
             );

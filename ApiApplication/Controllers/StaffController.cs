@@ -1,11 +1,14 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiApplication.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Policy = PolicyConstants.ManagementOnly)]
     public class StaffController : ControllerBase
     {
         private readonly IStaffService _staffService;

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ApiApplication.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ApiApplication.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251207160946_AddRoleSystemForBCMS")]
+    partial class AddRoleSystemForBCMS
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1876,6 +1879,9 @@ namespace ApiApplication.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsDirectSale")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsDisplayOnWeb")
                         .HasColumnType("boolean");
 
@@ -1884,6 +1890,10 @@ namespace ApiApplication.Migrations
 
                     b.Property<int>("MaxStock")
                         .HasColumnType("integer");
+
+                    b.Property<string>("MenuType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("MinStock")
                         .HasColumnType("integer");
@@ -2784,22 +2794,22 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 12, 6, 6, 57, 2, 755, DateTimeKind.Utc).AddTicks(8447),
+                            CreatedAt = new DateTime(2025, 12, 7, 16, 9, 45, 632, DateTimeKind.Utc).AddTicks(5475),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 12, 6, 6, 57, 2, 755, DateTimeKind.Utc).AddTicks(8447),
+                            UpdatedAt = new DateTime(2025, 12, 7, 16, 9, 45, 632, DateTimeKind.Utc).AddTicks(5476),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 12, 6, 6, 57, 2, 755, DateTimeKind.Utc).AddTicks(8449),
+                            CreatedAt = new DateTime(2025, 12, 7, 16, 9, 45, 632, DateTimeKind.Utc).AddTicks(5477),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 12, 6, 6, 57, 2, 755, DateTimeKind.Utc).AddTicks(8449),
+                            UpdatedAt = new DateTime(2025, 12, 7, 16, 9, 45, 632, DateTimeKind.Utc).AddTicks(5478),
                             UpdatedBy = "System",
                             Value = ""
                         });

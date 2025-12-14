@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Voucher;
@@ -5,6 +6,7 @@ using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Services;
 using ApiApplication.Sessions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +14,7 @@ namespace ApiApplication.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Policy = PolicyConstants.ManagementOnly)]
 public class VouchersController(
     IVoucherService voucherService,
     ICurrentUser currentUser,
@@ -65,6 +68,10 @@ public class VouchersController(
 
     #region Business Operations
 
+    /// <summary>
+    /// Get available vouchers for current user - Accessible by Customers
+    /// </summary>
+    [AllowAnonymous]
     [HttpGet("available")]
     public async Task<ApiResponse<VoucherResponse[]>> GetAvailableVouchers(
         [FromQuery] GetAvailableVouchersRequest request
@@ -74,6 +81,10 @@ public class VouchersController(
         return ApiResponse<VoucherResponse[]>.SuccessResponse(data.ToArray());
     }
 
+    /// <summary>
+    /// Validate voucher - Accessible by Customers when booking
+    /// </summary>
+    [AllowAnonymous]
     [HttpPost("validate")]
     public async Task<ApiResponse<ValidateVoucherResponse>> ValidateVoucher(
         [FromBody] ValidateVoucherRequest request

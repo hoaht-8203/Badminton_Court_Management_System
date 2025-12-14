@@ -1,12 +1,15 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Order;
 using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiApplication.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Policy = PolicyConstants.ReceptionistAccess)]
 public class OrdersController(IOrderService orderService) : ControllerBase
 {
     private readonly IOrderService _orderService = orderService;
@@ -88,8 +91,9 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     }
 
     /// <summary>
-    /// Lấy thông tin checkout từ OrderId
+    /// Lấy thông tin checkout từ OrderId - Accessible by customers to view QR payment information
     /// </summary>
+    [AllowAnonymous]
     [HttpGet("checkout/{orderId}")]
     public async Task<ActionResult<ApiResponse<CheckoutResponse>>> GetCheckoutInfoAsync(
         Guid orderId
@@ -105,8 +109,9 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     }
 
     /// <summary>
-    /// Gia hạn thời gian thanh toán cho đơn hàng đã bị hủy (thêm 5 phút)
+    /// Gia hạn thời gian thanh toán cho đơn hàng đã bị hủy (thêm 5 phút) - Accessible by customers to extend their own payment time
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("{orderId}/extend-payment")]
     public async Task<ActionResult<ApiResponse<bool>>> ExtendPaymentTimeAsync(Guid orderId)
     {

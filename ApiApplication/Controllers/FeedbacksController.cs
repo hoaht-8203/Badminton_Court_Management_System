@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Feedback;
 using ApiApplication.Services;
@@ -8,7 +9,7 @@ namespace ApiApplication.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = PolicyConstants.CustomerAccess)]
 public class FeedbacksController(IFeedbackService feedbackService) : ControllerBase
 {
     private readonly IFeedbackService _feedbackService = feedbackService;

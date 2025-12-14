@@ -12,7 +12,7 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = PolicyConstants.StaffAccess)]
 public class BookingCourtsController(
     IBookingCourtService service,
     IPaymentService paymentService,
@@ -27,6 +27,9 @@ public class BookingCourtsController(
     private readonly ILogger<BookingCourtsController> _logger = logger;
     private readonly IConfiguration _configuration = configuration;
 
+    /// <summary>
+    /// Create booking for customer - Staff access (Receptionist creates booking for customers)
+    /// </summary>
     [HttpPost("create")]
     public async Task<ActionResult<ApiResponse<CreateBookingCourtResponse>>> Create(
         [FromBody] CreateBookingCourtRequest request
@@ -107,6 +110,10 @@ public class BookingCourtsController(
         );
     }
 
+    /// <summary>
+    /// Customer creates their own booking online - Accessible by all authenticated users
+    /// </summary>
+    [AllowAnonymous]
     [HttpPost("user/create")]
     public async Task<ActionResult<ApiResponse<CreateBookingCourtResponse>>> UserCreate(
         [FromBody] UserCreateBookingCourtRequest request
@@ -201,6 +208,10 @@ public class BookingCourtsController(
         );
     }
 
+    /// <summary>
+    /// Get user's booking history - Accessible by authenticated customers to view their own bookings
+    /// </summary>
+    [Authorize]
     [HttpGet("user/history")]
     public async Task<
         ActionResult<ApiResponse<List<ListUserBookingHistoryResponse>>>
@@ -230,6 +241,10 @@ public class BookingCourtsController(
         );
     }
 
+    /// <summary>
+    /// Get booking detail - Authenticated users (customers view their own, staff view all)
+    /// </summary>
+    [Authorize]
     [HttpGet("detail")]
     public async Task<ActionResult<ApiResponse<DetailBookingCourtResponse>>> Detail(
         [FromQuery] DetailBookingCourtRequest request
@@ -258,6 +273,10 @@ public class BookingCourtsController(
         );
     }
 
+    /// <summary>
+    /// Cancel booking - Authenticated users (customers cancel their own, staff cancel any)
+    /// </summary>
+    [Authorize]
     [HttpPost("cancel")]
     public async Task<ActionResult<ApiResponse<bool>>> Cancel(
         [FromBody] CancelBookingCourtRequest request

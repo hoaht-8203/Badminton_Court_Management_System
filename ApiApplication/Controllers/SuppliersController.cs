@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Supplier;
@@ -9,7 +10,7 @@ namespace ApiApplication.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = PolicyConstants.WarehouseAccess)]
     public class SuppliersController(ISupplierService supplierService) : ControllerBase
     {
         private readonly ISupplierService _supplierService = supplierService;

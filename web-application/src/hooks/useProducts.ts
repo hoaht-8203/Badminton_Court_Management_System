@@ -13,8 +13,7 @@ export const useListProducts = (params: ListProductRequest) => {
       params?.code ?? null,
       params?.name ?? null,
       params?.category ?? null,
-      params?.menuType ?? null,
-      params?.isDirectSale ?? null,
+      
     ],
     queryFn: () => productService.list(params),
   });
@@ -71,8 +70,7 @@ export const useListProductsForWeb = (params: ListProductRequest) => {
       params?.code ?? null,
       params?.name ?? null,
       params?.category ?? null,
-      params?.menuType ?? null,
-      params?.isDirectSale ?? null,
+      
     ],
     queryFn: () => productService.listForWeb(params),
   });
@@ -87,5 +85,12 @@ export const useUpdateWebDisplay = () => {
       qc.invalidateQueries({ queryKey: ["products-for-web"] });
       qc.invalidateQueries({ queryKey: ["product"] });
     },
+  });
+};
+
+export const useGetCurrentAppliedPrice = () => {
+  return useQuery({
+    queryKey: ["current-applied-price"],
+    queryFn: () => productService.getCurrentAppliedPrice(),
   });
 };

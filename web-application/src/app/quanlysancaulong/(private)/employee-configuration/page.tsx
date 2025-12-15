@@ -106,7 +106,7 @@ function HolidayManagement() {
           description={
             <div>
               <p>Chưa có ngày nghỉ lễ nào</p>
-              <p className="text-sm text-gray-400">Nhấn vào nút Thêm ngày lễ để bắt đầu</p>
+              <p className="text-sm text-gray-400">Nhấn vào nút &quot;Thêm ngày lễ&quot; để bắt đầu</p>
             </div>
           }
         />

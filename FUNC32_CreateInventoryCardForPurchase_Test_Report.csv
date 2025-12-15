@@ -1,0 +1,38 @@
+FUNC32 - CreateInventoryCardForPurchaseAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC32_TC01,FUNC32_TC02,FUNC32_TC03,FUNC32_TC04
+,,,,CreateInventoryCardForPurchaseAsync_Success,CreateInventoryCardForPurchaseAsync_ProductNotFound,CreateInventoryCardForPurchaseAsync_ProductNotManageInventory,CreateInventoryCardForPurchaseAsync_UpdateProductStockFalse
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O
+,,,Database connection available,O,O,O,O
+,,,Product exists,O,,O,O
+,,,Product manages inventory,O,,,O
+,Input,,,,,
+,ProductId,,,,,
+,,,valid product id,O,,O,O
+,,,non-existent product id,,O,,
+,Code,,,,,
+,,,TC000001,O,O,O,O
+,Method,,,,,
+,,,Purchase,O,O,O,O
+,QuantityPurchased,,,,,
+,,,5,O,O,O,O
+,UpdateProductStock,,,,,
+,,,true,O,,O,
+,,,false,,,O
+Confirm,Return,,,,,
+,Create inventory card result,,,,,
+,,,InventoryCard created,O,,,O
+,,,Product stock added,O,,,O
+,,,Product stock unchanged,,,O
+,Exception,,,,,
+,,,ApiException: Sản phẩm không tồn tại,,O,,
+,,,ApiException: Sản phẩm không quản lý tồn kho,,,O,
+,Database changes,,,,,
+,,,InventoryCard created,O,,,O
+,,,Product stock updated,O,,,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A,B
+,Passed/Failed,,,,,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Stock added successfully,Product not found,Product doesn't manage inventory,Stock not updated when flag false
+

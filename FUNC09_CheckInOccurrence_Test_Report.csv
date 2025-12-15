@@ -1,0 +1,30 @@
+FUNC09 - CheckInOccurrenceAsync Test Report,,,
+Generated: December 13 2025,,,
+,,,,FUNC09_TC01,FUNC09_TC02,FUNC09_TC03
+,,,,CheckInOccurrenceAsync_Success,CheckInOccurrenceAsync_OccurrenceNotFound,CheckInOccurrenceAsync_AlreadyCheckedIn
+Condition,Precondition,,,
+,,,Server connection available,O,O,O
+,,,Database connection available,O,O,O
+,,,Occurrence exists,O,,O
+,,,Occurrence status is Active,O,,
+,,,Occurrence time allows check-in,O,,
+,Input,,,
+,Id,,,
+,,,valid occurrence id,O,O,O
+,,,non-existent occurrence id,,O,
+Confirm,Return,,,
+,Check-in result,,,
+,,,Method returns true,O,,
+,,,Occurrence status updated to CheckedIn,O,,
+,,,Court status updated to InUse,O,,
+,Exception,,,
+,,,ApiException: Không tìm thấy lịch sân,,O,
+,,,ApiException: Đã check-in rồi,,,O
+,Database changes,,,
+,,,Occurrence status updated to CheckedIn,O,,
+,,,Court status updated to InUse,O,,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A
+,Passed/Failed,,,P,P,P
+,Error Message,,,,
+,Notes,,,Check-in successful,Occurrence not found,Already checked in
+

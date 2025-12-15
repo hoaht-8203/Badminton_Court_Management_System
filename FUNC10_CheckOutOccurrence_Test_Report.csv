@@ -1,0 +1,29 @@
+FUNC10 - CheckOutOccurrenceAsync Test Report,,,
+Generated: December 13 2025,,,
+,,,,FUNC10_TC01,FUNC10_TC02
+,,,,CheckOutOccurrenceAsync_Success,CheckOutOccurrenceAsync_NotCheckedIn
+Condition,Precondition,,,
+,,,Server connection available,O,O
+,,,Database connection available,O,O
+,,,Occurrence exists,O,O
+,,,Occurrence status is CheckedIn,O,
+,Input,,,
+,Id,,,
+,,,valid occurrence id,O,O
+,Note,,,
+,,,optional staff note,O,
+Confirm,Return,,,
+,Checkout result,,,
+,,,Method returns true,O,
+,,,Occurrence status updated to Completed,O,
+,,,Court status restored to Active,O,
+,Exception,,,
+,,,ApiException: Phải check-in trước khi checkout,,O
+,Database changes,,,
+,,,Occurrence status updated to Completed,O,
+,,,Court status restored to Active,O,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A
+,Passed/Failed,,,P,P
+,Error Message,,,,
+,Notes,,,Checkout successful,Not checked in yet
+

@@ -1,0 +1,28 @@
+FUNC33 - CompleteAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC33_TC01,FUNC33_TC02,FUNC33_TC03,FUNC33_TC04
+,,,,CompleteAsync_Success,CompleteAsync_StockOutNotFound,CompleteAsync_NotDraftStatus,CompleteAsync_WithItems
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O
+,,,Database connection available,O,O,O,O
+,,,StockOut exists,O,,O,O
+,,,StockOut status is Draft,O,,,O
+,Input,,,,,
+,StockOutId,,,,,
+,,,valid stock out id,O,,O,O
+,,,non-existent stock out id,,O,,
+Confirm,Return,,,,,
+,Complete stock out result,,,,,
+,,,StockOut status updated to Completed,O,,,O
+,,,Stock deducted from products,O,,,O
+,Exception,,,,,
+,,,ArgumentException: not found,,O,,
+,,,InvalidOperationException: Only draft stock outs can be completed,,,O,
+,Database changes,,,,,
+,,,StockOut status updated,O,,,O
+,,,Product stock deducted,O,,,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A,N
+,Passed/Failed,,,,,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Stock out completed successfully,Stock out not found,Not draft status,Stock deducted from items
+

@@ -1,0 +1,29 @@
+FUNC30 - CheckOutAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC30_TC01,FUNC30_TC02,FUNC30_TC03,FUNC30_TC04
+,,,,CheckOutAsync_Success,CheckOutAsync_NoCheckIn,CheckOutAsync_AlreadyCheckedOut,CheckOutAsync_MultipleRecords
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O
+,,,Database connection available,O,O,O,O
+,,,Staff exists,O,O,O,O
+,,,AttendanceRecord with CheckIn exists,O,,O,O
+,,,AttendanceRecord without CheckIn,,O,,
+,,,AttendanceRecord already checked out,,,O,
+,,,Multiple AttendanceRecords exist,,,O,
+,Input,,,,,
+,StaffId,,,,,
+,,,valid staff id,O,O,O,O
+Confirm,Return,,,,,
+,Check out result,,,,,
+,,,Returns true,O,,,O
+,,,Returns false,,O,O,
+,CheckOutTime,,,,,
+,,,CheckOutTime set,O,,,O
+,Exception,,,,,
+,,,No exception,O,O,O,O
+,Database changes,,,,,
+,,,AttendanceRecord CheckOutTime updated,O,,,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A,A
+,Passed/Failed,,,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Check out successful,No check in record,Already checked out,Most recent record updated

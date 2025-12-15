@@ -1,0 +1,31 @@
+FUNC20 - UpdateStatusAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC20_TC01,FUNC20_TC02,FUNC20_TC03,FUNC20_TC04,FUNC20_TC05
+,,,,UpdateStatusAsync_Success,UpdateStatusAsync_MembershipNotFound,UpdateStatusAsync_InvalidStatus,UpdateStatusAsync_ToDeleted,UpdateStatusAsync_FromInactiveToActive
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O
+,,,Membership exists,O,,O,O,O
+,,,Requested status allowed,O,,,O,O
+,Input,,,,,
+,Id,,,,,
+,,,valid membership id,O,,O,O,O
+,,,non-existent membership id,,O,,
+,Status,,,,,
+,,,Inactive,O,,,O,
+,,,InvalidStatus,,,O,,
+,,,Deleted,,,,O,
+,,,Active,,,,,O
+Confirm,Return,,,,,
+,Update membership status result,,,,,
+,,,Status updated successfully,O,,,O,O
+,Exception,,,,,
+,,,ApiException: Gói hội viên không tồn tại,,O,,
+,,,ApiException: Trạng thái không hợp lệ,,,O,,
+,Database changes,,,,,
+,,,Membership status updated,O,,,O,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A,B,N
+,Passed/Failed,,,P,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Status updated successfully,Membership not found,Invalid status,Deleted status set,Status changed from Inactive to Active
+

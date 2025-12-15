@@ -1,0 +1,38 @@
+FUNC07 - UserCreateBookingCourtAsync Test Report,,,,
+Generated: December 13 2025,,,,
+,,,,FUNC07_TC01,FUNC07_TC02,FUNC07_TC03
+,,,,UserCreateBookingCourtAsync_Success,UserCreateBookingCourtAsync_NoUserId,UserCreateBookingCourtAsync_NoCustomer
+Condition,Precondition,,,,
+,,,Server connection available,O,O,O
+,,,Database connection available,O,O,O
+,,,User authenticated,O,,
+,,,Customer exists for user,O,,
+,,,Court exists,O,,O
+,,,Pricing rule configured,O,,O
+,Input,,,,
+,CourtId,,,,
+,,,valid court id,O,O,O
+,StartDate,,,,
+,,,T0+1 day,O,O,O
+,EndDate,,,,
+,,,T0+1 day,O,O,O
+,StartTime,,,,
+,,,10:00,O,O,O
+,EndTime,,,,
+,,,11:00,O,O,O
+Confirm,Return,,,,
+,DetailBookingCourtResponse,,,,
+,,,not null,O,,
+,,,Booking created,O,,
+,Exception,,,,
+,,,ApiException: Người dùng không tồn tại,,O,
+,,,ApiException: Không tìm thấy thông tin khách hàng,,,O
+,Database changes,,,,
+,,,BookingCourt created,O,,
+,,,BookingCourtOccurrence created,O,,
+,,,Payment created,O,,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A
+,Passed/Failed,,,P,P,P
+,Error Message,,,,
+,Notes,,,Self-service booking created,User not authenticated,Customer profile missing
+

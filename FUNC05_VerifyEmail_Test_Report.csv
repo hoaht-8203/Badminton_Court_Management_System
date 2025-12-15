@@ -1,0 +1,42 @@
+FUNC05 - VerifyEmailAsync Test Report,,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC05_TC01,FUNC05_TC02,FUNC05_TC03,FUNC05_TC04,FUNC05_TC05,FUNC05_TC06
+,,,,VerifyEmailAsync_Success,VerifyEmailAsync_InvalidEmail,VerifyEmailAsync_EmailNotFound,VerifyEmailAsync_InvalidToken,VerifyEmailAsync_ExpiredToken,VerifyEmailAsync_UserAlreadyHasCustomer
+Condition,Precondition,,,,,,
+,,,Server connection available,O,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O,O
+,,,User exists in DB,O,,O,O,O,O
+,,,User email not confirmed,O,,,O,O,O
+,,,Token record exists in DB,O,,,,O,O
+,,,Token is valid and not expired,O,,,,,O
+,,,Token is expired,,,,,,O
+,,,Customer already exists for user,,,,,,O
+,Input,,,,,,
+,Email,,,,,,
+,,,test@example.com,O,,O,O,O,O
+,,,empty string,,O,,,
+,,,nonexistent@example.com,,,O,,
+,Token,,,,,,
+,,,123456,O,,,,O
+,,,empty string,,O,,,
+,,,wrongtoken,,,O,,
+,,,123456 (expired),,,,,O,
+Confirm,Return,,,,,,
+,Verification result,,,,,,
+,,,EmailConfirmed flag set to true,O,,,,O
+,,,Verification token removed from DB,O,,,,O
+,,,Customer created,O,,,,O
+,Exception,,,,,,
+,,,ApiException: Email hoặc token không hợp lệ,,O,,
+,,,ApiException: Email không tồn tại,,,O,,
+,,,ApiException: Mã xác thực email không hợp lệ,,,O,,
+,,,ApiException: Mã xác thực email đã hết hạn,,,,,O
+,Database changes,,,,,,
+,,,User EmailConfirmed persisted,O,,,,O
+,,,ApplicationUserToken deleted,O,,,,O
+,,,Customer created,O,,,,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A,A,A,N
+,Passed/Failed,,,P,P,P,P,P,P
+,Error Message,,,,,,
+,Notes,,,Email verified and customer created,Invalid email format,Email not found,Invalid token,Expired token,No duplicate customer created
+

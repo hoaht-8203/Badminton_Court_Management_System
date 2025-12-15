@@ -1,0 +1,27 @@
+FUNC11 - MarkOccurrenceNoShowAsync Test Report,,,
+Generated: December 13 2025,,,
+,,,,FUNC11_TC01,FUNC11_TC02
+,,,,MarkOccurrenceNoShowAsync_Success,MarkOccurrenceNoShowAsync_AlreadyCompleted
+Condition,Precondition,,,
+,,,Server connection available,O,O
+,,,Database connection available,O,O
+,,,Occurrence exists,O,O
+,,,Occurrence status not Completed,O,
+,Input,,,
+,Id,,,
+,,,valid occurrence id,O,O
+,Note,,,
+,,,optional staff note,O,
+Confirm,Return,,,
+,No-show result,,,
+,,,Method returns true,O,O
+,,,Occurrence status updated to NoShow,O,
+,,,Court status restored to Active,O,
+,Database changes,,,
+,,,Occurrence status updated to NoShow,O,
+,,,Court status restored to Active,O,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,B
+,Passed/Failed,,,P,P
+,Error Message,,,,
+,Notes,,,No-show marked successfully,Already completed (idempotent)
+

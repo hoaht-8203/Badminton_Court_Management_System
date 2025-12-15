@@ -1,0 +1,31 @@
+FUNC22 - ExtendPaymentAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC22_TC01,FUNC22_TC02,FUNC22_TC03,FUNC22_TC04,FUNC22_TC05
+,,,,ExtendPaymentAsync_Success,ExtendPaymentAsync_UserMembershipNotFound,ExtendPaymentAsync_AlreadyPaid,ExtendPaymentAsync_ShouldCreateNewPayment,ExtendPaymentAsync_ShouldResetStatusToPending
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O
+,,,UserMembership exists,O,,O,O,O
+,,,Membership not already Paid,O,,,O,O
+,Input,,,,,
+,UserMembershipId,,,,,
+,,,valid user membership id,O,,O,O,O
+,,,non-existent user membership id,,O,,
+,Note,,,,,
+,,,Extend payment,O,,,O,O
+Confirm,Return,,,,,
+,Extend membership payment result,,,,,
+,,,Response returned with new payment info,O,,,O,O
+,,,Status reset to PendingPayment,O,,,O,O
+,,,IsActive set to false,O,,,O,O
+,Exception,,,,,
+,,,ApiException: Thông tin hội viên không tồn tại,,O,,
+,,,ApiException: Hội viên đã được thanh toán.,,,O,
+,Database changes,,,,,
+,,,UserMembership status updated,O,,,O,O
+,,,New payment created,O,,,O,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A,N,N
+,Passed/Failed,,,P,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Payment extended successfully,UserMembership not found,Already paid,New payment created,Status reset to Pending
+

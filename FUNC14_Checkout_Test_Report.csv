@@ -1,0 +1,46 @@
+FUNC14 - CheckoutAsync Test Report,,,,,,,
+Generated: December 13 2025,,,,,,
+,,,,FUNC14_TC01,FUNC14_TC02,FUNC14_TC03,FUNC14_TC04,FUNC14_TC05,FUNC14_TC06,FUNC14_TC07
+,,,,CheckoutAsync_Success,CheckoutAsync_OccurrenceNotFound,CheckoutAsync_NotCheckedIn,CheckoutAsync_WithVoucher,CheckoutAsync_InvalidVoucher,CheckoutAsync_BankPayment,CheckoutAsync_WithOrderItems
+Condition,Precondition,,,,,,
+,,,Server connection available,O,O,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O,O,O
+,,,Occurrence exists,O,,O,O,O,O,O
+,,,Occurrence status is CheckedIn,O,,,O,O,O,O
+,,,Voucher valid when provided,O,,,O,,
+,Input,,,,,,
+,BookingCourtOccurrenceId,,,,,,
+,,,valid occurrence id,O,,O,O,O,O,O
+,,,non-existent occurrence id,,O,,,
+,PaymentMethod,,,,,,
+,,,Cash,O,O,O,O,,O
+,,,Bank,,,,,O,
+,LateFeePercentage,,,,,,
+,,,150,O,O,O,O,O,O
+,VoucherId,,,,,,
+,,,null,O,O,O,,,
+,,,1 (valid),,,,O,,
+,,,1 (invalid),,,,,O,
+Confirm,Return,,,,,,
+,CheckoutResponse,,,,,,
+,,,not null,O,,,,O,O
+,,,OrderId not empty,O,,,,O,O
+,,,Order status = Paid (Cash),O,,,,O,
+,,,Order status = Pending (Bank),,,,,,O,
+,,,DiscountAmount > 0,,,,O,,
+,,,ItemsSubtotal > 0,,,,,,O
+,,,QrUrl not null (Bank),,,,,,O
+,Exception,,,,,,
+,,,ApiException: Không tìm thấy lịch sân,,O,,
+,,,ApiException: Chỉ có thể checkout cho lịch đang check-in,,,O,,
+,,,ApiException: Voucher không hợp lệ,,,,,O,
+,Database changes,,,,,,
+,,,Order created,O,,,,O,O
+,,,Payment created,O,,,,O,O
+,,,Occurrence status updated to Completed,O,,,,O,O
+,,,Court status restored to Active,O,,,,O,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A,N,A,N,N
+,Passed/Failed,,,P,P,P,P,P,P,P
+,Error Message,,,,,,
+,Notes,,,Checkout successful,Occurrence not found,Not checked in,Voucher discount applied,Invalid voucher,Bank payment creates pending order,Order items included in total
+

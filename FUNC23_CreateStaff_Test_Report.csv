@@ -1,0 +1,39 @@
+FUNC23 - CreateStaffAsync Test Report,,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC23_TC01,FUNC23_TC02,FUNC23_TC03,FUNC23_TC04,FUNC23_TC05,FUNC23_TC06
+,,,,CreateStaffAsync_Success,CreateStaffAsync_InvalidIdentificationNumber,CreateStaffAsync_DuplicateIdentificationNumber,CreateStaffAsync_InvalidPhoneNumber,CreateStaffAsync_DuplicatePhoneNumber,CreateStaffAsync_WithoutOptionalFields
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O,O
+,,,No duplicate identification number,O,,O,O,O,O
+,,,No duplicate phone number,O,,O,O,O,
+,Input,,,,,
+,FullName,,,,,
+,,,Test Staff,O,O,O,O,O,O
+,,,New Staff,,,O,,
+,PhoneNumber,,,,,
+,,,0123456789,O,O,O,O,O
+,,,0987654321,,,O,,
+,,,12345,,,,O,
+,IdentificationNumber,,,,,
+,,,123456789012,O,,O,O,O,
+,,,12345,,O,,,
+,IsActive,,,,,
+,,,true,O,O,O,O,O,O
+,SalarySettings,,,,,
+,,,{},O,O,O,O,O,O
+Confirm,Return,,,,,
+,Create staff result,,,,,
+,,,Staff created successfully,O,,,O,
+,Exception,,,,,
+,,,ApiException: Số CMND/CCCD không hợp lệ,,O,,
+,,,ApiException: Số CMND/CCCD đã tồn tại,,,O,,
+,,,ApiException: Số điện thoại không hợp lệ,,,,O,
+,,,ApiException: Số điện thoại đã tồn tại,,,,,O
+,Database changes,,,,,
+,,,Staff created,O,,,O,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A,A,A,B
+,Passed/Failed,,,,,P,P,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Staff created with all fields,Invalid ID number format,Duplicate ID number,Invalid phone format,Duplicate phone number,Optional fields can be null
+

@@ -1,0 +1,41 @@
+FUNC25 - AssignShiftToStaffAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC25_TC01,FUNC25_TC02,FUNC25_TC03,FUNC25_TC04
+,,,,AssignShiftToStaffAsync_Success,AssignShiftToStaffAsync_FixedShift,AssignShiftToStaffAsync_WithCancelledShift,AssignShiftToStaffAsync_InvalidStaffId
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O
+,,,Database connection available,O,O,O,O
+,,,Staff exists,O,,O,
+,,,Shift exists,O,O,O,O
+,Input,,,,,
+,StaffId,,,,,
+,,,valid staff id,O,O,O,
+,,,non-existent staff id,,,,O
+,ShiftId,,,,,
+,,,valid shift id,O,O,O,O
+,StartDate,,,,,
+,,,today,O,O,O,O
+,EndDate,,,,,
+,,,today + 7 days,O,O,O,
+,,,today + 30 days,,O,,
+,IsFixedShift,,,,,
+,,,false,O,,O,
+,,,true,,O,,
+,ByDay,,,,,
+,,,null,O,,O,
+,,,["Monday","Wednesday","Friday"],,O,,
+Confirm,Return,,,,,
+,Assign shift result,,,,,
+,,,Method returns true,O,O,O,
+,,,Schedule created,O,O,,
+,,,CancelledShift removed,,,O,
+,Exception,,,,,
+,,,DbUpdateException (if FK enforced),,,,O
+,Database changes,,,,,
+,,,Schedule created,O,O,,
+,,,CancelledShift deleted,,,O,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,N,N,A
+,Passed/Failed,,,,,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Shift assigned successfully,Fixed shift created,Cancelled shift removed,Invalid staff ID handled
+

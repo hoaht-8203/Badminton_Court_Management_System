@@ -1,0 +1,36 @@
+FUNC27 - CreateShiftAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC27_TC01,FUNC27_TC02,FUNC27_TC03,FUNC27_TC04
+,,,,CreateShiftAsync_Success,CreateShiftAsync_OverlappingTime,CreateShiftAsync_StartTimeAfterEndTime,CreateShiftAsync_ZeroDuration
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O
+,,,Database connection available,O,O,O,O
+,,,No overlapping shift exists,O,,,
+,Input,,,,,
+,Name,,,,,
+,,,Morning Shift,O,O,O,O
+,,,Overlapping Shift,,O,,
+,,,Invalid Shift,,,O,
+,,,Zero Duration Shift,,,,O
+,StartTime,,,,,
+,,,08:00,O,O,O,O
+,,,10:00,,O,,
+,,,12:00,,,O,
+,EndTime,,,,,
+,,,12:00,O,O,O,O
+,,,14:00,,O,,
+,,,08:00,,,O,
+Confirm,Return,,,,,
+,Create shift result,,,,,
+,,,Shift created successfully,O,,
+,Exception,,,,,
+,,,ApiException: Ca làm việc trùng thời gian,,O,,
+,,,ApiException: Thời gian bắt đầu phải trước thời gian kết thúc,,,O,
+,,,ApiException: Thời gian không hợp lệ,,,,O
+,Database changes,,,,,
+,,,Shift created,O,,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A,B
+,Passed/Failed,,,,,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Shift created successfully,Overlapping time rejected,Start after end rejected,Zero duration rejected
+

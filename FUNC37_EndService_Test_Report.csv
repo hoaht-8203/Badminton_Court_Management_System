@@ -1,0 +1,26 @@
+FUNC37 - EndServiceAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC37_TC01,FUNC37_TC02
+,,,,EndServiceAsync_Success,EndServiceAsync_BookingServiceNotFound
+Condition,Precondition,,,,,
+,,,Server connection available,O,O
+,,,Database connection available,O,O
+,,,BookingService exists,O,
+,Input,,,,,
+,BookingServiceId,,,,,
+,,,valid booking service id,O,
+,,,non-existent booking service id,,O
+Confirm,Return,,,,,
+,End service result,,,,,
+,,,BookingService status updated to Completed,O,
+,,,ServiceEndTime set,O,
+,Exception,,,,,
+,,,ApiException: Không tìm thấy dịch vụ đặt sân,,O
+,Database changes,,,,,
+,,,BookingService status updated,O,
+,,,ServiceEndTime set,O,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A
+,Passed/Failed,,,,,P,P
+,Error Message,,,,,
+,Notes,,,Service ended successfully,Booking service not found
+

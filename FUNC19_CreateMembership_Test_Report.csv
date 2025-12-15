@@ -1,0 +1,43 @@
+FUNC19 - CreateAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC19_TC01,FUNC19_TC02,FUNC19_TC03,FUNC19_TC04,FUNC19_TC05
+,,,,CreateAsync_Success,CreateAsync_WithoutStatus,CreateAsync_WithInactiveStatus,CreateAsync_WithZeroPrice,CreateAsync_WithLongDuration
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O
+,Input,,,,,
+,Name,,,,,
+,,,Test Membership,O,O,O,O,O
+,,,Free Membership,,,,O,
+,,,Annual Membership,,,,,O
+,Price,,,,,
+,,,1000000,O,O,O,,
+,,,0,,,,O,
+,,,10000000,,,,,O
+,DiscountPercent,,,,,
+,,,10,O,O,O,O,O
+,,,5,,,,O,
+,,,15,,,,,O
+,DurationDays,,,,,
+,,,30,O,O,O,O,
+,,,7,,,,O,
+,,,365,,,,,O
+,Description,,,,,
+,,,Test Description,O,O,O,O,O
+,Status,,,,,
+,,,Active,O,,O,O,O
+,,,null,,O,,,
+,,,Inactive,,,O,,
+Confirm,Return,,,,,
+,Create membership result,,,,,
+,,,Membership created,O,O,O,O,O
+,,,Status defaults to Active when null,,O,,
+,Exception,,,,,
+,,,No exception expected,O,O,O,O,O
+,Database changes,,,,,
+,,,Membership created,O,O,O,O,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,B,N,B,B
+,Passed/Failed,,,P,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Membership created with all fields,Status defaults to Active,Inactive status set,Zero price allowed,Long duration allowed
+

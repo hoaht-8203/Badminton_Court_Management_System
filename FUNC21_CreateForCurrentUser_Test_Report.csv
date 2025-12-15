@@ -1,0 +1,35 @@
+FUNC21 - CreateForCurrentUserAsync Test Report,,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC21_TC01,FUNC21_TC02,FUNC21_TC03,FUNC21_TC04,FUNC21_TC05,FUNC21_TC06
+,,,,CreateForCurrentUserAsync_Success,CreateForCurrentUserAsync_NoUserId,CreateForCurrentUserAsync_NoCustomer,CreateForCurrentUserAsync_MembershipNotFound,CreateForCurrentUserAsync_MembershipInactive,CreateForCurrentUserAsync_ExistingUnexpiredMembership
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O,O
+,,,User authenticated,O,,
+,,,Customer exists for user,O,,
+,,,Membership exists & Active,O,,,O,
+,,,No unexpired membership for customer,O,,,,O
+,Input,,,,,
+,MembershipId,,,,,
+,,,valid membership id,O,O,O,O,O,O
+,,,non-existent membership id,,,,O,
+,IsActive,,,,,
+,,,false,O,O,O,O,O,O
+Confirm,Return,,,,,
+,CreateUserMembershipResponse,,,,,
+,,,not null,O,,
+,,,Payment info included,O,,
+,Exception,,,,,
+,,,ApiException: Không tìm thấy thông tin người dùng / Unauthorized,,O,,
+,,,ApiException: Không tìm thấy thông tin khách hàng,,,O,,
+,,,ApiException: Gói hội viên không tồn tại,,,,O,
+,,,ApiException: Gói hội viên không hoạt động,,,,,O
+,,,ApiException: Khách hàng đang có gói hội viên còn hiệu lực,,,,,O
+,Database changes,,,,,
+,,,UserMembership created,O,,
+,,,Payment created,O,,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A,A,A,A
+,Passed/Failed,,,P,P,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Self-service membership created,User not authenticated,Customer profile missing,Membership not found,Membership inactive,Existing membership blocks new purchase
+

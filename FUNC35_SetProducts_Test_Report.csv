@@ -1,0 +1,32 @@
+FUNC35 - SetProductsAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC35_TC01,FUNC35_TC02,FUNC35_TC03,FUNC35_TC04
+,,,,SetProductsAsync_Success,SetProductsAsync_PriceTableNotFound,SetProductsAsync_InvalidProductId,SetProductsAsync_PriceBelowCostPrice
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O
+,,,Database connection available,O,O,O,O
+,,,PriceTable exists,O,,O,O
+,,,Products exist,O,,O,O
+,,,OverrideSalePrice >= CostPrice,O,,,O
+,Input,,,,,
+,PriceTableId,,,,,
+,,,valid price table id,O,,O,O
+,,,non-existent price table id,,O,,
+,Products,,,,,
+,,,valid products list,O,,O,O
+,,,invalid product id included,,,O,
+,,,price below cost price,,,,O
+Confirm,Return,,,,,
+,Set products result,,,,,
+,,,Products assigned to price table,O,,,O
+,,,Invalid products ignored,,,O,
+,Exception,,,,,
+,,,ArgumentException: không tồn tại,,O,,
+,,,ApiException: phải lớn hơn hoặc bằng giá vốn,,,,O
+,Database changes,,,,,
+,,,PriceTableProducts created/updated,O,,,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A,A
+,Passed/Failed,,,,,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Products assigned successfully,Price table not found,Invalid product IDs ignored,Price below cost rejected
+

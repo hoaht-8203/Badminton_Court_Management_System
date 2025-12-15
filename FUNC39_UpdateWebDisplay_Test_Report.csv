@@ -1,0 +1,27 @@
+FUNC39 - UpdateWebDisplayAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC39_TC01,FUNC39_TC02,FUNC39_TC03
+,,,,UpdateWebDisplayAsync_Success,UpdateWebDisplayAsync_SetToFalse,UpdateWebDisplayAsync_ProductNotFound
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O
+,,,Database connection available,O,O,O
+,,,Product exists,O,O,
+,Input,,,,,
+,ProductId,,,,,
+,,,valid product id,O,O,
+,,,non-existent product id,,,O
+,IsDisplayOnWeb,,,,,
+,,,true,O,,
+,,,false,,O,
+Confirm,Return,,,,,
+,Update web display result,,,,,
+,,,IsDisplayOnWeb updated,O,O,
+,Exception,,,,,
+,,,ApiException: không tồn tại,,,O
+,Database changes,,,,,
+,,,Product IsDisplayOnWeb updated,O,O,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,N,A
+,Passed/Failed,,,,,P,P,P
+,Error Message,,,,,
+,Notes,,,Display status set to true,Display status set to false,Product not found
+

@@ -1,0 +1,89 @@
+FUNC01 - UserRegisterAsync Test Report,,,,,,,,
+Generated: December 13 2025,,,,,,,,
+,,,,FUNC01_TC01,FUNC01_TC02,FUNC01_TC03,FUNC01_TC04,FUNC01_TC05
+,,,,UserRegisterAsync_Success,UserRegisterAsync_EmailExists,UserRegisterAsync_UserNameExists,UserRegisterAsync_CreateUserFails,UserRegisterAsync_WithOptionalFields
+Condition,Precondition,,,,,,,
+,,,Server connection available,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O
+,,,Email not exists in DB,O,,O,O,O
+,,,Username not exists in DB,O,O,,O,O
+,,,Email exists in DB,,O,,,
+,,,Username exists in DB,,,O,,
+,Input,,,,,,,
+,Email,,,,,,,
+,,,test@example.com,O,,,O,O
+,,,existing@example.com,,O,,,
+,,,new@example.com,,,O,,
+,UserName,,,,,,,
+,,,testuser,O,,O,O,O
+,,,newuser,,O,,,
+,,,existinguser,,,O,,
+,Password,,,,,,,
+,,,Test123!@#,O,O,O,O,O
+,FullName,,,,,,,
+,,,Test User,O,O,O,O,O
+,PhoneNumber,,,,,,,
+,,,0123456789,O,O,O,O,O
+,DateOfBirth,,,,,,,
+,,,null,O,O,O,O,
+,,,(1999-12-13),,,,,O
+,Address,,,,,,,
+,,,null,O,O,O,O,
+,,,123 Test St,,,,,O
+,City,,,,,,,
+,,,null,O,O,O,O,
+,,,Test City,,,,,O
+,District,,,,,,,
+,,,null,O,O,O,O,
+,,,Test District,,,,,O
+,Ward,,,,,,,
+,,,null,O,O,O,O,
+,,,Test Ward,,,,,O
+,Mock Setup,,,,,,,
+,,,FindByEmailAsync returns null,O,,O,O,O
+,,,FindByEmailAsync returns existing user,,O,,,
+,,,FindByNameAsync returns null,O,O,,O,O
+,,,FindByNameAsync returns existing user,,,O,,
+,,,CreateAsync returns Success,O,O,O,,O
+,,,CreateAsync returns Failed,,,,O,
+,,,AddToRoleAsync returns Success,O,O,O,,O
+,,,GetRolesAsync returns [User],O,O,O,,O
+Confirm,Return,,,,,,,
+,CurrentUserResponse,,,,,,,
+,,,not null,O,,,,O
+,,,UserId != Guid.Empty,O,,,,O
+,,,UserName = input,O,,,,O
+,,,Email = input,O,,,,O
+,,,FullName = input,O,,,,O
+,,,EmailConfirmed = false,O,,,,O
+,,,Roles contains "User",O,,,,O
+,Exception,,,,,,,
+,,,ApiException: Email already exists,,O,,,
+,,,ApiException: Username already exists,,,O,,
+,,,ApiException: Create user failed,,,,O,
+,Database changes,,,,,,,
+,,,ApplicationUser created,O,,,,O
+,,,Customer created,O,,,,O
+,,,Customer.Email = input,O,,,,O
+,,,Customer.FullName = input,O,,,,O
+,,,Customer.PhoneNumber = input,O,,,,O
+,,,Customer.DateOfBirth = input,,,,,O
+,,,Customer.Address = input,,,,,O
+,,,Customer.City = input,,,,,O
+,,,Customer.District = input,,,,,O
+,,,Customer.Ward = input,,,,,O
+,,,Customer.Status = Active,O,,,,O
+,,,ApplicationUserToken created,O,,,,O
+,,,Token.TokenType = EmailConfirm,O,,,,O
+,,,Token.ExpiresAtUtc > Now,O,,,,O
+,,,UserManager.CreateAsync called,O,O,O,O,O
+,,,UserManager.AddToRoleAsync called,O,,,,O
+,Verification,,,,,,,
+,,,User exists in DB,O,,,,O
+,,,Customer exists in DB,O,,,,O
+,,,Token exists in DB,O,,,,O
+,,,Email service NOT called (mock),O,O,O,O,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A,A,B
+,Passed/Failed,,,F,P,P,F,F
+,Error Message,,,NullReferenceException at line 531,,,NullReferenceException at line 531,NullReferenceException at line 531
+,Notes,,,Need to fix AuthService.cs line 531,Email duplicate validation works,Username duplicate validation works,Need to fix AuthService.cs line 531,Need to fix AuthService.cs line 531

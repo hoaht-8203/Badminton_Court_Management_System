@@ -1,0 +1,26 @@
+FUNC08 - CancelBookingCourtAsync Test Report,,,
+Generated: December 13 2025,,,
+,,,,FUNC08_TC01,FUNC08_TC02,FUNC08_TC03
+,,,,CancelBookingCourtAsync_Success,CancelBookingCourtAsync_OccurrenceNotFound,CancelBookingCourtAsync_AlreadyCancelled
+Condition,Precondition,,,
+,,,Server connection available,O,O,O
+,,,Database connection available,O,O,O
+,,,Occurrence exists,O,,O
+,,,Occurrence status not Cancelled,O,,
+,Input,,,
+,Id,,,
+,,,valid occurrence id,O,,O
+,,,non-existent occurrence id,,O,
+Confirm,Return,,,
+,Cancellation result,,,
+,,,Method returns true,O,,O
+,,,Occurrence status set to Cancelled,O,,
+,Exception,,,
+,,,ApiException: Không tìm thấy lịch sân,,O,
+,Database changes,,,
+,,,Occurrence status updated to Cancelled,O,,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,B
+,Passed/Failed,,,P,P,P
+,Error Message,,,,
+,Notes,,,Occurrence cancelled successfully,Occurrence not found,Already cancelled (idempotent)
+

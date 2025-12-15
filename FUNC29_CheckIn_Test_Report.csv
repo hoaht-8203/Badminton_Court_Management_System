@@ -1,0 +1,27 @@
+FUNC29 - CheckInAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC29_TC01,FUNC29_TC02,FUNC29_TC03,FUNC29_TC04
+,,,,CheckInAsync_Success,CheckInAsync_ExistingRecord,CheckInAsync_MultipleTimes,CheckInAsync_InvalidStaffId
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O
+,,,Database connection available,O,O,O,O
+,,,Staff exists,O,O,O,
+,Input,,,,,
+,StaffId,,,,,
+,,,valid staff id,O,O,O,
+,,,invalid staff id,,,,O
+Confirm,Return,,,,,
+,Check-in result,,,,,
+,,,Method returns true,O,O,O,O
+,,,AttendanceRecord created,O,,
+,,,CheckInTime updated,,O,O,
+,,,CheckOutTime cleared,,O,,
+,Exception,,,,,
+,,,No exception (handles gracefully),O,O,O,O
+,Database changes,,,,,
+,,,AttendanceRecord created/updated,O,O,O,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,N,N,A
+,Passed/Failed,,,,,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Check-in recorded successfully,Existing record updated,Multiple check-ins update time,Invalid staff ID handled gracefully
+

@@ -1,0 +1,35 @@
+FUNC17 - ValidateAndCalculateDiscountAsync Test Report,,,,,,,,
+Generated: December 13 2025,,,,,,
+,,,,FUNC17_TC01,FUNC17_TC02,FUNC17_TC03,FUNC17_TC04,FUNC17_TC05,FUNC17_TC06,FUNC17_TC07,FUNC17_TC08
+,,,,ValidateAndCalculateDiscountAsync_Success,ValidateAndCalculateDiscountAsync_VoucherNotFound,ValidateAndCalculateDiscountAsync_VoucherInactive,ValidateAndCalculateDiscountAsync_OrderAmountBelowMin,ValidateAndCalculateDiscountAsync_VoucherExpired,ValidateAndCalculateDiscountAsync_UsageLimitReached,ValidateAndCalculateDiscountAsync_PercentageDiscount,ValidateAndCalculateDiscountAsync_PercentageWithMaxDiscount
+Condition,Precondition,,,,,,,
+,,,Server connection available,O,O,O,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O,O,O,O
+,,,Customer exists,O,O,O,O,O,O,O,O
+,,,Voucher exists,O,,O,O,O,O,O,O
+,,,Voucher is active,O,,,O,O,O,O,O
+,,,Voucher within valid period,O,,,O,,O,O,O
+,,,Order amount >= min order value,O,,,O,,O,O,O
+,Input,,,,,,,
+,VoucherId,,,,,,,
+,,,valid voucher id,O,,O,O,O,O,O,O
+,,,non-existent voucher id,,O,,,
+,OrderTotalAmount,,,,,,,
+,,,100000,O,O,O,O,O,O,O
+,,,500000,,,,,,,O
+Confirm,Return,,,,,,,
+,ValidateVoucherResponse,,,,,,,
+,,,IsValid = true,O,,,,,O,O
+,,,IsValid = false,,O,O,O,O,O,,
+,,,DiscountAmount calculated correctly,O,,,,,O,O
+,,,FinalAmount calculated correctly,O,,,,,O,O
+,,,ErrorMessage provided when invalid,,O,O,O,O,O,,
+,Exception,,,,,,,
+,,,No exception (returns response),O,O,O,O,O,O,O,O
+,Database changes,,,,,,,
+,,,No database changes (read-only),O,O,O,O,O,O,O,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A,A,A,A,N,B
+,Passed/Failed,,,P,P,P,P,P,P,P,P
+,Error Message,,,,,,
+,Notes,,,Fixed discount applied,Voucher not found,Voucher inactive,Order amount too low,Voucher expired,Usage limit reached,Percentage discount calculated,Max discount capped
+

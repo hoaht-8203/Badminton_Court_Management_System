@@ -1,0 +1,31 @@
+FUNC26 - RemoveStaffFromShiftAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC26_TC01,FUNC26_TC02,FUNC26_TC03,FUNC26_TC04
+,,,,RemoveStaffFromShiftAsync_Success,RemoveStaffFromShiftAsync_ScheduleNotFound,RemoveStaffFromShiftAsync_WithAttendanceNotYet,RemoveStaffFromShiftAsync_WithAttendanceCheckedIn
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O
+,,,Database connection available,O,O,O,O
+,,,Schedule exists,O,,O,
+,,,No attendance checked in,O,,O,
+,Input,,,,,
+,StaffId,,,,,
+,,,valid staff id,O,O,O,O
+,ShiftId,,,,,
+,,,valid shift id,O,O,O,O
+,StartDate,,,,,
+,,,today,O,O,O,O
+Confirm,Return,,,,,
+,Remove staff from shift result,,,,,
+,,,Method returns true,O,O,O,
+,,,Schedule deleted,O,,
+,,,CancelledShift created,,O,,
+,Exception,,,,,
+,,,ApiException: Không thể xóa ca đã check-in,,,O
+,Database changes,,,,,
+,,,Schedule deleted,O,,
+,,,CancelledShift created,,O,,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,N,N,A
+,Passed/Failed,,,,,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Schedule removed successfully,Schedule not found creates CancelledShift,No attendance allows removal,Checked-in attendance blocks removal
+

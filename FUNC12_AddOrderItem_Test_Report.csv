@@ -1,0 +1,35 @@
+FUNC12 - AddOrderItemAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC12_TC01,FUNC12_TC02,FUNC12_TC03,FUNC12_TC04
+,,,,AddOrderItemAsync_Success,AddOrderItemAsync_OccurrenceNotFound,AddOrderItemAsync_ProductNotFound,AddOrderItemAsync_ExistingItem
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O
+,,,Database connection available,O,O,O,O
+,,,Occurrence exists,O,,O,O
+,,,Product exists,O,O,,O
+,,,Order item does not exist,O,O,O,
+,Input,,,,,
+,BookingCourtOccurrenceId,,,,,
+,,,valid occurrence id,O,O,O,O
+,,,non-existent occurrence id,,O,,
+,ProductId,,,,,
+,,,valid product id,O,O,,O
+,,,non-existent product id,,,O,
+,Quantity,,,,,
+,,,2,O,O,O,O
+Confirm,Return,,,,,
+,Order item result,,,,,
+,,,Method returns true,O,,,O
+,,,New order item created,O,,,
+,,,Existing order item quantity updated,,,,O
+,Exception,,,,,
+,,,ApiException: Không tìm thấy lịch sân,,O,,
+,,,ApiException: Không tìm thấy sản phẩm,,,O,
+,Database changes,,,,,
+,,,OrderItem created,O,,,O
+,,,OrderItem quantity updated,,,,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A,N
+,Passed/Failed,,,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Order item added,Occurrence not found,Product not found,Existing item quantity updated
+

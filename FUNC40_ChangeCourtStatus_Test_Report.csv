@@ -1,0 +1,30 @@
+FUNC40 - ChangeCourtStatusAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC40_TC01,FUNC40_TC02,FUNC40_TC03
+,,,,ChangeCourtStatusAsync_Success,ChangeCourtStatusAsync_CourtNotFound,ChangeCourtStatusAsync_InvalidStatus
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O
+,,,Database connection available,O,O,O
+,,,Court exists,O,,O
+,,,Status is valid,O,,O
+,Input,,,,,
+,Id,,,,,
+,,,valid court id,O,,O
+,,,non-existent court id,,O,
+,Status,,,,,
+,,,Inactive,O,,O
+,,,Active,,O,
+,,,InvalidStatus,,,O
+Confirm,Return,,,,,
+,Change court status result,,,,,
+,,,Court status updated,O,,
+,Exception,,,,,
+,,,ApiException: không tồn tại,,O,
+,,,ApiException: không hợp lệ,,,O
+,Database changes,,,,,
+,,,Court status updated,O,,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A
+,Passed/Failed,,,,,P,P,P
+,Error Message,,,,,
+,Notes,,,Status changed successfully,Court not found,Invalid status rejected
+

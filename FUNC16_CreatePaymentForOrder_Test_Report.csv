@@ -1,0 +1,46 @@
+FUNC16 - CreatePaymentForOrderAsync Test Report,,,,,,,,
+Generated: December 13 2025,,,,,,
+,,,,FUNC16_TC01,FUNC16_TC02,FUNC16_TC03,FUNC16_TC04,FUNC16_TC05,FUNC16_TC06,FUNC16_TC07,FUNC16_TC08
+,,,,CreatePaymentForOrderAsync_Success,CreatePaymentForOrderAsync_OrderNotFound,CreatePaymentForOrderAsync_BookingNotFound,CreatePaymentForOrderAsync_WithVoucher,CreatePaymentForOrderAsync_WithNote,CreatePaymentForOrderAsync_ShouldSetPaymentCreatedAt,CreatePaymentForOrderAsync_ShouldGeneratePaymentId,CreatePaymentForOrderAsync_ShouldSendSignalRNotification
+Condition,Precondition,,,,,,,
+,,,Server connection available,O,O,O,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O,O,O,O
+,,,Order exists,O,,O,O,O,O,O,O
+,,,Booking exists,O,,O,O,O,O,O,O
+,,,Occurrence exists,O,,O,O,O,O,O,O
+,Input,,,,,,,
+,OrderId,,,,,,,
+,,,valid order id,O,,O,O,O,O,O,O
+,,,non-existent order id,,O,,,
+,BookingId,,,,,,,
+,,,valid booking id,O,,O,O,O,O,O,O
+,,,invalid booking id,,,O,,
+,BookingOccurrenceId,,,,,,,
+,,,valid occurrence id,O,,O,O,O,O,O,O
+,CustomerId,,,,,,,
+,,,valid customer id,O,O,O,O,O,O,O,O
+,Amount,,,,,,,
+,,,100000,O,O,O,O,O,O,O,O
+,,,90000,,,,O,,
+,PaymentMethod,,,,,,,
+,,,Bank,O,O,O,O,O,O,O,O
+,Note,,,,,,,
+,,,null,O,O,O,O,,
+,,,Test payment note,,,,O,,
+Confirm,Return,,,,,,,
+,DetailPaymentResponse,,,,,,,
+,,,not null,O,,,,O,O,O,O
+,,,Payment status = PendingPayment,O,,,,O,O,O,O
+,,,VoucherId copied from order,,,,O,,
+,,,DiscountAmount copied from order,,,,O,,
+,,,Note saved,,,,O,,
+,Exception,,,,,,,
+,,,ApiException: Không tìm thấy đơn hàng,,O,,
+,,,ApiException: Không tìm thấy đặt sân,,,O,,
+,Database changes,,,,,,,
+,,,Payment created,O,,,,O,O,O,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A,N,N,N,N,N
+,Passed/Failed,,,P,P,P,P,P,P,P,P
+,Error Message,,,,,,
+,Notes,,,Payment created successfully,Order not found,Booking not found,Voucher info included,Note saved,Timestamp set,ID generated,SignalR notification sent
+

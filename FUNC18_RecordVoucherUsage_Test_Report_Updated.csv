@@ -1,0 +1,39 @@
+FUNC18 - RecordVoucherUsageAsync Test Report,,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC18_TC01,FUNC18_TC02,FUNC18_TC03,FUNC18_TC04,FUNC18_TC05,FUNC18_TC06
+,,,,RecordVoucherUsageAsync_Success,RecordVoucherUsageAsync_MultipleUsages,RecordVoucherUsageAsync_DifferentCustomers,RecordVoucherUsageAsync_ShouldSetUsedAtTimestamp,RecordVoucherUsageAsync_WithZeroDiscount,RecordVoucherUsageAsync_VoucherNotFound
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O,O
+,,,Voucher exists,O,O,O,O,,
+,,,Customer exists,O,O,O,O,O,O
+,,,Order exists,O,O,O,O,O,O
+,Input,,,,,
+,VoucherId,,,,,
+,,,valid voucher id,O,O,O,O,O,
+,,,non-existent voucher id,,,,,O
+,CustomerId,,,,,
+,,,valid customer id,O,O,O,O,O,O
+,,,different customer id,,,O,,
+,OrderId,,,,,
+,,,valid order id,O,O,O,O,O,O
+,,,different order id,,O,,,
+,DiscountApplied,,,,,
+,,,10000,O,O,O,O,
+,,,15000,,,O,,
+,,,0,,,,O,
+Confirm,Return,,,,,
+,Voucher usage result,,,,,
+,,,VoucherUsage created,O,O,O,O,O,O
+,,,Voucher UsedCount incremented,O,O,O,O,,
+,,,UsedAt timestamp set,O,O,O,O,O,O
+,Exception,,,,,
+,,,No exception (fire-and-forget),O,O,O,O,O,O
+,Database changes,,,,,
+,,,VoucherUsage created,O,O,O,O,O,O
+,,,Voucher UsedCount updated,O,O,O,O,,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A,A,A,B
+,Passed/Failed,,,P,P,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Usage recorded successfully,Multiple usages increment count,Separate records per customer,Timestamp set correctly,Zero discount still recorded,Voucher not found but usage recorded
+

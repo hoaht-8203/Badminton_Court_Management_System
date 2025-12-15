@@ -1,0 +1,26 @@
+FUNC28 - DeleteShiftAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC28_TC01,FUNC28_TC02,FUNC28_TC03
+,,,,DeleteShiftAsync_Success,DeleteShiftAsync_ShiftNotFound,DeleteShiftAsync_WithSchedules
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O
+,,,Database connection available,O,O,O
+,,,Shift exists,O,,O
+,,,No schedules assigned,O,,O
+,Input,,,,,
+,ShiftId,,,,,
+,,,valid shift id,O,,O
+,,,non-existent shift id,,O,
+Confirm,Return,,,,,
+,Delete shift result,,,,,
+,,,Shift deleted successfully,O,,
+,Exception,,,,,
+,,,ApiException: Ca làm việc không tồn tại,,O,
+,,,ApiException: Ca làm việc đã được gán,,,O
+,Database changes,,,,,
+,,,Shift deleted,O,,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A
+,Passed/Failed,,,,,P,P,P
+,Error Message,,,,,
+,Notes,,,Shift deleted successfully,Shift not found,Shift with schedules cannot be deleted
+

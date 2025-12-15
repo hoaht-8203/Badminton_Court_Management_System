@@ -1,0 +1,53 @@
+FUNC06 - CreateBookingCourtAsync Test Report,,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC06_TC01,FUNC06_TC02,FUNC06_TC03,FUNC06_TC04,FUNC06_TC05,FUNC06_TC06
+,,,,CreateBookingCourtAsync_Success,CreateBookingCourtAsync_CourtNotFound,CreateBookingCourtAsync_CourtInactive,CreateBookingCourtAsync_InvalidTimeRange,CreateBookingCourtAsync_PastDate,CreateBookingCourtAsync_WithVoucher
+Condition,Precondition,,,,,,
+,,,Server connection available,O,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O,O
+,,,Court exists,O,,O,O,O,O
+,,,Court status is Active,O,,,O,O,O
+,,,Pricing rule configured,O,,,O,O,O
+,,,Customer exists,O,O,O,O,O,O
+,Input,,,,,,
+,CustomerId,,,,,,
+,,,valid customer id,O,O,O,O,O,O
+,CourtId,,,,,,
+,,,valid court id,O,,O,O,O,O
+,,,non-existent court id,,O,,,
+,StartDate,,,,,,
+,,,T0+1 day,O,O,O,O,O,O
+,,,T0-1 day,,,,,O,
+,EndDate,,,,,,
+,,,T0+1 day,O,O,O,O,O,O
+,,,T0-1 day,,,,,O,
+,StartTime,,,,,,
+,,,10:00,O,O,O,O,O,O
+,,,11:00,,,,O,,
+,EndTime,,,,,,
+,,,11:00,O,O,O,O,O,O
+,,,10:00,,,,O,,
+,PaymentMethod,,,,,,
+,,,Cash,O,,,O,O,O
+,VoucherId,,,,,,
+,,,null,O,O,O,O,O,
+,,,1,,,,,,O
+Confirm,Return,,,,,,
+,DetailBookingCourtResponse,,,,,,
+,,,not null,O,,,,O
+,,,Booking created,O,,,,O
+,,,Payment created,O,,,,O
+,Exception,,,,,,
+,,,ApiException: Sân này không tồn tại,,O,,,
+,,,ApiException: Sân này không hoạt động,,,O,,
+,,,ApiException: Giờ bắt đầu phải nhỏ hơn giờ kết thúc,,,,O,,
+,,,ApiException: Không thể đặt sân trong quá khứ,,,,,O,
+,Database changes,,,,,,
+,,,BookingCourt created,O,,,,O
+,,,BookingCourtOccurrence created,O,,,,O
+,,,Payment created,O,,,,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A,A,A,N
+,Passed/Failed,,,P,P,P,P,P,P
+,Error Message,,,,,,
+,Notes,,,Booking created successfully,Court not found,Court inactive,Invalid time range,Past date not allowed,Voucher discount applied
+

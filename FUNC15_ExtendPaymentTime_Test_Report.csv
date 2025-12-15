@@ -1,0 +1,32 @@
+FUNC15 - ExtendPaymentTimeAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC15_TC01,FUNC15_TC02,FUNC15_TC03,FUNC15_TC04,FUNC15_TC05
+,,,,ExtendPaymentTimeAsync_Success,ExtendPaymentTimeAsync_OrderNotFound,ExtendPaymentTimeAsync_OrderNotCancelled,ExtendPaymentTimeAsync_WithMultiplePayments,ExtendPaymentTimeAsync_ShouldResetPaymentCreatedAt
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O
+,,,Order exists,O,,O,O,O
+,,,Order status is Cancelled,O,,,O,O
+,,,Payment exists,O,,,O,O
+,Input,,,,,
+,OrderId,,,,,
+,,,valid order id,O,O,O,O,O
+,,,non-existent order id,,O,,
+Confirm,Return,,,,,
+,Extend payment result,,,,,
+,,,Method returns true,O,,,O,O
+,,,Order status updated to Pending,O,,,O,O
+,,,Payment status reset to PendingPayment,O,,,O,O
+,,,PaymentCreatedAt refreshed,O,,,O,O
+,Exception,,,,,
+,,,ApiException: Không tìm thấy đơn hàng,,O,,
+,,,ApiException: Chỉ có thể gia hạn thanh toán cho đơn hàng đã bị hủy,,,O,
+,Database changes,,,,,
+,,,Order status updated to Pending,O,,,O,O
+,,,Payment status updated to PendingPayment,O,,,O,O
+,,,PaymentCreatedAt refreshed,O,,,O,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A,N,N
+,Passed/Failed,,,P,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Payment time extended,Order not found,Order not cancelled,All payments updated,Payment timestamp refreshed
+

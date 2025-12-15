@@ -1,0 +1,29 @@
+FUNC24 - ChangeStaffStatusAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC24_TC01,FUNC24_TC02,FUNC24_TC03,FUNC24_TC04
+,,,,ChangeStaffStatusAsync_Success,ChangeStaffStatusAsync_StaffNotFound,ChangeStaffStatusAsync_ActivateStaff,ChangeStaffStatusAsync_DeactivateStaff
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O
+,,,Database connection available,O,O,O,O
+,,,Staff exists,O,,O,O
+,,,Staff not exists,,O,,
+,Input,,,,,
+,StaffId,,,,,
+,,,valid staff id,O,,O,O
+,,,non-existent staff id,,O,,
+,IsActive,,,,,
+,,,false,O,,,
+,,,true,,,O,
+,,,false (deactivate),,,,O
+Confirm,Return,,,,,
+,Status update result,,,,,
+,,,Status updated successfully,O,,O,O
+,Exception,,,,,
+,,,No exception,O,,O,O
+,,,ApiException (StaffNotFound),,O,,
+,Database changes,,,,,
+,,,Staff IsActive updated,O,,O,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,B,A,A
+,Passed/Failed,,,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Status updated successfully,Staff not found exception,Staff activated,Staff deactivated

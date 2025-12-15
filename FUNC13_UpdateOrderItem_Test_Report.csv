@@ -1,0 +1,31 @@
+FUNC13 - UpdateOrderItemAsync Test Report,,,
+Generated: December 13 2025,,,
+,,,,FUNC13_TC01,FUNC13_TC02,FUNC13_TC03
+,,,,UpdateOrderItemAsync_Success,UpdateOrderItemAsync_QuantityZero,UpdateOrderItemAsync_ItemNotFound
+Condition,Precondition,,,
+,,,Server connection available,O,O,O
+,,,Database connection available,O,O,O
+,,,Order item exists,O,O,
+,Input,,,
+,BookingCourtOccurrenceId,,,
+,,,valid occurrence id,O,O,O
+,ProductId,,,
+,,,valid product id,O,O,O
+,Quantity,,,
+,,,5,O,,
+,,,0,,O,
+Confirm,Return,,,
+,Update result,,,
+,,,Method returns true,O,,
+,,,Order item quantity updated,O,,
+,,,Order item removed,,O,
+,Exception,,,
+,,,ApiException: Không tìm thấy sản phẩm trong đơn hàng,,,O
+,Database changes,,,
+,,,OrderItem quantity updated,O,,
+,,,OrderItem removed,,O,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,N,A
+,Passed/Failed,,,P,P,P
+,Error Message,,,,
+,Notes,,,Order item updated,Item removed when quantity zero,Item not found
+

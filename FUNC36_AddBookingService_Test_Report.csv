@@ -1,0 +1,32 @@
+FUNC36 - AddBookingServiceAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC36_TC01,FUNC36_TC02,FUNC36_TC03
+,,,,AddBookingServiceAsync_Success,AddBookingServiceAsync_ServiceNotFound,AddBookingServiceAsync_OccurrenceNotCheckedIn
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O
+,,,Database connection available,O,O,O
+,,,Service exists,O,,O
+,,,Occurrence exists & CheckedIn,O,,O
+,Input,,,,,
+,ServiceId,,,,,
+,,,valid service id,O,,O
+,,,non-existent service id,,O,
+,BookingCourtOccurrenceId,,,,,
+,,,valid occurrence id (CheckedIn),O,,O
+,,,valid occurrence id (Active),,,O
+,Quantity,,,,,
+,,,1,O,O,O
+Confirm,Return,,,,,
+,Add booking service result,,,,,
+,,,BookingService created,O,,
+,,,Status = Pending,O,,
+,Exception,,,,,
+,,,ApiException: Không tìm thấy dịch vụ,,O,
+,,,ApiException: Chỉ có thể thêm dịch vụ khi đã check-in,,,O
+,Database changes,,,,,
+,,,BookingService created,O,,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A
+,Passed/Failed,,,,,P,P,P
+,Error Message,,,,,
+,Notes,,,Booking service added successfully,Service not found,Occurrence must be checked in
+

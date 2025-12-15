@@ -1,0 +1,29 @@
+FUNC34 - CompleteAsync Test Report,,,,,
+Generated: December 13 2025,,,,,
+,,,,FUNC34_TC01,FUNC34_TC02,FUNC34_TC03,FUNC34_TC04,FUNC34_TC05
+,,,,CompleteAsync_Success,CompleteAsync_ReturnGoodsNotFound,CompleteAsync_NotDraftStatus,CompleteAsync_WithCashPayment,CompleteAsync_WithItems
+Condition,Precondition,,,,,
+,,,Server connection available,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O
+,,,ReturnGoods exists,O,,O,O,O
+,,,ReturnGoods status is Draft,O,,,O,O
+,Input,,,,,
+,ReturnGoodsId,,,,,
+,,,valid return goods id,O,,O,O,O
+,,,non-existent return goods id,,O,,
+Confirm,Return,,,,,
+,Complete return goods result,,,,,
+,,,ReturnGoods status updated to Completed,O,,,O,O
+,,,SupplierPaid set when cash payment,O,,,O,
+,,,Inventory processed,O,,,O,O
+,Exception,,,,,
+,,,ApiException: Không tìm thấy phiếu trả hàng,,O,,
+,,,ApiException: Chỉ có thể hoàn thành phiếu nháp,,,O,
+,Database changes,,,,,
+,,,ReturnGoods status updated,O,,,O,O
+,,,SupplierPaid updated,O,,,O,
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A,N,N
+,Passed/Failed,,,,,P,P,P,P,P
+,Error Message,,,,,
+,Notes,,,Return goods completed successfully,Return goods not found,Not draft status,Cash payment sets SupplierPaid,Items processed
+

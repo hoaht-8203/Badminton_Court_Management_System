@@ -1,0 +1,51 @@
+FUNC01 - UserRegisterAsync Test Report,,,,,,,,
+Generated: December 13 2025,,,,,,,,
+,,,,FUNC01_TC01,FUNC01_TC02,FUNC01_TC03,FUNC01_TC04,FUNC01_TC05
+,,,,UserRegisterAsync_Success,UserRegisterAsync_EmailExists,UserRegisterAsync_UserNameExists,UserRegisterAsync_CreateUserFails,UserRegisterAsync_WithMinimalRequiredFields
+Condition,Precondition,,,,,,,
+,,,Server connection available,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O
+,,,Email not exists in DB,O,,O,O,O
+,,,Username not exists in DB,O,O,,O,O
+,,,Email exists in DB,,O,,,
+,,,Username exists in DB,,,O,,
+,Input,,,,,,,
+,Email,,,,,,,
+,,,test@example.com,O,,,O,
+,,,test2@example.com,,,,,O
+,,,existing@example.com,,O,,,
+,,,new@example.com,,,O,,
+,UserName,,,,,,,
+,,,testuser,O,,O,O,
+,,,testuser2,,,,,O
+,,,newuser,,O,,,
+,,,existinguser,,,O,,
+,Password,,,,,,,
+,,,Test123!@#,O,O,O,O,O
+,FullName,,,,,,,
+,,,Test User,O,O,O,O,
+,,,Test User 2,,,,,O
+,,,New User,,O,O,,
+,PhoneNumber,,,,,,,
+,,,0123456789,O,O,O,O,
+,,,0987654321,,,,,O
+Confirm,Return,,,,,,,
+,CurrentUserResponse,,,,,,,
+,,,not null,O,,,,O
+,,,UserId != Guid.Empty,O,,,,O
+,,,UserName = input,O,,,,O
+,,,Email = input,O,,,,O
+,,,EmailConfirmed = false,O,,,,O
+,,,Roles contains "User",O,,,,O
+,Exception,,,,,,,
+,,,ApiException: Email already exists,,O,,,
+,,,ApiException: Username already exists,,,O,,
+,,,ApiException: Create user failed,,,,O,
+,Database changes,,,,,,,
+,,,User created,O,,,,O
+,,,Customer created,O,,,,O
+,,,ApplicationUserToken created,O,,,,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,,N,A,A,A,N
+,Passed/Failed,,,P,P,P,P,P
+,Error Message,,,,,,,
+,Notes,,,All required fields tested,Email duplicate validation works,Username duplicate validation works,CreateAsync failure handled,Minimal required fields only (no optional fields)

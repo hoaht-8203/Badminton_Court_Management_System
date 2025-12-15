@@ -1,0 +1,34 @@
+FUNC02 - LoginAsync Test Report,,,,,,,
+Generated: December 13 2025,,,,,,
+,,,,FUNC02_TC01,FUNC02_TC02,FUNC02_TC03,FUNC02_TC04,FUNC02_TC05
+,,,,LoginAsync_Success,LoginAsync_InvalidCredentials,LoginAsync_WrongPassword,LoginAsync_InactiveUser,LoginAsync_WithTempPassword
+Condition,Precondition,,,,,,
+,,,Server connection available,O,O,O,O,O
+,,,Database connection available,O,O,O,O,O
+,,,User exists in DB,O,,O,O,O
+,,,User status is Active,O,,O,,
+,,,User status is Inactive,,,,O,
+,,,User has temp password token,,,,,O
+,Input,,,,,,
+,Email,,,,,,
+,,,test@example.com,O,,O,O,O
+,,,nonexistent@example.com,,O,,,
+,Password,,,,,,
+,,,password123,O,,O,O,O
+,,,wrongpassword,,O,O,,
+Confirm,Return,,,,,,
+,AuthResponse,,,,,,
+,,,not null,O,,,,O
+,,,IsSuccess = true,O,,,,O
+,,,AccessToken not empty,O,,,,O
+,,,Email = input,O,,,,O
+,Exception,,,,,,
+,,,ApiException: Email hoặc mật khẩu không đúng,,O,O,,
+,,,ApiException: Tài khoản của bạn đã bị khóa,,,,O,
+,Database changes,,,,,,
+,,,ApplicationUserToken created,O,,,,O
+Result,"Type(N : Normal, A : Abnormal, B : Boundary)",,N,A,A,A,N
+,Passed/Failed,,,P,P,P,P,P
+,Error Message,,,,,,
+,Notes,,,Login successful with valid credentials,Email not found validation,Wrong password validation,Inactive user blocked,Warning logged for temp password
+

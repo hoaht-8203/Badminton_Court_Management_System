@@ -22,6 +22,15 @@ import {
     CreatePayrollRequestToJSON,
 } from '../models/index';
 
+export interface ApiPayrollGetRequest {
+    keyword?: string;
+    status?: string;
+    startDateOperator?: string;
+    startDate?: Date;
+    endDateOperator?: string;
+    endDate?: Date;
+}
+
 export interface ApiPayrollItemsByStaffStaffIdGetRequest {
     staffId: number;
 }
@@ -29,6 +38,10 @@ export interface ApiPayrollItemsByStaffStaffIdGetRequest {
 export interface ApiPayrollPayItemPayrollItemIdPostRequest {
     payrollItemId: number;
     amount?: number;
+}
+
+export interface ApiPayrollPayrollIdDeleteRequest {
+    payrollId: number;
 }
 
 export interface ApiPayrollPayrollIdGetRequest {
@@ -52,15 +65,21 @@ export interface ApiPayrollRefreshPayrollIdPostRequest {
 export interface PayrollApiInterface {
     /**
      * 
+     * @param {string} [keyword] 
+     * @param {string} [status] 
+     * @param {string} [startDateOperator] 
+     * @param {Date} [startDate] 
+     * @param {string} [endDateOperator] 
+     * @param {Date} [endDate] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof PayrollApiInterface
      */
-    apiPayrollGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
+    apiPayrollGetRaw(requestParameters: ApiPayrollGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
 
     /**
      */
-    apiPayrollGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
+    apiPayrollGet(requestParameters: ApiPayrollGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
 
     /**
      * 
@@ -88,6 +107,19 @@ export interface PayrollApiInterface {
     /**
      */
     apiPayrollPayItemPayrollItemIdPost(requestParameters: ApiPayrollPayItemPayrollItemIdPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
+
+    /**
+     * 
+     * @param {number} payrollId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof PayrollApiInterface
+     */
+    apiPayrollPayrollIdDeleteRaw(requestParameters: ApiPayrollPayrollIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>>;
+
+    /**
+     */
+    apiPayrollPayrollIdDelete(requestParameters: ApiPayrollPayrollIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void>;
 
     /**
      * 
@@ -137,8 +169,32 @@ export class PayrollApi extends runtime.BaseAPI implements PayrollApiInterface {
 
     /**
      */
-    async apiPayrollGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+    async apiPayrollGetRaw(requestParameters: ApiPayrollGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         const queryParameters: any = {};
+
+        if (requestParameters['keyword'] != null) {
+            queryParameters['Keyword'] = requestParameters['keyword'];
+        }
+
+        if (requestParameters['status'] != null) {
+            queryParameters['Status'] = requestParameters['status'];
+        }
+
+        if (requestParameters['startDateOperator'] != null) {
+            queryParameters['StartDateOperator'] = requestParameters['startDateOperator'];
+        }
+
+        if (requestParameters['startDate'] != null) {
+            queryParameters['StartDate'] = (requestParameters['startDate'] as any).toISOString();
+        }
+
+        if (requestParameters['endDateOperator'] != null) {
+            queryParameters['EndDateOperator'] = requestParameters['endDateOperator'];
+        }
+
+        if (requestParameters['endDate'] != null) {
+            queryParameters['EndDate'] = (requestParameters['endDate'] as any).toISOString();
+        }
 
         const headerParameters: runtime.HTTPHeaders = {};
 
@@ -157,8 +213,8 @@ export class PayrollApi extends runtime.BaseAPI implements PayrollApiInterface {
 
     /**
      */
-    async apiPayrollGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
-        await this.apiPayrollGetRaw(initOverrides);
+    async apiPayrollGet(requestParameters: ApiPayrollGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.apiPayrollGetRaw(requestParameters, initOverrides);
     }
 
     /**
@@ -231,6 +287,40 @@ export class PayrollApi extends runtime.BaseAPI implements PayrollApiInterface {
      */
     async apiPayrollPayItemPayrollItemIdPost(requestParameters: ApiPayrollPayItemPayrollItemIdPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.apiPayrollPayItemPayrollItemIdPostRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async apiPayrollPayrollIdDeleteRaw(requestParameters: ApiPayrollPayrollIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        if (requestParameters['payrollId'] == null) {
+            throw new runtime.RequiredError(
+                'payrollId',
+                'Required parameter "payrollId" was null or undefined when calling apiPayrollPayrollIdDelete().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Payroll/{payrollId}`;
+        urlPath = urlPath.replace(`{${"payrollId"}}`, encodeURIComponent(String(requestParameters['payrollId'])));
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'DELETE',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiPayrollPayrollIdDelete(requestParameters: ApiPayrollPayrollIdDeleteRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.apiPayrollPayrollIdDeleteRaw(requestParameters, initOverrides);
     }
 
     /**

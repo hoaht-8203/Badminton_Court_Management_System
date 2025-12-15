@@ -546,6 +546,22 @@ public class AuthService(
 
         await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.User));
 
+        // Tự động tạo customer khi đăng ký
+        var customer = new Customer
+        {
+            UserId = user.Id,
+            FullName = user.FullName,
+            Email = user.Email!,
+            PhoneNumber = registerRequest.PhoneNumber,
+            DateOfBirth = registerRequest.DateOfBirth,
+            Address = registerRequest.Address,
+            City = registerRequest.City,
+            District = registerRequest.District,
+            Ward = registerRequest.Ward,
+            Status = CustomerStatus.Active,
+        };
+        _context.Customers.Add(customer);
+
         // gen otp with six number
         var otp = new Random().Next(100000, 999999).ToString();
 

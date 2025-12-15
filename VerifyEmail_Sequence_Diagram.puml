@@ -1,0 +1,173 @@
+@startuml Verify Email Sequence Diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 48
+
+title Verify Email Flow
+
+actor User as user
+participant "UI Component\n(VerifyEmailPage)" as verifyPage
+participant "authService\n(frontend)" as feAuthService
+participant "HTTP Client" as httpClient
+participant "AuthController" as authController
+participant "AuthService\n(backend)" as beAuthService
+participant "UserManager" as userManager
+participant "DbContext" as dbContext
+database "Database" as database
+
+user -> verifyPage: Click verification link\n(email + token)
+activate verifyPage
+verifyPage -> feAuthService: verifyEmail({ email, token })
+activate feAuthService
+
+feAuthService -> httpClient: POST /api/auth/verify-email\nVerifyEmailRequest
+activate httpClient
+
+httpClient -> authController: HTTP POST /api/auth/verify-email\nemail, token
+activate authController
+
+authController -> beAuthService: VerifyEmailAsync(request)
+deactivate authController
+activate beAuthService
+
+== Validate input ==
+beAuthService -> beAuthService: Check email/token not empty
+alt Missing input
+  beAuthService --> authController: ApiException 400\n"Email hoặc token không hợp lệ"
+  authController --> httpClient: HTTP 400
+  httpClient --> feAuthService: Error
+  feAuthService --> verifyPage: onError
+  verifyPage -> user: Show invalid input error
+  deactivate beAuthService
+  deactivate verifyPage
+  deactivate feAuthService
+  deactivate httpClient
+  deactivate authController
+else Input ok
+  == Find user ==
+  beAuthService -> userManager: FindByEmailAsync(request.Email)
+  activate userManager
+  userManager --> beAuthService: ApplicationUser?
+  deactivate userManager
+
+  alt User not found
+    beAuthService --> authController: ApiException 400\n"Email không tồn tại"
+    authController --> httpClient: HTTP 400
+    httpClient --> feAuthService: Error
+    feAuthService --> verifyPage: onError
+    verifyPage -> user: Show email not found
+    deactivate beAuthService
+    deactivate verifyPage
+    deactivate feAuthService
+    deactivate httpClient
+    deactivate authController
+  else User found
+    == Validate token ==
+    beAuthService -> dbContext: Query ApplicationUserToken\nby userId, token, EmailConfirm
+    activate dbContext
+    dbContext -> database: SELECT * FROM ApplicationUserTokens\nWHERE UserId=user.Id AND Token=token\nAND TokenType=EmailConfirm
+    activate database
+    database --> dbContext: Token or null
+    deactivate database
+    dbContext --> beAuthService: ApplicationUserToken?
+    deactivate dbContext
+
+    alt Token not found
+      beAuthService --> authController: ApiException 400\n"Mã xác thực email không hợp lệ"
+      authController --> httpClient: HTTP 400
+      httpClient --> feAuthService: Error
+      feAuthService --> verifyPage: onError
+      verifyPage -> user: Show invalid token error
+      deactivate beAuthService
+      deactivate verifyPage
+      deactivate feAuthService
+      deactivate httpClient
+      deactivate authController
+    else Token found
+      alt Token expired
+        beAuthService --> authController: ApiException 400\n"Mã xác thực email đã hết hạn"
+        authController --> httpClient: HTTP 400
+        httpClient --> feAuthService: Error
+        feAuthService --> verifyPage: onError
+        verifyPage -> user: Show token expired
+        deactivate beAuthService
+        deactivate verifyPage
+        deactivate feAuthService
+        deactivate httpClient
+        deactivate authController
+      else Token valid
+        == Confirm email ==
+        beAuthService -> userManager: UpdateAsync(user.EmailConfirmed = true)
+        activate userManager
+        userManager --> beAuthService: Success
+        deactivate userManager
+
+        beAuthService -> dbContext: Remove userToken
+        activate dbContext
+        dbContext -> database: DELETE ApplicationUserToken
+        activate database
+        database --> dbContext: Success
+        deactivate database
+        dbContext --> beAuthService: Success
+        deactivate dbContext
+
+        == Auto-create customer if missing ==
+        beAuthService -> dbContext: Load user with Customer (Include)
+        activate dbContext
+        dbContext -> database: SELECT User WITH Customer
+        activate database
+        database --> dbContext: userFromContext
+        deactivate database
+        dbContext --> beAuthService: userFromContext
+        deactivate dbContext
+
+        alt Customer missing
+          beAuthService -> dbContext: Add Customer (Active)
+          activate dbContext
+          dbContext -> database: INSERT Customer
+          activate database
+          database --> dbContext: Success
+          deactivate database
+          dbContext --> beAuthService: Success
+          deactivate dbContext
+        else Customer exists
+          note right of beAuthService: Skip creating customer
+        end
+
+        beAuthService -> dbContext: SaveChangesAsync()
+        activate dbContext
+        dbContext -> database: COMMIT
+        activate database
+        database --> dbContext: Success
+        deactivate database
+        dbContext --> beAuthService: Success
+        deactivate dbContext
+
+        beAuthService --> authController: Task.Completed
+        deactivate beAuthService
+
+        authController -> authController: ApiResponse.Success(null,\n"Verify email successfully")
+        activate authController
+        authController --> httpClient: HTTP 200 OK\nApiResponse<null>
+        deactivate authController
+
+        httpClient --> feAuthService: ApiResponse<null>
+        deactivate httpClient
+
+        feAuthService --> verifyPage: onSuccess
+        deactivate feAuthService
+
+        verifyPage -> user: Show success message\nredirect to login
+        deactivate verifyPage
+      end
+    end
+  end
+end
+
+@enduml
+
+
+
+

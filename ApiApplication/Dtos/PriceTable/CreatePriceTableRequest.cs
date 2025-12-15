@@ -16,4 +16,6 @@ public class CreatePriceTableRequest
     public bool IsActive { get; set; } = true;
 
     public List<PriceTimeRangeDto> TimeRanges { get; set; } = new();
+
+    public List<PriceTableProductItem>? Products { get; set; }
 }

@@ -1,19 +1,42 @@
 "use client";
 
 import type { CashflowResponse } from "@/types-openapi/api";
-import { FolderOpenOutlined, PrinterOutlined } from "@ant-design/icons";
-import { Button, Col, Row } from "antd";
+import { CheckCircleOutlined, ClockCircleOutlined, FolderOpenOutlined } from "@ant-design/icons";
+import { Button, Col, Modal, Row } from "antd";
 import dayjs from "dayjs";
+import { useState } from "react";
 
 export default function CashflowExpanded({
   record,
   onOpen,
-  onPrint,
+  onChangeStatus,
 }: {
   record: CashflowResponse;
   onOpen?: (r: CashflowResponse) => void;
-  onPrint?: (r: CashflowResponse) => void;
+  onChangeStatus?: (id: number, newStatus: string) => void;
 }) {
+  const [status, setStatus] = useState(record.status);
+
+  const handleToggleStatus = () => {
+    const newStatus = status === "Paid" ? "Pending" : "Paid";
+    const title = status === "Paid" ? "Chuyển sang Chờ thanh toán" : "Đánh dấu Đã thanh toán";
+    const content = status === "Paid" 
+      ? "Bạn có chắc muốn chuyển phiếu này sang trạng thái 'Chờ thanh toán'?" 
+      : "Bạn có chắc muốn đánh dấu phiếu này là 'Đã thanh toán'?";
+    
+    Modal.confirm({
+      title,
+      content,
+      okText: "Xác nhận",
+      cancelText: "Hủy",
+      onOk: async () => {
+        setStatus(newStatus);
+        if (onChangeStatus && record.id) {
+          await onChangeStatus(record.id, newStatus);
+        }
+      },
+    });
+  };
   return (
     <div className="bg-white p-4">
       <Row gutter={24} className="mb-3">
@@ -44,12 +67,17 @@ export default function CashflowExpanded({
         <Col span={8}>
           <div className="mb-3">
             <div className="text-sm text-slate-600">Giá trị</div>
-            <div className="text-sm font-semibold">{record.value?.toLocaleString?.() ?? record.value ?? "-"}</div>
+            <div className="text-sm font-semibold">
+              {(() => {
+                const displayValue = record.isPayment ? -(record.value ?? 0) : (record.value ?? 0);
+                return displayValue?.toLocaleString?.() ?? displayValue ?? "-";
+              })()}
+            </div>
           </div>
 
           <div>
             <div className="text-sm text-slate-600">Trạng thái</div>
-            <div className="text-sm">{record.status ?? "-"}</div>
+            <div className="text-sm">{status === "Paid" ? "Đã thanh toán" : status === "Pending" ? "Chờ thanh toán" : status ?? "-"}</div>
           </div>
         </Col>
       </Row>
@@ -92,9 +120,24 @@ export default function CashflowExpanded({
             <Button type="primary" icon={<FolderOpenOutlined />} onClick={() => onOpen?.(record)}>
               Mở phiếu
             </Button>
-            <Button icon={<PrinterOutlined />} onClick={() => onPrint?.(record)}>
-              In
-            </Button>
+            {status === "Paid" ? (
+              <Button 
+                type="default" 
+                icon={<ClockCircleOutlined />} 
+                onClick={handleToggleStatus}
+              >
+                Chuyển sang Chờ thanh toán
+              </Button>
+            ) : (
+              <Button 
+                type="primary" 
+                icon={<CheckCircleOutlined />} 
+                onClick={handleToggleStatus}
+                style={{ background: "#52c41a", borderColor: "#52c41a" }}
+              >
+                Đánh dấu Đã thanh toán
+              </Button>
+            )}
           </div>
         </Col>
       </Row>

@@ -10,7 +10,9 @@ public interface IVoucherService
     Task UpdateAsync(int id, UpdateVoucherRequest request);
     Task ExtendAsync(int id, ExtendVoucherRequest request);
     Task DeleteAsync(int id);
-    Task<List<VoucherResponse>> GetAvailableVouchersForCurrentUserAsync();
+    Task<List<VoucherResponse>> GetAvailableVouchersForCurrentUserAsync(
+        GetAvailableVouchersRequest request
+    );
     Task<ValidateVoucherResponse> ValidateAndCalculateDiscountAsync(
         ValidateVoucherRequest request,
         int customerId

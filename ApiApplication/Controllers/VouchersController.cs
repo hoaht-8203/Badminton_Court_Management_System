@@ -66,9 +66,11 @@ public class VouchersController(
     #region Business Operations
 
     [HttpGet("available")]
-    public async Task<ApiResponse<VoucherResponse[]>> GetAvailableVouchers()
+    public async Task<ApiResponse<VoucherResponse[]>> GetAvailableVouchers(
+        [FromQuery] GetAvailableVouchersRequest request
+    )
     {
-        var data = await _voucherService.GetAvailableVouchersForCurrentUserAsync();
+        var data = await _voucherService.GetAvailableVouchersForCurrentUserAsync(request);
         return ApiResponse<VoucherResponse[]>.SuccessResponse(data.ToArray());
     }
 

@@ -362,6 +362,13 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
   }, [items, discount]);
 
   const doSave = async (complete: boolean) => {
+    try {
+      await form.validateFields();
+    } catch (error) {
+      message.warning("Vui lòng điền đầy đủ thông tin bắt buộc");
+      return;
+    }
+
     const values = form.getFieldsValue();
 
     // Validate supplier selection
@@ -371,7 +378,20 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
     }
 
     if ((items || []).length === 0) {
-      message.warning("Vui lòng thêm sản phẩm");
+      message.warning("Vui lòng thêm ít nhất một sản phẩm");
+      return;
+    }
+
+    // Validate items có quantity > 0
+    const invalidItems = items.filter((item) => !item.quantity || item.quantity <= 0);
+    if (invalidItems.length > 0) {
+      message.warning("Vui lòng nhập số lượng cho tất cả sản phẩm");
+      return;
+    }
+
+    // Validate chuyển khoản phải chọn bank
+    if (paymentMethod === "transfer" && !values.supplierBankAccountId) {
+      message.warning("Vui lòng chọn tài khoản ngân hàng nhà cung cấp khi thanh toán bằng chuyển khoản");
       return;
     }
 
@@ -461,11 +481,36 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                   type="default"
                   onClick={async () => {
                     try {
+                      await form.validateFields();
+                    } catch (error) {
+                      message.warning("Vui lòng điền đầy đủ thông tin bắt buộc");
+                      return;
+                    }
+
+                    try {
                       const values = form.getFieldsValue();
 
                       // Validate supplier selection
                       if (!values.supplierId) {
                         message.warning("Vui lòng chọn nhà cung cấp");
+                        return;
+                      }
+
+                      if ((items || []).length === 0) {
+                        message.warning("Vui lòng thêm ít nhất một sản phẩm");
+                        return;
+                      }
+
+                      // Validate items có quantity > 0
+                      const invalidItems = items.filter((item) => !item.quantity || item.quantity <= 0);
+                      if (invalidItems.length > 0) {
+                        message.warning("Vui lòng nhập số lượng cho tất cả sản phẩm");
+                        return;
+                      }
+
+                      // Validate chuyển khoản phải chọn bank
+                      if (paymentMethod === "transfer" && !values.supplierBankAccountId) {
+                        message.warning("Vui lòng chọn tài khoản ngân hàng nhà cung cấp khi thanh toán bằng chuyển khoản");
                         return;
                       }
 
@@ -520,11 +565,36 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                   type="primary"
                   onClick={async () => {
                     try {
+                      await form.validateFields();
+                    } catch (error) {
+                      message.warning("Vui lòng điền đầy đủ thông tin bắt buộc");
+                      return;
+                    }
+
+                    try {
                       const values = form.getFieldsValue();
 
                       // Validate supplier selection
                       if (!values.supplierId) {
                         message.warning("Vui lòng chọn nhà cung cấp");
+                        return;
+                      }
+
+                      if ((items || []).length === 0) {
+                        message.warning("Vui lòng thêm ít nhất một sản phẩm");
+                        return;
+                      }
+
+                      // Validate items có quantity > 0
+                      const invalidItems = items.filter((item) => !item.quantity || item.quantity <= 0);
+                      if (invalidItems.length > 0) {
+                        message.warning("Vui lòng nhập số lượng cho tất cả sản phẩm");
+                        return;
+                      }
+
+                      // Validate chuyển khoản phải chọn bank
+                      if (paymentMethod === "transfer" && !values.supplierBankAccountId) {
+                        message.warning("Vui lòng chọn tài khoản ngân hàng nhà cung cấp khi thanh toán bằng chuyển khoản");
                         return;
                       }
 
@@ -737,7 +807,12 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                     </Button>
                     <Button
                       type={paymentMethod === "transfer" ? "primary" : "default"}
+                      disabled={!supplierId}
                       onClick={() => {
+                        if (!supplierId) {
+                          message.warning("Vui lòng chọn nhà cung cấp trước khi chọn phương thức chuyển khoản");
+                          return;
+                        }
                         setPaymentMethod("transfer");
                         setBankModalOpen(true);
                       }}

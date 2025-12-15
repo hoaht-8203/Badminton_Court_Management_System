@@ -30,11 +30,6 @@ export interface ListStaffRequest {
      * @type {Array<number>}
      * @memberof ListStaffRequest
      */
-    /**
-     * 
-     * @type {Array<number>}
-     * @memberof ListStaffRequest
-     */
     branchIds?: Array<number> | null;
     /**
      * 

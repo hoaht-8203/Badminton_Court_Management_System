@@ -8,6 +8,8 @@ import {
   ValidateVoucherRequest,
   ValidateVoucherResponseApiResponse,
   ValidateVoucherResponse,
+  GetAvailableVouchersRequest,
+  GetAvailableVouchersRequestToJSON,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 
@@ -47,8 +49,10 @@ export const voucherService = {
     return res.data;
   },
 
-  async getAvailable(): Promise<ApiResponse<VoucherResponse[]>> {
-    const res = await axiosInstance.get<ApiResponse<VoucherResponse[]>>("/api/vouchers/available");
+  async getAvailable(params?: GetAvailableVouchersRequest): Promise<ApiResponse<VoucherResponse[]>> {
+    const res = await axiosInstance.get<ApiResponse<VoucherResponse[]>>("/api/vouchers/available", {
+      params: params ? GetAvailableVouchersRequestToJSON(params) : undefined,
+    });
     return res.data;
   },
 

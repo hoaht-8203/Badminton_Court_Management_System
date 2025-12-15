@@ -1,7 +1,6 @@
 "use client";
 
 import ProductCard from "@/components/homepage/ProductCard";
-import SnowEffect from "@/components/homepage/SnowEffect";
 import { useListProductsForWeb } from "@/hooks/useProducts";
 import { Button, Checkbox, Col, Empty, Input, Pagination, Radio, Row, Select, Spin, Typography } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
@@ -145,7 +144,6 @@ const AllProductsPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <SnowEffect />
       <div className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <div className="mb-6 text-sm text-gray-600">

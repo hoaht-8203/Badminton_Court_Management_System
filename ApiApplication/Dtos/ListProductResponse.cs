@@ -8,9 +8,7 @@ public class ListProductResponse
     public string? Code { get; set; }
     public required string Name { get; set; }
     public string? Category { get; set; }
-    public string? MenuType { get; set; }
     public decimal SalePrice { get; set; }
-    public bool IsDirectSale { get; set; }
     public bool IsActive { get; set; }
     public bool IsDisplayOnWeb { get; set; }
     public int Stock { get; set; }

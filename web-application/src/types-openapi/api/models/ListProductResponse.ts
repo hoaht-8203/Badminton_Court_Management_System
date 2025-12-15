@@ -45,22 +45,10 @@ export interface ListProductResponse {
     category?: string | null;
     /**
      * 
-     * @type {string}
-     * @memberof ListProductResponse
-     */
-    menuType?: string | null;
-    /**
-     * 
      * @type {number}
      * @memberof ListProductResponse
      */
     salePrice?: number;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ListProductResponse
-     */
-    isDirectSale?: boolean;
     /**
      * 
      * @type {boolean}
@@ -110,9 +98,7 @@ export function ListProductResponseFromJSONTyped(json: any, ignoreDiscriminator:
         'code': json['code'] == null ? undefined : json['code'],
         'name': json['name'],
         'category': json['category'] == null ? undefined : json['category'],
-        'menuType': json['menuType'] == null ? undefined : json['menuType'],
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
-        'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'isDisplayOnWeb': json['isDisplayOnWeb'] == null ? undefined : json['isDisplayOnWeb'],
         'stock': json['stock'] == null ? undefined : json['stock'],
@@ -135,9 +121,7 @@ export function ListProductResponseToJSONTyped(value?: ListProductResponse | nul
         'code': value['code'],
         'name': value['name'],
         'category': value['category'],
-        'menuType': value['menuType'],
         'salePrice': value['salePrice'],
-        'isDirectSale': value['isDirectSale'],
         'isActive': value['isActive'],
         'isDisplayOnWeb': value['isDisplayOnWeb'],
         'stock': value['stock'],

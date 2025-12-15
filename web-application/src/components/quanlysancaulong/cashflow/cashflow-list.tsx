@@ -21,6 +21,7 @@ export default function CashflowList({
   modal,
   contextHolder,
   onOpenDrawer,
+  onChangeStatus,
 }: {
   data: CashflowResponse[];
   loading: boolean;
@@ -28,6 +29,7 @@ export default function CashflowList({
   modal?: any;
   contextHolder?: any;
   onOpenDrawer?: (record: CashflowResponse) => void;
+  onChangeStatus?: (id: number, newStatus: string) => void;
 }) {
   const columns = [
     {
@@ -75,7 +77,10 @@ export default function CashflowList({
         const valB = b.value ?? 0;
         return valA - valB;
       },
-      render: (v: any) => v?.toLocaleString?.() ?? v,
+      render: (v: any, record: CashflowResponse) => {
+        const displayValue = record.isPayment ? -(v ?? 0) : (v ?? 0);
+        return displayValue?.toLocaleString?.() ?? displayValue;
+      },
     },
     {
       title: "Trạng thái",
@@ -96,7 +101,7 @@ export default function CashflowList({
           expandable={{
             expandRowByClick: true,
             expandedRowRender: (record: CashflowResponse) => (
-              <CashflowExpanded record={record} onOpen={(r) => onOpenDrawer?.(r)} onPrint={() => {}} />
+              <CashflowExpanded record={record} onOpen={(r) => onOpenDrawer?.(r)} onChangeStatus={onChangeStatus} />
             ),
           }}
         />

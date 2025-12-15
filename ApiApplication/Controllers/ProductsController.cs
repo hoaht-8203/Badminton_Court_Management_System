@@ -153,5 +153,22 @@ namespace ApiApplication.Controllers
                 )
             );
         }
+
+        /// <summary>
+        /// Lấy giá sản phẩm đang áp dụng từ bảng giá hiện tại đang được áp dụng
+        /// </summary>
+        /// <returns>Danh sách giá tất cả sản phẩm đang áp dụng</returns>
+        [HttpGet("get-current-applied-price")]
+        public async Task<ActionResult<ApiResponse<List<GetCurrentAppliedPriceResponse>>>> GetCurrentAppliedPrice()
+        {
+            var request = new GetCurrentAppliedPriceRequest();
+            var result = await _productService.GetCurrentAppliedPriceAsync(request);
+            return Ok(
+                ApiResponse<List<GetCurrentAppliedPriceResponse>>.SuccessResponse(
+                    result,
+                    "Lấy giá sản phẩm đang áp dụng thành công"
+                )
+            );
+        }
     }
 }

@@ -84,7 +84,6 @@ export interface StaffApiInterface {
     /**
      * 
      * @param {number} [status] 
-     * @param {Array<number>} [departmentIds] 
      * @param {Array<number>} [branchIds] 
      * @param {string} [keyword] 
      * @param {*} [options] Override http request option.

@@ -239,6 +239,9 @@ const PriceManagementPage = () => {
                           message.success("Đã xoá");
                           refetch();
                         },
+                        onError: (error: any) => {
+                          message.error(error?.message || "Không thể xóa bảng giá đang được kích hoạt");
+                        },
                       },
                     ),
                 })
@@ -253,7 +256,8 @@ const PriceManagementPage = () => {
                       message.success("Cập nhật trạng thái thành công");
                       refetch();
                     } catch (e: any) {
-                      message.error(e?.message || "Lỗi cập nhật trạng thái");
+                      const errorMessage = e?.response?.data?.message || e?.message || "Lỗi cập nhật trạng thái";
+                      message.error(errorMessage);
                     }
                   },
                 })
@@ -472,6 +476,8 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
 
   const { data: productIdsRes } = useGetPriceTableProducts(priceId || 0, !!priceId);
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
+  const [productsRowsState, setProductsRowsState] = useState<Record<number, number | undefined>>({});
+  const { data: allProductsForCreate } = useListProducts({} as any);
 
   useEffect(() => {
     if (data?.data && open) {
@@ -509,19 +515,29 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
       .filter((r: any) => !!r.startTime && !!r.endTime);
 
     if (isCreate) {
+      // Lấy products từ ProductsSelector
+      const products: PriceTableProductItem[] = selectedProductIds.map((id) => {
+        const value = productsRowsState[id];
+        return { productId: id, overrideSalePrice: value };
+      });
+
       const payload: CreatePriceTableRequest = {
         name: values.name,
         isActive: !!values.isActive,
         effectiveFrom: values.effective?.[0]?.toDate?.(),
         effectiveTo: values.effective?.[1]?.toDate?.(),
         timeRanges: cleanRanges,
+        products: products.length > 0 ? products : undefined,
       };
 
       createMutation.mutate(payload, {
         onSuccess: () => {
           message.success("Tạo bảng giá thành công");
+          setProductsRowsState({});
+          setSelectedProductIds([]);
           onSaved();
         },
+        onError: (e: any) => message.error(e?.message || "Lỗi tạo bảng giá"),
       });
     } else {
       const payload: UpdatePriceTableRequest = {
@@ -647,7 +663,16 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
           {
             key: "scope",
             label: "Phạm vi áp dụng",
-            children: <ProductsSelector priceId={priceId} selected={selectedProductIds} onChangeSelected={setSelectedProductIds} />,
+            children: (
+              <ProductsSelector
+                priceId={priceId}
+                selected={selectedProductIds}
+                onChangeSelected={setSelectedProductIds}
+                isCreate={isCreate}
+                rowsState={productsRowsState}
+                onRowsStateChange={setProductsRowsState}
+              />
+            ),
           },
         ]}
       />
@@ -659,16 +684,33 @@ const ProductsSelector = ({
   priceId,
   selected,
   onChangeSelected,
+  isCreate = false,
+  rowsState: externalRowsState,
+  onRowsStateChange,
 }: {
   priceId: number | null;
   selected: number[];
   onChangeSelected: (v: number[]) => void;
+  isCreate?: boolean;
+  rowsState?: Record<number, number | undefined>;
+  onRowsStateChange?: (state: Record<number, number | undefined>) => void;
 }) => {
   const [params, setParams] = useState<any>({});
   const [form] = Form.useForm<any>();
   const { data: productsRes, isFetching } = useListProducts(params);
   const { data: mapped } = useGetPriceTableProducts(priceId || 0, !!priceId);
-  const [rowsState, setRowsState] = useState<Record<number, number | undefined>>({});
+  const [internalRowsState, setInternalRowsState] = useState<Record<number, number | undefined>>({});
+  const rowsState = externalRowsState ?? internalRowsState;
+  const setRowsState = onRowsStateChange
+    ? (state: Record<number, number | undefined> | ((prev: Record<number, number | undefined>) => Record<number, number | undefined>)) => {
+        if (typeof state === "function") {
+          const newState = state(rowsState);
+          onRowsStateChange(newState);
+        } else {
+          onRowsStateChange(state);
+        }
+      }
+    : setInternalRowsState;
   const setProducts = useSetPriceTableProducts();
   const { data: categoriesRes } = useListCategories({});
 
@@ -713,7 +755,6 @@ const ProductsSelector = ({
       code: v.code || undefined,
       name: v.name || undefined,
       category: categoryName || undefined,
-      menuType: v.menuType || undefined,
       isActive: typeof v.isActive === "boolean" ? v.isActive : undefined,
     });
   };
@@ -724,7 +765,8 @@ const ProductsSelector = ({
   };
 
   const onSave = () => {
-    if (!priceId) return;
+    if (!priceId && !isCreate) return;
+
     // disallow saving if any selected products are inactive (redundant safety)
     const invalid = selected.some((id) => {
       const row: any = rows.find((r: any) => r.id === id);
@@ -734,18 +776,26 @@ const ProductsSelector = ({
       message.error("Không thể lưu: có sản phẩm 'Không kích hoạt' trong lựa chọn");
       return;
     }
-    const products: PriceTableProductItem[] = selected.map((id) => {
-      const row = rows.find((r: any) => r.id === id);
-      const value = rowsState[id] ?? row?.salePrice;
-      return { productId: id, overrideSalePrice: value };
-    });
 
-    const payload: SetPriceTableProductsRequest = {
-      priceTableId: priceId,
-      products: products,
-    };
+    if (priceId) {
+      const products: PriceTableProductItem[] = selected.map((id) => {
+        const row = rows.find((r: any) => r.id === id);
+        const value = rowsState[id] ?? row?.salePrice;
+        return { productId: id, overrideSalePrice: value };
+      });
 
-    setProducts.mutate(payload, { onSuccess: () => message.success("Đã lưu sản phẩm áp dụng") });
+      const payload: SetPriceTableProductsRequest = {
+        priceTableId: priceId,
+        products: products,
+      };
+
+      setProducts.mutate(payload, {
+        onSuccess: () => message.success("Đã lưu sản phẩm áp dụng"),
+        onError: (e: any) => message.error(e?.message || "Lỗi lưu sản phẩm"),
+      });
+    } else {
+      message.success("Sản phẩm đã được chọn, vui lòng lưu bảng giá");
+    }
   };
 
   return (
@@ -789,19 +839,6 @@ const ProductsSelector = ({
         </Row>
         <Row gutter={16}>
           <Col span={8}>
-            <Form.Item name="menuType" label="Loại">
-              <Select
-                allowClear
-                placeholder="Chọn loại"
-                options={[
-                  { value: "Đồ ăn", label: "Đồ ăn" },
-                  { value: "Đồ uống", label: "Đồ uống" },
-                  { value: "Khác", label: "Khác" },
-                ]}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
             <Form.Item name="isActive" label="Trạng thái">
               <Select
                 allowClear
@@ -813,7 +850,6 @@ const ProductsSelector = ({
               />
             </Form.Item>
           </Col>
-          <Col span={8}>{/* spacer to keep grid even */}</Col>
         </Row>
       </Form>
 
@@ -833,16 +869,33 @@ const ProductsSelector = ({
             {
               title: "Giá áp dụng",
               key: "overrideSalePrice",
-              render: (_: any, r: any) => (
-                <InputNumber
-                  min={0}
-                  style={{ width: 140 }}
-                  value={rowsState[r.id] ?? r.salePrice}
-                  onChange={(val) => setRowsState((s) => ({ ...s, [r.id]: val as number }))}
-                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                  parser={(value) => value!.replace(/\$\s?|(,*)/g, "")}
-                />
-              ),
+              render: (_: any, r: any) => {
+                const CostCellForValidation = ({ productId, currentPrice }: { productId: number; currentPrice: number | undefined }) => {
+                  const { data: detail } = useDetailProduct({ id: productId }, true);
+                  const costPrice = (detail?.data as any)?.costPrice ?? 0;
+                  // Khi tạo mới (isCreate), để trống. Khi edit (có priceId), hiển thị giá từ rowsState hoặc giá mặc định
+                  const displayValue = isCreate ? currentPrice : (currentPrice ?? r.salePrice);
+                  return (
+                    <InputNumber
+                      min={costPrice}
+                      style={{ width: 140 }}
+                      value={displayValue}
+                      placeholder={isCreate ? "Nhập giá" : undefined}
+                      onChange={async (val) => {
+                        const newPrice = val as number | null;
+                        if (newPrice !== null && newPrice < costPrice) {
+                          message.error(`Giá áp dụng phải lớn hơn hoặc bằng giá vốn (${formatCurrency(costPrice)})`);
+                          return;
+                        }
+                        setRowsState((s) => ({ ...s, [r.id]: newPrice ?? undefined }));
+                      }}
+                      formatter={(value) => (value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "")}
+                      parser={(value) => (value ? value.replace(/\$\s?|(,*)/g, "") : "")}
+                    />
+                  );
+                };
+                return <CostCellForValidation productId={r.id} currentPrice={rowsState[r.id]} />;
+              },
             },
             {
               title: "Trạng thái",
@@ -854,9 +907,16 @@ const ProductsSelector = ({
       </div>
 
       <div className="mt-4 text-right">
-        <Button type="primary" onClick={onSave}>
-          Lưu
-        </Button>
+        {!isCreate && (
+          <Button type="primary" onClick={onSave}>
+            Lưu
+          </Button>
+        )}
+        {isCreate && (
+          <div className="text-sm text-gray-500">
+            Sản phẩm đã chọn sẽ được lưu cùng với bảng giá khi bạn nhấn &quot;Lưu&quot; ở tab &quot;Thông tin&quot;
+          </div>
+        )}
       </div>
     </Card>
   );

@@ -5,6 +5,8 @@ import { CalendarOutlined, ClockCircleOutlined, DeleteOutlined, EditOutlined, Us
 import { Tag as AntTag, Button, Card, Descriptions, Divider, Empty, Popconfirm, Space, Table, Tabs, message } from "antd";
 import dayjs from "dayjs";
 import { createVouchersColumns } from "./vouchers-columns";
+import { useListMemberships } from "@/hooks/useMembership";
+import { useListCustomers } from "@/hooks/useCustomers";
 
 interface VouchersListProps {
   vouchers: VoucherResponse[];
@@ -16,6 +18,8 @@ interface VouchersListProps {
 
 const VouchersList = ({ vouchers, loading, onEdit, onDelete, onExtend }: VouchersListProps) => {
   const columns = createVouchersColumns();
+  const { data: membershipsData } = useListMemberships({});
+  const { data: customersData } = useListCustomers({});
 
   const expandedRowRender = (record: VoucherResponse) => {
     const discountLabel =
@@ -135,24 +139,66 @@ const VouchersList = ({ vouchers, loading, onEdit, onDelete, onExtend }: Voucher
               {!hasUserRules ? (
                 <Empty description="Không có quy tắc người dùng" image={Empty.PRESENTED_IMAGE_SIMPLE} />
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {(record.userRules || []).map((u, i) => (
-                    <Card key={i} size="small" style={{ backgroundColor: "#fafafa" }}>
-                      <Descriptions column={1} size="small" colon={false}>
-                        {u.isNewCustomer != null && (
-                          <Descriptions.Item label="Khách hàng mới">
-                            <AntTag color={u.isNewCustomer ? "green" : "default"}>{u.isNewCustomer ? "Có" : "Không"}</AntTag>
-                          </Descriptions.Item>
-                        )}
-                        {u.userType && (
-                          <Descriptions.Item label="Loại người dùng">
-                            <AntTag color="cyan">{u.userType}</AntTag>
-                          </Descriptions.Item>
-                        )}
-                      </Descriptions>
-                    </Card>
-                  ))}
-                </div>
+                (() => {
+                  // Collect all data from user rules
+                  const hasNewCustomer = (record.userRules || []).some((u) => u.isNewCustomer === true);
+                  const membershipIds = [...new Set((record.userRules || []).filter((u) => u.membershipId).map((u) => u.membershipId))];
+                  const allCustomerIds = [...new Set((record.userRules || []).flatMap((u) => u.specificCustomerIds || []))];
+
+                  const memberships = membershipIds.map((id) => membershipsData?.data?.find((m) => m.id === id)).filter(Boolean);
+                  const customers = customersData?.data?.filter((c) => allCustomerIds.includes(c.id ?? 0)) || [];
+
+                  return (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      {/* 1. Khách hàng mới */}
+                      {hasNewCustomer && (
+                        <Card size="small" style={{ backgroundColor: "#fafafa" }}>
+                          <Descriptions column={1} size="small" colon={false}>
+                            <Descriptions.Item>
+                              <AntTag color="green">Dành cho khách hàng mới</AntTag>
+                            </Descriptions.Item>
+                          </Descriptions>
+                        </Card>
+                      )}
+
+                      {/* 2. Gói hội viên */}
+                      {memberships.length > 0 && (
+                        <Card size="small" style={{ backgroundColor: "#fafafa" }}>
+                          <Descriptions column={1} size="small" colon={false}>
+                            <Descriptions.Item label="Gói hội viên">
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                                {memberships.map((m: any) => (
+                                  <AntTag key={m.id} color="purple">
+                                    {m.name}
+                                  </AntTag>
+                                ))}
+                              </div>
+                            </Descriptions.Item>
+                          </Descriptions>
+                        </Card>
+                      )}
+
+                      {/* 3. Danh sách khách hàng cụ thể */}
+                      {customers.length > 0 && (
+                        <Card size="small" style={{ backgroundColor: "#fafafa" }}>
+                          <Descriptions column={1} size="small" colon={false}>
+                            <Descriptions.Item label="Danh sách khách hàng">
+                              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                {customers.map((c) => (
+                                  <div key={c.id}>
+                                    <AntTag color="blue">
+                                      {c.fullName} - {c.phoneNumber}
+                                    </AntTag>
+                                  </div>
+                                ))}
+                              </div>
+                            </Descriptions.Item>
+                          </Descriptions>
+                        </Card>
+                      )}
+                    </div>
+                  );
+                })()
               )}
             </Card>
           </div>

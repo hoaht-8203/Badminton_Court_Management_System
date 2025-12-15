@@ -5,7 +5,7 @@ import { useChangeStaffStatus, useCreateStaff, useListStaffs, useUpdateStaff } f
 import { ApiError } from "@/lib/axios";
 
 import { ListStaffRequest, ListStaffRequestFromJSON, StaffRequest } from "@/types-openapi/api";
-import { FileExcelOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
+import { PlusOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Card, Col, Form, Input, Radio, Row, message, Spin } from "antd";
 
 const StaffList = dynamic(() => import("@/components/quanlysancaulong/staffs/list-staff/staffs-list"), {
@@ -56,18 +56,11 @@ export default React.memo(function ListStaffPage() {
     // Backend expects: 1 = active, 0 = inactive. UI uses 2 = "Đã nghỉ việc".
     // Map UI value 2 -> backend 0. Keep 0 as 'all' -> null.
     const mappedStatus = values.status === 0 ? null : values.status === 2 ? 0 : values.status;
-
     // Compose keyword from name and phone so backend can search both
-    // Backend will search keyword in FullName, PhoneNumber, and IdentificationNumber
     const parts: string[] = [];
-    if (values.name && typeof values.name === "string" && values.name.trim()) {
-      parts.push(values.name.trim());
-    }
-    if (values.phone && typeof values.phone === "string" && values.phone.trim()) {
-      parts.push(values.phone.trim());
-    }
-    const keyword = parts.length > 0 ? parts.join(" ") : null;
-
+    if (values.name) parts.push(values.name);
+    if (values.phone) parts.push(values.phone);
+    const keyword = parts.length ? parts.join(" ") : null;
     setSearchParams({
       keyword: keyword,
       status: mappedStatus,
@@ -128,10 +121,6 @@ export default React.memo(function ListStaffPage() {
     [createStaff, updateStaff, editingStaff],
   );
 
-  const handleExportExcel = useCallback(() => {
-    message.success("Xuất Excel (demo)");
-  }, []);
-
   return (
     <section>
       <div style={{ marginBottom: 16 }}>
@@ -188,9 +177,6 @@ export default React.memo(function ListStaffPage() {
           </Button>
           <Button type="primary" icon={<ReloadOutlined />} onClick={() => refetchStaffs()}>
             Tải lại
-          </Button>
-          <Button icon={<FileExcelOutlined />} onClick={handleExportExcel}>
-            Xuất Excel
           </Button>
         </div>
       </div>

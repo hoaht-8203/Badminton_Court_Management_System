@@ -4,6 +4,7 @@ import {
   DeleteProductRequest,
   DetailProductRequest,
   DetailProductResponse,
+  GetCurrentAppliedPriceResponse,
   ListProductRequest,
   ListProductResponse,
   ListProductsByPriceTableRequest,
@@ -65,6 +66,11 @@ export const productService = {
 
   async updateWebDisplay(id: number, isDisplayOnWeb: boolean): Promise<ApiResponse<null>> {
     const res = await axiosInstance.put<ApiResponse<null>>("/api/Products/update-web-display", undefined, { params: { id, isDisplayOnWeb } });
+    return res.data;
+  },
+
+  async getCurrentAppliedPrice(): Promise<ApiResponse<GetCurrentAppliedPriceResponse[]>> {
+    const res = await axiosInstance.get<ApiResponse<GetCurrentAppliedPriceResponse[]>>("/api/Products/get-current-applied-price");
     return res.data;
   },
 };

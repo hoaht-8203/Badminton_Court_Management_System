@@ -88,14 +88,12 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
         }
 
         var entity = _mapper.Map<Cashflow>(request);
-        // Normalize stored value: payments are negative, receipts positive
-        if (request.IsPayment)
+        // Always store positive value in DB
+        entity.Value = Math.Abs(request.Value);
+        // Ensure status is set, default to Paid if not provided
+        if (string.IsNullOrWhiteSpace(entity.Status))
         {
-            entity.Value = -Math.Abs(request.Value);
-        }
-        else
-        {
-            entity.Value = Math.Abs(request.Value);
+            entity.Status = CashFlowStatus.Paid;
         }
 
         // Dùng code của loại thu/chi
@@ -137,14 +135,8 @@ public class CashflowService(ApplicationDbContext context, IMapper mapper) : ICa
 
         _mapper.Map(request, entity);
         entity.ReferenceNumber = GenerateVoucherCode(type.Code, entity.Id);
-        if (request.IsPayment)
-        {
-            entity.Value = -Math.Abs(request.Value);
-        }
-        else
-        {
-            entity.Value = Math.Abs(request.Value);
-        }
+        // Always store positive value in DB
+        entity.Value = Math.Abs(request.Value);
         await _context.SaveChangesAsync();
     }
 

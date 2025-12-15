@@ -224,6 +224,7 @@ builder.Services.AddScoped<IUserMembershipService, UserMembershipService>();
 builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+builder.Services.AddScoped<ISystemConfigService, SystemConfigService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -263,6 +264,7 @@ builder.Services.AddAutoMapper(config => config.AddProfile<SliderMappingProfile>
 builder.Services.AddAutoMapper(config => config.AddProfile<MembershipMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<FeedbackMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<VoucherMappingProfile>());
+builder.Services.AddAutoMapper(config => config.AddProfile<SystemConfigMappingProfile>());
 
 // MinIO client
 builder.Services.AddSingleton<IMinioClient>(sp =>

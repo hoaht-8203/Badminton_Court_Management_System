@@ -248,6 +248,9 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
               const cost = (d as any)?.data?.costPrice ?? 0;
               const stock = (d as any)?.data?.stock ?? 0;
               console.log(`Auto-add product ${p.name} (${p.id}) stock:`, stock); // Debug log
+              if (stock <= 0) {
+                continue;
+              }
               const newItem = {
                 productId: p.id,
                 code: p.code || String(p.id),
@@ -261,17 +264,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
               setItems((prev) => (prev.some((x) => x.productId === p.id) ? prev : [...prev, newItem]));
             } catch (error) {
               console.log(`Error auto-adding product ${p.name} (${p.id}):`, error); // Debug log
-              const newItem = {
-                productId: p.id,
-                code: p.code || String(p.id),
-                name: p.name,
-                quantity: 1,
-                importPrice: 0,
-                returnPrice: 0,
-                lineTotal: 0,
-                stock: 0,
-              } as ItemRow;
-              setItems((prev) => (prev.some((x) => x.productId === p.id) ? prev : [...prev, newItem]));
+              // Không thêm sản phẩm khi không xác định được tồn kho
             }
           }
         }
@@ -356,6 +349,7 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
       render: (_: any, r: ItemRow) => (
         <InputNumber
           min={0}
+          max={Math.max(0, r.stock ?? 0)}
           value={r.quantity}
           onChange={(val) => updateQuantity(r.productId, Number(val))}
           style={{ width: 100 }}
@@ -409,6 +403,13 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
 
   const doSave = async (complete: boolean) => {
     try {
+      await form.validateFields();
+    } catch (error) {
+      message.warning("Vui lòng điền đầy đủ thông tin bắt buộc");
+      return;
+    }
+
+    try {
       const values = form.getFieldsValue();
 
       // Validate supplier selection
@@ -417,10 +418,34 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         return;
       }
 
-      // Validate stock quantity - đơn giản
-      const invalidItems = items.filter((item) => item.quantity > item.stock);
+      if ((items || []).length === 0) {
+        message.warning("Vui lòng thêm ít nhất một sản phẩm");
+        return;
+      }
+
+      // Validate items có quantity > 0
+      const invalidItems = items.filter((item) => !item.quantity || item.quantity <= 0);
       if (invalidItems.length > 0) {
+        message.warning("Vui lòng nhập số lượng cho tất cả sản phẩm");
+        return;
+      }
+
+      // Validate stock quantity - đơn giản
+      const exceedStockItems = items.filter((item) => item.quantity > item.stock);
+      if (exceedStockItems.length > 0) {
         message.error("Số lượng trả hàng không được vượt quá tồn kho");
+        return;
+      }
+
+      const outOfStockSelectedItems = items.filter((item) => (item.stock ?? 0) <= 0 && (item.quantity ?? 0) > 0);
+      if (outOfStockSelectedItems.length > 0) {
+        message.error("Một số sản phẩm đã hết hàng, không thể trả hàng hoặc hủy kho");
+        return;
+      }
+
+      // Validate chuyển khoản phải chọn bank
+      if (paymentMethod === "transfer" && !values.storeBankAccountId) {
+        message.warning("Vui lòng chọn tài khoản ngân hàng cửa hàng khi thanh toán bằng chuyển khoản");
         return;
       }
 
@@ -699,6 +724,10 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
                         const cost = p.costPrice ?? 0;
                         const stock = p.stock ?? 0;
                         console.log(`Click product ${p.name} (${p.id}) stock:`, stock); // Debug log
+                        if (stock <= 0) {
+                          message.warning("Sản phẩm đã hết hàng, không thể trả.");
+                          return;
+                        }
                         setItems((prev) =>
                           prev.concat([
                             {

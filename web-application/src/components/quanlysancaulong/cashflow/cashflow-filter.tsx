@@ -77,15 +77,21 @@ export default function CashflowFilter({ onSearch, onReset }: { onSearch: (param
 
           <Col span={6}>
             <Form.Item name="cashflowTypeId" label="Loại thu chi">
-              <Select placeholder="Chọn loại" allowClear options={cashflowTypeOptions} />
+              <Select
+                placeholder={typeValue ? "Chọn loại" : "Vui lòng chọn Thu/Chi trước"}
+                allowClear
+                options={cashflowTypeOptions}
+                disabled={!typeValue}
+                loading={typesLoading}
+              />
             </Form.Item>
           </Col>
 
           <Col span={4}>
             <Form.Item name="status" label="Trạng thái">
-              <Select placeholder="Trạng thái" allowClear>
-                <Select.Option value="paid">Đã thanh toán</Select.Option>
-                <Select.Option value="pending">Chờ</Select.Option>
+              <Select placeholder="Tất cả" allowClear>
+                <Select.Option value="Paid">Đã thanh toán</Select.Option>
+                <Select.Option value="Pending">Chờ thanh toán</Select.Option>
               </Select>
             </Form.Item>
           </Col>

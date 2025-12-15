@@ -48,6 +48,12 @@ export interface RegisterRequest {
      * @type {string}
      * @memberof RegisterRequest
      */
+    phoneNumber: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof RegisterRequest
+     */
     address?: string | null;
     /**
      * 
@@ -83,6 +89,7 @@ export function instanceOfRegisterRequest(value: object): value is RegisterReque
     if (!('fullName' in value) || value['fullName'] === undefined) return false;
     if (!('email' in value) || value['email'] === undefined) return false;
     if (!('password' in value) || value['password'] === undefined) return false;
+    if (!('phoneNumber' in value) || value['phoneNumber'] === undefined) return false;
     return true;
 }
 
@@ -100,6 +107,7 @@ export function RegisterRequestFromJSONTyped(json: any, ignoreDiscriminator: boo
         'fullName': json['fullName'],
         'email': json['email'],
         'password': json['password'],
+        'phoneNumber': json['phoneNumber'],
         'address': json['address'] == null ? undefined : json['address'],
         'city': json['city'] == null ? undefined : json['city'],
         'district': json['district'] == null ? undefined : json['district'],
@@ -123,6 +131,7 @@ export function RegisterRequestToJSONTyped(value?: RegisterRequest | null, ignor
         'fullName': value['fullName'],
         'email': value['email'],
         'password': value['password'],
+        'phoneNumber': value['phoneNumber'],
         'address': value['address'],
         'city': value['city'],
         'district': value['district'],

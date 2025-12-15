@@ -20,6 +20,13 @@ import {
     PriceTimeRangeDtoToJSON,
     PriceTimeRangeDtoToJSONTyped,
 } from './PriceTimeRangeDto';
+import type { PriceTableProductItem } from './PriceTableProductItem';
+import {
+    PriceTableProductItemFromJSON,
+    PriceTableProductItemFromJSONTyped,
+    PriceTableProductItemToJSON,
+    PriceTableProductItemToJSONTyped,
+} from './PriceTableProductItem';
 
 /**
  * 
@@ -59,6 +66,12 @@ export interface UpdatePriceTableRequest {
     timeRanges?: Array<PriceTimeRangeDto> | null;
     /**
      * 
+     * @type {Array<PriceTableProductItem>}
+     * @memberof UpdatePriceTableRequest
+     */
+    products?: Array<PriceTableProductItem> | null;
+    /**
+     * 
      * @type {number}
      * @memberof UpdatePriceTableRequest
      */
@@ -89,6 +102,7 @@ export function UpdatePriceTableRequestFromJSONTyped(json: any, ignoreDiscrimina
         'effectiveTo': json['effectiveTo'] == null ? undefined : (new Date(json['effectiveTo'])),
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'timeRanges': json['timeRanges'] == null ? undefined : ((json['timeRanges'] as Array<any>).map(PriceTimeRangeDtoFromJSON)),
+        'products': json['products'] == null ? undefined : ((json['products'] as Array<any>).map(PriceTableProductItemFromJSON)),
         'id': json['id'],
     };
 }
@@ -109,6 +123,7 @@ export function UpdatePriceTableRequestToJSONTyped(value?: UpdatePriceTableReque
         'effectiveTo': value['effectiveTo'] === null ? null : ((value['effectiveTo'] as any)?.toISOString()),
         'isActive': value['isActive'],
         'timeRanges': value['timeRanges'] == null ? undefined : ((value['timeRanges'] as Array<any>).map(PriceTimeRangeDtoToJSON)),
+        'products': value['products'] == null ? undefined : ((value['products'] as Array<any>).map(PriceTableProductItemToJSON)),
         'id': value['id'],
     };
 }

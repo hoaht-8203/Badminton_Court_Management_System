@@ -83,7 +83,8 @@ export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryData
         salaryObj.deductionLateParam ||
         salaryObj.deductionEarlyMethod ||
         salaryObj.deductionEarlyValue ||
-        salaryObj.deductionEarlyParam;
+        salaryObj.deductionEarlyParam ||
+        salaryObj.deductionAbsentValue;
       setShowDeductionConfig(!!hasDeduction);
     }
   }, [staff?.salarySettings, shiftOptions]);
@@ -368,6 +369,18 @@ export default function SalarySetupForm({ onSubmit, onCancel, form, onSalaryData
               <Form.Item label="Đơn vị" name="deductionEarlyParam" rules={[{ required: true, message: "Nhập tham số" }]} style={{ marginBottom: 0 }}>
                 <Input type="number" style={{ width: 120 }} min={1} />
               </Form.Item>
+            </div>
+            <div style={{ fontWeight: 500, marginBottom: 4, marginTop: 16 }}>Nghỉ làm</div>
+            <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+              <Form.Item
+                label="Số tiền phạt (VNĐ)"
+                name="deductionAbsentValue"
+                rules={[{ required: true, message: "Nhập số tiền phạt" }]}
+                style={{ marginBottom: 0 }}
+              >
+                <Input type="number" style={{ width: 120 }} min={0} placeholder="0" />
+              </Form.Item>
+              <span>/ buổi nghỉ</span>
             </div>
           </div>
         )}

@@ -78,12 +78,6 @@ export interface Product {
     name: string;
     /**
      * 
-     * @type {string}
-     * @memberof Product
-     */
-    menuType?: string | null;
-    /**
-     * 
      * @type {number}
      * @memberof Product
      */
@@ -112,12 +106,6 @@ export interface Product {
      * @memberof Product
      */
     salePrice?: number;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof Product
-     */
-    isDirectSale?: boolean;
     /**
      * 
      * @type {boolean}
@@ -211,13 +199,11 @@ export function ProductFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         'id': json['id'] == null ? undefined : json['id'],
         'code': json['code'] == null ? undefined : json['code'],
         'name': json['name'],
-        'menuType': json['menuType'] == null ? undefined : json['menuType'],
         'categoryId': json['categoryId'] == null ? undefined : json['categoryId'],
         'category': json['category'] == null ? undefined : CategoryFromJSON(json['category']),
         'position': json['position'] == null ? undefined : json['position'],
         'costPrice': json['costPrice'] == null ? undefined : json['costPrice'],
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
-        'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'isDisplayOnWeb': json['isDisplayOnWeb'] == null ? undefined : json['isDisplayOnWeb'],
         'manageInventory': json['manageInventory'] == null ? undefined : json['manageInventory'],
@@ -250,13 +236,11 @@ export function ProductToJSONTyped(value?: Product | null, ignoreDiscriminator: 
         'id': value['id'],
         'code': value['code'],
         'name': value['name'],
-        'menuType': value['menuType'],
         'categoryId': value['categoryId'],
         'category': CategoryToJSON(value['category']),
         'position': value['position'],
         'costPrice': value['costPrice'],
         'salePrice': value['salePrice'],
-        'isDirectSale': value['isDirectSale'],
         'isActive': value['isActive'],
         'isDisplayOnWeb': value['isDisplayOnWeb'],
         'manageInventory': value['manageInventory'],

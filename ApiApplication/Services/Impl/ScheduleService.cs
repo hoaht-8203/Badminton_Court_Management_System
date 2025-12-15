@@ -285,8 +285,10 @@ namespace ApiApplication.Services.Impl
                         shiftResponse
                     );
 
-                    // If attendance overlaps with shift (not Absent), throw error
-                    if (status != AttendanceStatus.Absent)
+                    // Only allow removal if status is NotYet or Absent
+                    // NotYet: shift hasn't happened yet, safe to remove
+                    // Absent: employee didn't attend, safe to remove
+                    if (status != AttendanceStatus.NotYet && status != AttendanceStatus.Absent)
                     {
                         throw new ApiException(
                             "Không thể xóa lịch làm việc vì đã có điểm danh",
@@ -311,11 +313,27 @@ namespace ApiApplication.Services.Impl
                         Date = requestDate,
                     }
                 );
-                return await _context.SaveChangesAsync() > 0;
+                var cancelledShiftSaved = await _context.SaveChangesAsync() > 0;
+                if (!cancelledShiftSaved)
+                {
+                    throw new ApiException(
+                        "Không thể hủy lịch làm việc",
+                        System.Net.HttpStatusCode.InternalServerError
+                    );
+                }
+                return true;
             }
 
             _context.Schedules.Remove(schedule);
-            return await _context.SaveChangesAsync() > 0;
+            var scheduleSaved = await _context.SaveChangesAsync() > 0;
+            if (!scheduleSaved)
+            {
+                throw new ApiException(
+                    "Không thể xóa lịch làm việc",
+                    System.Net.HttpStatusCode.InternalServerError
+                );
+            }
+            return true;
         }
     }
 }

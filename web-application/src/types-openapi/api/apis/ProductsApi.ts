@@ -17,6 +17,7 @@ import * as runtime from '../runtime';
 import type {
   CreateProductRequest,
   DetailProductResponseApiResponse,
+  GetCurrentAppliedPriceResponseListApiResponse,
   ListProductResponseListApiResponse,
   ListProductsByPriceTableResponseListApiResponse,
   ObjectApiResponse,
@@ -27,6 +28,8 @@ import {
     CreateProductRequestToJSON,
     DetailProductResponseApiResponseFromJSON,
     DetailProductResponseApiResponseToJSON,
+    GetCurrentAppliedPriceResponseListApiResponseFromJSON,
+    GetCurrentAppliedPriceResponseListApiResponseToJSON,
     ListProductResponseListApiResponseFromJSON,
     ListProductResponseListApiResponseToJSON,
     ListProductsByPriceTableResponseListApiResponseFromJSON,
@@ -60,18 +63,14 @@ export interface ApiProductsListForWebGetRequest {
     id?: number;
     code?: string;
     name?: string;
-    menuType?: string;
     category?: string;
-    isDirectSale?: boolean;
 }
 
 export interface ApiProductsListGetRequest {
     id?: number;
     code?: string;
     name?: string;
-    menuType?: string;
     category?: string;
-    isDirectSale?: boolean;
 }
 
 export interface ApiProductsUpdateImagesPostRequest {
@@ -141,6 +140,18 @@ export interface ProductsApiInterface {
 
     /**
      * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProductsApiInterface
+     */
+    apiProductsGetCurrentAppliedPriceGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetCurrentAppliedPriceResponseListApiResponse>>;
+
+    /**
+     */
+    apiProductsGetCurrentAppliedPriceGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetCurrentAppliedPriceResponseListApiResponse>;
+
+    /**
+     * 
      * @param {number} priceTableId 
      * @param {string} [search] 
      * @param {number} [categoryId] 
@@ -160,9 +171,7 @@ export interface ProductsApiInterface {
      * @param {number} [id] 
      * @param {string} [code] 
      * @param {string} [name] 
-     * @param {string} [menuType] 
      * @param {string} [category] 
-     * @param {boolean} [isDirectSale] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ProductsApiInterface
@@ -178,9 +187,7 @@ export interface ProductsApiInterface {
      * @param {number} [id] 
      * @param {string} [code] 
      * @param {string} [name] 
-     * @param {string} [menuType] 
      * @param {string} [category] 
-     * @param {boolean} [isDirectSale] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof ProductsApiInterface
@@ -361,6 +368,33 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
 
     /**
      */
+    async apiProductsGetCurrentAppliedPriceGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetCurrentAppliedPriceResponseListApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/api/Products/get-current-applied-price`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => GetCurrentAppliedPriceResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProductsGetCurrentAppliedPriceGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetCurrentAppliedPriceResponseListApiResponse> {
+        const response = await this.apiProductsGetCurrentAppliedPriceGetRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
     async apiProductsListByPriceTableGetRaw(requestParameters: ApiProductsListByPriceTableGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListProductsByPriceTableResponseListApiResponse>> {
         if (requestParameters['priceTableId'] == null) {
             throw new runtime.RequiredError(
@@ -426,16 +460,8 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
             queryParameters['Name'] = requestParameters['name'];
         }
 
-        if (requestParameters['menuType'] != null) {
-            queryParameters['MenuType'] = requestParameters['menuType'];
-        }
-
         if (requestParameters['category'] != null) {
             queryParameters['Category'] = requestParameters['category'];
-        }
-
-        if (requestParameters['isDirectSale'] != null) {
-            queryParameters['IsDirectSale'] = requestParameters['isDirectSale'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -477,16 +503,8 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
             queryParameters['Name'] = requestParameters['name'];
         }
 
-        if (requestParameters['menuType'] != null) {
-            queryParameters['MenuType'] = requestParameters['menuType'];
-        }
-
         if (requestParameters['category'] != null) {
             queryParameters['Category'] = requestParameters['category'];
-        }
-
-        if (requestParameters['isDirectSale'] != null) {
-            queryParameters['IsDirectSale'] = requestParameters['isDirectSale'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

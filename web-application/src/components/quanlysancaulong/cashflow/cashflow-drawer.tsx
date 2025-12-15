@@ -70,10 +70,11 @@ export default function CashflowDrawer({
           relatedPerson: initialValues.relatedPerson,
           note: initialValues.note,
           time: initialValues.time ? dayjs(initialValues.time) : undefined,
+          status: initialValues.status ?? "Paid",
         });
       } else {
         form.resetFields();
-        form.setFieldsValue({ isPayment: false, personType: "other" });
+        form.setFieldsValue({ isPayment: false, personType: "other", status: "Paid" });
       }
     }
   }, [open, initialValues, form]);
@@ -87,6 +88,7 @@ export default function CashflowDrawer({
       relatedPerson: values.relatedPerson ?? undefined,
       note: values.note ?? undefined,
       time: values.time ? values.time.toDate() : undefined,
+      status: values.status ?? "Paid",
     };
 
     try {
@@ -163,7 +165,12 @@ export default function CashflowDrawer({
         </Form.Item>
 
         <Form.Item name="cashflowTypeId" label="Loại thu chi" rules={[{ required: true, message: "Chọn loại thu/chi" }]}>
-          <Select options={cashflowTypeOptions} placeholder={typesLoading ? "Đang tải..." : "Chọn loại"} loading={typesLoading} />
+          <Select
+            options={cashflowTypeOptions}
+            placeholder={typesLoading ? "Đang tải..." : isPayment === undefined || isPayment === null ? "Vui lòng chọn Thu/Chi trước" : "Chọn loại"}
+            loading={typesLoading}
+            disabled={isPayment === undefined || isPayment === null}
+          />
         </Form.Item>
         <Form.Item label="Thời gian" name="time" rules={[{ required: false }]}>
           <DatePicker showTime style={{ width: "100%" }} placeholder={dayjs().format("DD/MM/YYYY HH:mm")} />
@@ -198,6 +205,13 @@ export default function CashflowDrawer({
         </Form.Item>
         <Form.Item label="Giá trị" name="value" rules={[{ required: true, message: "Nhập giá trị" }]}>
           <InputNumber style={{ width: "100%" }} min={0} />
+        </Form.Item>
+
+        <Form.Item label="Trạng thái" name="status" rules={[{ required: true, message: "Chọn trạng thái" }]}>
+          <Select placeholder="Chọn trạng thái">
+            <Select.Option value="Paid">Đã thanh toán</Select.Option>
+            <Select.Option value="Pending">Chờ thanh toán</Select.Option>
+          </Select>
         </Form.Item>
 
         <Form.Item label="Ghi chú" name="note">

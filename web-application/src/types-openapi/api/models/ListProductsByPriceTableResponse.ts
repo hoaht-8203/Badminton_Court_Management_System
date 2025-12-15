@@ -45,12 +45,6 @@ export interface ListProductsByPriceTableResponse {
     category?: string | null;
     /**
      * 
-     * @type {string}
-     * @memberof ListProductsByPriceTableResponse
-     */
-    menuType?: string | null;
-    /**
-     * 
      * @type {number}
      * @memberof ListProductsByPriceTableResponse
      */
@@ -67,12 +61,6 @@ export interface ListProductsByPriceTableResponse {
      * @memberof ListProductsByPriceTableResponse
      */
     finalPrice?: number;
-    /**
-     * 
-     * @type {boolean}
-     * @memberof ListProductsByPriceTableResponse
-     */
-    isDirectSale?: boolean;
     /**
      * 
      * @type {boolean}
@@ -128,11 +116,9 @@ export function ListProductsByPriceTableResponseFromJSONTyped(json: any, ignoreD
         'code': json['code'] == null ? undefined : json['code'],
         'name': json['name'],
         'category': json['category'] == null ? undefined : json['category'],
-        'menuType': json['menuType'] == null ? undefined : json['menuType'],
         'salePrice': json['salePrice'] == null ? undefined : json['salePrice'],
         'overrideSalePrice': json['overrideSalePrice'] == null ? undefined : json['overrideSalePrice'],
         'finalPrice': json['finalPrice'] == null ? undefined : json['finalPrice'],
-        'isDirectSale': json['isDirectSale'] == null ? undefined : json['isDirectSale'],
         'isActive': json['isActive'] == null ? undefined : json['isActive'],
         'images': json['images'] == null ? undefined : json['images'],
         'unit': json['unit'] == null ? undefined : json['unit'],
@@ -156,11 +142,9 @@ export function ListProductsByPriceTableResponseToJSONTyped(value?: ListProducts
         'code': value['code'],
         'name': value['name'],
         'category': value['category'],
-        'menuType': value['menuType'],
         'salePrice': value['salePrice'],
         'overrideSalePrice': value['overrideSalePrice'],
         'finalPrice': value['finalPrice'],
-        'isDirectSale': value['isDirectSale'],
         'isActive': value['isActive'],
         'images': value['images'],
         'unit': value['unit'],

@@ -9,7 +9,7 @@ public class ValidateVoucherRequest
 
     [Required]
     [Range(0.01, double.MaxValue, ErrorMessage = "Tổng tiền đơn hàng phải lớn hơn 0")]
-    public decimal OrderTotalAmount { get; set; } // Tổng tiền trước khi giảm giá
+    public decimal OrderTotalAmount { get; set; }
 
     // Optional - booking time context. If provided, voucher time rules and date-range checks
     // will be evaluated against these values instead of the current DateTime.UtcNow.

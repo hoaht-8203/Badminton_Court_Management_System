@@ -7,6 +7,7 @@ import {
   UpdateVoucherRequest,
   ValidateVoucherRequest,
   ValidateVoucherResponse,
+  GetAvailableVouchersRequest,
 } from "@/types-openapi/api";
 import { ApiResponse } from "@/types/api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -40,11 +41,14 @@ export const useDetailVoucher = (params: DetailVoucherRequest) => {
 };
 
 // Get Available Vouchers Query
-export const useGetAvailableVouchers = () => {
+export const useGetAvailableVouchers = (
+  enabled: boolean = true,
+  params?: GetAvailableVouchersRequest
+) => {
   return useQuery({
-    queryKey: voucherKeys.available(),
-    queryFn: () => voucherService.getAvailable(),
-    enabled: true,
+    queryKey: [...voucherKeys.available(), params],
+    queryFn: () => voucherService.getAvailable(params),
+    enabled: enabled,
   });
 };
 

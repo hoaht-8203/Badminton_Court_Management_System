@@ -1,7 +1,7 @@
 "use client";
 
 import { useListCourts, useListCourtPricingRuleByCourtId } from "@/hooks/useCourt";
-import { UserCreateBookingCourtRequest, DetailBookingCourtResponse } from "@/types-openapi/api";
+import { UserCreateBookingCourtRequest, DetailBookingCourtResponse, GetAvailableVouchersRequest } from "@/types-openapi/api";
 import {
   Alert,
   Button,
@@ -84,8 +84,12 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
   const [createdDetail, setCreatedDetail] = useState<DetailBookingCourtResponse | null>(null);
   const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
   const [voucherDiscount, setVoucherDiscount] = useState<number>(0);
-  const availableVouchers = useGetAvailableVouchers();
-  const validateVoucherMutation = useValidateVoucher();
+
+  // Chỉ fetch vouchers khi đã chọn thời gian
+  const shouldFetchVouchers = useMemo(() => {
+    return !!startTimeWatch && !!endTimeWatch && !!startDateWatch;
+  }, [startTimeWatch, endTimeWatch, startDateWatch]);
+
   const [voucherModalOpen, setVoucherModalOpen] = useState(false);
   const [modalSelectedVoucherId, setModalSelectedVoucherId] = useState<number | null>(null);
   const [modalValidateLoading, setModalValidateLoading] = useState(false);
@@ -190,6 +194,64 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
   const fullAmount = useMemo(() => {
     return calculatedPrice;
   }, [calculatedPrice]);
+
+  // Chuẩn bị params cho API
+  const voucherParams = useMemo(() => {
+    if (!shouldFetchVouchers) return undefined;
+
+    const params: GetAvailableVouchersRequest = {};
+
+    // Nếu có startDate và startTime, tạo bookingDateTime
+    if (startDateWatch && startTimeWatch) {
+      const bookingDate = startDateWatch.hour(startTimeWatch.hour()).minute(startTimeWatch.minute()).second(0);
+      params.bookingDateTime = bookingDate.toDate();
+    }
+
+    // Nếu có endTime, thêm vào params
+    if (startDateWatch && endTimeWatch) {
+      const bookingEndDate = startDateWatch.hour(endTimeWatch.hour()).minute(endTimeWatch.minute()).second(0);
+      params.endTime = bookingEndDate.toDate();
+    }
+
+    // Thêm originalAmount (giá gốc chưa giảm) - dùng calculatedPrice
+    if (calculatedPrice > 0) {
+      params.originalAmount = calculatedPrice;
+    }
+
+    return params;
+  }, [shouldFetchVouchers, startDateWatch, startTimeWatch, endTimeWatch, calculatedPrice]);
+
+  const availableVouchers = useGetAvailableVouchers(shouldFetchVouchers, voucherParams);
+  const validateVoucherMutation = useValidateVoucher();
+
+  // Tính toán voucher có mức giảm tốt nhất
+  const bestVoucherId = useMemo(() => {
+    const vouchers = availableVouchers?.data?.data ?? [];
+    if (vouchers.length === 0 || !fullAmount) return null;
+
+    let maxDiscount = 0;
+    let bestId: number | null = null;
+
+    vouchers.forEach((v) => {
+      let estimatedDiscount = 0;
+      if (v.discountValue) {
+        estimatedDiscount = v.discountValue;
+      } else if (v.discountPercentage) {
+        estimatedDiscount = (fullAmount * v.discountPercentage) / 100;
+      }
+
+      if (v.maxDiscountValue && estimatedDiscount > v.maxDiscountValue) {
+        estimatedDiscount = v.maxDiscountValue;
+      }
+
+      if (estimatedDiscount > maxDiscount) {
+        maxDiscount = estimatedDiscount;
+        bestId = v.id ?? null;
+      }
+    });
+
+    return bestId;
+  }, [availableVouchers?.data?.data, fullAmount]);
 
   const depositPercent = 0.3; // 30% default
   const discountedTotal = useMemo(() => Math.max(fullAmount - (voucherDiscount ?? 0), 0), [fullAmount, voucherDiscount]);
@@ -405,6 +467,7 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
                       </Col>
                       <Col span={6}>
                         <Button
+                          disabled={!selectedVoucherId}
                           onClick={() => {
                             setSelectedVoucherId(null);
                             setVoucherDiscount(0);
@@ -419,9 +482,68 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
                     <Modal
                       title="Chọn voucher"
                       open={voucherModalOpen}
-                      onCancel={() => setVoucherModalOpen(false)}
-                      okText="Đóng"
-                      onOk={() => setVoucherModalOpen(false)}
+                      onCancel={() => {
+                        setModalSelectedVoucherId(selectedVoucherId);
+                        setVoucherModalOpen(false);
+                      }}
+                      okText="Xác nhận"
+                      cancelText="Hủy"
+                      confirmLoading={modalValidateLoading}
+                      onOk={() => {
+                        const val = modalSelectedVoucherId;
+
+                        if (!val) {
+                          setSelectedVoucherId(null);
+                          setVoucherDiscount(0);
+                          setVoucherModalOpen(false);
+                          return;
+                        }
+
+                        setModalValidateLoading(true);
+
+                        const startDateVal = form.getFieldValue("startDate");
+                        const startTimeVal = form.getFieldValue("startTime");
+                        const endTimeVal = form.getFieldValue("endTime");
+
+                        const bookingDate = startDateVal ? new Date(dayjs(startDateVal).format("YYYY-MM-DD")) : undefined;
+                        const bookingStartTime = startTimeVal ? dayjs(startTimeVal).format("HH:mm:ss") : undefined;
+                        const bookingEndTime = endTimeVal ? dayjs(endTimeVal).format("HH:mm:ss") : undefined;
+
+                        const validatePayload = {
+                          voucherId: val,
+                          orderTotalAmount: fullAmount,
+                          bookingDate,
+                          bookingStartTime,
+                          bookingEndTime,
+                        };
+
+                        validateVoucherMutation.mutate(validatePayload, {
+                          onSuccess: (res) => {
+                            const api = res as any;
+                            const result = api?.data ?? null;
+                            if (!api?.success || !result || result?.isValid === false) {
+                              const errorMsg = api?.message || result?.errorMessage || "Voucher không hợp lệ";
+                              message.error(errorMsg);
+                              setSelectedVoucherId(null);
+                              setVoucherDiscount(0);
+                              setModalSelectedVoucherId(null);
+                              return;
+                            }
+                            const discount = result?.discountAmount ?? 0;
+                            setSelectedVoucherId(val);
+                            setVoucherDiscount(discount);
+                            setVoucherModalOpen(false);
+                            message.success("Áp dụng voucher thành công");
+                          },
+                          onError: (err: any) => {
+                            message.error(err?.message || "Voucher không hợp lệ");
+                            setSelectedVoucherId(null);
+                            setVoucherDiscount(0);
+                            setModalSelectedVoucherId(null);
+                          },
+                          onSettled: () => setModalValidateLoading(false),
+                        });
+                      }}
                     >
                       <Radio.Group
                         style={{ width: "100%" }}
@@ -429,84 +551,79 @@ const UserCreateBookingModal = ({ open, onClose, newBooking, isBookingInPast }: 
                         onChange={(e) => {
                           const val = e.target.value as number | null;
                           setModalSelectedVoucherId(val ?? null);
-
-                          if (!val) {
-                            setSelectedVoucherId(null);
-                            setVoucherDiscount(0);
-                            return;
-                          }
-
-                          setModalValidateLoading(true);
-
-                          const startDateVal = form.getFieldValue("startDate");
-                          const startTimeVal = form.getFieldValue("startTime");
-                          const endTimeVal = form.getFieldValue("endTime");
-
-                          const bookingDate = startDateVal ? new Date(dayjs(startDateVal).format("YYYY-MM-DD")) : undefined;
-                          const bookingStartTime = startTimeVal ? dayjs(startTimeVal).format("HH:mm:ss") : undefined;
-                          const bookingEndTime = endTimeVal ? dayjs(endTimeVal).format("HH:mm:ss") : undefined;
-
-                          // Don't pass customerId - let backend resolve it from userId
-                          // Backend VouchersController will automatically create customer if needed and find it by userId
-                          const validatePayload = {
-                            voucherId: val,
-                            orderTotalAmount: fullAmount,
-                            bookingDate,
-                            bookingStartTime,
-                            bookingEndTime,
-                          };
-
-                          validateVoucherMutation.mutate(validatePayload, {
-                            onSuccess: (res) => {
-                              const api = res as any;
-                              const result = api?.data ?? null;
-                              if (!api?.success || !result || result?.isValid === false) {
-                                // Priority: api.message (from ErrorResponse) > result.errorMessage > fallback
-                                const errorMsg = api?.message || result?.errorMessage || "Voucher không hợp lệ";
-                                message.error(errorMsg);
-                                setSelectedVoucherId(null);
-                                setVoucherDiscount(0);
-                                return;
-                              }
-                              const discount = result?.discountAmount ?? 0;
-                              setSelectedVoucherId(val);
-                              setVoucherDiscount(discount);
-                            },
-                            onError: (err: any) => {
-                              // err.message is already extracted from API response by axios interceptor
-                              message.error(err?.message || "Voucher không hợp lệ");
-                              setSelectedVoucherId(null);
-                              setVoucherDiscount(0);
-                            },
-                            onSettled: () => setModalValidateLoading(false),
-                          });
                         }}
                       >
-                        <div style={{ maxHeight: 360, overflow: "auto" }}>
-                          {(availableVouchers?.data?.data ?? []).map((v) => (
-                            <div key={v.id} style={{ padding: 12, borderBottom: "1px solid #f0f0f0" }}>
-                              <Radio value={v.id} style={{ display: "block" }}>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                  <div>
-                                    <div style={{ fontWeight: 600 }}>{v.code ?? v.title}</div>
-                                    <div style={{ color: "#666", fontSize: 12 }}>{v.description}</div>
-                                  </div>
-                                  <div style={{ textAlign: "right" }}>
-                                    <div style={{ fontWeight: 700 }}>
-                                      {v.discountValue
-                                        ? `${v.discountValue.toLocaleString("vi-VN")} đ`
-                                        : v.discountPercentage
-                                          ? `${v.discountPercentage}%`
-                                          : ""}
+                        <div style={{ maxHeight: 400, overflow: "auto" }}>
+                          {(availableVouchers?.data?.data ?? []).map((v) => {
+                            const isBest = v.id === bestVoucherId;
+                            const usedCount = v.usedCount ?? 0;
+                            const totalLimit = v.usageLimitTotal ?? 0;
+                            const remainingText = totalLimit > 0 ? `${usedCount}/${totalLimit}` : "Không giới hạn";
+
+                            return (
+                              <div
+                                key={v.id}
+                                style={{
+                                  padding: 12,
+                                  borderBottom: "1px solid #f0f0f0",
+                                  backgroundColor: isBest ? "#fff7e6" : "transparent",
+                                }}
+                              >
+                                <Radio value={v.id} style={{ display: "block", width: "100%" }}>
+                                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                    {/* Tiêu đề và tag */}
+                                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                      <span style={{ fontWeight: 600, fontSize: 14 }}>{v.title}</span>
+                                      {isBest && (
+                                        <span
+                                          style={{
+                                            fontSize: 11,
+                                            padding: "2px 8px",
+                                            backgroundColor: "#52c41a",
+                                            color: "white",
+                                            borderRadius: 4,
+                                            fontWeight: 500,
+                                          }}
+                                        >
+                                          Tốt nhất
+                                        </span>
+                                      )}
                                     </div>
-                                    <div style={{ color: "#999", fontSize: 12 }}>
-                                      {v.endAt ? `Hết hạn: ${dayjs(v.endAt).format("DD/MM/YYYY")}` : ""}
+
+                                    {/* Mã voucher */}
+                                    <div style={{ fontSize: 12, color: "#666" }}>Mã: {v.code}</div>
+
+                                    {/* Giá trị giảm */}
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                      <div>
+                                        <span style={{ fontWeight: 700, color: "#ff4d4f", fontSize: 14 }}>
+                                          {v.discountValue
+                                            ? `Giảm ${v.discountValue.toLocaleString("vi-VN")}đ`
+                                            : v.discountPercentage
+                                              ? `Giảm ${v.discountPercentage}%`
+                                              : ""}
+                                        </span>
+                                        {v.maxDiscountValue && (
+                                          <span style={{ fontSize: 11, color: "#999", marginLeft: 4 }}>
+                                            (Tối đa {v.maxDiscountValue.toLocaleString("vi-VN")}đ)
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div style={{ fontSize: 11, color: "#999" }}>Đã dùng: {remainingText}</div>
+                                    </div>
+
+                                    {/* Mô tả */}
+                                    {v.description && <div style={{ fontSize: 12, color: "#888" }}>{v.description}</div>}
+
+                                    {/* Hạn sử dụng */}
+                                    <div style={{ fontSize: 11, color: "#999" }}>
+                                      HSD: {v.endAt ? dayjs(v.endAt).format("DD/MM/YYYY") : "Không giới hạn"}
                                     </div>
                                   </div>
-                                </div>
-                              </Radio>
-                            </div>
-                          ))}
+                                </Radio>
+                              </div>
+                            );
+                          })}
                         </div>
                       </Radio.Group>
                       {modalValidateLoading && <div style={{ marginTop: 8, color: "#666" }}>Đang kiểm tra voucher...</div>}

@@ -28,6 +28,9 @@ public class PayrollService : IPayrollService
         _context = context;
         _mapper = mapper;
         _cashflowService = cashflowService;
+        
+        // Initialize SalaryHelper with context
+        SalaryHelper.Initialize(context);
     }
 
     public async Task<bool> CreatePayrollAsync(CreatePayrollRequest request)

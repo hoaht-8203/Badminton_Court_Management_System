@@ -11,75 +11,68 @@ import { Content } from "antd/es/layout/layout";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { filterMenuByRoles, type MenuItemType } from "@/utils/rbac";
+import { ROLES } from "@/constants/roles";
 
-const userMenuItems = (user: CurrentUserResponse, router: AppRouterInstance, logout: () => void): MenuProps["items"] => {
-  const isAdmin = user.roles?.includes("Admin");
-
-  if (isAdmin) {
-    return [
-      {
-        key: "1",
-        label: user.fullName || user.userName || "",
-        onClick: () => {
-          router.push("/quanlysancaulong/users/profile");
-        },
-      },
-      {
-        type: "divider",
-      },
-      {
-        key: "2",
-        label: "Thông tin cá nhân",
-        icon: <UserOutlined />,
-        onClick: () => {
-          router.push("/quanlysancaulong/users/profile");
-        },
-      },
-      {
-        key: "3",
-        label: "Quản lý hệ thống",
-        icon: <SettingOutlined />,
-        onClick: () => {
-          router.push("/quanlysancaulong/dashboard");
-        },
-      },
-      {
-        key: "5",
-        label: "Đăng xuất",
-        icon: <LogoutOutlined />,
-        onClick: () => {
-          logout();
-        },
-      },
-    ];
-  }
-
+// User menu items with role requirements
+const allUserMenuItems = (user: CurrentUserResponse, router: AppRouterInstance, logout: () => void): MenuItemType[] => {
   return [
     {
-      key: "1",
+      key: "user-name",
       label: user.fullName || user.userName || "",
       disabled: true,
     },
     {
-      type: "divider",
-    },
-    {
-      key: "2",
+      key: "profile",
       label: "Thông tin cá nhân",
       icon: <UserOutlined />,
-      onClick: () => {
-        router.push("/homepage/profile");
-      },
+      onClick: () => router.push("/homepage/profile"),
     },
     {
-      key: "4",
+      key: "admin-panel",
+      label: "Quản lý sân cầu lông",
+      icon: <SettingOutlined />,
+      requiredRoles: [ROLES.ADMIN, ROLES.BRANCH_ADMINISTRATOR],
+      onClick: () => router.push("/quanlysancaulong/dashboard"),
+    },
+    {
+      key: "receptionist-panel",
+      label: "Nghiệp vụ lễ tân",
+      icon: <SettingOutlined />,
+      requiredRoles: [ROLES.RECEPTIONIST],
+      onClick: () => router.push("/quanlysancaulong/court-schedule"),
+    },
+    {
+      key: "warehouse-panel",
+      label: "Nghiệp vụ kiểm kho",
+      icon: <SettingOutlined />,
+      requiredRoles: [ROLES.WAREHOUSE_STAFF],
+      onClick: () => router.push("/quanlysancaulong/inventory"),
+    },
+    {
+      key: "logout",
       label: "Đăng xuất",
       icon: <LogoutOutlined />,
-      onClick: () => {
-        logout();
-      },
+      onClick: () => logout(),
     },
   ];
+};
+
+const userMenuItems = (user: CurrentUserResponse, router: AppRouterInstance, logout: () => void): MenuProps["items"] => {
+  const userRoles = user.roles || [];
+  const allItems = allUserMenuItems(user, router, logout);
+  const filteredItems = filterMenuByRoles(allItems, userRoles);
+
+  // Add dividers between sections
+  const itemsWithDividers: MenuProps["items"] = [];
+  filteredItems?.forEach((item, index) => {
+    if (index === 1 || (index > 1 && index === filteredItems.length - 1)) {
+      itemsWithDividers.push({ type: "divider" });
+    }
+    itemsWithDividers.push(item);
+  });
+
+  return itemsWithDividers;
 };
 
 const { Header } = Layout;

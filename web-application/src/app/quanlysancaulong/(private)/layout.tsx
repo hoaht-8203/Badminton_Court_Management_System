@@ -11,19 +11,9 @@ import { ArrowLeftRight, ChartSpline, Columns2, FileText, Handshake, IdCardLanya
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname, useRouter } from "next/navigation";
 import RequireAuth from "@/components/authentication/RequireAuth";
+import RoleGuard from "@/components/authentication/RoleGuard";
 import { ROLES, hasAnyRole } from "@/constants/roles";
-
-// Define menu items with role requirements
-type MenuItemType = {
-  key: string;
-  label: string;
-  icon?: React.ReactNode;
-  requiredRoles?: string[];
-  children?: MenuItemType[];
-  type?: "divider";
-  disabled?: boolean;
-  onClick?: () => void;
-};
+import { filterMenuByRoles, hasStaffAccess as checkStaffAccess, type MenuItemType } from "@/utils/rbac";
 
 const allSideBarItems: MenuItemType[] = [
   {
@@ -105,22 +95,19 @@ const allSideBarItems: MenuItemType[] = [
     label: "Quản lý đối tác",
     icon: <Handshake className="h-4 w-4" />,
     // Management only for suppliers, office staff for customers/memberships
-    requiredRoles: [ROLES.BRANCH_ADMINISTRATOR, ROLES.RECEPTIONIST],
+    requiredRoles: [ROLES.BRANCH_ADMINISTRATOR],
     children: [
       {
         key: "/quanlysancaulong/customers",
         label: "Quản lý khách hàng",
-        requiredRoles: [ROLES.ADMIN, ROLES.BRANCH_ADMINISTRATOR, ROLES.STAFF, ROLES.RECEPTIONIST],
       },
       {
         key: "/quanlysancaulong/memberships",
         label: "Quản lý gói hội viên",
-        requiredRoles: [ROLES.ADMIN, ROLES.BRANCH_ADMINISTRATOR, ROLES.STAFF, ROLES.RECEPTIONIST],
       },
       {
         key: "/quanlysancaulong/suppliers",
         label: "Quản lý nhà cung cấp",
-        requiredRoles: [ROLES.ADMIN, ROLES.BRANCH_ADMINISTRATOR],
       },
     ],
   },
@@ -209,6 +196,13 @@ const allSideBarItems: MenuItemType[] = [
     requiredRoles: [ROLES.BRANCH_ADMINISTRATOR],
   },
   {
+    key: "/quanlysancaulong/cashier",
+    label: "Thu ngân",
+    icon: <ArrowLeftRight className="h-4 w-4" />,
+    // Receptionist only
+    requiredRoles: [ROLES.RECEPTIONIST],
+  },
+  {
     key: "cashflow",
     label: "Sổ quỹ",
     icon: <IdCardLanyard className="h-4 w-4" />,
@@ -217,127 +211,65 @@ const allSideBarItems: MenuItemType[] = [
   },
 ];
 
-// Filter menu items based on user roles
-const filterMenuByRoles = (menuItems: MenuItemType[], userRoles: string[]): MenuProps["items"] => {
-  return menuItems
-    .filter((item) => {
-      if (!item) return false;
-      // If no roles specified, show to everyone
-      if (!item.requiredRoles || item.requiredRoles.length === 0) return true;
-      // Check if user has any of the required roles
-      return hasAnyRole(userRoles, item.requiredRoles);
-    })
-    .map((item) => {
-      if (!item) return null;
-
-      // Remove requiredRoles from the item to avoid React warning
-      const { requiredRoles, ...itemWithoutRoles } = item;
-
-      // If item has children, filter them too
-      if (itemWithoutRoles.children) {
-        const filteredChildren = item.children
-          ?.filter((child: MenuItemType) => {
-            if (!child) return false;
-            if (!child.requiredRoles || child.requiredRoles.length === 0) return true;
-            return hasAnyRole(userRoles, child.requiredRoles);
-          })
-          .map((child: MenuItemType) => {
-            if (!child) return null;
-            const { requiredRoles: childRoles, ...childWithoutRoles } = child;
-            return childWithoutRoles;
-          })
-          .filter((child: MenuItemType | null) => child !== null);
-
-        // Only show parent if it has visible children
-        if (!filteredChildren || filteredChildren.length === 0) return null;
-
-        return {
-          ...itemWithoutRoles,
-          children: filteredChildren,
-        };
-      }
-
-      return itemWithoutRoles;
-    })
-    .filter((item) => item !== null) as MenuProps["items"];
-};
-
-const userMenuItems = (user: CurrentUserResponse, router: AppRouterInstance, logout: () => void): MenuProps["items"] => {
-  const isAdmin = user.roles?.includes("Admin");
-
-  if (isAdmin) {
-    return [
-      {
-        key: "1",
-        label: user.fullName || user.userName || "",
-        onClick: () => {
-          router.push("/quanlysancaulong/users/profile");
-        },
-      },
-      {
-        type: "divider",
-      },
-      {
-        key: "2",
-        label: "Thông tin cá nhân",
-        icon: <UserOutlined />,
-        onClick: () => {
-          router.push("/quanlysancaulong/users/profile");
-        },
-      },
-      {
-        key: "3",
-        label: "Quản lý hệ thống",
-        icon: <SettingOutlined />,
-        onClick: () => {
-          router.push("/quanlysancaulong/dashboard");
-        },
-      },
-      {
-        key: "4",
-        label: "Đăng xuất",
-        icon: <LogoutOutlined />,
-        onClick: () => {
-          logout();
-        },
-      },
-    ];
-  }
-
+// User menu items with role requirements
+const allUserMenuItems = (user: CurrentUserResponse, router: AppRouterInstance, logout: () => void): MenuItemType[] => {
   return [
     {
-      key: "1",
+      key: "user-name",
       label: user.fullName || user.userName || "",
       disabled: true,
     },
     {
-      type: "divider",
-    },
-    {
-      key: "2",
+      key: "profile",
       label: "Thông tin cá nhân",
       icon: <UserOutlined />,
-      onClick: () => {
-        router.push("/quanlysancaulong/users/profile");
-      },
+      onClick: () => router.push("/quanlysancaulong/users/profile"),
     },
     {
-      key: "3",
+      key: "admin-panel",
       label: "Quản lý sân cầu lông",
       icon: <SettingOutlined />,
-      onClick: () => {
-        router.push("/quanlysancaulong/dashboard");
-      },
+      requiredRoles: [ROLES.ADMIN, ROLES.BRANCH_ADMINISTRATOR],
+      onClick: () => router.push("/quanlysancaulong/dashboard"),
     },
     {
-      key: "4",
+      key: "staff-panel",
+      label: "Nghiệp vụ lễ tân",
+      icon: <SettingOutlined />,
+      requiredRoles: [ROLES.RECEPTIONIST],
+      onClick: () => router.push("/quanlysancaulong/court-schedule"),
+    },
+    {
+      key: "warehouse-panel",
+      label: "Nghiệp vụ kiểm kho",
+      icon: <SettingOutlined />,
+      requiredRoles: [ROLES.WAREHOUSE_STAFF],
+      onClick: () => router.push("/quanlysancaulong/inventory"),
+    },
+    {
+      key: "logout",
       label: "Đăng xuất",
       icon: <LogoutOutlined />,
-      onClick: () => {
-        logout();
-      },
+      onClick: () => logout(),
     },
   ];
+};
+
+const userMenuItems = (user: CurrentUserResponse, router: AppRouterInstance, logout: () => void): MenuProps["items"] => {
+  const userRoles = user.roles || [];
+  const allItems = allUserMenuItems(user, router, logout);
+  const filteredItems = filterMenuByRoles(allItems, userRoles);
+
+  // Add dividers between sections
+  const itemsWithDividers: MenuProps["items"] = [];
+  filteredItems?.forEach((item, index) => {
+    if (index === 1 || (index > 1 && index === filteredItems.length - 1)) {
+      itemsWithDividers.push({ type: "divider" });
+    }
+    itemsWithDividers.push(item);
+  });
+
+  return itemsWithDividers;
 };
 
 const { Header, Sider } = Layout;
@@ -348,21 +280,11 @@ const ComponentLayout = ({ children }: { children: React.ReactNode }) => {
   const { user, logout, loading } = useAuth();
 
   // Check if user has staff access (any role except Customer/User)
-  const hasStaffAccess = React.useMemo(() => {
+  const hasAccess = React.useMemo(() => {
     if (!user) return false;
     const userRoles = user.roles || [];
-    const staffRoles = [ROLES.ADMIN, ROLES.BRANCH_ADMINISTRATOR, ROLES.STAFF, ROLES.WAREHOUSE_STAFF, ROLES.RECEPTIONIST];
-    return hasAnyRole(userRoles, staffRoles);
+    return checkStaffAccess(userRoles);
   }, [user]);
-
-  // Redirect to forbidden if user doesn't have staff access
-  React.useEffect(() => {
-    if (loading) return;
-    if (!user) return; // RequireAuth will handle redirect to login
-    if (!hasStaffAccess && pathname.startsWith("/quanlysancaulong")) {
-      router.replace("/forbidden");
-    }
-  }, [hasStaffAccess, pathname, router, user, loading]);
 
   // Filter sidebar items based on user roles
   const sideBarItems = React.useMemo(() => {
@@ -408,62 +330,60 @@ const ComponentLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Don't render layout if user doesn't have staff access
-  if (!loading && user && !hasStaffAccess) {
+  if (!loading && user && !hasAccess) {
     return null;
   }
 
   return (
     <RequireAuth fallback={null}>
-      <Layout className="h-screen">
-        <Header
-          style={{
-            display: "flex",
-            alignItems: "center",
-            paddingLeft: "16px",
-            justifyContent: "space-between",
-            backgroundColor: "white",
-            borderBottom: "1px solid #e0e0e0",
-          }}
-        >
-          <div className="text-xl font-bold text-black">Hệ thống quản lý sân cầu lông</div>
-          <div className="flex items-center gap-5">
-            <Button type="primary" icon={<ArrowLeftRight className="h-4 w-4" />} onClick={() => router.push("/quanlysancaulong/cashier")}>
-              Thu ngân
-            </Button>
-
-            <Dropdown
-              menu={{
-                items: userMenuItems(user || ({} as CurrentUserResponse), router, logout),
-              }}
-              placement="bottomLeft"
-              arrow
-              trigger={["click"]}
-            >
-              <Avatar style={{ backgroundColor: "#87d068" }} icon={<UserOutlined />} />
-            </Dropdown>
-          </div>
-        </Header>
-        <Layout>
-          <Sider width={250}>
-            <Menu
-              mode="inline"
-              selectedKeys={selectedKeys}
-              openKeys={openKeys}
-              onOpenChange={(keys) => handleOpenChange(keys as string[])}
-              onClick={(info) => {
-                const key = info.key as string;
-                setSelectedKeys([key]);
-                router.push(key);
-              }}
-              style={{ height: "100%", borderInlineEnd: 0 }}
-              items={sideBarItems}
-            />
-          </Sider>
-          <Layout style={{ padding: "8px 16px" }} className="max-h-screen overflow-y-auto">
-            {children}
+      <RoleGuard checkRoutePermissions={true}>
+        <Layout className="h-screen">
+          <Header
+            style={{
+              display: "flex",
+              alignItems: "center",
+              paddingLeft: "16px",
+              justifyContent: "space-between",
+              backgroundColor: "white",
+              borderBottom: "1px solid #e0e0e0",
+            }}
+          >
+            <div className="text-xl font-bold text-black">Hệ thống quản lý sân cầu lông</div>
+            <div className="flex items-center gap-5">
+              <Dropdown
+                menu={{
+                  items: userMenuItems(user || ({} as CurrentUserResponse), router, logout),
+                }}
+                placement="bottomLeft"
+                arrow
+                trigger={["click"]}
+              >
+                <Avatar style={{ backgroundColor: "#87d068" }} icon={<UserOutlined />} />
+              </Dropdown>
+            </div>
+          </Header>
+          <Layout>
+            <Sider width={250}>
+              <Menu
+                mode="inline"
+                selectedKeys={selectedKeys}
+                openKeys={openKeys}
+                onOpenChange={(keys) => handleOpenChange(keys as string[])}
+                onClick={(info) => {
+                  const key = info.key as string;
+                  setSelectedKeys([key]);
+                  router.push(key);
+                }}
+                style={{ height: "100%", borderInlineEnd: 0 }}
+                items={sideBarItems}
+              />
+            </Sider>
+            <Layout style={{ padding: "8px 16px" }} className="max-h-screen overflow-y-auto">
+              {children}
+            </Layout>
           </Layout>
         </Layout>
-      </Layout>
+      </RoleGuard>
     </RequireAuth>
   );
 };

@@ -31,6 +31,7 @@ const SignUpForm = ({ isUsersMode = false }: SignUpFormProps) => {
         fullName: values.fullName,
         email: values.email,
         password: values.password,
+        phoneNumber: values.phoneNumber,
       });
 
       if (response.success) {

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.RegularExpressions;
 using ApiApplication.Data;
 using ApiApplication.Dtos.Customer;
 using ApiApplication.Dtos.Pagination;
@@ -122,16 +123,42 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
 
     public async Task<DetailCustomerResponse> CreateCustomerAsync(CreateCustomerRequest request)
     {
-        var existingCustomer = await _context.Customers.FirstOrDefaultAsync(c =>
+        // Validate email uniqueness
+        var existingCustomerByEmail = await _context.Customers.FirstOrDefaultAsync(c =>
             c.Email == request.Email
         );
 
-        if (existingCustomer != null)
+        if (existingCustomerByEmail != null)
         {
             throw new ApiException(
                 $"Email {request.Email} has been used by other customers",
                 HttpStatusCode.BadRequest
             );
+        }
+
+        // Validate phone number format
+        if (!string.IsNullOrEmpty(request.PhoneNumber))
+        {
+            if (request.PhoneNumber.Length < 9 || request.PhoneNumber.Length > 11 || !Regex.IsMatch(request.PhoneNumber, @"^\d{9,11}$"))
+            {
+                throw new ApiException(
+                    "Số điện thoại phải có từ 9 đến 11 chữ số",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            // Check phone number uniqueness
+            var existingCustomerByPhone = await _context.Customers.FirstOrDefaultAsync(c =>
+                c.PhoneNumber == request.PhoneNumber
+            );
+
+            if (existingCustomerByPhone != null)
+            {
+                throw new ApiException(
+                    $"Số điện thoại '{request.PhoneNumber}' đã được sử dụng bởi khách hàng khác.",
+                    HttpStatusCode.BadRequest
+                );
+            }
         }
 
         var customer = _mapper.Map<Customer>(request);
@@ -165,6 +192,32 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
             {
                 throw new ApiException(
                     $"Email {request.Email} has been used by other customers",
+                    HttpStatusCode.BadRequest
+                );
+            }
+        }
+
+        // Validate and check phone number uniqueness if provided and changed
+        if (!string.IsNullOrEmpty(request.PhoneNumber) && request.PhoneNumber != customer.PhoneNumber)
+        {
+            // Validate phone number format
+            if (request.PhoneNumber.Length < 9 || request.PhoneNumber.Length > 11 || !Regex.IsMatch(request.PhoneNumber, @"^\d{9,11}$"))
+            {
+                throw new ApiException(
+                    "Số điện thoại phải có từ 9 đến 11 chữ số",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            // Check phone number uniqueness
+            var existingCustomerByPhone = await _context.Customers.FirstOrDefaultAsync(c =>
+                c.PhoneNumber == request.PhoneNumber && c.Id != request.Id
+            );
+
+            if (existingCustomerByPhone != null)
+            {
+                throw new ApiException(
+                    $"Số điện thoại '{request.PhoneNumber}' đã được sử dụng bởi khách hàng khác.",
                     HttpStatusCode.BadRequest
                 );
             }

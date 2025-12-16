@@ -69,9 +69,7 @@ public class UserService(
             throw new ApiException("Số điện thoại đã được sử dụng", HttpStatusCode.BadRequest);
         }
 
-        var isRoleExists = await _roleManager.RoleExistsAsync(
-            RoleHelper.GetIdentityRoleName(Role.Admin)
-        );
+        var isRoleExists = await _roleManager.RoleExistsAsync(createAdministratorRequest.Role);
         if (!isRoleExists)
         {
             throw new ApiException("Vai trò không tồn tại", HttpStatusCode.BadRequest);
@@ -97,7 +95,7 @@ public class UserService(
             );
         }
 
-        await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.Admin));
+        await _userManager.AddToRoleAsync(user, createAdministratorRequest.Role);
 
         //nếu có staffId thì gán userId cho staff
         if (createAdministratorRequest.StaffId.HasValue)

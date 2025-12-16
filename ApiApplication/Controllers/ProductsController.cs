@@ -171,7 +171,9 @@ namespace ApiApplication.Controllers
         /// <returns>Danh sách giá tất cả sản phẩm đang áp dụng</returns>
         [Authorize(Policy = PolicyConstants.StaffAccess)]
         [HttpGet("get-current-applied-price")]
-        public async Task<ActionResult<ApiResponse<List<GetCurrentAppliedPriceResponse>>>> GetCurrentAppliedPrice()
+        public async Task<
+            ActionResult<ApiResponse<List<GetCurrentAppliedPriceResponse>>>
+        > GetCurrentAppliedPrice()
         {
             var request = new GetCurrentAppliedPriceRequest();
             var result = await _productService.GetCurrentAppliedPriceAsync(request);

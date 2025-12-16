@@ -9,6 +9,7 @@ import { Button, Col, DatePicker, Drawer, Form, FormProps, Input, Row, Select, S
 import { useListStaffs } from "@/hooks/useStaffs";
 import React from "react";
 import FormItem from "antd/es/form/FormItem";
+import { getRoleLabel } from "@/constants/roleLabels";
 
 interface CreateNewUserDrawerProps {
   open: boolean;
@@ -190,7 +191,7 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
                 placeholder="Chọn vai trò"
                 options={rolesData?.data?.map((role) => ({
                   value: role.roleName,
-                  label: role.roleName,
+                  label: getRoleLabel(role.roleName),
                 }))}
                 loading={loadingRolesData}
               />

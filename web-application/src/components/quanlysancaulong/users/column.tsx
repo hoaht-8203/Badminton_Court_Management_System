@@ -4,6 +4,7 @@ import { ListAdministratorResponse } from "@/types-openapi/api";
 import { ApplicationUserStatus } from "@/types/commons";
 import { TableProps, Tag } from "antd";
 import dayjs from "dayjs";
+import { getRoleLabel } from "@/constants/roleLabels";
 
 export const columns: TableProps<ListAdministratorResponse>["columns"] = [
   {
@@ -58,7 +59,7 @@ export const columns: TableProps<ListAdministratorResponse>["columns"] = [
         {roles?.map((item) => {
           return (
             <Tag color={"green"} key={item} style={{ marginRight: 0 }}>
-              {item.toUpperCase()}
+              {getRoleLabel(item)}
             </Tag>
           );
         })}

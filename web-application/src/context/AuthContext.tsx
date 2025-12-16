@@ -32,11 +32,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [router]);
 
+  const handleForbidden = React.useCallback(() => {
+    // Don't logout user, just redirect to forbidden page
+    if (typeof window !== "undefined" && !window.location.href.includes("/forbidden")) {
+      message.warning("Bạn không có quyền truy cập trang này");
+      router.push("/forbidden");
+    }
+  }, [router]);
+
   React.useEffect(() => {
     setOnUnauthorized(() => handleUnauthorized());
-    setOnForbidden(() => handleUnauthorized());
-    return () => setOnUnauthorized(undefined);
-  }, [handleUnauthorized]);
+    setOnForbidden(() => handleForbidden());
+    return () => {
+      setOnUnauthorized(undefined);
+      setOnForbidden(undefined);
+    };
+  }, [handleUnauthorized, handleForbidden]);
 
   const fetchCurrentUser = React.useCallback(async () => {
     try {

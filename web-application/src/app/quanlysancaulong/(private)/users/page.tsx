@@ -9,9 +9,27 @@ import { ApiError } from "@/lib/axios";
 import { ListAdministratorRequest, ListAdministratorResponse, ListUserRoleItemResponse } from "@/types-openapi/api";
 import { ApplicationUserStatus } from "@/types/commons";
 import { CheckOutlined, EditOutlined, PlusOutlined, ReloadOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
-import { Breadcrumb, Button, Checkbox, CheckboxChangeEvent, Col, Divider, List, message, Modal, Row, Table, TableProps, Tabs } from "antd";
+import {
+  Breadcrumb,
+  Button,
+  Checkbox,
+  CheckboxChangeEvent,
+  Col,
+  Descriptions,
+  Divider,
+  List,
+  message,
+  Modal,
+  Row,
+  Table,
+  TableProps,
+  Tabs,
+  Tag,
+  Card,
+} from "antd";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
+import { getRoleLabel } from "@/constants/roleLabels";
 
 const tableProps: TableProps<ListAdministratorResponse> = {
   rowKey: "userId",
@@ -214,80 +232,42 @@ const UserInformation = ({
   handleClickUpdateUser: () => void;
   handleClickChangeUserStatus: (payload: string) => void;
 }) => {
+  const getStatusTag = (status: string | undefined | null) => {
+    if (status === ApplicationUserStatus.Active) {
+      return <Tag color="success">Hoạt động</Tag>;
+    }
+    return <Tag color="error">Ngừng hoạt động</Tag>;
+  };
+
   return (
     <div>
-      <Row gutter={16} className="mb-4">
-        <Col span={4}>
-          <Row gutter={16}>
-            <Col span={12}>Tên đăng nhập:</Col>
-            <Col span={12}>{record.userName}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={12}>Tên người dùng:</Col>
-            <Col span={12}>{record.fullName}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={12}>Email:</Col>
-            <Col span={12}>{record.email}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={12}>Số điện thoại:</Col>
-            <Col span={12}>{record.phoneNumber}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-          </Row>
-        </Col>
+      <Card variant="borderless" className="mb-4">
+        <Descriptions bordered column={{ xxl: 3, xl: 3, lg: 2, md: 2, sm: 1, xs: 1 }} size="middle">
+          <Descriptions.Item label="Tên đăng nhập">
+            <span className="font-medium">{record.userName || "-"}</span>
+          </Descriptions.Item>
+          <Descriptions.Item label="Tên người dùng">
+            <span className="font-medium">{record.fullName || "-"}</span>
+          </Descriptions.Item>
+          <Descriptions.Item label="Trạng thái">{getStatusTag(record.status)}</Descriptions.Item>
+          <Descriptions.Item label="Email">{record.email || "-"}</Descriptions.Item>
+          <Descriptions.Item label="Số điện thoại">{record.phoneNumber || "-"}</Descriptions.Item>
+          <Descriptions.Item label="Ngày sinh">{record.dateOfBirth ? dayjs(record.dateOfBirth).format("DD/MM/YYYY") : "-"}</Descriptions.Item>
+          <Descriptions.Item label="Địa chỉ" span={3}>
+            {record.address || "-"}
+          </Descriptions.Item>
+          <Descriptions.Item label="Phường">{record.ward || "-"}</Descriptions.Item>
+          <Descriptions.Item label="Quận">{record.district || "-"}</Descriptions.Item>
+          <Descriptions.Item label="Thành phố">{record.city || "-"}</Descriptions.Item>
+          {record.note && (
+            <Descriptions.Item label="Ghi chú" span={3}>
+              <div className="whitespace-pre-wrap">{record.note}</div>
+            </Descriptions.Item>
+          )}
+        </Descriptions>
+      </Card>
 
-        <Divider type="vertical" size="small" style={{ height: "auto" }} />
-
-        <Col span={4}>
-          <Row gutter={16}>
-            <Col span={12}>Trạng thái:</Col>
-            <Col span={12}>{record.status}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={12}>Địa chỉ:</Col>
-            <Col span={12}>{record.address}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={12}>Thành phố:</Col>
-            <Col span={12}>{record.city}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={12}>Quận:</Col>
-            <Col span={12}>{record.district}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={12}>Phường:</Col>
-            <Col span={12}>{record.ward}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-            <Col span={12}>Ngày sinh:</Col>
-            <Col span={12}>{record.dateOfBirth ? dayjs(record.dateOfBirth).format("DD/MM/YYYY") : "-"}</Col>
-            <Col span={24}>
-              <Divider size="small" />
-            </Col>
-          </Row>
-        </Col>
-
-        <Col span={6}>
-          <Row gutter={16}>
-            <Col span={5}>Ghi chú:</Col>
-            <Col span={19}>{record.note}</Col>
-          </Row>
-        </Col>
-      </Row>
-
-      <div className="flex gap-2">
+      <div className="mt-2 flex gap-2">
         {record.status === ApplicationUserStatus.Active && (
           <Button
             color="danger"
@@ -356,30 +336,12 @@ const UserRoleManagement = ({
   };
 
   return (
-    <>
-      <Row gutter={16}>
-        <Col span={4}>
-          <List
-            size="small"
-            bordered
-            dataSource={listUserRoles ?? []}
-            renderItem={(item) => (
-              <List.Item
-                actions={[
-                  <Checkbox key={item.roleId} checked={selectedRoles.includes(item.roleId)} onChange={(e) => handleChangeUserRole(e, item.roleId)} />,
-                ]}
-              >
-                {item.roleName}
-              </List.Item>
-            )}
-            loading={loadingUserRolesData}
-            rowKey="roleId"
-          />
-        </Col>
-        <Col span={20}>
+    <Card variant="borderless">
+      <div className="mb-4">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="text-base font-medium">Danh sách vai trò</span>
           <div className="flex gap-2">
             <Button
-              type="primary"
               icon={<ReloadOutlined />}
               onClick={() => {
                 refetchUserRolesData();
@@ -392,9 +354,33 @@ const UserRoleManagement = ({
               Xác nhận
             </Button>
           </div>
-        </Col>
-      </Row>
-    </>
+        </div>
+
+        <Row gutter={[16, 16]}>
+          {listUserRoles.map((item) => (
+            <Col key={item.roleId} xs={24} sm={12} md={8} lg={6}>
+              <Card
+                size="small"
+                hoverable
+                className={`cursor-pointer transition-all ${selectedRoles.includes(item.roleId) ? "border-blue-500 bg-blue-50" : "border-gray-200"}`}
+                onClick={() => {
+                  if (selectedRoles.includes(item.roleId)) {
+                    setSelectedRoles(selectedRoles.filter((id) => id !== item.roleId));
+                  } else {
+                    setSelectedRoles([...selectedRoles, item.roleId]);
+                  }
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{getRoleLabel(item.roleName)}</span>
+                  <Checkbox checked={selectedRoles.includes(item.roleId)} onChange={(e) => handleChangeUserRole(e, item.roleId)} />
+                </div>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </div>
+    </Card>
   );
 };
 

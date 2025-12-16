@@ -606,127 +606,131 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
     public async Task<List<ListProductResponse>> GetCurrentAppliedPriceAsync()
     {
         var now = DateTime.UtcNow;
+        Console.WriteLine($"[DEBUG] Current time: {now}");
 
-        // Bước 1: Tự động xử lý bảng giá hết hiệu lực
-        // Tìm tất cả bảng giá đang kích hoạt và hết hiệu lực
-        var expiredActivePriceTables = await _context
-            .PriceTables.Where(pt =>
-                pt.IsActive && pt.EffectiveTo.HasValue && pt.EffectiveTo.Value < now
-            )
-            .ToListAsync();
-
-        // Tự động tắt các bảng giá hết hiệu lực
-        foreach (var expiredTable in expiredActivePriceTables)
-        {
-            expiredTable.IsActive = false;
-        }
-
-        // Bước 2: Tìm bảng giá tiếp theo (chưa kích hoạt, có thời gian bắt đầu gần nhất với now)
-        // Ưu tiên: bảng giá có effectiveFrom <= now (đã đến thời gian bắt đầu) nhưng chưa kích hoạt
-        // Nếu không có, tìm bảng giá có effectiveFrom > now (sắp đến)
-        var nextPriceTable = await _context
-            .PriceTables.Where(pt =>
-                !pt.IsActive
-                && pt.EffectiveFrom.HasValue
-                && pt.EffectiveFrom.Value <= now
-                && (!pt.EffectiveTo.HasValue || pt.EffectiveTo.Value >= now)
-            )
-            .OrderBy(pt => pt.EffectiveFrom)
-            .FirstOrDefaultAsync();
-
-        // Nếu không có bảng giá đã đến thời gian, tìm bảng giá sắp đến
-        if (nextPriceTable == null)
-        {
-            nextPriceTable = await _context
-                .PriceTables.Where(pt =>
-                    !pt.IsActive && pt.EffectiveFrom.HasValue && pt.EffectiveFrom.Value > now
-                )
-                .OrderBy(pt => pt.EffectiveFrom)
-                .FirstOrDefaultAsync();
-        }
-
-        // Tự động kích hoạt bảng giá tiếp theo nếu có và không có bảng giá nào đang kích hoạt
-        if (nextPriceTable != null)
-        {
-            // Kiểm tra xem có bảng giá nào đang kích hoạt không
-            var currentlyActive = await _context.PriceTables.AnyAsync(pt =>
-                pt.IsActive && pt.Id != nextPriceTable.Id
-            );
-
-            if (!currentlyActive)
-            {
-                nextPriceTable.IsActive = true;
-            }
-        }
-
-        // Lưu các thay đổi
-        if (expiredActivePriceTables.Any() || nextPriceTable != null)
-        {
-            await _context.SaveChangesAsync();
-        }
-
-        // Bước 3: Tìm bảng giá đang active và có hiệu lực (effectiveFrom <= now && effectiveTo >= now)
-        var activePriceTable = await _context
-            .PriceTables.Include(pt => pt.TimeRanges)
-            .Include(pt => pt.PriceTableProducts)
-            .Where(pt =>
-                pt.IsActive
-                && (!pt.EffectiveFrom.HasValue || pt.EffectiveFrom.Value <= now)
-                && (!pt.EffectiveTo.HasValue || pt.EffectiveTo.Value >= now)
-            )
+        // Bước 1: Tìm bảng giá đang kích hoạt
+        var currentActivePriceTable = await _context
+            .PriceTables.Include(pt => pt.PriceTableProducts)
+            .Where(pt => pt.IsActive)
             .OrderByDescending(pt => pt.CreatedAt)
             .FirstOrDefaultAsync();
 
-        // Bước 4: Nếu không có bảng giá đang hiệu lực, tìm bảng giá tiếp theo (effectiveFrom > now)
-        if (activePriceTable == null)
+        Console.WriteLine(
+            $"[DEBUG] Found active price table: {currentActivePriceTable?.Id}, Name: {currentActivePriceTable?.Name}"
+        );
+        if (currentActivePriceTable != null)
         {
-            activePriceTable = await _context
-                .PriceTables.Include(pt => pt.TimeRanges)
-                .Include(pt => pt.PriceTableProducts)
-                .Where(pt =>
-                    pt.IsActive && pt.EffectiveFrom.HasValue && pt.EffectiveFrom.Value > now
+            Console.WriteLine(
+                $"[DEBUG] Price table EffectiveFrom: {currentActivePriceTable.EffectiveFrom}, EffectiveTo: {currentActivePriceTable.EffectiveTo}"
+            );
+        }
+
+        // Bước 2: Kiểm tra xem bảng giá hiện tại có hết hiệu lực không
+        if (
+            currentActivePriceTable != null
+            && currentActivePriceTable.EffectiveTo.HasValue
+            && currentActivePriceTable.EffectiveTo.Value < now
+        )
+        {
+            // Bảng giá hiện tại đã hết hiệu lực, tắt nó đi
+            currentActivePriceTable.IsActive = false;
+
+            // Tìm bảng giá tiếp theo có thời gian bắt đầu sau khi bảng cũ hết hiệu lực
+            var nextPriceTable = await _context
+                .PriceTables.Where(pt =>
+                    !pt.IsActive
+                    && pt.EffectiveFrom.HasValue
+                    && pt.EffectiveFrom.Value >= currentActivePriceTable.EffectiveTo.Value
+                    && (!pt.EffectiveTo.HasValue || pt.EffectiveTo.Value >= now)
                 )
                 .OrderBy(pt => pt.EffectiveFrom)
                 .FirstOrDefaultAsync();
+
+            // Nếu tìm thấy bảng giá tiếp theo phù hợp, kích hoạt nó
+            if (nextPriceTable != null)
+            {
+                nextPriceTable.IsActive = true;
+                currentActivePriceTable = nextPriceTable;
+                // Load PriceTableProducts cho bảng giá mới
+                await _context
+                    .Entry(currentActivePriceTable)
+                    .Collection(pt => pt.PriceTableProducts)
+                    .LoadAsync();
+            }
+            else
+            {
+                // Không tìm thấy bảng giá tiếp theo, set null để dùng giá gốc
+                currentActivePriceTable = null;
+            }
+
+            // Lưu thay đổi
+            await _context.SaveChangesAsync();
         }
 
-        // Luôn lấy tất cả sản phẩm (không có filter) với thông tin cần thiết
+        // Bước 3: Nếu bảng giá hiện tại vẫn có hiệu lực, kiểm tra thời gian hiệu lực
+        if (currentActivePriceTable != null)
+        {
+            // Kiểm tra xem bảng giá có đang trong thời gian hiệu lực không
+            bool isCurrentlyEffective =
+                (
+                    !currentActivePriceTable.EffectiveFrom.HasValue
+                    || currentActivePriceTable.EffectiveFrom.Value <= now
+                )
+                && (
+                    !currentActivePriceTable.EffectiveTo.HasValue
+                    || currentActivePriceTable.EffectiveTo.Value >= now
+                );
+
+            if (!isCurrentlyEffective)
+            {
+                Console.WriteLine($"[DEBUG] Price table not effective, setting to null");
+                currentActivePriceTable = null;
+            }
+            else
+            {
+                Console.WriteLine($"[DEBUG] Price table is effective");
+            }
+        }
+
+        Console.WriteLine($"[DEBUG] Final active price table: {currentActivePriceTable?.Id}");
+
+        // Bước 4: Lấy tất cả sản phẩm và áp dụng giá
         var products = await _context.Products.Include(p => p.Category).ToListAsync();
         var result = new List<ListProductResponse>();
 
         foreach (var product in products)
         {
-            // Giá mặc định là giá gốc của sản phẩm
+            Console.WriteLine(
+                $"[DEBUG] Product {product.Name} - Original SalePrice: {product.SalePrice}"
+            );
+
+            // Mặc định sử dụng giá gốc
             decimal finalPrice = product.SalePrice;
 
-            // Nếu có bảng giá (đang hiệu lực hoặc tiếp theo), kiểm tra xem sản phẩm có trong bảng giá không
-            if (activePriceTable != null)
+            // Nếu có bảng giá kích hoạt và có hiệu lực, kiểm tra xem sản phẩm có giá override không
+            if (currentActivePriceTable != null)
             {
-                // Kiểm tra xem bảng giá có đang hiệu lực không
-                bool isCurrentlyEffective =
-                    (
-                        !activePriceTable.EffectiveFrom.HasValue
-                        || activePriceTable.EffectiveFrom.Value <= now
-                    )
-                    && (
-                        !activePriceTable.EffectiveTo.HasValue
-                        || activePriceTable.EffectiveTo.Value >= now
-                    );
+                var priceTableProduct = currentActivePriceTable.PriceTableProducts.FirstOrDefault(
+                    pp => pp.ProductId == product.Id
+                );
 
-                // Chỉ áp dụng giá override nếu bảng giá đang hiệu lực
-                if (isCurrentlyEffective)
+                if (priceTableProduct != null && priceTableProduct.OverrideSalePrice.HasValue)
                 {
-                    var priceTableProduct = activePriceTable.PriceTableProducts.FirstOrDefault(pp =>
-                        pp.ProductId == product.Id
-                    );
-
-                    if (priceTableProduct != null && priceTableProduct.OverrideSalePrice.HasValue)
-                    {
-                        finalPrice = priceTableProduct.OverrideSalePrice.Value;
-                    }
+                    finalPrice = priceTableProduct.OverrideSalePrice.Value;
+                    Console.WriteLine($"[DEBUG] Applied override price: {finalPrice}");
                 }
-                // Nếu bảng giá chưa có hiệu lực (là bảng giá tiếp theo), không áp dụng giá override
-                // Giữ nguyên giá mặc định (product.SalePrice)
+                else
+                {
+                    Console.WriteLine(
+                        $"[DEBUG] No override found, using original price: {finalPrice}"
+                    );
+                }
+            }
+            else
+            {
+                Console.WriteLine(
+                    $"[DEBUG] No active price table, using original price: {finalPrice}"
+                );
             }
 
             result.Add(
@@ -736,7 +740,7 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
                     Code = product.Code,
                     Name = product.Name,
                     Category = product.Category?.Name,
-                    SalePrice = finalPrice, // Sử dụng giá sau khi áp dụng bảng giá
+                    SalePrice = finalPrice, // Giá sau khi áp dụng bảng giá hoặc giá gốc
                     IsActive = product.IsActive,
                     IsDisplayOnWeb = product.IsDisplayOnWeb,
                     Stock = product.Stock,
@@ -745,7 +749,7 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             );
         }
 
-        return result;
+        return result.OrderBy(p => p.Name).ToList();
     }
 
     private static string? ExtractFileNameFromUrl(string url)

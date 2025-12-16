@@ -40,7 +40,7 @@ const allUserMenuItems = (user: CurrentUserResponse, router: AppRouterInstance, 
       label: "Nghiệp vụ lễ tân",
       icon: <SettingOutlined />,
       requiredRoles: [ROLES.RECEPTIONIST],
-      onClick: () => router.push("/quanlysancaulong/court-schedule"),
+      onClick: () => router.push("/quanlysancaulong/cashier"),
     },
     {
       key: "warehouse-panel",

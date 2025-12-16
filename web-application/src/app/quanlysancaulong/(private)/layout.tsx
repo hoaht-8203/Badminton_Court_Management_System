@@ -196,13 +196,6 @@ const allSideBarItems: MenuItemType[] = [
     requiredRoles: [ROLES.BRANCH_ADMINISTRATOR],
   },
   {
-    key: "/quanlysancaulong/cashier",
-    label: "Thu ngân",
-    icon: <ArrowLeftRight className="h-4 w-4" />,
-    // Receptionist only
-    requiredRoles: [ROLES.RECEPTIONIST],
-  },
-  {
     key: "cashflow",
     label: "Sổ quỹ",
     icon: <IdCardLanyard className="h-4 w-4" />,
@@ -350,6 +343,12 @@ const ComponentLayout = ({ children }: { children: React.ReactNode }) => {
           >
             <div className="text-xl font-bold text-black">Hệ thống quản lý sân cầu lông</div>
             <div className="flex items-center gap-5">
+              {user?.roles?.includes(ROLES.RECEPTIONIST) && (
+                <Button type="primary" icon={<ArrowLeftRight className="h-4 w-4" />} onClick={() => router.push("/quanlysancaulong/cashier")}>
+                  Thu ngân
+                </Button>
+              )}
+
               <Dropdown
                 menu={{
                   items: userMenuItems(user || ({} as CurrentUserResponse), router, logout),

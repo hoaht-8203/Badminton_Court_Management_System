@@ -166,21 +166,20 @@ namespace ApiApplication.Controllers
         }
 
         /// <summary>
-        /// Lấy giá sản phẩm đang áp dụng từ bảng giá hiện tại đang được áp dụng - Staff access for cashier operations
+        /// Lấy danh sách sản phẩm với giá bán hiện tại đang được áp dụng từ bảng giá - Staff access for cashier operations
         /// </summary>
-        /// <returns>Danh sách giá tất cả sản phẩm đang áp dụng</returns>
+        /// <returns>Danh sách sản phẩm với giá bán đang áp dụng</returns>
         [Authorize(Policy = PolicyConstants.StaffAccess)]
         [HttpGet("get-current-applied-price")]
         public async Task<
-            ActionResult<ApiResponse<List<GetCurrentAppliedPriceResponse>>>
+            ActionResult<ApiResponse<List<ListProductResponse>>>
         > GetCurrentAppliedPrice()
         {
-            var request = new GetCurrentAppliedPriceRequest();
-            var result = await _productService.GetCurrentAppliedPriceAsync(request);
+            var result = await _productService.GetCurrentAppliedPriceAsync();
             return Ok(
-                ApiResponse<List<GetCurrentAppliedPriceResponse>>.SuccessResponse(
+                ApiResponse<List<ListProductResponse>>.SuccessResponse(
                     result,
-                    "Lấy giá sản phẩm đang áp dụng thành công"
+                    "Lấy danh sách sản phẩm với giá bán đang áp dụng thành công"
                 )
             );
         }

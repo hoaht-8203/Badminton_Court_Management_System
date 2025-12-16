@@ -15,7 +15,8 @@ public class OrderService(
     IMapper mapper,
     IPaymentService paymentService,
     IConfiguration configuration,
-    IVoucherService voucherService
+    IVoucherService voucherService,
+    IInventoryCardService inventoryCardService
 ) : IOrderService
 {
     private readonly ApplicationDbContext _context = context;
@@ -23,6 +24,7 @@ public class OrderService(
     private readonly IPaymentService _paymentService = paymentService;
     private readonly IConfiguration _configuration = configuration;
     private readonly IVoucherService _voucherService = voucherService;
+    private readonly IInventoryCardService _inventoryCardService = inventoryCardService;
 
     public async Task<CheckoutResponse> GetCheckoutInfoAsync(Guid orderId)
     {
@@ -225,6 +227,45 @@ public class OrderService(
 
         await _context.Orders.AddAsync(order);
         await _context.SaveChangesAsync();
+
+        // Tạo thẻ kho cho các sản phẩm đã đặt (đồ ăn/nước uống)
+        if (occurrence.BookingOrderItems != null && occurrence.BookingOrderItems.Any())
+        {
+            var inventoryCardCode =
+                await _inventoryCardService.GenerateNextSaleInventoryCardCodeAsync();
+
+            foreach (var orderItem in occurrence.BookingOrderItems)
+            {
+                // Chỉ tạo thẻ kho cho sản phẩm có quản lý tồn kho
+                if (orderItem.Product != null && orderItem.Product.ManageInventory)
+                {
+                    try
+                    {
+                        await _inventoryCardService.CreateInventoryCardForSaleAsync(
+                            new Dtos.InventoryCard.CreateInventoryCardForSaleRequest
+                            {
+                                ProductId = orderItem.ProductId,
+                                Code = inventoryCardCode,
+                                Method = $"Bán hàng - Đơn hàng {orderCode}",
+                                OccurredAt = DateTime.UtcNow,
+                                CostPrice = orderItem.Product.CostPrice,
+                                QuantitySold = orderItem.Quantity,
+                                Note =
+                                    $"Bán hàng từ đơn hàng {orderCode} - Sản phẩm: {orderItem.Product.Name}",
+                                UpdateProductStock = true,
+                            }
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log lỗi nhưng không dừng quá trình checkout
+                        System.Console.WriteLine(
+                            $"Lỗi khi tạo thẻ kho cho sản phẩm {orderItem.ProductId}: {ex.Message}"
+                        );
+                    }
+                }
+            }
+        }
 
         // Calculate and update service costs based on actual usage time
         await CalculateAndUpdateServiceCostsAsync(occurrence);

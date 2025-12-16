@@ -10,7 +10,7 @@ namespace ApiApplication.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = PolicyConstants.WarehouseAccess)]
+    [Authorize(Policy = PolicyConstants.ManagementOnly)]
     public class SuppliersController(ISupplierService supplierService) : ControllerBase
     {
         private readonly ISupplierService _supplierService = supplierService;

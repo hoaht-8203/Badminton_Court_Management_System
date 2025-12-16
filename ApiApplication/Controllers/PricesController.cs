@@ -9,7 +9,7 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Policy = PolicyConstants.ManagementOnly)]
+[Authorize(Policy = PolicyConstants.WarehouseAccess)]
 public class PricesController(IPriceTableService service) : ControllerBase
 {
     private readonly IPriceTableService _service = service;

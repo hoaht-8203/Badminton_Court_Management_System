@@ -9,7 +9,7 @@ namespace ApiApplication.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = PolicyConstants.ManagementOnly)]
+    [Authorize(Policy = PolicyConstants.WarehouseAccess)]
     public class ProductsController(IProductService productService) : ControllerBase
     {
         private readonly IProductService _productService = productService;

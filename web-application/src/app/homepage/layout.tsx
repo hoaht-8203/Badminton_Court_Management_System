@@ -47,7 +47,7 @@ const allUserMenuItems = (user: CurrentUserResponse, router: AppRouterInstance, 
       label: "Nghiệp vụ kiểm kho",
       icon: <SettingOutlined />,
       requiredRoles: [ROLES.WAREHOUSE_STAFF],
-      onClick: () => router.push("/quanlysancaulong/inventory"),
+      onClick: () => router.push("/quanlysancaulong/quanlydanhmuc"),
     },
     {
       key: "logout",

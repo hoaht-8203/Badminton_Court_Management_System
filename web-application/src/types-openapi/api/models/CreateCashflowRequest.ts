@@ -63,6 +63,12 @@ export interface CreateCashflowRequest {
     note?: string | null;
     /**
      * 
+     * @type {string}
+     * @memberof CreateCashflowRequest
+     */
+    status?: string | null;
+    /**
+     * 
      * @type {Date}
      * @memberof CreateCashflowRequest
      */
@@ -95,6 +101,7 @@ export function CreateCashflowRequestFromJSONTyped(json: any, ignoreDiscriminato
         'personType': json['personType'] == null ? undefined : json['personType'],
         'relatedPerson': json['relatedPerson'] == null ? undefined : json['relatedPerson'],
         'note': json['note'] == null ? undefined : json['note'],
+        'status': json['status'] == null ? undefined : json['status'],
         'time': json['time'] == null ? undefined : (new Date(json['time'])),
     };
 }
@@ -117,6 +124,7 @@ export function CreateCashflowRequestToJSONTyped(value?: CreateCashflowRequest |
         'personType': value['personType'],
         'relatedPerson': value['relatedPerson'],
         'note': value['note'],
+        'status': value['status'],
         'time': value['time'] === null ? null : ((value['time'] as any)?.toISOString()),
     };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCreateSlider } from "@/hooks/useSlider";
+import { useCreateSlider, useListSliders } from "@/hooks/useSlider";
 import { ApiError } from "@/lib/axios";
 import { fileService } from "@/services/fileService";
 import { CreateSliderRequest } from "@/types-openapi/api";
@@ -20,6 +20,7 @@ const CreateSliderDrawer = ({ open, onClose }: CreateSliderDrawerProps) => {
   const [uploading, setUploading] = useState(false);
 
   const createSliderMutation = useCreateSlider();
+  const { data: slidersData } = useListSliders({ title: null, status: null });
 
   useEffect(() => {
     if (open) {
@@ -31,6 +32,25 @@ const CreateSliderDrawer = ({ open, onClose }: CreateSliderDrawerProps) => {
   }, [open, form]);
 
   const handleSubmit = async (values: CreateSliderRequest) => {
+    const title = values.title?.trim();
+
+    if (!title) {
+      message.error("Tiêu đề slider không được để trống");
+      return;
+    }
+
+    // Kiểm tra trùng tiêu đề slider
+    const normalizedNewTitle = title.toLowerCase();
+    const existingTitles =
+      slidersData?.data
+        ?.map((s) => s.title?.trim().toLowerCase())
+        .filter(Boolean) ?? [];
+
+    if (existingTitles.includes(normalizedNewTitle)) {
+      message.error("Tiêu đề slider đã tồn tại");
+      return;
+    }
+
     if (!imageUrl) {
       message.error("Vui lòng upload hình ảnh");
       return;
@@ -39,6 +59,7 @@ const CreateSliderDrawer = ({ open, onClose }: CreateSliderDrawerProps) => {
     try {
       await createSliderMutation.mutateAsync({
         ...values,
+        title,
         imageUrl: imageUrl,
       });
       message.success("Tạo slider thành công!");

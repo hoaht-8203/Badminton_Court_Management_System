@@ -14,12 +14,15 @@ const HomePage = () => {
   const { data: slidersData, isLoading: isLoadingSliders } = useUserListSliders();
   const { data: courtGroupByCourtAreaData } = useListCourtGroupByCourtArea();
   const { data: productsData, isLoading: isLoadingProducts } = useListProductsForWeb({});
-  const { data: blogsData, isLoading: isLoadingBlogs } = useListBlogs({});
+  const { data: blogsData, isLoading: isLoadingBlogs } = useListBlogs({ status: "Active" });
 
   return (
     <div>
       <section>
-        <Sliders sliders={slidersData?.data ?? []} isLoading={isLoadingSliders} />
+        <Sliders
+          sliders={slidersData?.data?.filter((slider) => slider.status === "Active") ?? []}
+          isLoading={isLoadingSliders}
+        />
       </section>
 
       <section className="container mx-auto mt-10">
@@ -40,7 +43,11 @@ const HomePage = () => {
         <h2 className="text-2xl font-bold">Bài viết nổi bật</h2>
         <p className="text-gray-500">Bài viết về sân cầu lông</p>
 
-        <Blogs blogs={blogsData?.data ?? []} isLoading={isLoadingBlogs} limit={6} />
+        <Blogs
+          blogs={blogsData?.data?.filter((blog) => blog.status === "Active") ?? []}
+          isLoading={isLoadingBlogs}
+          limit={6}
+        />
       </section>
     </div>
   );

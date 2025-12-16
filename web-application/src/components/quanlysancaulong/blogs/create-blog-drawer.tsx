@@ -1,7 +1,7 @@
 "use client";
 
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
-import { useCreateBlog } from "@/hooks/useBlogs";
+import { useCreateBlog, useListBlogs } from "@/hooks/useBlogs";
 import { fileService } from "@/services/fileService";
 import { CreateBlogRequest } from "@/types-openapi/api";
 import { DeleteOutlined, LoadingOutlined, UploadOutlined } from "@ant-design/icons";
@@ -23,17 +23,46 @@ const CreateBlogDrawer = ({ open, onClose }: CreateBlogDrawerProps) => {
   const [loading, setLoading] = useState(false);
 
   const createBlogMutation = useCreateBlog();
+  const { data: blogsData } = useListBlogs({ title: null, status: null });
 
   const handleSubmit: FormProps<CreateBlogRequest>["onFinish"] = async (values) => {
-    if (!content.trim()) {
+    const title = values.title?.trim();
+
+    if (!title) {
+      message.error("Tiêu đề blog không được để trống");
+      return;
+    }
+
+    const normalizedNewTitle = title.toLowerCase();
+    const existingTitles =
+      blogsData?.data
+        ?.map((b) => b.title?.trim().toLowerCase())
+        .filter(Boolean) ?? [];
+
+    if (existingTitles.includes(normalizedNewTitle)) {
+      message.error("Tiêu đề blog đã tồn tại");
+      return;
+    }
+
+    const plainTextContent = content
+      ?.replace(/<[^>]*>/g, " ") // loại bỏ thẻ HTML
+      .replace(/&nbsp;/g, " ") // thay &nbsp; bằng khoảng trắng
+      .trim();
+
+    if (!plainTextContent) {
       message.error("Nội dung blog không được để trống");
+      return;
+    }
+
+    if (!imageUrl) {
+      message.error("Hình ảnh blog không được để trống");
       return;
     }
 
     setLoading(true);
     try {
       await createBlogMutation.mutateAsync({
-        title: values.title,
+        title: title,
         content: content,
         imageUrl: imageUrl,
       });

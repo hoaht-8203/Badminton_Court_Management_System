@@ -63,20 +63,21 @@ const BlogsPage = () => {
           </p>
         </div>
       ),
-      onOk: () => {
-        deleteBlogMutation.mutate(
-          {
+      onOk: async () => {
+        if (!record.id) {
+          message.error("Không xác định được mã blog để xóa");
+          return;
+        }
+
+        try {
+          await deleteBlogMutation.mutateAsync({
             id: record.id,
-          },
-          {
-            onSuccess: () => {
-              message.success("Xóa blog thành công!");
-            },
-            onError: (error: ApiError) => {
-              message.error(error.message);
-            },
-          },
-        );
+          });
+          message.success("Xóa blog thành công!");
+        } catch (error) {
+          const apiError = error as ApiError;
+          message.error(apiError.message || "Có lỗi xảy ra khi xóa blog");
+        }
       },
       okText: "Xác nhận",
       cancelText: "Hủy",

@@ -73,6 +73,12 @@ export interface UpdateSliderRequest {
      * @memberof UpdateSliderRequest
      */
     backLink?: string | null;
+    /**
+     * 
+     * @type {string}
+     * @memberof UpdateSliderRequest
+     */
+    status: string | null;
 }
 
 /**
@@ -82,6 +88,7 @@ export function instanceOfUpdateSliderRequest(value: object): value is UpdateSli
     if (!('id' in value) || value['id'] === undefined) return false;
     if (!('title' in value) || value['title'] === undefined) return false;
     if (!('imageUrl' in value) || value['imageUrl'] === undefined) return false;
+    if (!('status' in value) || value['status'] === undefined) return false;
     return true;
 }
 
@@ -104,6 +111,7 @@ export function UpdateSliderRequestFromJSONTyped(json: any, ignoreDiscriminator:
         'description': json['description'] == null ? undefined : json['description'],
         'imageUrl': json['imageUrl'],
         'backLink': json['backLink'] == null ? undefined : json['backLink'],
+        'status': json['status'],
     };
 }
 
@@ -127,6 +135,7 @@ export function UpdateSliderRequestToJSONTyped(value?: UpdateSliderRequest | nul
         'description': value['description'],
         'imageUrl': value['imageUrl'],
         'backLink': value['backLink'],
+        'status': value['status'],
     };
 }
 

@@ -1,11 +1,11 @@
 "use client";
 
 import { SimpleEditor } from "@/components/tiptap-templates/simple/simple-editor";
-import { useDetailBlog, useUpdateBlog } from "@/hooks/useBlogs";
+import { useDetailBlog, useListBlogs, useUpdateBlog } from "@/hooks/useBlogs";
 import { fileService } from "@/services/fileService";
 import { UpdateBlogRequest } from "@/types-openapi/api";
 import { DeleteOutlined, LoadingOutlined, UploadOutlined } from "@ant-design/icons";
-import { Button, Col, Drawer, Form, FormProps, Image, Input, message, Row, Space, Spin, Upload } from "antd";
+import { Button, Col, Drawer, Form, FormProps, Image, Input, message, Row, Select, Space, Spin, Upload } from "antd";
 import FormItem from "antd/es/form/FormItem";
 import { useEffect, useState } from "react";
 
@@ -24,6 +24,7 @@ const UpdateBlogDrawer = ({ open, onClose, blogId }: UpdateBlogDrawerProps) => {
   const [loading, setLoading] = useState(false);
 
   const { data: blogData, isLoading: loadingBlog } = useDetailBlog({ id: blogId });
+  const { data: blogsData } = useListBlogs({ title: null, status: null });
   const updateBlogMutation = useUpdateBlog();
 
   // Always hydrate fields when open changes to true and blogData loaded
@@ -52,8 +53,38 @@ const UpdateBlogDrawer = ({ open, onClose, blogId }: UpdateBlogDrawerProps) => {
   }, [open, form]);
 
   const handleSubmit: FormProps<UpdateBlogRequest>["onFinish"] = async (values) => {
-    if (!content.trim()) {
+    const title = values.title?.trim();
+
+    if (!title) {
+      message.error("Tiêu đề blog không được để trống");
+      return;
+    }
+
+    // Kiểm tra trùng tiêu đề blog (bỏ qua chính blog đang sửa)
+    const normalizedNewTitle = title.toLowerCase();
+    const existingTitles =
+      blogsData?.data
+        ?.filter((b) => b.id !== blogId)
+        .map((b) => b.title?.trim().toLowerCase())
+        .filter(Boolean) ?? [];
+
+    if (existingTitles.includes(normalizedNewTitle)) {
+      message.error("Tiêu đề blog đã tồn tại");
+      return;
+    }
+
+    const plainTextContent = content
+      ?.replace(/<[^>]*>/g, " ") // loại bỏ thẻ HTML
+      .replace(/&nbsp;/g, " ") // thay &nbsp; bằng khoảng trắng
+      .trim();
+
+    if (!plainTextContent) {
       message.error("Nội dung blog không được để trống");
+      return;
+    }
+
+    if (!imageUrl) {
+      message.error("Hình ảnh blog không được để trống");
       return;
     }
 
@@ -61,7 +92,7 @@ const UpdateBlogDrawer = ({ open, onClose, blogId }: UpdateBlogDrawerProps) => {
     try {
       await updateBlogMutation.mutateAsync({
         id: blogId,
-        title: values.title,
+        title: title,
         content: content,
         imageUrl: imageUrl || "",
         status: values.status,
@@ -154,6 +185,16 @@ const UpdateBlogDrawer = ({ open, onClose, blogId }: UpdateBlogDrawerProps) => {
           <Col span={8}>
             <FormItem<UpdateBlogRequest> label="Tiêu đề blog" name="title" rules={[{ required: true, message: "Vui lòng nhập tiêu đề blog" }]}>
               <Input placeholder="Nhập tiêu đề blog" />
+            </FormItem>
+
+            <FormItem<UpdateBlogRequest> label="Trạng thái" name="status" rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}>
+              <Select
+                placeholder="Chọn trạng thái"
+                options={[
+                  { label: "Đang hoạt động", value: "Active" },
+                  { label: "Không hoạt động", value: "Inactive" },
+                ]}
+              />
             </FormItem>
 
             <FormItem<UpdateBlogRequest> label="Hình ảnh" name="imageUrl">

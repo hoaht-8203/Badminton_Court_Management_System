@@ -58,7 +58,15 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
         onClose();
       },
       onError: (error: ApiError) => {
-        message.error("Có lỗi xảy ra: " + (error.message || "Unknown error"));
+        // Hiển thị message chính
+        message.error(error.message || "Có lỗi xảy ra khi tạo người dùng");
+        
+        // Nếu có errors từ validation, hiển thị từng lỗi
+        if (error.errors) {
+          Object.entries(error.errors).forEach(([field, errorMsg]) => {
+            message.error(`${field}: ${errorMsg}`);
+          });
+        }
       },
     });
   };

@@ -544,7 +544,7 @@ public class AuthService(
             );
         }
 
-        await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.User));
+        await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.Customer));
 
         // Tự động tạo customer khi đăng ký
         var customer = new Customer

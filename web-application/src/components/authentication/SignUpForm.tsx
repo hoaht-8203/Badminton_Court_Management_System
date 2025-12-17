@@ -3,7 +3,7 @@
 import { authService } from "@/services/authService";
 import { ApiError } from "@/lib/axios";
 import { RegisterRequest } from "@/types-openapi/api";
-import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
+import { LockOutlined, MailOutlined, PhoneOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Card, Form, Input, message } from "antd";
 import FormItem from "antd/es/form/FormItem";
 import type { NamePath } from "antd/es/form/interface";
@@ -100,6 +100,17 @@ const SignUpForm = ({ isUsersMode = false }: SignUpFormProps) => {
             ]}
           >
             <Input prefix={<MailOutlined />} size="large" placeholder="Nhập email" />
+          </FormItem>
+
+          <FormItem<RegisterRequest>
+            label="Số điện thoại"
+            name="phoneNumber"
+            rules={[
+              { required: true, message: "Vui lòng nhập số điện thoại" },
+              { pattern: /^[0-9]{10,11}$/, message: "Số điện thoại phải có 10-11 chữ số" },
+            ]}
+          >
+            <Input prefix={<PhoneOutlined />} size="large" placeholder="Nhập số điện thoại" />
           </FormItem>
 
           <FormItem<RegisterRequest>

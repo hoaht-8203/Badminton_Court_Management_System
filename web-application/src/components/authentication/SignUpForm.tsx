@@ -75,6 +75,10 @@ const SignUpForm = ({ isUsersMode = false }: SignUpFormProps) => {
               { required: true, message: "Vui lòng nhập tên đăng nhập" },
               { min: 3, message: "Tên đăng nhập phải có ít nhất 3 ký tự" },
               { max: 20, message: "Tên đăng nhập không được quá 20 ký tự" },
+              {
+                pattern: /^[a-zA-Z0-9_]+$/,
+                message: "Tên đăng nhập không được chứa ký tự có dấu hoặc ký tự đặc biệt (chỉ cho phép chữ cái, số và dấu gạch dưới)",
+              },
             ]}
           >
             <Input prefix={<UserOutlined />} size="large" placeholder="Nhập tên đăng nhập" />

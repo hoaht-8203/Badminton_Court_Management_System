@@ -125,7 +125,13 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
             <FormItem<CreateAdministratorRequest>
               name="userName"
               label="Tên người dùng"
-              rules={[{ required: true, message: "Tên người dùng là bắt buộc" }]}
+              rules={[
+                { required: true, message: "Tên người dùng là bắt buộc" },
+                {
+                  pattern: /^[a-zA-Z0-9_]+$/,
+                  message: "Tên người dùng không được chứa ký tự có dấu hoặc ký tự đặc biệt (chỉ cho phép chữ cái, số và dấu gạch dưới)",
+                },
+              ]}
             >
               <Input placeholder="Nhập tên người dùng" />
             </FormItem>

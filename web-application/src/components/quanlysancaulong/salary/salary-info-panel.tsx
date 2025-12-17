@@ -1,5 +1,5 @@
 import { Descriptions, Button, Row, Col, Tooltip, Modal, message } from "antd";
-import { DeleteOutlined, ReloadOutlined, FileExcelOutlined, InfoCircleOutlined, EyeOutlined } from "@ant-design/icons";
+import { DeleteOutlined, ReloadOutlined, InfoCircleOutlined, EyeOutlined } from "@ant-design/icons";
 import { PayrollDetailResponse } from "@/types-openapi/api";
 import { useDeletePayroll } from "@/hooks/usePayroll";
 import { ApiError } from "@/lib/axios";
@@ -93,8 +93,6 @@ export default function SalaryInfoPanel({
           <Button type="primary" icon={<ReloadOutlined />} loading={refreshing} onClick={onRefresh}>
             Tải lại dữ liệu
           </Button>
-
-          <Button icon={<FileExcelOutlined />}>Xuất file</Button>
         </Col>
       </Row>
     </>

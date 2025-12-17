@@ -13,7 +13,6 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Policy = PolicyConstants.StaffAccess)]
 public class BookingCourtsController(
     IBookingCourtService service,
     IPaymentService paymentService,
@@ -32,6 +31,7 @@ public class BookingCourtsController(
     /// Create booking for customer - Staff access (Receptionist creates booking for customers)
     /// </summary>
     [HttpPost("create")]
+    [Authorize(Policy = PolicyConstants.ReceptionistAccess)]
     public async Task<ActionResult<ApiResponse<CreateBookingCourtResponse>>> Create(
         [FromBody] CreateBookingCourtRequest request
     )
@@ -195,6 +195,7 @@ public class BookingCourtsController(
         );
     }
 
+    [Authorize]
     [HttpGet("list")]
     public async Task<ActionResult<ApiResponse<List<ListBookingCourtResponse>>>> List(
         [FromQuery] ListBookingCourtRequest request

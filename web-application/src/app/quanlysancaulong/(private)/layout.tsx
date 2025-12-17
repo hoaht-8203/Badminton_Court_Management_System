@@ -94,20 +94,21 @@ const allSideBarItems: MenuItemType[] = [
     key: "quanlydoitac",
     label: "Quản lý đối tác",
     icon: <Handshake className="h-4 w-4" />,
-    // Management only for suppliers, office staff for customers/memberships
-    requiredRoles: [ROLES.BRANCH_ADMINISTRATOR],
     children: [
       {
         key: "/quanlysancaulong/customers",
         label: "Quản lý khách hàng",
+        requiredRoles: [ROLES.RECEPTIONIST, ROLES.BRANCH_ADMINISTRATOR],
       },
       {
         key: "/quanlysancaulong/memberships",
         label: "Quản lý gói hội viên",
+        requiredRoles: [ROLES.BRANCH_ADMINISTRATOR],
       },
       {
         key: "/quanlysancaulong/suppliers",
         label: "Quản lý nhà cung cấp",
+        requiredRoles: [ROLES.BRANCH_ADMINISTRATOR],
       },
     ],
   },
@@ -149,8 +150,7 @@ const allSideBarItems: MenuItemType[] = [
     key: "quantriungdung",
     label: "Quản trị ứng dụng",
     icon: <Settings className="h-4 w-4" />,
-    // Admin only
-    requiredRoles: [ROLES.ADMIN],
+
     children: [
       {
         key: "/quanlysancaulong/users",
@@ -165,7 +165,7 @@ const allSideBarItems: MenuItemType[] = [
       {
         key: "/quanlysancaulong/feedbacks",
         label: "Quản lý feedback",
-        requiredRoles: [ROLES.ADMIN, ROLES.BRANCH_ADMINISTRATOR],
+        requiredRoles: [ROLES.BRANCH_ADMINISTRATOR],
       },
     ],
   },
@@ -196,11 +196,11 @@ const allSideBarItems: MenuItemType[] = [
     requiredRoles: [ROLES.BRANCH_ADMINISTRATOR],
   },
   {
-    key: "cashflow",
+    key: "/quanlysancaulong/cashflow",
     label: "Sổ quỹ",
     icon: <IdCardLanyard className="h-4 w-4" />,
     // Office staff
-    requiredRoles: [ROLES.ADMIN, ROLES.BRANCH_ADMINISTRATOR],
+    requiredRoles: [ROLES.BRANCH_ADMINISTRATOR],
   },
 ];
 

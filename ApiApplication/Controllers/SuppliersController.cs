@@ -10,12 +10,12 @@ namespace ApiApplication.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = PolicyConstants.ManagementOnly)]
     public class SuppliersController(ISupplierService supplierService) : ControllerBase
     {
         private readonly ISupplierService _supplierService = supplierService;
 
         [HttpGet("list")]
+        [Authorize(Policy = PolicyConstants.StaffAccess)]
         public async Task<ActionResult<ApiResponse<List<ListSupplierResponse>>>> ListSuppliers(
             [FromQuery] ListSupplierRequest request
         )
@@ -30,6 +30,7 @@ namespace ApiApplication.Controllers
         }
 
         [HttpGet("detail")]
+        [Authorize(Policy = PolicyConstants.StaffAccess)]
         public async Task<ActionResult<ApiResponse<DetailSupplierResponse>>> DetailCustomer(
             [FromQuery] DetailSupplierRequest request
         )
@@ -44,6 +45,7 @@ namespace ApiApplication.Controllers
         }
 
         [HttpPost("create")]
+        [Authorize(Policy = PolicyConstants.ManagementOnly)]
         public async Task<ActionResult<ApiResponse<object?>>> CreateCustomer(
             [FromBody] CreateSupplierRequest request
         )
@@ -53,6 +55,7 @@ namespace ApiApplication.Controllers
         }
 
         [HttpPut("update")]
+        [Authorize(Policy = PolicyConstants.ManagementOnly)]
         public async Task<ActionResult<ApiResponse<object?>>> UpdateCustomer(
             [FromBody] UpdateSupplierRequest request
         )
@@ -64,6 +67,7 @@ namespace ApiApplication.Controllers
         }
 
         [HttpDelete("delete")]
+        [Authorize(Policy = PolicyConstants.ManagementOnly)]
         public async Task<ActionResult<ApiResponse<object?>>> DeleteCustomer(
             [FromQuery] DeleteSupplierRequest request
         )
@@ -73,6 +77,7 @@ namespace ApiApplication.Controllers
         }
 
         [HttpPut("change-status")]
+        [Authorize(Policy = PolicyConstants.ManagementOnly)]
         public async Task<ActionResult<ApiResponse<object?>>> ChangeCustomerStatus(
             [FromBody] ChangeSupplierStatusRequest request
         )

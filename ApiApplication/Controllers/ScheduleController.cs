@@ -1,5 +1,7 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +9,7 @@ namespace ApiApplication.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policy = PolicyConstants.OfficeStaffAccess)]
     public class ScheduleController : ControllerBase
     {
         private readonly IScheduleService _scheduleService;
@@ -58,6 +61,10 @@ namespace ApiApplication.Controllers
             );
         }
 
+        /// <summary>
+        /// Assign staff to shift - Management only, regular staff cannot assign schedules
+        /// </summary>
+        [Authorize(Policy = PolicyConstants.ManagementOnly)]
         [HttpPost("assign")]
         public async Task<ActionResult<ApiResponse<bool>>> AssignSchedule(
             [FromBody] ScheduleRequest request
@@ -67,6 +74,10 @@ namespace ApiApplication.Controllers
             return Ok(ApiResponse<bool>.SuccessResponse(result, "Assign schedule successfully"));
         }
 
+        /// <summary>
+        /// Remove staff from shift - Management only, regular staff cannot modify schedules
+        /// </summary>
+        [Authorize(Policy = PolicyConstants.ManagementOnly)]
         [HttpPost("remove")]
         public async Task<ActionResult<ApiResponse<object?>>> RemoveSchedule(
             [FromBody] ScheduleRequest request

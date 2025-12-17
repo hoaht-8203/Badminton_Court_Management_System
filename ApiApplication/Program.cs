@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using ApiApplication.Authorization;
+using ApiApplication.Constants;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Entities;
@@ -389,7 +391,77 @@ builder
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Admin only policy
+    options.AddPolicy(
+        PolicyConstants.AdminOnly,
+        policy => policy.RequireRole(IdentityRoleConstants.Admin)
+    );
+
+    // Management policy (Admin + Branch Administrator)
+    options.AddPolicy(
+        PolicyConstants.ManagementOnly,
+        policy =>
+            policy.RequireRole(
+                IdentityRoleConstants.Admin,
+                IdentityRoleConstants.BranchAdministrator
+            )
+    );
+
+    // Staff access policy (Admin + Branch Admin + Staff + Receptionist + Warehouse Staff)
+    options.AddPolicy(
+        PolicyConstants.StaffAccess,
+        policy =>
+            policy.RequireRole(
+                IdentityRoleConstants.Admin,
+                IdentityRoleConstants.BranchAdministrator,
+                IdentityRoleConstants.Staff,
+                IdentityRoleConstants.Receptionist,
+                IdentityRoleConstants.WarehouseStaff
+            )
+    );
+
+    // Office staff access policy (Admin + Branch Admin + Staff + Receptionist)
+    options.AddPolicy(
+        PolicyConstants.OfficeStaffAccess,
+        policy =>
+            policy.RequireRole(
+                IdentityRoleConstants.Admin,
+                IdentityRoleConstants.BranchAdministrator,
+                IdentityRoleConstants.Staff,
+                IdentityRoleConstants.Receptionist
+            )
+    );
+
+    // Warehouse access policy (Admin + Branch Admin + Warehouse Staff)
+    options.AddPolicy(
+        PolicyConstants.WarehouseAccess,
+        policy =>
+            policy.RequireRole(
+                IdentityRoleConstants.Admin,
+                IdentityRoleConstants.BranchAdministrator,
+                IdentityRoleConstants.WarehouseStaff
+            )
+    );
+
+    // Receptionist access policy (Admin + Branch Admin + Receptionist)
+    options.AddPolicy(
+        PolicyConstants.ReceptionistAccess,
+        policy =>
+            policy.RequireRole(
+                IdentityRoleConstants.Admin,
+                IdentityRoleConstants.BranchAdministrator,
+                IdentityRoleConstants.Receptionist
+            )
+    );
+
+    // Customer access policy (All roles including customers)
+    options.AddPolicy(PolicyConstants.CustomerAccess, policy => policy.RequireAuthenticatedUser());
+
+    // Authenticated policy
+    options.AddPolicy(PolicyConstants.Authenticated, policy => policy.RequireAuthenticatedUser());
+});
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHostedService<BookingHoldExpiryHostedService>();
 builder.Services.AddHostedService<OrderExpiryHostedService>();

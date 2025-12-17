@@ -111,6 +111,18 @@ namespace ApiApplication.Controllers
             return Ok(ApiResponse<object?>.SuccessResponse(null, "Verify email successfully"));
         }
 
+        [HttpPost("resend-verify-email")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponse<object?>>> ResendVerifyEmail(
+            ResendVerifyEmailRequest request
+        )
+        {
+            await _authService.ResendVerifyEmailAsync(request);
+            return Ok(
+                ApiResponse<object?>.SuccessResponse(null, "Resend verify email successfully")
+            );
+        }
+
         [HttpPost("sign-up")]
         [AllowAnonymous]
         public async Task<ActionResult<ApiResponse<CurrentUserResponse>>> SignUp(

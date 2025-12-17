@@ -37,7 +37,7 @@ export const blogService = {
 
   async deleteBlog(payload: DeleteBlogRequest): Promise<ApiResponse<boolean>> {
     const res = await axiosInstance.delete<ApiResponse<boolean>>("/api/blogs/delete", {
-      params: payload,
+        data: payload,
     });
     return res.data;
   },

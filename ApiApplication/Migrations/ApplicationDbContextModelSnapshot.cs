@@ -2784,22 +2784,22 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 12, 8, 1, 28, 57, 487, DateTimeKind.Utc).AddTicks(6230),
+                            CreatedAt = new DateTime(2025, 12, 6, 6, 57, 2, 755, DateTimeKind.Utc).AddTicks(8447),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 12, 8, 1, 28, 57, 487, DateTimeKind.Utc).AddTicks(6230),
+                            UpdatedAt = new DateTime(2025, 12, 6, 6, 57, 2, 755, DateTimeKind.Utc).AddTicks(8447),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 12, 8, 1, 28, 57, 487, DateTimeKind.Utc).AddTicks(6230),
+                            CreatedAt = new DateTime(2025, 12, 6, 6, 57, 2, 755, DateTimeKind.Utc).AddTicks(8449),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 12, 8, 1, 28, 57, 487, DateTimeKind.Utc).AddTicks(6230),
+                            UpdatedAt = new DateTime(2025, 12, 6, 6, 57, 2, 755, DateTimeKind.Utc).AddTicks(8449),
                             UpdatedBy = "System",
                             Value = ""
                         });
@@ -3046,9 +3046,33 @@ namespace ApiApplication.Migrations
                         },
                         new
                         {
+                            Id = new Guid("2a1c4e8f-9b3d-4f6e-a7c2-8d5e1f3b9a4c"),
+                            Name = "BranchAdministrator",
+                            NormalizedName = "BRANCHADMINISTRATOR"
+                        },
+                        new
+                        {
+                            Id = new Guid("3b2d5f9a-1c4e-5a7f-b8d3-9e6f2a4c1b5d"),
+                            Name = "Staff",
+                            NormalizedName = "STAFF"
+                        },
+                        new
+                        {
+                            Id = new Guid("4c3e6a1b-2d5f-6b8a-c9e4-1f7a3b5d2c6e"),
+                            Name = "WarehouseStaff",
+                            NormalizedName = "WAREHOUSESTAFF"
+                        },
+                        new
+                        {
+                            Id = new Guid("5d4f7b2c-3e6a-7c9b-d1f5-2a8b4c6e3d7f"),
+                            Name = "Receptionist",
+                            NormalizedName = "RECEPTIONIST"
+                        },
+                        new
+                        {
                             Id = new Guid("66dddd1c-bf05-4032-b8a5-6adbf73dc09e"),
-                            Name = "User",
-                            NormalizedName = "USER"
+                            Name = "Customer",
+                            NormalizedName = "CUSTOMER"
                         });
                 });
 

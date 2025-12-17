@@ -550,9 +550,30 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
       };
 
       updateMutation.mutate(payload, {
-        onSuccess: () => {
-          message.success("Cập nhật bảng giá thành công");
-          onSaved();
+        onSuccess: async () => {
+          // Sau khi update thông tin bảng giá thành công, update sản phẩm
+          try {
+            const products: PriceTableProductItem[] = selectedProductIds.map((id) => {
+              const value = productsRowsState[id];
+              return { productId: id, overrideSalePrice: value };
+            });
+
+            if (products.length > 0) {
+              const productsPayload: SetPriceTableProductsRequest = {
+                priceTableId: priceId!,
+                products: products,
+              };
+
+              await axios.post("/api/Prices/set-products", productsPayload);
+            }
+
+            message.success("Cập nhật bảng giá và sản phẩm thành công");
+            setProductsRowsState({});
+            setSelectedProductIds([]);
+            onSaved();
+          } catch (error: any) {
+            message.error(error?.response?.data?.message || error?.message || "Lỗi cập nhật sản phẩm");
+          }
         },
         onError: (e: any) => message.error(e?.message || "Lỗi cập nhật bảng giá"),
       });
@@ -873,14 +894,14 @@ const ProductsSelector = ({
                 const CostCellForValidation = ({ productId, currentPrice }: { productId: number; currentPrice: number | undefined }) => {
                   const { data: detail } = useDetailProduct({ id: productId }, true);
                   const costPrice = (detail?.data as any)?.costPrice ?? 0;
-                  // Khi tạo mới (isCreate), để trống. Khi edit (có priceId), hiển thị giá từ rowsState hoặc giá mặc định
-                  const displayValue = isCreate ? currentPrice : (currentPrice ?? r.salePrice);
+                  // Hiển thị giá từ rowsState, nếu không có thì hiển thị placeholder cho cả add và edit
+                  const displayValue = currentPrice;
                   return (
                     <InputNumber
                       min={costPrice}
                       style={{ width: 140 }}
                       value={displayValue}
-                      placeholder={isCreate ? "Nhập giá" : undefined}
+                      placeholder="Nhập giá"
                       onChange={async (val) => {
                         const newPrice = val as number | null;
                         if (newPrice !== null && newPrice < costPrice) {
@@ -907,16 +928,9 @@ const ProductsSelector = ({
       </div>
 
       <div className="mt-4 text-right">
-        {!isCreate && (
-          <Button type="primary" onClick={onSave}>
-            Lưu
-          </Button>
-        )}
-        {isCreate && (
-          <div className="text-sm text-gray-500">
-            Sản phẩm đã chọn sẽ được lưu cùng với bảng giá khi bạn nhấn &quot;Lưu&quot; ở tab &quot;Thông tin&quot;
-          </div>
-        )}
+        <div className="text-sm text-gray-500">
+          Sản phẩm đã chọn sẽ được lưu cùng với bảng giá khi bạn nhấn &quot;Lưu&quot; ở tab &quot;Thông tin&quot;
+        </div>
       </div>
     </Card>
   );

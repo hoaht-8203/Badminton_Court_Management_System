@@ -51,6 +51,22 @@ public class MembershipService(ApplicationDbContext context, IMapper mapper) : I
 
     public async Task CreateAsync(CreateMembershipRequest request)
     {
+        // Kiểm tra trùng tên
+        if (!string.IsNullOrWhiteSpace(request.Name))
+        {
+            var normalizedName = request.Name.Trim().ToLower();
+            var existingMembership = await _context.Memberships
+                .FirstOrDefaultAsync(x => x.Name.ToLower() == normalizedName);
+
+            if (existingMembership != null)
+            {
+                throw new ApiException(
+                    $"Tên gói hội viên '{request.Name}' đã tồn tại",
+                    System.Net.HttpStatusCode.BadRequest
+                );
+            }
+        }
+
         var entity = _mapper.Map<Membership>(request);
         entity.Status = string.IsNullOrWhiteSpace(request.Status) ? "Active" : request.Status!;
         _context.Memberships.Add(entity);
@@ -66,6 +82,22 @@ public class MembershipService(ApplicationDbContext context, IMapper mapper) : I
                 $"Gói hội viên không tồn tại: {request.Id}",
                 System.Net.HttpStatusCode.NotFound
             );
+        }
+
+        // Kiểm tra trùng tên (bỏ qua chính membership đang update)
+        if (!string.IsNullOrWhiteSpace(request.Name))
+        {
+            var normalizedName = request.Name.Trim().ToLower();
+            var existingMembership = await _context.Memberships
+                .FirstOrDefaultAsync(x => x.Id != request.Id && x.Name.ToLower() == normalizedName);
+
+            if (existingMembership != null)
+            {
+                throw new ApiException(
+                    $"Tên gói hội viên '{request.Name}' đã tồn tại",
+                    System.Net.HttpStatusCode.BadRequest
+                );
+            }
         }
 
         entity.Name = request.Name ?? entity.Name;

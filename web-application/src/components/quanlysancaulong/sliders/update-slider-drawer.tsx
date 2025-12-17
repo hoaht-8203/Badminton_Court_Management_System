@@ -1,6 +1,6 @@
 "use client";
 
-import { useDetailSlider, useUpdateSlider } from "@/hooks/useSlider";
+import { useDetailSlider, useListSliders, useUpdateSlider } from "@/hooks/useSlider";
 import { ApiError } from "@/lib/axios";
 import { UpdateSliderRequest } from "@/types-openapi/api";
 import { fileService } from "@/services/fileService";
@@ -22,6 +22,7 @@ const UpdateSliderDrawer = ({ open, onClose, sliderId }: UpdateSliderDrawerProps
 
   // Fetch slider detail
   const { data: detailData, isFetching: loadingDetail, refetch } = useDetailSlider({ id: parseInt(sliderId) });
+  const { data: slidersData } = useListSliders({ title: null, status: null });
 
   // Mutation for update
   const updateMutation = useUpdateSlider();
@@ -49,6 +50,25 @@ const UpdateSliderDrawer = ({ open, onClose, sliderId }: UpdateSliderDrawerProps
   }, [open, sliderId, refetch]);
 
   const handleSubmit = async (values: UpdateSliderRequest) => {
+    const title = values.title?.trim();
+
+    if (!title) {
+      message.error("Tiêu đề slider không được để trống");
+      return;
+    }
+
+    // Kiểm tra trùng tiêu đề slider (bỏ qua chính slider đang cập nhật)
+    const normalizedNewTitle = title.toLowerCase();
+    const existingTitles =
+      slidersData?.data
+        ?.filter((s) => s.id !== parseInt(sliderId))
+        .map((s) => s.title?.trim().toLowerCase())
+        .filter(Boolean) ?? [];
+
+    if (existingTitles.includes(normalizedNewTitle)) {
+      message.error("Tiêu đề slider đã tồn tại");
+      return;
+    }
     if (!imageUrl) {
       message.error("Vui lòng upload hình ảnh");
       return;
@@ -57,6 +77,7 @@ const UpdateSliderDrawer = ({ open, onClose, sliderId }: UpdateSliderDrawerProps
     const payload: UpdateSliderRequest = {
       ...values,
       id: parseInt(sliderId),
+      title,
       imageUrl: imageUrl,
     };
 

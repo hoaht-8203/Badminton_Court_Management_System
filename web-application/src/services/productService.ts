@@ -4,7 +4,6 @@ import {
   DeleteProductRequest,
   DetailProductRequest,
   DetailProductResponse,
-  GetCurrentAppliedPriceResponse,
   ListProductRequest,
   ListProductResponse,
   ListProductsByPriceTableRequest,
@@ -69,8 +68,8 @@ export const productService = {
     return res.data;
   },
 
-  async getCurrentAppliedPrice(): Promise<ApiResponse<GetCurrentAppliedPriceResponse[]>> {
-    const res = await axiosInstance.get<ApiResponse<GetCurrentAppliedPriceResponse[]>>("/api/Products/get-current-applied-price");
+  async getCurrentAppliedPrice(): Promise<ApiResponse<ListProductResponse[]>> {
+    const res = await axiosInstance.get<ApiResponse<ListProductResponse[]>>("/api/Products/get-current-applied-price");
     return res.data;
   },
 };

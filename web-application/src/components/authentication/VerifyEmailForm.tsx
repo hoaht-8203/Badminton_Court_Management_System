@@ -18,6 +18,9 @@ interface VerifyEmailFormProps {
 const VerifyEmailForm = ({ email, onVerifySuccess, onBack }: VerifyEmailFormProps) => {
   const [form] = Form.useForm<VerifyEmailRequest>();
   const [submitting, setSubmitting] = React.useState(false);
+  const [resendDisabled, setResendDisabled] = React.useState(false);
+  const [countdown, setCountdown] = React.useState(0);
+  const [resending, setResending] = React.useState(false);
 
   const onFinish = async (values: VerifyEmailRequest) => {
     try {
@@ -45,6 +48,37 @@ const VerifyEmailForm = ({ email, onVerifySuccess, onBack }: VerifyEmailFormProp
       setSubmitting(false);
     }
   };
+
+  const handleResendVerifyEmail = async () => {
+    try {
+      setResending(true);
+      const response = await authService.resendVerifyEmail({
+        email: email,
+      });
+
+      if (response.success) {
+        message.success("Đã gửi lại mã xác thực email thành công");
+        setResendDisabled(true);
+        setCountdown(60);
+      }
+    } catch (err: unknown) {
+      const apiErr = err as ApiError | undefined;
+      message.error(apiErr?.message || "Gửi lại mã xác thực thất bại");
+    } finally {
+      setResending(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (countdown === 0 && resendDisabled) {
+      setResendDisabled(false);
+    }
+  }, [countdown, resendDisabled]);
 
   return (
     <div>
@@ -78,11 +112,11 @@ const VerifyEmailForm = ({ email, onVerifySuccess, onBack }: VerifyEmailFormProp
                 className="w-full"
                 size="large"
                 variant="link"
-                onClick={() => {
-                  message.info("Vui lòng kiểm tra lại email hoặc liên hệ hỗ trợ");
-                }}
+                disabled={resendDisabled || resending}
+                loading={resending}
+                onClick={handleResendVerifyEmail}
               >
-                Không nhận được mã? Gửi lại
+                {resendDisabled && countdown > 0 ? `Gửi lại sau ${countdown}s` : "Không nhận được mã? Gửi lại"}
               </Button>
             </div>
           </div>

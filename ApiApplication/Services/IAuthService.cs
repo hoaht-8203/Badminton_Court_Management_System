@@ -21,4 +21,5 @@ public interface IAuthService
         ValidateForgotPasswordRequest validateForgotPasswordRequest
     );
     public Task VerifyEmailAsync(VerifyEmailRequest request);
+    public Task ResendVerifyEmailAsync(ResendVerifyEmailRequest request);
 }

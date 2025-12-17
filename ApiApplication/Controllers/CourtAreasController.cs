@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.CourtArea;
 using ApiApplication.Services;
@@ -8,11 +9,15 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = PolicyConstants.ManagementOnly)]
 public class CourtAreasController(ICourtAreaService service) : ControllerBase
 {
     private readonly ICourtAreaService _service = service;
 
+    /// <summary>
+    /// List court areas - Accessible by everyone to view court areas
+    /// </summary>
+    [AllowAnonymous]
     [HttpGet("list")]
     public async Task<ActionResult<ApiResponse<List<ListCourtAreaResponse>>>> List()
     {
@@ -25,6 +30,10 @@ public class CourtAreasController(ICourtAreaService service) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Get court area details - Accessible by everyone
+    /// </summary>
+    [AllowAnonymous]
     [HttpGet("detail")]
     public async Task<ActionResult<ApiResponse<DetailCourtAreaResponse>>> Detail(
         [FromQuery] DetailCourtAreaRequest request
@@ -36,6 +45,9 @@ public class CourtAreasController(ICourtAreaService service) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Create court area - Only Admin and Branch Administrator
+    /// </summary>
     [HttpPost("create")]
     public async Task<ActionResult<ApiResponse<DetailCourtAreaResponse>>> Create(
         [FromBody] CreateCourtAreaRequest request
@@ -47,6 +59,9 @@ public class CourtAreasController(ICourtAreaService service) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Update court area - Only Admin and Branch Administrator
+    /// </summary>
     [HttpPut("update")]
     public async Task<ActionResult<ApiResponse<DetailCourtAreaResponse>>> Update(
         [FromBody] UpdateCourtAreaRequest request
@@ -58,6 +73,9 @@ public class CourtAreasController(ICourtAreaService service) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Delete court area - Only Admin and Branch Administrator
+    /// </summary>
     [HttpDelete("delete")]
     public async Task<ActionResult<ApiResponse<bool>>> Delete(
         [FromBody] DeletCourtAreaRequest request

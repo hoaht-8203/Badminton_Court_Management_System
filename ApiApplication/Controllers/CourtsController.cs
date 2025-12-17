@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Court;
 using ApiApplication.Dtos.Customer;
@@ -9,7 +10,7 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = PolicyConstants.ReceptionistAccess)]
 public class CourtsController(ICourtService courtService) : ControllerBase
 {
     private readonly ICourtService _courtService = courtService;
@@ -29,6 +30,10 @@ public class CourtsController(ICourtService courtService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Get court details - Accessible by customers for viewing court information when booking
+    /// </summary>
+    [AllowAnonymous]
     [HttpGet("detail")]
     public async Task<ActionResult<ApiResponse<DetailCourtResponse>>> DetailCourt(
         [FromQuery] DetailCourtRequest request
@@ -43,6 +48,10 @@ public class CourtsController(ICourtService courtService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Create new court - Only Admin and Branch Administrator
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.ManagementOnly)]
     [HttpPost("create")]
     public async Task<ActionResult<ApiResponse<DetailCourtResponse>>> CreateCourt(
         [FromBody] CreateCourtRequest request
@@ -54,6 +63,10 @@ public class CourtsController(ICourtService courtService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Update court - Only Admin and Branch Administrator
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.ManagementOnly)]
     [HttpPut("update")]
     public async Task<ActionResult<ApiResponse<DetailCourtResponse>>> UpdateCourt(
         [FromBody] UpdateCourtRequest request
@@ -65,6 +78,10 @@ public class CourtsController(ICourtService courtService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Delete court - Only Admin and Branch Administrator
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.ManagementOnly)]
     [HttpDelete("delete")]
     public async Task<ActionResult<ApiResponse<bool>>> DeleteCourt(
         [FromBody] DeleteCourtRequest request
@@ -74,6 +91,10 @@ public class CourtsController(ICourtService courtService) : ControllerBase
         return Ok(ApiResponse<bool>.SuccessResponse(result, "Court deleted successfully"));
     }
 
+    /// <summary>
+    /// Change court status - Only Admin and Branch Administrator
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.ManagementOnly)]
     [HttpPut("change-status")]
     public async Task<ActionResult<ApiResponse<DetailCourtResponse>>> ChangeCourtStatus(
         [FromBody] ChangeCourtStatusRequest request
@@ -88,6 +109,10 @@ public class CourtsController(ICourtService courtService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Create pricing rule template - Only Admin and Branch Administrator
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.ManagementOnly)]
     [HttpPost("create-pricing-rule-template")]
     public async Task<
         ActionResult<ApiResponse<CourtPricingRuleTemplateDto>>
@@ -102,6 +127,10 @@ public class CourtsController(ICourtService courtService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// List pricing rule templates - Only Admin and Branch Administrator
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.ManagementOnly)]
     [HttpGet("list-pricing-rule-templates")]
     public async Task<
         ActionResult<ApiResponse<List<CourtPricingRuleTemplateDto>>>
@@ -116,6 +145,10 @@ public class CourtsController(ICourtService courtService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Update pricing rule template - Only Admin and Branch Administrator
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.ManagementOnly)]
     [HttpPut("update-pricing-rule-template")]
     public async Task<
         ActionResult<ApiResponse<CourtPricingRuleTemplateDto>>
@@ -130,6 +163,10 @@ public class CourtsController(ICourtService courtService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Delete pricing rule template - Only Admin and Branch Administrator
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.ManagementOnly)]
     [HttpDelete("delete-pricing-rule-template")]
     public async Task<ActionResult<ApiResponse<object?>>> DeleteCourtPricingRuleTemplate(
         [FromQuery] DeleteCourtPricingRuleTemplateRequest request
@@ -156,6 +193,10 @@ public class CourtsController(ICourtService courtService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Get court pricing rules by court ID - Accessible by customers to calculate booking price
+    /// </summary>
+    [AllowAnonymous]
     [HttpGet("list-pricing-rule-by-court-id")]
     public async Task<
         ActionResult<ApiResponse<List<ListCourtPricingRuleByCourtIdResponse>>>

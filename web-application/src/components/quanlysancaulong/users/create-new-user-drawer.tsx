@@ -9,6 +9,7 @@ import { Button, Col, DatePicker, Drawer, Form, FormProps, Input, Row, Select, S
 import { useListStaffs } from "@/hooks/useStaffs";
 import React from "react";
 import FormItem from "antd/es/form/FormItem";
+import { getRoleLabel } from "@/constants/roleLabels";
 
 interface CreateNewUserDrawerProps {
   open: boolean;
@@ -57,7 +58,15 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
         onClose();
       },
       onError: (error: ApiError) => {
-        message.error("Có lỗi xảy ra: " + (error.message || "Unknown error"));
+        // Hiển thị message chính
+        message.error(error.message || "Có lỗi xảy ra khi tạo người dùng");
+        
+        // Nếu có errors từ validation, hiển thị từng lỗi
+        if (error.errors) {
+          Object.entries(error.errors).forEach(([field, errorMsg]) => {
+            message.error(`${field}: ${errorMsg}`);
+          });
+        }
       },
     });
   };
@@ -116,7 +125,13 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
             <FormItem<CreateAdministratorRequest>
               name="userName"
               label="Tên người dùng"
-              rules={[{ required: true, message: "Tên người dùng là bắt buộc" }]}
+              rules={[
+                { required: true, message: "Tên người dùng là bắt buộc" },
+                {
+                  pattern: /^[a-zA-Z0-9_]+$/,
+                  message: "Tên người dùng không được chứa ký tự có dấu hoặc ký tự đặc biệt (chỉ cho phép chữ cái, số và dấu gạch dưới)",
+                },
+              ]}
             >
               <Input placeholder="Nhập tên người dùng" />
             </FormItem>
@@ -190,7 +205,7 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
                 placeholder="Chọn vai trò"
                 options={rolesData?.data?.map((role) => ({
                   value: role.roleName,
-                  label: role.roleName,
+                  label: getRoleLabel(role.roleName),
                 }))}
                 loading={loadingRolesData}
               />

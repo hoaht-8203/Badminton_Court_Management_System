@@ -133,15 +133,26 @@ namespace ApiApplication.Services.Impl
                                             && ar.Date == DateOnly.FromDateTime(x.Date)
                                         )
                                         .ToList();
-                                    var statusByDate =
-                                        Helpers.AttendanceHelper.DetermineStatusOfShift(
+                                    
+                                    // Determine if shift has started by comparing shift start time with current time
+                                    var shiftStartDateTime = DateOnly.FromDateTime(x.Date).ToDateTime(x.Shift.StartTime);
+                                    var now = DateTime.Now;
+                                    
+                                    string statusByDate;
+                                    if (shiftStartDateTime > now)
+                                    {
+                                        // Shift hasn't started yet
+                                        statusByDate = AttendanceStatus.NotYet;
+                                    }
+                                    else
+                                    {
+                                        // Shift has started or passed, check attendance
+                                        statusByDate = Helpers.AttendanceHelper.DetermineStatusOfShift(
                                             attendances,
                                             x.Shift
                                         );
-                                    if (x.Date > DateTime.Now)
-                                    {
-                                        statusByDate = AttendanceStatus.NotYet;
                                     }
+                                    
                                     return new StaffAttendanceResponse
                                     {
                                         Id = x.Staff.Id,

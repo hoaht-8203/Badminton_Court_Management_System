@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Membership.UserMembership;
 using ApiApplication.Services;
@@ -8,12 +9,15 @@ namespace ApiApplication.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = PolicyConstants.OfficeStaffAccess)]
 public class UserMembershipsController(IUserMembershipService userMembershipService)
     : ControllerBase
 {
     private readonly IUserMembershipService _userMembershipService = userMembershipService;
 
+    /// <summary>
+    /// List user memberships - Staff only for managing customer memberships
+    /// </summary>
     [HttpGet("list")]
     public async Task<ApiResponse<ListUserMembershipResponse[]>> List(
         [FromQuery] ListUserMembershipRequest request
@@ -23,6 +27,9 @@ public class UserMembershipsController(IUserMembershipService userMembershipServ
         return ApiResponse<ListUserMembershipResponse[]>.SuccessResponse(data.ToArray());
     }
 
+    /// <summary>
+    /// Get user membership detail - Staff only
+    /// </summary>
     [HttpGet("detail")]
     public async Task<ApiResponse<DetailUserMembershipResponse>> Detail([FromQuery] int id)
     {
@@ -42,6 +49,10 @@ public class UserMembershipsController(IUserMembershipService userMembershipServ
         );
     }
 
+    /// <summary>
+    /// Register membership for current logged-in user - Accessible by all authenticated users (Customers)
+    /// </summary>
+    [AllowAnonymous]
     [HttpPost("create-for-current-user")]
     public async Task<ApiResponse<CreateUserMembershipResponse>> CreateForCurrentUser(
         [FromBody] CreateUserMembershipForCurrentUserRequest request
@@ -76,6 +87,10 @@ public class UserMembershipsController(IUserMembershipService userMembershipServ
         );
     }
 
+    /// <summary>
+    /// Extend membership payment - Accessible by customers to renew their own membership
+    /// </summary>
+    [AllowAnonymous]
     [HttpPost("extend-payment")]
     public async Task<ApiResponse<CreateUserMembershipResponse>> ExtendPayment(
         [FromBody] ExtendPaymentRequest request

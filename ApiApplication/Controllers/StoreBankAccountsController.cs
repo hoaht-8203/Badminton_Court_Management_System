@@ -1,12 +1,15 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.StoreBankAccount;
 using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiApplication.Controllers;
 
 [Route("api/store-bank-accounts")]
 [ApiController]
+[Authorize(Policy = PolicyConstants.ManagementOnly)]
 public class StoreBankAccountsController(IStoreBankAccountService service) : ControllerBase
 {
     private readonly IStoreBankAccountService _service = service;

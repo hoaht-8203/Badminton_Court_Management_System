@@ -36,6 +36,30 @@ const LoginForm = ({ isUsersMode = false }: LoginFormProps) => {
       router.push("/homepage");
     } catch (err: unknown) {
       const apiErr = err as ApiError | undefined;
+      
+      // Kiểm tra nếu lỗi là email chưa xác thực
+      if (apiErr?.errors?.emailNotConfirmed === "true") {
+        const userEmail = apiErr.errors.email;
+        message.error({
+          content: (
+            <div>
+              <p>{apiErr.message}</p>
+              <p>
+                Email của bạn: <strong>{userEmail}</strong>
+              </p>
+            </div>
+          ),
+          duration: 0, // Không tự đóng
+          onClick: () => message.destroy(),
+        });
+        
+        // Chuyển đến trang xác thực email
+        if (userEmail) {
+          router.push(`/homepage/verify-email?email=${encodeURIComponent(userEmail)}`);
+        }
+        return;
+      }
+      
       const fieldErrors = apiErr?.errors;
       if (fieldErrors) {
         const fields = Object.entries(fieldErrors).map(([name, errorMsg]) => ({
@@ -55,14 +79,13 @@ const LoginForm = ({ isUsersMode = false }: LoginFormProps) => {
       <Card title={isUsersMode ? "Đăng nhập" : "Đăng nhập vào hệ thống"}>
         <Form layout="vertical" onFinish={onFinish} form={form}>
           <FormItem<LoginRequest>
-            label="Email"
+            label="Email hoặc Tên đăng nhập"
             name="email"
             rules={[
-              { required: true, message: "Vui lòng nhập email" },
-              { type: "email", message: "Email không hợp lệ" },
+              { required: true, message: "Vui lòng nhập email hoặc tên đăng nhập" },
             ]}
           >
-            <Input prefix={<UserOutlined />} size="large" placeholder="Nhập thông tin" />
+            <Input prefix={<UserOutlined />} size="large" placeholder="Nhập email hoặc tên đăng nhập" />
           </FormItem>
           <FormItem<LoginRequest> label="Mật khẩu" name="password" rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}>
             <Input prefix={<LockOutlined />} size="large" type="password" placeholder="Nhập thông tin" />

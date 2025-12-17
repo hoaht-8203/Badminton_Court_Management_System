@@ -336,6 +336,7 @@ public class AuthService(
         var res = _mapper.Map<CurrentUserResponse>(user);
         res.Roles = [.. roles];
         res.Membership = await GetUserMembershipInfoAsync(user.Id);
+        res.AccessToken = jwtToken;
         return res;
     }
 

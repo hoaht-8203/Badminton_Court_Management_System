@@ -38,7 +38,23 @@ const CreateNewServiceDrawer = ({ open, onClose }: CreateNewServiceDrawerProps) 
         onClose();
       },
       onError: (error: ApiError) => {
-        message.error("Có lỗi xảy ra: " + (error.message || "Unknown error"));
+        // Hiển thị message lỗi chính
+        message.error(error.message || "Có lỗi xảy ra khi tạo dịch vụ");
+
+        // Set lỗi vào field tương ứng nếu có
+        if (error.message?.toLowerCase().includes("tên dịch vụ") || error.message?.toLowerCase().includes("name")) {
+          form.setFields([{ name: "name", errors: [error.message] }]);
+        }
+
+        // Xử lý lỗi từ error.errors nếu có
+        if (error.errors) {
+          for (const key in error.errors) {
+            const fieldName = key.toLowerCase();
+            if (fieldName === "name" || fieldName === "code" || fieldName === "category") {
+              form.setFields([{ name: fieldName, errors: [error.errors[key]] }]);
+            }
+          }
+        }
       },
     });
   };

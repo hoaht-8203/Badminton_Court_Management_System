@@ -39,9 +39,19 @@ public class VoucherService : IVoucherService
         if (request.StartAt >= request.EndAt)
             throw new ApiException("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc", HttpStatusCode.BadRequest);
 
-        var exists = await _context.Vouchers.AnyAsync(v => v.Code == request.Code);
-        if (exists)
-            throw new ApiException("Mã voucher đã tồn tại", HttpStatusCode.BadRequest);
+        // Check for duplicate voucher code
+        var existingVoucher = await _context.Vouchers
+            .Where(v => v.Code == request.Code)
+            .Select(v => new { v.Code, v.Title })
+            .FirstOrDefaultAsync();
+        
+        if (existingVoucher != null)
+        {
+            throw new ApiException(
+                $"Mã voucher '{existingVoucher.Code}' đã tồn tại trong hệ thống (Voucher: {existingVoucher.Title}). Vui lòng sử dụng mã khác.",
+                HttpStatusCode.BadRequest
+            );
+        }
 
         // Map request to entity using AutoMapper
         var entity = _mapper.Map<Voucher>(request);
@@ -120,9 +130,18 @@ public class VoucherService : IVoucherService
         // Check code uniqueness (if code is being changed)
         if (!string.IsNullOrWhiteSpace(request.Code) && request.Code != v.Code)
         {
-            var codeExists = await _context.Vouchers.AnyAsync(vx => vx.Code == request.Code && vx.Id != id);
-            if (codeExists)
-                throw new ApiException("Mã voucher đã tồn tại", HttpStatusCode.BadRequest);
+            var existingVoucher = await _context.Vouchers
+                .Where(vx => vx.Code == request.Code && vx.Id != id)
+                .Select(vx => new { vx.Code, vx.Title, vx.Id })
+                .FirstOrDefaultAsync();
+            
+            if (existingVoucher != null)
+            {
+                throw new ApiException(
+                    $"Mã voucher '{existingVoucher.Code}' đã được sử dụng bởi voucher khác (ID: {existingVoucher.Id}, Tên: {existingVoucher.Title}). Vui lòng chọn mã khác.",
+                    HttpStatusCode.BadRequest
+                );
+            }
         }
 
         // Update fields using AutoMapper

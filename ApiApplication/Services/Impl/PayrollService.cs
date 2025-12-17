@@ -28,7 +28,7 @@ public class PayrollService : IPayrollService
         _context = context;
         _mapper = mapper;
         _cashflowService = cashflowService;
-        
+
         // Initialize SalaryHelper with context
         SalaryHelper.Initialize(context);
     }
@@ -142,7 +142,9 @@ public class PayrollService : IPayrollService
         return true;
     }
 
-    public async Task<List<ListPayrollResponse>> GetPayrollsAsync(ListPayrollRequest? request = null)
+    public async Task<List<ListPayrollResponse>> GetPayrollsAsync(
+        ListPayrollRequest? request = null
+    )
     {
         var query = _context
             .Payrolls.Include(p => p.PayrollItems)
@@ -154,7 +156,7 @@ public class PayrollService : IPayrollService
         {
             var keyword = $"%{request.Keyword.Trim()}%";
             var keywordTrimmed = request.Keyword.Trim();
-            
+
             // Try to extract ID from keyword (e.g., "BL000001" or "1" -> 1)
             int? extractedId = null;
             var keywordLower = keywordTrimmed.ToLower();
@@ -191,11 +193,14 @@ public class PayrollService : IPayrollService
         }
 
         // Filter by start date with operator (>, =, <)
-        if (!string.IsNullOrWhiteSpace(request?.StartDateOperator) && request?.StartDate.HasValue == true)
+        if (
+            !string.IsNullOrWhiteSpace(request?.StartDateOperator)
+            && request?.StartDate.HasValue == true
+        )
         {
             var startDate = DateOnly.FromDateTime(request.StartDate.Value);
             var dateOperator = request.StartDateOperator.Trim();
-            
+
             if (dateOperator == ">")
             {
                 query = query.Where(p => p.StartDate > startDate);
@@ -211,11 +216,14 @@ public class PayrollService : IPayrollService
         }
 
         // Filter by end date with operator (>, =, <)
-        if (!string.IsNullOrWhiteSpace(request?.EndDateOperator) && request?.EndDate.HasValue == true)
+        if (
+            !string.IsNullOrWhiteSpace(request?.EndDateOperator)
+            && request?.EndDate.HasValue == true
+        )
         {
             var endDate = DateOnly.FromDateTime(request.EndDate.Value);
             var dateOperator = request.EndDateOperator.Trim();
-            
+
             if (dateOperator == ">")
             {
                 query = query.Where(p => p.EndDate > endDate);
@@ -252,21 +260,23 @@ public class PayrollService : IPayrollService
             // Update status of each PayrollItem based on current PaidAmount and NetSalary
             foreach (var item in payroll.PayrollItems)
             {
-                item.Status = item.PaidAmount >= item.NetSalary
-                    ? PayrollStatus.Completed
-                    : PayrollStatus.Pending;
+                item.Status =
+                    item.PaidAmount >= item.NetSalary
+                        ? PayrollStatus.Completed
+                        : PayrollStatus.Pending;
             }
-            
+
             // Recalculate totals from existing PayrollItems only
             payroll.TotalNetSalary = payroll.PayrollItems.Sum(pi => pi.NetSalary);
             payroll.TotalPaidAmount = payroll.PayrollItems.Sum(pi => pi.PaidAmount);
-            payroll.Status = payroll.TotalPaidAmount >= payroll.TotalNetSalary
-                ? PayrollStatus.Completed
-                : PayrollStatus.Pending;
-            
+            payroll.Status =
+                payroll.TotalPaidAmount >= payroll.TotalNetSalary
+                    ? PayrollStatus.Completed
+                    : PayrollStatus.Pending;
+
             _context.Payrolls.Update(payroll);
             var saveResult = await _context.SaveChangesAsync();
-            
+
             if (saveResult <= 0)
                 throw new ApiException(
                     "Cập nhật bảng lương thất bại",
@@ -422,7 +432,7 @@ public class PayrollService : IPayrollService
             return null;
         var payrollItemIds = payroll.PayrollItems.Select(pi => pi.Id.ToString()).ToHashSet();
         var response = _mapper.Map<PayrollDetailResponse>(payroll);
-        
+
         // Get all cashflows matching the criteria first, then filter by payrollItemIds in memory
         var allCashflows = await _context
             .Cashflows.Where(c =>
@@ -431,7 +441,7 @@ public class PayrollService : IPayrollService
                 && c.CashflowTypeId == CashflowTypeIdMapping.PayStaff
             )
             .ToListAsync();
-        
+
         // Filter in memory using HashSet for O(1) lookup
         response.Cashflows = allCashflows
             .Where(c => c.RelatedId != null && payrollItemIds.Contains(c.RelatedId))
@@ -509,14 +519,15 @@ public class PayrollService : IPayrollService
         var payroll = await _context
             .Payrolls.Include(p => p.PayrollItems)
             .FirstOrDefaultAsync(p => p.Id == payrollItem.PayrollId);
-        
+
         if (payroll != null)
         {
             payroll.TotalNetSalary = payroll.PayrollItems.Sum(pi => pi.NetSalary);
             payroll.TotalPaidAmount = payroll.PayrollItems.Sum(pi => pi.PaidAmount);
-            payroll.Status = payroll.TotalPaidAmount >= payroll.TotalNetSalary
-                ? PayrollStatus.Completed
-                : PayrollStatus.Pending;
+            payroll.Status =
+                payroll.TotalPaidAmount >= payroll.TotalNetSalary
+                    ? PayrollStatus.Completed
+                    : PayrollStatus.Pending;
             _context.Payrolls.Update(payroll);
             await _context.SaveChangesAsync();
         }
@@ -578,10 +589,7 @@ public class PayrollService : IPayrollService
 
         var result = await _context.SaveChangesAsync();
         if (result <= 0)
-            throw new ApiException(
-                "Xóa bảng lương thất bại",
-                HttpStatusCode.InternalServerError
-            );
+            throw new ApiException("Xóa bảng lương thất bại", HttpStatusCode.InternalServerError);
 
         return true;
     }

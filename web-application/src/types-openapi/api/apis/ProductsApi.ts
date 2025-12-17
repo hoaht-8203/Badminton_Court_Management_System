@@ -17,7 +17,6 @@ import * as runtime from '../runtime';
 import type {
   CreateProductRequest,
   DetailProductResponseApiResponse,
-  GetCurrentAppliedPriceResponseListApiResponse,
   ListProductResponseListApiResponse,
   ListProductsByPriceTableResponseListApiResponse,
   ObjectApiResponse,
@@ -28,8 +27,6 @@ import {
     CreateProductRequestToJSON,
     DetailProductResponseApiResponseFromJSON,
     DetailProductResponseApiResponseToJSON,
-    GetCurrentAppliedPriceResponseListApiResponseFromJSON,
-    GetCurrentAppliedPriceResponseListApiResponseToJSON,
     ListProductResponseListApiResponseFromJSON,
     ListProductResponseListApiResponseToJSON,
     ListProductsByPriceTableResponseListApiResponseFromJSON,
@@ -144,11 +141,11 @@ export interface ProductsApiInterface {
      * @throws {RequiredError}
      * @memberof ProductsApiInterface
      */
-    apiProductsGetCurrentAppliedPriceGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetCurrentAppliedPriceResponseListApiResponse>>;
+    apiProductsGetCurrentAppliedPriceGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListProductResponseListApiResponse>>;
 
     /**
      */
-    apiProductsGetCurrentAppliedPriceGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetCurrentAppliedPriceResponseListApiResponse>;
+    apiProductsGetCurrentAppliedPriceGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListProductResponseListApiResponse>;
 
     /**
      * 
@@ -368,7 +365,7 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
 
     /**
      */
-    async apiProductsGetCurrentAppliedPriceGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<GetCurrentAppliedPriceResponseListApiResponse>> {
+    async apiProductsGetCurrentAppliedPriceGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListProductResponseListApiResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -383,12 +380,12 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => GetCurrentAppliedPriceResponseListApiResponseFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListProductResponseListApiResponseFromJSON(jsonValue));
     }
 
     /**
      */
-    async apiProductsGetCurrentAppliedPriceGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<GetCurrentAppliedPriceResponseListApiResponse> {
+    async apiProductsGetCurrentAppliedPriceGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListProductResponseListApiResponse> {
         const response = await this.apiProductsGetCurrentAppliedPriceGetRaw(initOverrides);
         return await response.value();
     }

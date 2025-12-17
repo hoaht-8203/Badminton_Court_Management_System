@@ -175,6 +175,67 @@ public class AuthService(
         await _context.SaveChangesAsync();
     }
 
+    public async Task ResendVerifyEmailAsync(ResendVerifyEmailRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            throw new ApiException("Email không hợp lệ", HttpStatusCode.BadRequest);
+        }
+
+        var user =
+            await _userManager.FindByEmailAsync(request.Email)
+            ?? throw new ApiException("Email không tồn tại", HttpStatusCode.BadRequest);
+
+        // Nếu email đã được xác thực rồi thì không cần gửi lại
+        if (user.EmailConfirmed)
+        {
+            throw new ApiException("Email đã được xác thực", HttpStatusCode.BadRequest);
+        }
+
+        // Xóa các token xác thực email cũ
+        var oldTokens = await _context
+            .ApplicationUserTokens.Where(x =>
+                x.UserId == user.Id && x.TokenType == TokenType.EmailConfirm
+            )
+            .ToListAsync();
+
+        if (oldTokens.Count > 0)
+        {
+            _context.ApplicationUserTokens.RemoveRange(oldTokens);
+        }
+
+        // Tạo OTP mới với 6 chữ số
+        var otp = new Random().Next(100000, 999999).ToString();
+
+        _context.ApplicationUserTokens.Add(
+            new ApplicationUserToken
+            {
+                UserId = user.Id,
+                Token = otp,
+                TokenType = TokenType.EmailConfirm,
+                ExpiresAtUtc = DateTime.UtcNow.AddDays(1),
+            }
+        );
+
+        await _context.SaveChangesAsync();
+
+        _emailService.SendEmailFireAndForget(
+            () =>
+                _emailService.SendVerifyEmailAsync(
+                    new SendVerifyEmailAsyncRequest
+                    {
+                        To = user.Email!,
+                        ToName = user.FullName,
+                        FullName = user.FullName,
+                        Token = otp,
+                        ExpiresAt = "24 giờ",
+                    }
+                ),
+            _logger,
+            user.Email!
+        );
+    }
+
     private async Task<UserMembershipInfo?> GetUserMembershipInfoAsync(Guid userId)
     {
         var customer = await _context

@@ -21,6 +21,7 @@ import type {
   MyProfileResponseApiResponse,
   ObjectApiResponse,
   RegisterRequest,
+  ResendVerifyEmailRequest,
   UpdateMyProfileRequest,
   UpdatePasswordRequest,
   ValidateForgotPasswordRequest,
@@ -39,6 +40,8 @@ import {
     ObjectApiResponseToJSON,
     RegisterRequestFromJSON,
     RegisterRequestToJSON,
+    ResendVerifyEmailRequestFromJSON,
+    ResendVerifyEmailRequestToJSON,
     UpdateMyProfileRequestFromJSON,
     UpdateMyProfileRequestToJSON,
     UpdatePasswordRequestFromJSON,
@@ -55,6 +58,10 @@ export interface ApiAuthForgotPasswordPostRequest {
 
 export interface ApiAuthLoginPostRequest {
     loginRequest?: LoginRequest;
+}
+
+export interface ApiAuthResendVerifyEmailPostRequest {
+    resendVerifyEmailRequest?: ResendVerifyEmailRequest;
 }
 
 export interface ApiAuthSignUpPostRequest {
@@ -157,6 +164,19 @@ export interface AuthApiInterface {
     /**
      */
     apiAuthRefreshTokenPost(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
+     * @param {ResendVerifyEmailRequest} [resendVerifyEmailRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApiInterface
+     */
+    apiAuthResendVerifyEmailPostRaw(requestParameters: ApiAuthResendVerifyEmailPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiAuthResendVerifyEmailPost(requestParameters: ApiAuthResendVerifyEmailPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
 
     /**
      * 
@@ -395,6 +415,36 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
      */
     async apiAuthRefreshTokenPost(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
         const response = await this.apiAuthRefreshTokenPostRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiAuthResendVerifyEmailPostRaw(requestParameters: ApiAuthResendVerifyEmailPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/api/Auth/resend-verify-email`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ResendVerifyEmailRequestToJSON(requestParameters['resendVerifyEmailRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAuthResendVerifyEmailPost(requestParameters: ApiAuthResendVerifyEmailPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiAuthResendVerifyEmailPostRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

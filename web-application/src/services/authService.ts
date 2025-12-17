@@ -6,6 +6,7 @@ import {
   LoginRequest,
   MyProfileResponse,
   RegisterRequest,
+  ResendVerifyEmailRequest,
   UpdateMyProfileRequest,
   UpdatePasswordRequest,
   ValidateForgotPasswordRequest,
@@ -55,6 +56,10 @@ export const authService = {
   },
   async verifyEmail(payload: VerifyEmailRequest): Promise<ApiResponse<null>> {
     const res = await axiosInstance.post<ApiResponse<null>>("/api/auth/verify-email", payload);
+    return res.data;
+  },
+  async resendVerifyEmail(payload: ResendVerifyEmailRequest): Promise<ApiResponse<null>> {
+    const res = await axiosInstance.post<ApiResponse<null>>("/api/auth/resend-verify-email", payload);
     return res.data;
   },
 };

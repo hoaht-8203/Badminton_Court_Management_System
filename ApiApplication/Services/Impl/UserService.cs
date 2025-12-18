@@ -100,6 +100,10 @@ public class UserService(
             );
         }
 
+        // Khi admin tạo tài khoản, tự động xác thực email (không cần verify)
+        user.EmailConfirmed = true;
+        await _userManager.UpdateAsync(user);
+
         await _userManager.AddToRoleAsync(user, createAdministratorRequest.Role);
 
         // Nếu role là Customer/User, tự động tạo bản ghi Customer

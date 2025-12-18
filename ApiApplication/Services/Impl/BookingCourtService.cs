@@ -1,3 +1,4 @@
+using System.Data;
 using System.Net;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
@@ -15,6 +16,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ApiApplication.Services.Impl;
 
@@ -153,77 +155,109 @@ public class BookingCourtService(
         // Kiểm tra cấu hình giá/khung giờ: nếu sân chưa cấu hình cho khoảng giờ đặt → chặn
         await EnsurePricingConfiguredForRequestAsync(request);
 
-        var query = _context.BookingCourts.Where(b => b.CourtId == request.CourtId);
-
-        // Thời gian giao nhau theo ngày: khoảng [StartDate..EndDate]
-        query = query.Where(b => b.StartDate <= endDate && startDate <= b.EndDate);
-
-        // Check theo giờ (ca): overlap nếu [StartTime..EndTime] giao nhau
-        query = query.Where(b => b.StartTime < request.EndTime && request.StartTime < b.EndTime);
-
-        // Phân biệt vãng lai và cố định
-        // So ngày trong tuần theo schema mới: entity lưu DaysOfWeek (mảng rỗng = vãng lai)
+        // Khai báo entity bên ngoài để có thể sử dụng sau transaction
+        BookingCourt entity;
         var reqDaysArr = request.DaysOfWeek ?? Array.Empty<int>();
-        if (reqDaysArr.Length == 0)
-        {
-            // Vãng lai: so sánh thứ của ngày đặt với DaysOfWeek của booking cố định
-            var reqDow = GetCustomDayOfWeek(DateOnly.FromDateTime(request.StartDate));
-            query = query.Where(b =>
-                (b.DaysOfWeek == null || b.DaysOfWeek.Length == 0)
-                || (b.DaysOfWeek != null && b.DaysOfWeek.Contains(reqDow))
-            );
-        }
-        else
-        {
-            // Cố định: chặn nếu có bất kỳ thứ trùng nhau
-            query = query.Where(b =>
-                (b.DaysOfWeek == null || b.DaysOfWeek.Length == 0)
-                || b.DaysOfWeek.Any(d => reqDaysArr.Contains(d))
-            );
-        }
 
-        // Exclude expired holds: treat as free if PendingPayment older than HoldMinutes
-        var holdMinutes = _configuration.GetValue<int?>("Booking:HoldMinutes");
-        // re-use nowUtc defined above
+        // Sử dụng transaction với isolation level Serializable để tránh race condition
+        // Đảm bảo check và insert là atomic - chỉ 1 request có thể thành công tại một thời điểm
+        using var transaction = await _context.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable
+        );
+        try
+        {
+            var query = _context.BookingCourts.Where(b => b.CourtId == request.CourtId);
 
-        var exists = await query.AnyAsync(b =>
-            // Only Active and Completed bookings block new bookings
-            (b.Status == BookingCourtStatus.Active)
-            || (
-                // PendingPayment bookings only block if they haven't expired
-                b.Status == BookingCourtStatus.PendingPayment
-                && (
-                    // If explicit expiry exists, require it to be in the future to block
-                    (b.HoldExpiresAtUtc != null && b.HoldExpiresAtUtc > nowUtc)
-                    // Otherwise fallback to CreatedAt + HoldMinutes
-                    || (
-                        b.HoldExpiresAtUtc == null
-                        && (
-                            holdMinutes == null
-                                ? true
-                                : b.CreatedAt > nowUtc.AddMinutes(-holdMinutes.Value)
+            // Thời gian giao nhau theo ngày: khoảng [StartDate..EndDate]
+            query = query.Where(b => b.StartDate <= endDate && startDate <= b.EndDate);
+
+            // Check theo giờ (ca): overlap nếu [StartTime..EndTime] giao nhau
+            query = query.Where(b => b.StartTime < request.EndTime && request.StartTime < b.EndTime);
+
+            // Phân biệt vãng lai và cố định
+            // So ngày trong tuần theo schema mới: entity lưu DaysOfWeek (mảng rỗng = vãng lai)
+            if (reqDaysArr.Length == 0)
+            {
+                // Vãng lai: so sánh thứ của ngày đặt với DaysOfWeek của booking cố định
+                var reqDow = GetCustomDayOfWeek(DateOnly.FromDateTime(request.StartDate));
+                query = query.Where(b =>
+                    (b.DaysOfWeek == null || b.DaysOfWeek.Length == 0)
+                    || (b.DaysOfWeek != null && b.DaysOfWeek.Contains(reqDow))
+                );
+            }
+            else
+            {
+                // Cố định: chặn nếu có bất kỳ thứ trùng nhau
+                query = query.Where(b =>
+                    (b.DaysOfWeek == null || b.DaysOfWeek.Length == 0)
+                    || b.DaysOfWeek.Any(d => reqDaysArr.Contains(d))
+                );
+            }
+
+            // Exclude expired holds: treat as free if PendingPayment older than HoldMinutes
+            var holdMinutes = _configuration.GetValue<int?>("Booking:HoldMinutes");
+            // re-use nowUtc defined above
+
+            var exists = await query.AnyAsync(b =>
+                // Only Active and Completed bookings block new bookings
+                (b.Status == BookingCourtStatus.Active)
+                || (
+                    // PendingPayment bookings only block if they haven't expired
+                    b.Status == BookingCourtStatus.PendingPayment
+                    && (
+                        // If explicit expiry exists, require it to be in the future to block
+                        (b.HoldExpiresAtUtc != null && b.HoldExpiresAtUtc > nowUtc)
+                        // Otherwise fallback to CreatedAt + HoldMinutes
+                        || (
+                            b.HoldExpiresAtUtc == null
+                            && (
+                                holdMinutes == null
+                                    ? true
+                                    : b.CreatedAt > nowUtc.AddMinutes(-holdMinutes.Value)
+                            )
                         )
                     )
                 )
-            )
-        );
-        if (exists)
-        {
-            throw new ApiException(
-                "Khoảng thời gian/sân đã được đặt trước, vui lòng chọn thời gian khác.",
-                HttpStatusCode.BadRequest
             );
+            if (exists)
+            {
+                await transaction.RollbackAsync();
+                throw new ApiException(
+                    "Khoảng thời gian/sân đã được đặt trước, vui lòng chọn thời gian khác.",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            entity = _mapper.Map<BookingCourt>(request);
+            entity.DaysOfWeek = reqDaysArr;
+            // For receptionist flow, create booking as PendingPayment until SePay confirms
+            entity.Status = BookingCourtStatus.PendingPayment;
+            var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
+            entity.HoldExpiresAtUtc = DateTime.UtcNow.AddMinutes(holdMins);
+
+            await _context.BookingCourts.AddAsync(entity);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
         }
-
-        var entity = _mapper.Map<BookingCourt>(request);
-        entity.DaysOfWeek = reqDaysArr;
-        // For receptionist flow, create booking as PendingPayment until SePay confirms
-        entity.Status = BookingCourtStatus.PendingPayment;
-        var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
-        entity.HoldExpiresAtUtc = DateTime.UtcNow.AddMinutes(holdMins);
-
-        await _context.BookingCourts.AddAsync(entity);
-        await _context.SaveChangesAsync();
+        catch (DbUpdateException dbEx)
+        {
+            await transaction.RollbackAsync();
+            // Bắt lỗi unique constraint hoặc các lỗi DB khác
+            if (dbEx.InnerException?.Message?.Contains("UNIQUE") == true
+                || dbEx.InnerException?.Message?.Contains("duplicate") == true)
+            {
+                throw new ApiException(
+                    "Khoảng thời gian/sân đã được đặt trước, vui lòng chọn thời gian khác.",
+                    HttpStatusCode.BadRequest
+                );
+            }
+            throw;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
 
         // Notify roles about new booking creation (pending payment)
         await _notificationService.SendToRolesAsync(
@@ -419,10 +453,10 @@ public class BookingCourtService(
         {
             throw new ApiException("Sân này đã bị xóa.", HttpStatusCode.BadRequest);
         }
-        if (court.Status == CourtStatus.InUse)
-        {
-            throw new ApiException("Sân này đang được sử dụng.", HttpStatusCode.BadRequest);
-        }
+        // Bỏ check InUse ở đây vì:
+        // 1. InUse chỉ được set khi check-in (đang chơi), không phải khi đặt
+        // 2. Nếu sân đang được sử dụng thì đã có booking, check overlap sẽ bắt được
+        // 3. Check này không có lock nên làm tất cả concurrent request đều fail
 
         // Get ApplicationUser
         var user = await _userManager.FindByIdAsync(userId.Value.ToString());
@@ -533,78 +567,110 @@ public class BookingCourtService(
         // Kiểm tra cấu hình giá/khung giờ: nếu sân chưa cấu hình cho khoảng giờ đặt → chặn
         await EnsurePricingConfiguredForRequestAsync(request);
 
-        var query = _context.BookingCourts.Where(b => b.CourtId == request.CourtId);
-
-        // Thời gian giao nhau theo ngày: khoảng [StartDate..EndDate]
-        query = query.Where(b => b.StartDate <= endDate && startDate <= b.EndDate);
-
-        // Check theo giờ (ca): overlap nếu [StartTime..EndTime] giao nhau
-        query = query.Where(b => b.StartTime < request.EndTime && request.StartTime < b.EndTime);
-
-        // Phân biệt vãng lai và cố định
-        // So ngày trong tuần theo schema mới: entity lưu DaysOfWeek (mảng rỗng = vãng lai)
+        // Khai báo entity bên ngoài để có thể sử dụng sau transaction
+        BookingCourt entity;
         var reqDaysArr = request.DaysOfWeek ?? Array.Empty<int>();
-        if (reqDaysArr.Length == 0)
-        {
-            // Vãng lai: so sánh thứ của ngày đặt với DaysOfWeek của booking cố định
-            var reqDow = GetCustomDayOfWeek(DateOnly.FromDateTime(request.StartDate));
-            query = query.Where(b =>
-                (b.DaysOfWeek == null || b.DaysOfWeek.Length == 0)
-                || (b.DaysOfWeek != null && b.DaysOfWeek.Contains(reqDow))
-            );
-        }
-        else
-        {
-            // Cố định: chặn nếu có bất kỳ thứ trùng nhau
-            query = query.Where(b =>
-                (b.DaysOfWeek == null || b.DaysOfWeek.Length == 0)
-                || b.DaysOfWeek.Any(d => reqDaysArr.Contains(d))
-            );
-        }
 
-        // Exclude expired holds: treat as free if PendingPayment older than HoldMinutes
-        var holdMinutes = _configuration.GetValue<int?>("Booking:HoldMinutes");
-        // re-use nowUtc defined above
+        // Sử dụng transaction với isolation level Serializable để tránh race condition
+        // Đảm bảo check và insert là atomic - chỉ 1 request có thể thành công tại một thời điểm
+        using var transaction = await _context.Database.BeginTransactionAsync(
+            IsolationLevel.Serializable
+        );
+        try
+        {
+            var query = _context.BookingCourts.Where(b => b.CourtId == request.CourtId);
 
-        var exists = await query.AnyAsync(b =>
-            // Only Active and Completed bookings block new bookings
-            (b.Status == BookingCourtStatus.Active)
-            || (
-                // PendingPayment bookings only block if they haven't expired
-                b.Status == BookingCourtStatus.PendingPayment
-                && (
-                    // If explicit expiry exists, require it to be in the future to block
-                    (b.HoldExpiresAtUtc != null && b.HoldExpiresAtUtc > nowUtc)
-                    // Otherwise fallback to CreatedAt + HoldMinutes
-                    || (
-                        b.HoldExpiresAtUtc == null
-                        && (
-                            holdMinutes == null
-                                ? true
-                                : b.CreatedAt > nowUtc.AddMinutes(-holdMinutes.Value)
+            // Thời gian giao nhau theo ngày: khoảng [StartDate..EndDate]
+            query = query.Where(b => b.StartDate <= endDate && startDate <= b.EndDate);
+
+            // Check theo giờ (ca): overlap nếu [StartTime..EndTime] giao nhau
+            query = query.Where(b => b.StartTime < request.EndTime && request.StartTime < b.EndTime);
+
+            // Phân biệt vãng lai và cố định
+            // So ngày trong tuần theo schema mới: entity lưu DaysOfWeek (mảng rỗng = vãng lai)
+            if (reqDaysArr.Length == 0)
+            {
+                // Vãng lai: so sánh thứ của ngày đặt với DaysOfWeek của booking cố định
+                var reqDow = GetCustomDayOfWeek(DateOnly.FromDateTime(request.StartDate));
+                query = query.Where(b =>
+                    (b.DaysOfWeek == null || b.DaysOfWeek.Length == 0)
+                    || (b.DaysOfWeek != null && b.DaysOfWeek.Contains(reqDow))
+                );
+            }
+            else
+            {
+                // Cố định: chặn nếu có bất kỳ thứ trùng nhau
+                query = query.Where(b =>
+                    (b.DaysOfWeek == null || b.DaysOfWeek.Length == 0)
+                    || b.DaysOfWeek.Any(d => reqDaysArr.Contains(d))
+                );
+            }
+
+            // Exclude expired holds: treat as free if PendingPayment older than HoldMinutes
+            var holdMinutes = _configuration.GetValue<int?>("Booking:HoldMinutes");
+            // re-use nowUtc defined above
+
+            var exists = await query.AnyAsync(b =>
+                // Only Active and Completed bookings block new bookings
+                (b.Status == BookingCourtStatus.Active)
+                || (
+                    // PendingPayment bookings only block if they haven't expired
+                    b.Status == BookingCourtStatus.PendingPayment
+                    && (
+                        // If explicit expiry exists, require it to be in the future to block
+                        (b.HoldExpiresAtUtc != null && b.HoldExpiresAtUtc > nowUtc)
+                        // Otherwise fallback to CreatedAt + HoldMinutes
+                        || (
+                            b.HoldExpiresAtUtc == null
+                            && (
+                                holdMinutes == null
+                                    ? true
+                                    : b.CreatedAt > nowUtc.AddMinutes(-holdMinutes.Value)
+                            )
                         )
                     )
                 )
-            )
-        );
-        if (exists)
-        {
-            throw new ApiException(
-                "Khoảng thời gian/sân đã được đặt trước, vui lòng chọn thời gian khác.",
-                HttpStatusCode.BadRequest
             );
+            if (exists)
+            {
+                await transaction.RollbackAsync();
+                throw new ApiException(
+                    "Khoảng thời gian/sân đã được đặt trước, vui lòng chọn thời gian khác.",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            entity = _mapper.Map<BookingCourt>(request);
+            entity.CustomerId = customer.Id;
+            entity.DaysOfWeek = reqDaysArr;
+            // For receptionist flow, create booking as PendingPayment until SePay confirms
+            entity.Status = BookingCourtStatus.PendingPayment;
+            var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
+            entity.HoldExpiresAtUtc = DateTime.UtcNow.AddMinutes(holdMins);
+
+            await _context.BookingCourts.AddAsync(entity);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
         }
-
-        var entity = _mapper.Map<BookingCourt>(request);
-        entity.CustomerId = customer.Id;
-        entity.DaysOfWeek = reqDaysArr;
-        // For receptionist flow, create booking as PendingPayment until SePay confirms
-        entity.Status = BookingCourtStatus.PendingPayment;
-        var holdMins = _configuration.GetValue<int?>("Booking:HoldMinutes") ?? 5;
-        entity.HoldExpiresAtUtc = DateTime.UtcNow.AddMinutes(holdMins);
-
-        await _context.BookingCourts.AddAsync(entity);
-        await _context.SaveChangesAsync();
+        catch (DbUpdateException dbEx)
+        {
+            await transaction.RollbackAsync();
+            // Bắt lỗi unique constraint hoặc các lỗi DB khác
+            if (dbEx.InnerException?.Message?.Contains("UNIQUE") == true
+                || dbEx.InnerException?.Message?.Contains("duplicate") == true)
+            {
+                throw new ApiException(
+                    "Khoảng thời gian/sân đã được đặt trước, vui lòng chọn thời gian khác.",
+                    HttpStatusCode.BadRequest
+                );
+            }
+            throw;
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
 
         // Notify roles about new booking creation (pending payment)
         await _notificationService.SendToRolesAsync(

@@ -13,6 +13,7 @@ public class CurrentUserResponse
     public string? PhoneNumber { get; set; }
     public List<string> Roles { get; set; } = [];
     public UserMembershipInfo? Membership { get; set; }
+    public string? AccessToken { get; set; } // Add access token to response for desktop clients
 }
 
 public class UserMembershipInfo

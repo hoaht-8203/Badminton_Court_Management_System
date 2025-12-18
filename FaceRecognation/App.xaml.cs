@@ -68,6 +68,9 @@ namespace FaceRecognation
             // Register services and configure named/typed HttpClients for them
             // Shared CookieContainer so authenticated cookies set by ApiApplication are sent with other requests
             services.AddSingleton<CookieContainer>();
+            
+            // Register TokenStore as Singleton to share access token across all services
+            services.AddSingleton<Services.TokenStore>();
 
             // Auth client: handles login and holds the cookie container on its HttpClient handler
             services
@@ -114,7 +117,10 @@ namespace FaceRecognation
                 .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
                 {
                     CookieContainer = sp.GetRequiredService<CookieContainer>(),
-                });
+                })
+                .AddHttpMessageHandler(sp => new Handlers.AuthTokenHandler(
+                    sp.GetRequiredService<Services.TokenStore>()
+                ));
 
             // Register staff client
             services
@@ -125,7 +131,10 @@ namespace FaceRecognation
                 .ConfigurePrimaryHttpMessageHandler(sp => new HttpClientHandler
                 {
                     CookieContainer = sp.GetRequiredService<CookieContainer>(),
-                });
+                })
+                .AddHttpMessageHandler(sp => new Handlers.AuthTokenHandler(
+                    sp.GetRequiredService<Services.TokenStore>()
+                ));
 
             // Register windows so they can be resolved from DI
             services.AddTransient<LoginWindow>();

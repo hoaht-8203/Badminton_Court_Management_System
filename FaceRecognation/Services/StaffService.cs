@@ -20,6 +20,8 @@ namespace FaceRecognation.Services
 
         public async Task<List<StaffResponse>> GetAllAsync(ListStaffRequest request)
         {
+            System.Diagnostics.Debug.WriteLine($"[StaffService] GetAllAsync called");
+            
             // Build query string from request properties (simple approach)
             var query = new List<string>();
             if (request.Status.HasValue)
@@ -36,10 +38,29 @@ namespace FaceRecognation.Services
             var url =
                 "/api/staff" + (query.Count > 0 ? "?" + string.Join("&", query) : string.Empty);
 
-            var resp = await _http.GetAsync(url);
-            resp.EnsureSuccessStatusCode();
-            var apiResp = await resp.Content.ReadFromJsonAsync<ApiResponse<List<StaffResponse>>>();
-            return apiResp?.Data ?? new List<StaffResponse>();
+            System.Diagnostics.Debug.WriteLine($"[StaffService] Calling: {url}");
+            System.Diagnostics.Debug.WriteLine($"[StaffService] Base address: {_http.BaseAddress}");
+            
+            try
+            {
+                var resp = await _http.GetAsync(url);
+                System.Diagnostics.Debug.WriteLine($"[StaffService] Response status: {resp.StatusCode}");
+                
+                if (!resp.IsSuccessStatusCode)
+                {
+                    var errorContent = await resp.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"[StaffService] Error response: {errorContent}");
+                }
+                
+                resp.EnsureSuccessStatusCode();
+                var apiResp = await resp.Content.ReadFromJsonAsync<ApiResponse<List<StaffResponse>>>();
+                return apiResp?.Data ?? new List<StaffResponse>();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[StaffService] Exception: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task<StaffResponse?> GetByIdAsync(int id)

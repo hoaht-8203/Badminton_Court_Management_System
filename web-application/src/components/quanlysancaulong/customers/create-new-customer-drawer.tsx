@@ -127,7 +127,7 @@ const CreateNewCustomerDrawer = ({ open, onClose }: CreateNewCustomerDrawerProps
               label="Số điện thoại"
               rules={[
                 { required: true, message: "Số điện thoại là bắt buộc" },
-                { pattern: /^[0-9]{10,11}$/, message: "Số điện thoại không hợp lệ" },
+                { pattern: /^0[0-9]{9,10}$/, message: "Số điện thoại phải bắt đầu bằng 0 và có 10-11 số" },
               ]}
             >
               <Input placeholder="Nhập số điện thoại" />

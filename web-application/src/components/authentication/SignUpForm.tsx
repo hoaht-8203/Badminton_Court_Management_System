@@ -111,7 +111,7 @@ const SignUpForm = ({ isUsersMode = false }: SignUpFormProps) => {
             name="phoneNumber"
             rules={[
               { required: true, message: "Vui lòng nhập số điện thoại" },
-              { pattern: /^[0-9]{10,11}$/, message: "Số điện thoại phải có 10-11 chữ số" },
+              { pattern: /^0[0-9]{9,10}$/, message: "Số điện thoại phải bắt đầu bằng 0 và có 10-11 số" },
             ]}
           >
             <Input prefix={<PhoneOutlined />} size="large" placeholder="Nhập số điện thoại" />

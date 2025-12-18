@@ -21,6 +21,7 @@ namespace ApiApplication.Controllers
         }
 
         [HttpPost("checkin")]
+        [AllowAnonymous] // Allow face recognition kiosk to check-in without authentication
         public async Task<IActionResult> CheckIn([FromBody] Dtos.Attendance.CheckInRequest request)
         {
             var result = await _attendanceService.CheckInAsync(request.StaffId);
@@ -33,6 +34,7 @@ namespace ApiApplication.Controllers
         }
 
         [HttpPost("checkout")]
+        [AllowAnonymous] // Allow face recognition kiosk to check-out without authentication
         public async Task<IActionResult> CheckOut(
             [FromBody] Dtos.Attendance.CheckoutRequest request
         )

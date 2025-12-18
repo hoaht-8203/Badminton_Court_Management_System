@@ -159,7 +159,10 @@ const CreateNewUserDrawer = ({ open, onClose }: CreateNewUserDrawerProps) => {
             <FormItem<CreateAdministratorRequest>
               name="phoneNumber"
               label="Số điện thoại"
-              rules={[{ required: true, message: "Số điện thoại là bắt buộc" }]}
+              rules={[
+                { required: true, message: "Số điện thoại là bắt buộc" },
+                { pattern: /^0[0-9]{9,10}$/, message: "Số điện thoại phải bắt đầu bằng 0 và có 10-11 số" },
+              ]}
             >
               <Input placeholder="Nhập số điện thoại" readOnly={createForStaff && !!selectedStaffId} />
             </FormItem>

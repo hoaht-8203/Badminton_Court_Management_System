@@ -9,8 +9,7 @@ public class CreateCustomerRequest
     public required string FullName { get; set; }
 
     [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
-    [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
-    [MaxLength(10, ErrorMessage = "Số điện thoại không được vượt quá 10 ký tự")]
+    [RegularExpression(@"^0[0-9]{9,10}$", ErrorMessage = "Số điện thoại phải bắt đầu bằng 0 và có 10-11 số")]
     public required string PhoneNumber { get; set; }
 
     [Required(ErrorMessage = "Email là bắt buộc")]

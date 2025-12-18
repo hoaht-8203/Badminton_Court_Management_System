@@ -23,8 +23,7 @@ namespace ApiApplication.Dtos
         [MaxLength(500, ErrorMessage = "Địa chỉ không được vượt quá 500 ký tự")]
         public string? Address { get; set; }
 
-        [StringLength(11, MinimumLength = 9, ErrorMessage = "Số điện thoại phải có từ 9 đến 11 chữ số")]
-        [RegularExpression(@"^\d{9,11}$", ErrorMessage = "Số điện thoại phải có từ 9 đến 11 chữ số")]
+        [RegularExpression(@"^0[0-9]{9,10}$", ErrorMessage = "Số điện thoại phải bắt đầu bằng 0 và có 10-11 số")]
         public string? PhoneNumber { get; set; }
 
         [MaxLength(500, ErrorMessage = "Đường dẫn avatar không được vượt quá 500 ký tự")]

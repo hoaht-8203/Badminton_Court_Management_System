@@ -85,18 +85,22 @@ namespace FaceRecognation
                     )
                     {
                         var login = sp.GetRequiredService<LoginWindow>();
+                        // Close LandingWindow before showing login dialog to prevent multiple windows
+                        this.Hide(); // Hide instead of Close to keep the window alive during dialog
                         var result = login.ShowDialog();
                         if (result == true)
                         {
                             var main = sp.GetRequiredService<MainWindow>();
                             var appObj = Application.Current as App;
                             appObj?.ShowWindowAndCloseOthers(main);
+                            this.Close(); // Now properly close LandingWindow
                         }
                         else
                         {
                             // login canceled or failed - shutdown app
                             Application.Current.Shutdown();
                         }
+                        return; // Exit early, don't call Close() again
                     }
                 }
             }

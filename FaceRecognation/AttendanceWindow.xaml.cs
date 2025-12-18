@@ -383,8 +383,7 @@ namespace FaceRecognation
                 if (sp != null)
                 {
                     var landing = sp.GetRequiredService<LandingWindow>();
-                    landing.Show();
-                    this.Close();
+                    app?.ShowWindowAndCloseOthers(landing);
                     return;
                 }
             }
@@ -393,8 +392,8 @@ namespace FaceRecognation
             try
             {
                 var landing = new LandingWindow();
-                landing.Show();
-                this.Close();
+                var app = Application.Current as App;
+                app?.ShowWindowAndCloseOthers(landing);
             }
             catch { }
         }

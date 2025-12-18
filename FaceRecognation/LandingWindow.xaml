@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Cầu Lông 365" Height="360" Width="720"
     WindowStartupLocation="CenterScreen"
-    WindowState="Normal"
+    WindowState="Maximized"
     ResizeMode="NoResize"
     FontFamily="Segoe UI"
     Opacity="0"

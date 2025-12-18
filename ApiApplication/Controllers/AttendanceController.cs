@@ -25,12 +25,17 @@ namespace ApiApplication.Controllers
         public async Task<IActionResult> CheckIn([FromBody] Dtos.Attendance.CheckInRequest request)
         {
             var result = await _attendanceService.CheckInAsync(request.StaffId);
-            return Ok(
-                ApiResponse<bool>.SuccessResponse(
-                    result,
-                    result ? "Check-in thành công" : "Check-in thất bại"
-                )
-            );
+
+            if (!result)
+            {
+                return BadRequest(
+                    ApiResponse<bool>.ErrorResponse(
+                        "Không thể check-in. Bạn đã check-in nhưng chưa check-out ca trước đó."
+                    )
+                );
+            }
+
+            return Ok(ApiResponse<bool>.SuccessResponse(result, "Check-in thành công"));
         }
 
         [HttpPost("checkout")]
@@ -40,12 +45,15 @@ namespace ApiApplication.Controllers
         )
         {
             var result = await _attendanceService.CheckOutAsync(request.StaffId);
+
             if (!result)
+            {
                 return BadRequest(
                     ApiResponse<bool>.ErrorResponse(
-                        "Không tìm thấy check-in phù hợp trong ngày hoặc đã check-out"
+                        "Không thể check-out. Bạn chưa check-in hoặc đã check-out rồi."
                     )
                 );
+            }
 
             return Ok(ApiResponse<bool>.SuccessResponse(result, "Check-out thành công"));
         }

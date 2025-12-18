@@ -23,15 +23,28 @@ namespace FaceRecognation.Services
                 var payload = new { StaffId = staffId };
                 var resp = await _http.PostAsJsonAsync("/api/attendance/checkin", payload);
                 
-                // Read response content as string first for debugging
-                var content = await resp.Content.ReadAsStringAsync();
-                
                 if (!resp.IsSuccessStatusCode)
                 {
+                    // Try to parse error response to extract message
+                    try
+                    {
+                        var errorBody = await resp.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+                        if (errorBody != null && !string.IsNullOrEmpty(errorBody.Message))
+                        {
+                            return new ApiResponse<bool>
+                            {
+                                Success = false,
+                                Message = errorBody.Message,
+                            };
+                        }
+                    }
+                    catch { }
+                    
+                    // Fallback if parsing fails
                     return new ApiResponse<bool>
                     {
                         Success = false,
-                        Message = $"HTTP {(int)resp.StatusCode}: {content}",
+                        Message = "Check-in không thành công. Vui lòng thử lại.",
                     };
                 }
                 
@@ -60,15 +73,28 @@ namespace FaceRecognation.Services
                 var payload = new { StaffId = staffId };
                 var resp = await _http.PostAsJsonAsync("/api/attendance/checkout", payload);
                 
-                // Read response content as string first for debugging
-                var content = await resp.Content.ReadAsStringAsync();
-                
                 if (!resp.IsSuccessStatusCode)
                 {
+                    // Try to parse error response to extract message
+                    try
+                    {
+                        var errorBody = await resp.Content.ReadFromJsonAsync<ApiResponse<bool>>();
+                        if (errorBody != null && !string.IsNullOrEmpty(errorBody.Message))
+                        {
+                            return new ApiResponse<bool>
+                            {
+                                Success = false,
+                                Message = errorBody.Message,
+                            };
+                        }
+                    }
+                    catch { }
+                    
+                    // Fallback if parsing fails
                     return new ApiResponse<bool>
                     {
                         Success = false,
-                        Message = $"HTTP {(int)resp.StatusCode}: {content}",
+                        Message = "Check-out không thành công. Vui lòng thử lại.",
                     };
                 }
                 

@@ -389,6 +389,31 @@ builder.Services.AddSwaggerGen(c =>
     );
     c.EnableAnnotations();
     c.DocumentFilter<ApiApplication.Helpers.SwaggerFromQuerySchemaDocumentFilter>();
+    
+    // Add JWT Authentication to Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
@@ -399,18 +424,22 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+// SECURITY: Only enable Swagger in Development environment
+if (app.Environment.IsDevelopment())
 {
-    c.IndexStream = () => File.OpenRead("wwwroot/swagger-custom.html");
-});
-app.MapScalarApiReference(options =>
-{
-    options
-        .WithTitle("My API")
-        .WithTheme(ScalarTheme.Moon) // dark theme
-        .WithOpenApiRoutePattern("/swagger/v1/swagger.json");
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.IndexStream = () => File.OpenRead("wwwroot/swagger-custom.html");
+    });
+    app.MapScalarApiReference(options =>
+    {
+        options
+            .WithTitle("My API")
+            .WithTheme(ScalarTheme.Moon)
+            .WithOpenApiRoutePattern("/swagger/v1/swagger.json");
+    });
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

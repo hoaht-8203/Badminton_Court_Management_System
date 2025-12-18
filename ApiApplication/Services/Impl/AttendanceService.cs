@@ -106,32 +106,28 @@ public class AttendanceService : IAttendanceService
         var now = DateTime.Now;
         var today = DateOnly.FromDateTime(now);
 
-        // Find existing record for today
-        var attendance = await _context.AttendanceRecords.FirstOrDefaultAsync(a =>
-            a.StaffId == staffId && a.Date == today
-        );
+        // Check if there's an open record (checked-in but not checked-out yet)
+        var openRecord = await _context.AttendanceRecords
+            .Where(a => a.StaffId == staffId && a.Date == today && a.CheckOutTime == null)
+            .FirstOrDefaultAsync();
 
+        if (openRecord != null)
+        {
+            // Already has an open check-in, cannot check-in again
+            return false;
+        }
+
+        // Create new check-in record
         var timeNow = TimeOnly.FromDateTime(now);
-
-        if (attendance == null)
+        var newRecord = new Entities.AttendanceRecord
         {
-            var newRecord = new Entities.AttendanceRecord
-            {
-                StaffId = staffId,
-                Date = today,
-                CheckInTime = timeNow,
-                CheckOutTime = null,
-                Notes = null,
-            };
-            _context.AttendanceRecords.Add(newRecord);
-        }
-        else
-        {
-            // Update check-in time (overwrite) and clear checkout
-            attendance.CheckInTime = timeNow;
-            attendance.CheckOutTime = null;
-            _context.AttendanceRecords.Update(attendance);
-        }
+            StaffId = staffId,
+            Date = today,
+            CheckInTime = timeNow,
+            CheckOutTime = null,
+            Notes = null,
+        };
+        _context.AttendanceRecords.Add(newRecord);
 
         return await _context.SaveChangesAsync() > 0;
     }
@@ -141,21 +137,17 @@ public class AttendanceService : IAttendanceService
         var now = DateTime.Now;
         var today = DateOnly.FromDateTime(now);
 
-        // Find the most recent check-in record for today (nearest in past)
+        // Find the open record (checked-in but not checked-out) for today
         var attendance = await _context
-            .AttendanceRecords.Where(a => a.StaffId == staffId && a.Date == today)
+            .AttendanceRecords.Where(a => a.StaffId == staffId && a.Date == today && a.CheckOutTime == null)
             .OrderByDescending(a => a.CheckInTime)
             .FirstOrDefaultAsync();
 
         if (attendance == null)
         {
-            // No check-in for today
+            // No open check-in for today, cannot check-out
             return false;
         }
-
-        // If already checked out, consider it a no-op (return false)
-        if (attendance.CheckOutTime != null)
-            return false;
 
         attendance.CheckOutTime = TimeOnly.FromDateTime(now);
         _context.AttendanceRecords.Update(attendance);

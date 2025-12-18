@@ -183,7 +183,14 @@ const StaffModal: React.FC<StaffModalProps> = ({ open, onClose, onSubmit, staff,
           <Input />
         </Form.Item>
 
-        <Form.Item label="Số điện thoại" name="phoneNumber" rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}>
+        <Form.Item 
+          label="Số điện thoại" 
+          name="phoneNumber" 
+          rules={[
+            { required: true, message: "Vui lòng nhập số điện thoại" },
+            { pattern: /^0[0-9]{9,10}$/, message: "Số điện thoại phải bắt đầu bằng 0 và có 10-11 số" },
+          ]}
+        >
           <Input />
         </Form.Item>
       </Col>

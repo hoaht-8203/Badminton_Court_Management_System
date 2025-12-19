@@ -16,6 +16,9 @@ export const useListProducts = (params: ListProductRequest) => {
       
     ],
     queryFn: () => productService.list(params),
+    refetchOnWindowFocus: true, // Auto refetch when window gains focus
+    refetchOnMount: true, // Auto refetch when component mounts
+    staleTime: 0, // Always consider data stale to ensure fresh data
   });
 };
 
@@ -24,6 +27,9 @@ export const useDetailProduct = (params: DetailProductRequest, enabled = true) =
     queryKey: ["product", params, params?.id],
     queryFn: () => productService.detail(params),
     enabled,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    staleTime: 0, // Always consider data stale to ensure fresh data
   });
 };
 

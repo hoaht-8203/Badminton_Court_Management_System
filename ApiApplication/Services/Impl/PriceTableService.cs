@@ -175,7 +175,16 @@ public class PriceTableService(ApplicationDbContext context, IMapper mapper) : I
             _context.Add(entity);
             await _context.SaveChangesAsync();
 
-            // Xử lý products nếu có
+            // Validation: yêu cầu ít nhất 1 sản phẩm
+            if (request.Products == null || !request.Products.Any())
+            {
+                throw new ApiException(
+                    "Vui lòng chọn ít nhất 1 sản phẩm để tạo bảng giá",
+                    System.Net.HttpStatusCode.BadRequest
+                );
+            }
+
+            // Xử lý products
             if (request.Products != null && request.Products.Any())
             {
                 var productIds = request.Products.Select(i => i.ProductId).ToList();

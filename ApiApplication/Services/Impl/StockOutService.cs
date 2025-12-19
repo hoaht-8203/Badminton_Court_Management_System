@@ -4,7 +4,9 @@ using ApiApplication.Dtos.StockOut;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Services;
+using ApiApplication.SignalR;
 using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl
@@ -14,16 +16,19 @@ namespace ApiApplication.Services.Impl
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly IInventoryCardService _inventoryCardService;
+        private readonly IHubContext<ProductHub> _hubContext;
 
         public StockOutService(
             ApplicationDbContext context,
             IMapper mapper,
-            IInventoryCardService inventoryCardService
+            IInventoryCardService inventoryCardService,
+            IHubContext<ProductHub> hubContext
         )
         {
             _context = context;
             _mapper = mapper;
             _inventoryCardService = inventoryCardService;
+            _hubContext = hubContext;
         }
 
         public async Task<List<ListStockOutResponse>> ListAsync(
@@ -264,6 +269,19 @@ namespace ApiApplication.Services.Impl
             }
 
             await _context.SaveChangesAsync();
+
+            // Broadcast product stock update via SignalR
+            var productIds = stockOut.Items.Select(i => i.ProductId).Distinct().ToList();
+            try
+            {
+                Console.WriteLine($"[SignalR] Broadcasting productStockUpdated for product IDs: {string.Join(", ", productIds)}");
+                await _hubContext.Clients.All.SendAsync("productStockUpdated", productIds);
+                Console.WriteLine($"[SignalR] Successfully broadcasted productStockUpdated");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to broadcast product stock update: {ex.Message}");
+            }
 
             // Create inventory check
             var inventoryCheck = new InventoryCheck

@@ -452,5 +452,6 @@ app.MapControllers();
 app.UseWebSockets();
 app.MapHub<BookingHub>("/hubs/booking").RequireCors("Frontend");
 app.MapHub<NotificationHub>("/hubs/notifications").RequireCors("Frontend");
+app.MapHub<ProductHub>("/hubs/products").RequireCors("Frontend");
 
 app.Run();

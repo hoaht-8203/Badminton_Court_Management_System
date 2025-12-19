@@ -6,12 +6,15 @@ import { productColumns, StockCell, StockSummaryCell } from "@/components/quanly
 import SearchProducts from "@/components/quanlysancaulong/products/search-products";
 import UpdateProductDrawer from "@/components/quanlysancaulong/products/update-product-drawer";
 import { useDeleteProduct, /* useUpdateProduct, */ useDetailProduct, useListProducts } from "@/hooks/useProducts";
-import { ApiError, axiosInstance } from "@/lib/axios";
+import { ApiError, apiBaseUrl, axiosInstance } from "@/lib/axios";
 import { DetailProductResponse, ListProductRequest, ListProductResponse } from "@/types-openapi/api";
 import { CheckOutlined, EditOutlined, PlusOutlined, ReloadOutlined, StopOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Col, Divider, Image, message, Modal, Row, Table, TableProps, Tabs, Tag } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { HubConnection, HubConnectionBuilder, HttpTransportType, ILogger, LogLevel } from "@microsoft/signalr";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext";
 
 type ProductFilters = ListProductRequest & { priceSort?: "ascend" | "descend"; isActive?: boolean };
 
@@ -33,7 +36,139 @@ const ProductCategoryPage = () => {
 
   const { data, isFetching, refetch } = useListProducts(searchParams);
   const deleteMutation = useDeleteProduct();
+  const queryClient = useQueryClient();
+  const connectionRef = useRef<HubConnection | null>(null);
+  const { user } = useAuth();
+  const [stockRefreshTrigger, setStockRefreshTrigger] = useState(0);
   // const updateMutation = useUpdateProduct(); // Unused - comment out
+
+  // SignalR connection for realtime product stock updates
+  useEffect(() => {
+    // Only connect if user is authenticated
+    if (!user) {
+      return;
+    }
+
+    const filteredLogger: ILogger = {
+      log: (level, message) => {
+        const text = String(message ?? "");
+        if (text.includes("stopped during negotiation") || text.includes("before stop() was called")) {
+          return;
+        }
+        if (level >= LogLevel.Error) {
+          console.error(`[SignalR Product] ${text}`);
+        } else if (level >= LogLevel.Warning) {
+          console.warn(`[SignalR Product] ${text}`);
+        } else if (level >= LogLevel.Information) {
+          console.info(`[SignalR Product] ${text}`);
+        }
+      },
+    };
+
+    const conn = new HubConnectionBuilder()
+      .withUrl(`${apiBaseUrl}/hubs/products`, {
+        withCredentials: true,
+        skipNegotiation: false,
+        transport: HttpTransportType.WebSockets | HttpTransportType.ServerSentEvents | HttpTransportType.LongPolling,
+      })
+      .withAutomaticReconnect({
+        nextRetryDelayInMilliseconds: (retryContext) => {
+          if (retryContext.elapsedMilliseconds < 60000) {
+            // If we've been reconnecting for less than 60 seconds, wait 2 seconds before retrying
+            return 2000;
+          } else {
+            // If we've been reconnecting for more than 60 seconds, wait 5 seconds before retrying
+            return 5000;
+          }
+        },
+      })
+      .configureLogging(filteredLogger)
+      .build();
+
+    connectionRef.current = conn;
+
+    // Listen for product stock updates
+    conn.on("productStockUpdated", async (productIds: number[]) => {
+      console.log("[SignalR Product] Received productStockUpdated event for product IDs:", productIds);
+      try {
+        // Invalidate all product list queries
+        await queryClient.invalidateQueries({
+          predicate: (query) => {
+            const key = query.queryKey;
+            return Array.isArray(key) && key.length > 0 && key[0] === "products";
+          },
+        });
+        // Invalidate all product detail queries (for StockCell components)
+        await queryClient.invalidateQueries({
+          predicate: (query) => {
+            const key = query.queryKey;
+            return Array.isArray(key) && key.length > 0 && key[0] === "product";
+          },
+        });
+        // Trigger refresh for StockSummaryCell components
+        setStockRefreshTrigger((prev) => prev + 1);
+        // Force refetch immediately with current search params
+        const result = await refetch();
+        console.log("[SignalR Product] Successfully refetched products after stock update", result);
+      } catch (error) {
+        console.error("[SignalR Product] Error refetching products:", error);
+      }
+    });
+
+    let isAlive = true;
+    const startConnection = async () => {
+      try {
+        await conn.start();
+        if (isAlive) {
+          console.log("[SignalR Product] Connected to ProductHub successfully");
+        }
+      } catch (err) {
+        if (isAlive) {
+          console.error("[SignalR Product] Connection error:", err);
+        }
+      }
+    };
+
+    startConnection();
+
+    // Handle reconnection
+    conn.onreconnecting(() => {
+      console.log("[SignalR Product] Reconnecting...");
+    });
+
+    conn.onreconnected(() => {
+      console.log("[SignalR Product] Reconnected successfully");
+    });
+
+    conn.onclose((error) => {
+      if (error) {
+        console.error("[SignalR Product] Connection closed with error:", error);
+      } else {
+        console.log("[SignalR Product] Connection closed");
+      }
+    });
+
+    return () => {
+      isAlive = false;
+      if (conn.state !== "Disconnected") {
+        conn.stop().catch(() => {});
+      }
+    };
+  }, [queryClient, user, refetch]);
+
+  // Auto refetch when tab becomes visible (user switches back to this tab)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refetch();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [refetch]);
 
   const tableData = useMemo(() => {
     let arr = [...(data?.data ?? [])];
@@ -106,7 +241,7 @@ const ProductCategoryPage = () => {
                 ...col,
                 render: (_, record) => {
                   if ((record as any).isSummaryRow) {
-                    return <StockSummaryCell productIds={tableData.filter((item) => !(item as any).isSummaryRow).map((item) => item.id!)} />;
+                    return <StockSummaryCell productIds={tableData.filter((item) => !(item as any).isSummaryRow).map((item) => item.id!)} refreshTrigger={stockRefreshTrigger} />;
                   }
                   return <StockCell productId={record.id!} />;
                 },

@@ -70,13 +70,38 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper) : ISu
 
     public async Task CreateSupplierAsync(CreateSupplierRequest request)
     {
-        var existingSupplier = await _context.Suppliers.FirstOrDefaultAsync(s =>
-            s.Email == request.Email
-        );
-        if (existingSupplier != null)
+        // Kiểm tra trùng email (case-insensitive)
+        if (!string.IsNullOrWhiteSpace(request.Email))
         {
-            throw new ApiException($"Email {request.Email} đã tồn tại", HttpStatusCode.BadRequest);
+            var normalizedEmail = request.Email.Trim().ToLower();
+            var existingSupplierByEmail = await _context.Suppliers
+                .FirstOrDefaultAsync(s => s.Email != null && s.Email.Trim().ToLower() == normalizedEmail);
+
+            if (existingSupplierByEmail != null)
+            {
+                throw new ApiException(
+                    $"Email '{request.Email}' đã tồn tại",
+                    HttpStatusCode.BadRequest
+                );
+            }
         }
+
+        // Kiểm tra trùng số điện thoại
+        if (!string.IsNullOrWhiteSpace(request.Phone))
+        {
+            var normalizedPhone = request.Phone.Trim();
+            var existingSupplierByPhone = await _context.Suppliers
+                .FirstOrDefaultAsync(s => s.Phone != null && s.Phone.Trim() == normalizedPhone);
+
+            if (existingSupplierByPhone != null)
+            {
+                throw new ApiException(
+                    $"Số điện thoại '{request.Phone}' đã tồn tại",
+                    HttpStatusCode.BadRequest
+                );
+            }
+        }
+
         var supplier = _mapper.Map<Supplier>(request);
         supplier.Status = SupplierStatus.Active;
 
@@ -96,18 +121,47 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper) : ISu
             );
         }
 
-        if (!string.IsNullOrEmpty(request.Email) && request.Email != supplier.Email)
+        // Kiểm tra trùng email (case-insensitive, exclude current supplier)
+        if (!string.IsNullOrWhiteSpace(request.Email))
         {
-            var existingSupplier = await _context.Suppliers.FirstOrDefaultAsync(c =>
-                c.Email == request.Email && c.Id != request.Id
-            );
+            var normalizedEmail = request.Email.Trim().ToLower();
+            var currentNormalizedEmail = supplier.Email?.Trim().ToLower();
 
-            if (existingSupplier != null)
+            // Only check if email is actually changing
+            if (normalizedEmail != currentNormalizedEmail)
             {
-                throw new ApiException(
-                    $"Email {request.Email} đã tồn tại",
-                    HttpStatusCode.BadRequest
-                );
+                var existingSupplierByEmail = await _context.Suppliers
+                    .FirstOrDefaultAsync(s => s.Id != request.Id && s.Email != null && s.Email.Trim().ToLower() == normalizedEmail);
+
+                if (existingSupplierByEmail != null)
+                {
+                    throw new ApiException(
+                        $"Email '{request.Email}' đã tồn tại",
+                        HttpStatusCode.BadRequest
+                    );
+                }
+            }
+        }
+
+        // Kiểm tra trùng số điện thoại (exclude current supplier)
+        if (!string.IsNullOrWhiteSpace(request.Phone))
+        {
+            var normalizedPhone = request.Phone.Trim();
+            var currentNormalizedPhone = supplier.Phone?.Trim();
+
+            // Only check if phone is actually changing
+            if (normalizedPhone != currentNormalizedPhone)
+            {
+                var existingSupplierByPhone = await _context.Suppliers
+                    .FirstOrDefaultAsync(s => s.Id != request.Id && s.Phone != null && s.Phone.Trim() == normalizedPhone);
+
+                if (existingSupplierByPhone != null)
+                {
+                    throw new ApiException(
+                        $"Số điện thoại '{request.Phone}' đã tồn tại",
+                        HttpStatusCode.BadRequest
+                    );
+                }
             }
         }
 

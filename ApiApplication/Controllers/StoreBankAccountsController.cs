@@ -9,7 +9,7 @@ namespace ApiApplication.Controllers;
 
 [Route("api/store-bank-accounts")]
 [ApiController]
-[Authorize(Policy = PolicyConstants.ManagementOnly)]
+[Authorize(Policy = PolicyConstants.StaffAccess)]
 public class StoreBankAccountsController(IStoreBankAccountService service) : ControllerBase
 {
     private readonly IStoreBankAccountService _service = service;

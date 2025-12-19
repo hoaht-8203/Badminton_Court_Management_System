@@ -1701,6 +1701,12 @@ public class BookingCourtService(
         {
             throw new ApiException("Không tìm thấy sản phẩm", HttpStatusCode.BadRequest);
         }
+
+        if (!product.IsActive)
+        {
+            throw new ApiException("Sản phẩm này không còn hoạt động", HttpStatusCode.BadRequest);
+        }
+
         var qty = Math.Max(1, request.Quantity);
         var unit = product.SalePrice;
 
@@ -1780,6 +1786,15 @@ public class BookingCourtService(
             var product =
                 await _context.Products.FirstOrDefaultAsync(p => p.Id == request.ProductId)
                 ?? throw new ApiException("Không tìm thấy sản phẩm", HttpStatusCode.BadRequest);
+
+            if (!product.IsActive)
+            {
+                throw new ApiException(
+                    "Sản phẩm này không còn hoạt động",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
             var unit = product.SalePrice;
             var qty = Math.Max(1, request.Quantity);
             var item = new BookingOrderItem

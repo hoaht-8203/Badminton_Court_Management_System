@@ -556,322 +556,357 @@ public class VoucherService : IVoucherService
         int customerId
     )
     {
-        // Get voucher
-        var voucher = await _context
-            .Vouchers.Include(v => v.TimeRules)
-            .Include(v => v.UserRules)
-            .FirstOrDefaultAsync(v => v.Id == request.VoucherId);
-
-        if (voucher == null)
+        // Lock voucher record to prevent race condition
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            return new ValidateVoucherResponse
-            {
-                IsValid = false,
-                ErrorMessage = "Voucher không tồn tại",
-            };
-        }
+            // Get voucher with FOR UPDATE lock
+            var voucher = await _context
+                .Vouchers.FromSqlRaw(
+                    "SELECT * FROM \"Vouchers\" WHERE \"Id\" = {0} FOR UPDATE",
+                    request.VoucherId
+                )
+                .Include(v => v.TimeRules)
+                .Include(v => v.UserRules)
+                .FirstOrDefaultAsync();
 
-        // Check if voucher is active
-        if (!voucher.IsActive)
-        {
-            return new ValidateVoucherResponse
+            if (voucher == null)
             {
-                IsValid = false,
-                ErrorMessage = "Voucher không còn hoạt động",
-            };
-        }
-
-        // Determine the reference time for validation. If booking context is provided in the request,
-        // use that; otherwise fall back to current UTC time.
-        var referenceDateTime = DateTime.UtcNow;
-        if (request.BookingDate.HasValue)
-        {
-            // Build a DateTime from BookingDate and optional start time if present
-            var bookingDate = request.BookingDate.Value.Date;
-            if (request.BookingStartTime.HasValue)
-            {
-                var st = request.BookingStartTime.Value;
-                referenceDateTime = new DateTime(
-                    bookingDate.Year,
-                    bookingDate.Month,
-                    bookingDate.Day,
-                    st.Hour,
-                    st.Minute,
-                    st.Second,
-                    DateTimeKind.Utc
-                );
-            }
-            else
-            {
-                referenceDateTime = bookingDate;
-            }
-        }
-
-        // Check date range against referenceDateTime
-        if (voucher.StartAt > referenceDateTime)
-        {
-            return new ValidateVoucherResponse
-            {
-                IsValid = false,
-                ErrorMessage =
-                    $"Voucher chưa đến thời gian sử dụng. Có hiệu lực từ {voucher.StartAt:dd/MM/yyyy HH:mm}",
-            };
-        }
-
-        if (voucher.EndAt < referenceDateTime)
-        {
-            return new ValidateVoucherResponse
-            {
-                IsValid = false,
-                ErrorMessage = $"Voucher đã hết hạn sử dụng vào {voucher.EndAt:dd/MM/yyyy HH:mm}",
-            };
-        }
-
-        // Check total usage limit
-        if (voucher.UsageLimitTotal > 0 && voucher.UsedCount >= voucher.UsageLimitTotal)
-        {
-            return new ValidateVoucherResponse
-            {
-                IsValid = false,
-                ErrorMessage =
-                    $"Voucher đã hết lượt sử dụng ({voucher.UsedCount}/{voucher.UsageLimitTotal})",
-            };
-        }
-
-        // Check per-user usage limit
-        var userUsageCount = await _context.VoucherUsages.CountAsync(vu =>
-            vu.VoucherId == voucher.Id && vu.CustomerId == customerId
-        );
-
-        if (voucher.UsageLimitPerUser > 0 && userUsageCount >= voucher.UsageLimitPerUser)
-        {
-            return new ValidateVoucherResponse
-            {
-                IsValid = false,
-                ErrorMessage =
-                    $"Bạn đã sử dụng hết lượt voucher này ({userUsageCount}/{voucher.UsageLimitPerUser})",
-            };
-        }
-
-        // Check minimum order value
-        if (
-            voucher.MinOrderValue.HasValue
-            && request.OrderTotalAmount < voucher.MinOrderValue.Value
-        )
-        {
-            return new ValidateVoucherResponse
-            {
-                IsValid = false,
-                ErrorMessage =
-                    $"Đơn hàng phải có giá trị tối thiểu {voucher.MinOrderValue.Value:N0} VNĐ",
-            };
-        }
-
-        // Check time rules - use booking context if provided, otherwise current UTC
-        var currentDate = DateOnly.FromDateTime(referenceDateTime);
-        var currentTime = TimeOnly.FromDateTime(referenceDateTime);
-        var currentDayOfWeek = referenceDateTime.DayOfWeek;
-
-        if (voucher.TimeRules != null && voucher.TimeRules.Any())
-        {
-            var matchesTimeRule = false;
-            foreach (var timeRule in voucher.TimeRules)
-            {
-                if (timeRule.SpecificDate.HasValue)
-                {
-                    var specificDate = DateOnly.FromDateTime(timeRule.SpecificDate.Value);
-                    if (currentDate == specificDate)
-                    {
-                        if (timeRule.StartTime.HasValue && timeRule.EndTime.HasValue)
-                        {
-                            var ts = timeRule.StartTime.Value;
-                            var te = timeRule.EndTime.Value;
-                            var startTime = new TimeOnly(ts.Hours, ts.Minutes, ts.Seconds);
-                            var endTime = new TimeOnly(te.Hours, te.Minutes, te.Seconds);
-                            if (currentTime >= startTime && currentTime <= endTime)
-                            {
-                                matchesTimeRule = true;
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            matchesTimeRule = true;
-                            break;
-                        }
-                    }
-                }
-                else if (timeRule.DayOfWeek.HasValue)
-                {
-                    if (currentDayOfWeek == timeRule.DayOfWeek.Value)
-                    {
-                        if (timeRule.StartTime.HasValue && timeRule.EndTime.HasValue)
-                        {
-                            var ts = timeRule.StartTime.Value;
-                            var te = timeRule.EndTime.Value;
-                            var startTime = new TimeOnly(ts.Hours, ts.Minutes, ts.Seconds);
-                            var endTime = new TimeOnly(te.Hours, te.Minutes, te.Seconds);
-                            if (currentTime >= startTime && currentTime <= endTime)
-                            {
-                                matchesTimeRule = true;
-                                break;
-                            }
-                        }
-                        else
-                        {
-                            matchesTimeRule = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (!matchesTimeRule)
-            {
+                await transaction.RollbackAsync();
                 return new ValidateVoucherResponse
                 {
                     IsValid = false,
-                    ErrorMessage = "Voucher không khả dụng tại thời điểm này",
+                    ErrorMessage = "Voucher không tồn tại",
                 };
             }
-        }
 
-        // Check user rules
-        var customer = await _context.Customers.FindAsync(customerId);
-        if (customer == null)
-        {
-            return new ValidateVoucherResponse
+            // Check if voucher is active
+            if (!voucher.IsActive)
             {
-                IsValid = false,
-                ErrorMessage = "Không tìm thấy thông tin khách hàng",
-            };
-        }
+                await transaction.RollbackAsync();
+                return new ValidateVoucherResponse
+                {
+                    IsValid = false,
+                    ErrorMessage = "Voucher không còn hoạt động",
+                };
+            }
 
-        if (voucher.UserRules != null && voucher.UserRules.Any())
-        {
-            var isNewCustomer = !await _context.Orders.AnyAsync(o => o.CustomerId == customerId);
-            var matchesUserRule = false;
-
-            foreach (var userRule in voucher.UserRules)
+            // Determine the reference time for validation. If booking context is provided in the request,
+            // use that; otherwise fall back to current UTC time.
+            var referenceDateTime = DateTime.UtcNow;
+            if (request.BookingDate.HasValue)
             {
-                // Check specific customer IDs first (highest priority)
-                if (userRule.SpecificCustomerIds != null && userRule.SpecificCustomerIds.Any())
+                // Build a DateTime from BookingDate and optional start time if present
+                var bookingDate = request.BookingDate.Value.Date;
+                if (request.BookingStartTime.HasValue)
                 {
-                    if (userRule.SpecificCustomerIds.Contains(customerId))
-                    {
-                        matchesUserRule = true;
-                        break;
-                    }
-                    continue; // Don't check other rules if SpecificCustomerIds is set
-                }
-
-                // Check membership
-                if (userRule.MembershipId.HasValue)
-                {
-                    var hasActiveMembership = await _context.UserMemberships.AnyAsync(um =>
-                        um.CustomerId == customerId
-                        && um.MembershipId == userRule.MembershipId.Value
-                        && um.IsActive
+                    var st = request.BookingStartTime.Value;
+                    referenceDateTime = new DateTime(
+                        bookingDate.Year,
+                        bookingDate.Month,
+                        bookingDate.Day,
+                        st.Hour,
+                        st.Minute,
+                        st.Second,
+                        DateTimeKind.Utc
                     );
-                    if (hasActiveMembership)
-                    {
-                        matchesUserRule = true;
-                        break;
-                    }
-                    continue;
                 }
-
-                // Check new customer
-                if (userRule.IsNewCustomer.HasValue)
+                else
                 {
-                    if (userRule.IsNewCustomer.Value == isNewCustomer)
-                    {
-                        matchesUserRule = true;
-                        break;
-                    }
-                    continue;
+                    referenceDateTime = bookingDate;
                 }
-
-                // If no specific rule, consider it as matching (voucher available to all)
-                matchesUserRule = true;
-                break;
             }
 
-            if (!matchesUserRule)
+            // Check date range against referenceDateTime
+            if (voucher.StartAt > referenceDateTime)
             {
-                // Build detailed error message based on user rules
-                var errorDetails = new List<string>();
-                foreach (var userRule in voucher.UserRules)
+                await transaction.RollbackAsync();
+                return new ValidateVoucherResponse
                 {
-                    if (userRule.SpecificCustomerIds != null && userRule.SpecificCustomerIds.Any())
-                    {
-                        errorDetails.Add("chỉ dành cho khách hàng được chỉ định");
-                    }
-                    else if (userRule.MembershipId.HasValue)
-                    {
-                        var membership = await _context.Memberships.FindAsync(
-                            userRule.MembershipId.Value
-                        );
-                        errorDetails.Add(
-                            $"yêu cầu gói thành viên {membership?.Name ?? "đặc biệt"}"
-                        );
-                    }
-                    else if (userRule.IsNewCustomer.HasValue)
-                    {
-                        errorDetails.Add(
-                            userRule.IsNewCustomer.Value
-                                ? "chỉ dành cho khách hàng mới"
-                                : "chỉ dành cho khách hàng cũ"
-                        );
-                    }
-                }
-
-                var errorMessage = errorDetails.Any()
-                    ? $"Voucher {string.Join(" hoặc ", errorDetails)}"
-                    : "Bạn không đủ điều kiện sử dụng voucher này";
-
-                return new ValidateVoucherResponse { IsValid = false, ErrorMessage = errorMessage };
+                    IsValid = false,
+                    ErrorMessage =
+                        $"Voucher chưa đến thời gian sử dụng. Có hiệu lực từ {voucher.StartAt:dd/MM/yyyy HH:mm}",
+                };
             }
-        }
 
-        // Calculate discount amount
-        decimal discountAmount = 0;
+            if (voucher.EndAt < referenceDateTime)
+            {
+                await transaction.RollbackAsync();
+                return new ValidateVoucherResponse
+                {
+                    IsValid = false,
+                    ErrorMessage =
+                        $"Voucher đã hết hạn sử dụng vào {voucher.EndAt:dd/MM/yyyy HH:mm}",
+                };
+            }
 
-        if (voucher.DiscountType == "percentage" && voucher.DiscountPercentage.HasValue)
-        {
-            // Percentage discount
-            discountAmount = request.OrderTotalAmount * voucher.DiscountPercentage.Value / 100;
+            // Check total usage limit
+            if (voucher.UsageLimitTotal > 0 && voucher.UsedCount >= voucher.UsageLimitTotal)
+            {
+                await transaction.RollbackAsync();
+                return new ValidateVoucherResponse
+                {
+                    IsValid = false,
+                    ErrorMessage =
+                        $"Voucher đã hết lượt sử dụng ({voucher.UsedCount}/{voucher.UsageLimitTotal})",
+                };
+            }
 
-            // Apply max discount if specified
+            // Check per-user usage limit
+            var userUsageCount = await _context.VoucherUsages.CountAsync(vu =>
+                vu.VoucherId == voucher.Id && vu.CustomerId == customerId
+            );
+
+            if (voucher.UsageLimitPerUser > 0 && userUsageCount >= voucher.UsageLimitPerUser)
+            {
+                await transaction.RollbackAsync();
+                return new ValidateVoucherResponse
+                {
+                    IsValid = false,
+                    ErrorMessage =
+                        $"Bạn đã sử dụng hết lượt voucher này ({userUsageCount}/{voucher.UsageLimitPerUser})",
+                };
+            }
+
+            // Check minimum order value
             if (
-                voucher.MaxDiscountValue.HasValue
-                && discountAmount > voucher.MaxDiscountValue.Value
+                voucher.MinOrderValue.HasValue
+                && request.OrderTotalAmount < voucher.MinOrderValue.Value
             )
             {
-                discountAmount = voucher.MaxDiscountValue.Value;
+                await transaction.RollbackAsync();
+                return new ValidateVoucherResponse
+                {
+                    IsValid = false,
+                    ErrorMessage =
+                        $"Đơn hàng phải có giá trị tối thiểu {voucher.MinOrderValue.Value:N0} VNĐ",
+                };
             }
-        }
-        else if (voucher.DiscountType == "fixed")
-        {
-            // Fixed amount discount
-            discountAmount = voucher.DiscountValue;
 
-            // Don't exceed order total
-            if (discountAmount > request.OrderTotalAmount)
+            // Check time rules - use booking context if provided, otherwise current UTC
+            var currentDate = DateOnly.FromDateTime(referenceDateTime);
+            var currentTime = TimeOnly.FromDateTime(referenceDateTime);
+            var currentDayOfWeek = referenceDateTime.DayOfWeek;
+
+            if (voucher.TimeRules != null && voucher.TimeRules.Any())
             {
-                discountAmount = request.OrderTotalAmount;
+                var matchesTimeRule = false;
+                foreach (var timeRule in voucher.TimeRules)
+                {
+                    if (timeRule.SpecificDate.HasValue)
+                    {
+                        var specificDate = DateOnly.FromDateTime(timeRule.SpecificDate.Value);
+                        if (currentDate == specificDate)
+                        {
+                            if (timeRule.StartTime.HasValue && timeRule.EndTime.HasValue)
+                            {
+                                var ts = timeRule.StartTime.Value;
+                                var te = timeRule.EndTime.Value;
+                                var startTime = new TimeOnly(ts.Hours, ts.Minutes, ts.Seconds);
+                                var endTime = new TimeOnly(te.Hours, te.Minutes, te.Seconds);
+                                if (currentTime >= startTime && currentTime <= endTime)
+                                {
+                                    matchesTimeRule = true;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                matchesTimeRule = true;
+                                break;
+                            }
+                        }
+                    }
+                    else if (timeRule.DayOfWeek.HasValue)
+                    {
+                        if (currentDayOfWeek == timeRule.DayOfWeek.Value)
+                        {
+                            if (timeRule.StartTime.HasValue && timeRule.EndTime.HasValue)
+                            {
+                                var ts = timeRule.StartTime.Value;
+                                var te = timeRule.EndTime.Value;
+                                var startTime = new TimeOnly(ts.Hours, ts.Minutes, ts.Seconds);
+                                var endTime = new TimeOnly(te.Hours, te.Minutes, te.Seconds);
+                                if (currentTime >= startTime && currentTime <= endTime)
+                                {
+                                    matchesTimeRule = true;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                matchesTimeRule = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!matchesTimeRule)
+                {
+                    await transaction.RollbackAsync();
+                    return new ValidateVoucherResponse
+                    {
+                        IsValid = false,
+                        ErrorMessage = "Voucher không khả dụng tại thời điểm này",
+                    };
+                }
             }
+
+            // Check user rules
+            var customer = await _context.Customers.FindAsync(customerId);
+            if (customer == null)
+            {
+                await transaction.RollbackAsync();
+                return new ValidateVoucherResponse
+                {
+                    IsValid = false,
+                    ErrorMessage = "Không tìm thấy thông tin khách hàng",
+                };
+            }
+
+            if (voucher.UserRules != null && voucher.UserRules.Any())
+            {
+                var isNewCustomer = !await _context.Orders.AnyAsync(o =>
+                    o.CustomerId == customerId
+                );
+                var matchesUserRule = false;
+
+                foreach (var userRule in voucher.UserRules)
+                {
+                    // Check specific customer IDs first (highest priority)
+                    if (userRule.SpecificCustomerIds != null && userRule.SpecificCustomerIds.Any())
+                    {
+                        if (userRule.SpecificCustomerIds.Contains(customerId))
+                        {
+                            matchesUserRule = true;
+                            break;
+                        }
+                        continue; // Don't check other rules if SpecificCustomerIds is set
+                    }
+
+                    // Check membership
+                    if (userRule.MembershipId.HasValue)
+                    {
+                        var hasActiveMembership = await _context.UserMemberships.AnyAsync(um =>
+                            um.CustomerId == customerId
+                            && um.MembershipId == userRule.MembershipId.Value
+                            && um.IsActive
+                        );
+                        if (hasActiveMembership)
+                        {
+                            matchesUserRule = true;
+                            break;
+                        }
+                        continue;
+                    }
+
+                    // Check new customer
+                    if (userRule.IsNewCustomer.HasValue)
+                    {
+                        if (userRule.IsNewCustomer.Value == isNewCustomer)
+                        {
+                            matchesUserRule = true;
+                            break;
+                        }
+                        continue;
+                    }
+
+                    // If no specific rule, consider it as matching (voucher available to all)
+                    matchesUserRule = true;
+                    break;
+                }
+
+                if (!matchesUserRule)
+                {
+                    // Build detailed error message based on user rules
+                    var errorDetails = new List<string>();
+                    foreach (var userRule in voucher.UserRules)
+                    {
+                        if (
+                            userRule.SpecificCustomerIds != null
+                            && userRule.SpecificCustomerIds.Any()
+                        )
+                        {
+                            errorDetails.Add("chỉ dành cho khách hàng được chỉ định");
+                        }
+                        else if (userRule.MembershipId.HasValue)
+                        {
+                            var membership = await _context.Memberships.FindAsync(
+                                userRule.MembershipId.Value
+                            );
+                            errorDetails.Add(
+                                $"yêu cầu gói thành viên {membership?.Name ?? "đặc biệt"}"
+                            );
+                        }
+                        else if (userRule.IsNewCustomer.HasValue)
+                        {
+                            errorDetails.Add(
+                                userRule.IsNewCustomer.Value
+                                    ? "chỉ dành cho khách hàng mới"
+                                    : "chỉ dành cho khách hàng cũ"
+                            );
+                        }
+                    }
+
+                    var errorMessage = errorDetails.Any()
+                        ? $"Voucher {string.Join(" hoặc ", errorDetails)}"
+                        : "Bạn không đủ điều kiện sử dụng voucher này";
+
+                    await transaction.RollbackAsync();
+                    return new ValidateVoucherResponse
+                    {
+                        IsValid = false,
+                        ErrorMessage = errorMessage,
+                    };
+                }
+            }
+
+            // Calculate discount amount
+            decimal discountAmount = 0;
+
+            if (voucher.DiscountType == "percentage" && voucher.DiscountPercentage.HasValue)
+            {
+                // Percentage discount
+                discountAmount = request.OrderTotalAmount * voucher.DiscountPercentage.Value / 100;
+
+                // Apply max discount if specified
+                if (
+                    voucher.MaxDiscountValue.HasValue
+                    && discountAmount > voucher.MaxDiscountValue.Value
+                )
+                {
+                    discountAmount = voucher.MaxDiscountValue.Value;
+                }
+            }
+            else if (voucher.DiscountType == "fixed")
+            {
+                // Fixed amount discount
+                discountAmount = voucher.DiscountValue;
+
+                // Don't exceed order total
+                if (discountAmount > request.OrderTotalAmount)
+                {
+                    discountAmount = request.OrderTotalAmount;
+                }
+            }
+
+            var finalAmount = Math.Max(0, request.OrderTotalAmount - discountAmount);
+
+            await transaction.CommitAsync();
+            return new ValidateVoucherResponse
+            {
+                IsValid = true,
+                DiscountAmount = discountAmount,
+                FinalAmount = finalAmount,
+                Voucher = _mapper.Map<VoucherResponse>(voucher),
+            };
         }
-
-        var finalAmount = Math.Max(0, request.OrderTotalAmount - discountAmount);
-
-        return new ValidateVoucherResponse
+        catch
         {
-            IsValid = true,
-            DiscountAmount = discountAmount,
-            FinalAmount = finalAmount,
-            Voucher = _mapper.Map<VoucherResponse>(voucher),
-        };
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task RecordVoucherUsageAsync(

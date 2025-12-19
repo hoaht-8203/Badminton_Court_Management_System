@@ -64,6 +64,10 @@ export class NotificationsApi extends runtime.BaseAPI implements NotificationsAp
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Notifications/list`;
 

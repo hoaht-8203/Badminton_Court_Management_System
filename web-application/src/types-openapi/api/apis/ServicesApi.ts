@@ -252,6 +252,10 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Services/booking-occurrence/add-service`;
 
@@ -287,6 +291,10 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Services/booking-occurrence/{bookingCourtOccurrenceId}/services`;
         urlPath = urlPath.replace(`{${"bookingCourtOccurrenceId"}}`, encodeURIComponent(String(requestParameters['bookingCourtOccurrenceId'])));
@@ -316,6 +324,10 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Services/booking-occurrence/end-service`;
@@ -347,6 +359,10 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Services/booking-occurrence/remove-service`;
 
@@ -376,6 +392,10 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Services/change-status`;
@@ -407,6 +427,10 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Services/create`;
 
@@ -436,6 +460,10 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Services/delete`;
@@ -468,6 +496,10 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Services/detail`;
@@ -508,6 +540,10 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Services/list`;
 
@@ -536,6 +572,10 @@ export class ServicesApi extends runtime.BaseAPI implements ServicesApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Services/update`;

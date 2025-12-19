@@ -4,13 +4,14 @@ import {
   useDetailBookingCourtOccurrence,
   useCheckInBookingCourtOccurrence,
   useNoShowBookingCourtOccurrence,
+  useCancelBookingCourtOccurrence,
 } from "@/hooks/useBookingCourtOccurrence";
 import { ApiError } from "@/lib/axios";
 import { DetailBookingCourtOccurrenceResponse, PaymentDto } from "@/types-openapi/api";
 import { BookingCourtOccurrenceStatus } from "@/types/commons";
 import { ExclamationCircleTwoTone, QrcodeOutlined } from "@ant-design/icons";
 import { Button, Descriptions, Divider, Drawer, Input, message, Modal, Tabs, Tag } from "antd";
-import { CircleOffIcon, DoorClosedIcon, DoorOpenIcon, EyeIcon } from "lucide-react";
+import { CircleOffIcon, DoorClosedIcon, DoorOpenIcon, EyeIcon, XCircleIcon } from "lucide-react";
 import { useState } from "react";
 import BookingDetailDrawer from "./booking-detail-drawer";
 import QrPaymentDrawer from "./qr-payment-drawer";
@@ -78,6 +79,7 @@ export default function BookingOccurrenceDetailDrawer({ occurrenceId, open, onCl
 
   const checkInMutation = useCheckInBookingCourtOccurrence();
   const noShowMutation = useNoShowBookingCourtOccurrence();
+  const cancelOccurrenceMutation = useCancelBookingCourtOccurrence();
 
   const handleCheckIn = async () => {
     if (!occurrenceId) return;
@@ -136,6 +138,38 @@ export default function BookingOccurrenceDetailDrawer({ occurrenceId, open, onCl
     }
   };
 
+  const handleCancelOccurrence = async () => {
+    if (!occurrenceId) return;
+    let noteValue = "";
+
+    confirm({
+      title: "Xác nhận hủy lịch sân",
+      icon: <ExclamationCircleTwoTone />,
+      okText: "Hủy lịch",
+      cancelText: "Bỏ qua",
+      okButtonProps: { danger: true },
+      content: (
+        <div>
+          <p>Bạn có chắc chắn muốn hủy lịch sân này?</p>
+          <TextArea rows={3} placeholder="Ghi chú (nếu có)..." onChange={(e) => (noteValue = e.target.value)} />
+        </div>
+      ),
+      async onOk() {
+        await cancelOccurrenceMutation.mutateAsync(
+          { id: occurrenceId, note: noteValue },
+          {
+            onError: (error: ApiError) => {
+              message.error(error.message || "Hủy lịch sân thất bại");
+            },
+            onSuccess: () => {
+              message.success("Hủy lịch sân thành công");
+            },
+          },
+        );
+      },
+    });
+  };
+
   // Compute enable/disable by current time vs occurrence window for TODAY
   const now = new Date();
   const occursToday = (() => {
@@ -181,6 +215,13 @@ export default function BookingOccurrenceDetailDrawer({ occurrenceId, open, onCl
       occurrenceDetailData.status !== BookingCourtOccurrenceStatus.Cancelled &&
       occurrenceDetailData.status !== BookingCourtOccurrenceStatus.Completed &&
       occurrenceDetailData.status !== BookingCourtOccurrenceStatus.NoShow,
+  );
+
+  const canCancelOccurrence = Boolean(
+    occurrenceDetailData &&
+      occurrenceDetailData.status !== BookingCourtOccurrenceStatus.Cancelled &&
+      occurrenceDetailData.status !== BookingCourtOccurrenceStatus.Completed &&
+      occurrenceDetailData.status !== BookingCourtOccurrenceStatus.CheckedIn,
   );
 
   const handleCallOrderOrCheckout = async () => {
@@ -248,6 +289,16 @@ export default function BookingOccurrenceDetailDrawer({ occurrenceId, open, onCl
                         disabled={!canNoShow}
                       >
                         Không đến
+                      </Button>
+                      <Button
+                        icon={<XCircleIcon className="h-4 w-4" />}
+                        style={{ width: "185px", height: "40px" }}
+                        onClick={handleCancelOccurrence}
+                        loading={cancelOccurrenceMutation.isPending}
+                        danger
+                        disabled={!canCancelOccurrence}
+                      >
+                        Hủy lịch
                       </Button>
                     </div>
                     <Descriptions

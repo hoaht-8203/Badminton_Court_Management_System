@@ -23,6 +23,7 @@ export * from './BookingServiceDtoApiResponse';
 export * from './BookingServiceDtoListApiResponse';
 export * from './BooleanApiResponse';
 export * from './Branch';
+export * from './CancelBookingCourtOccurrenceRequest';
 export * from './CancelBookingCourtRequest';
 export * from './CancelReturnGoodsRequest';
 export * from './CancellationToken';

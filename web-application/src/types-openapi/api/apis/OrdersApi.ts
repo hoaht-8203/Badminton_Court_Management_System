@@ -194,6 +194,10 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Orders/booking/{bookingId}`;
         urlPath = urlPath.replace(`{${"bookingId"}}`, encodeURIComponent(String(requestParameters['bookingId'])));
@@ -229,6 +233,10 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Orders/checkout/{orderId}`;
         urlPath = urlPath.replace(`{${"orderId"}}`, encodeURIComponent(String(requestParameters['orderId'])));
@@ -258,6 +266,10 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Orders/checkout`;
@@ -307,6 +319,10 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Orders/list`;
 
@@ -340,6 +356,10 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Orders/{orderId}/extend-payment`;
@@ -376,6 +396,10 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Orders/{orderId}`;
         urlPath = urlPath.replace(`{${"orderId"}}`, encodeURIComponent(String(requestParameters['orderId'])));
@@ -411,6 +435,10 @@ export class OrdersApi extends runtime.BaseAPI implements OrdersApiInterface {
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Orders/pending-payments`;

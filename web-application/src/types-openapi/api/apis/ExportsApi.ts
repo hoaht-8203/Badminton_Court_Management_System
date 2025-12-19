@@ -48,6 +48,10 @@ export class ExportsApi extends runtime.BaseAPI implements ExportsApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Exports/booking-history`;
 

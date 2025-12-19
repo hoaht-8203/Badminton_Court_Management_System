@@ -1,4 +1,5 @@
 import {
+  CancelBookingCourtOccurrenceRequest,
   CancelBookingCourtRequest,
   CheckInBookingCourtRequest,
   CheckOutBookingCourtRequest,
@@ -50,6 +51,11 @@ export const courtScheduleService = {
 
   async cancelBooking(payload: CancelBookingCourtRequest): Promise<ApiResponse<boolean>> {
     const response = await axiosInstance.post("api/BookingCourts/cancel", payload);
+    return response.data;
+  },
+
+  async cancelBookingOccurrence(payload: CancelBookingCourtOccurrenceRequest): Promise<ApiResponse<boolean>> {
+    const response = await axiosInstance.post("api/BookingCourts/occurrence/cancel", payload);
     return response.data;
   },
 

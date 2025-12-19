@@ -166,6 +166,10 @@ export class MembershipsApi extends runtime.BaseAPI implements MembershipsApiInt
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Memberships/create`;
 
@@ -205,6 +209,10 @@ export class MembershipsApi extends runtime.BaseAPI implements MembershipsApiInt
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Memberships/delete`;
 
@@ -242,6 +250,10 @@ export class MembershipsApi extends runtime.BaseAPI implements MembershipsApiInt
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Memberships/detail`;
@@ -282,6 +294,10 @@ export class MembershipsApi extends runtime.BaseAPI implements MembershipsApiInt
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Memberships/list`;
 
@@ -310,6 +326,10 @@ export class MembershipsApi extends runtime.BaseAPI implements MembershipsApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Memberships/update`;
@@ -340,6 +360,10 @@ export class MembershipsApi extends runtime.BaseAPI implements MembershipsApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Memberships/update-status`;

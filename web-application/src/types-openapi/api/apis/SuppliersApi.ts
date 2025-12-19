@@ -168,6 +168,10 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Suppliers/change-status`;
 
@@ -197,6 +201,10 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Suppliers/create`;
@@ -237,6 +245,10 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Suppliers/delete`;
 
@@ -274,6 +286,10 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Suppliers/detail`;
@@ -318,6 +334,10 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Suppliers/list`;
 
@@ -346,6 +366,10 @@ export class SuppliersApi extends runtime.BaseAPI implements SuppliersApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Suppliers/update`;

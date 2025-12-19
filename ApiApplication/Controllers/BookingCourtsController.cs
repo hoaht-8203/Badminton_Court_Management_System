@@ -290,6 +290,24 @@ public class BookingCourtsController(
         );
     }
 
+    /// <summary>
+    /// Cancel booking occurrence - Authenticated users (customers cancel their own, staff cancel any)
+    /// </summary>
+    [Authorize]
+    [HttpPost("occurrence/cancel")]
+    public async Task<ActionResult<ApiResponse<bool>>> CancelOccurrence(
+        [FromBody] CancelBookingCourtOccurrenceRequest request
+    )
+    {
+        var ok = await _service.CancelBookingCourtOccurrenceAsync(request);
+        return Ok(
+            ApiResponse<bool>.SuccessResponse(
+                ok,
+                ok ? "Huỷ lịch sân thành công" : "Huỷ lịch sân thất bại"
+            )
+        );
+    }
+
     [HttpPost("checkin")]
     public async Task<ActionResult<ApiResponse<bool>>> CheckIn(
         [FromBody] CheckInBookingCourtRequest request

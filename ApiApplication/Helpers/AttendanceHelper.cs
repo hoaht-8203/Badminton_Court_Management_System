@@ -40,8 +40,8 @@ public static class AttendanceHelper
 
             // Check if this attendance record overlaps the shift interval
             var overlaps =
-                recordCheckIn <= shiftEndDt
-                && (recordCheckOut == null || recordCheckOut >= shiftStartDt);
+                recordCheckIn < shiftEndDt
+                && (recordCheckOut == null || recordCheckOut > shiftStartDt);
             if (overlaps)
             {
                 // If there's no checkout, it's a missing checkout

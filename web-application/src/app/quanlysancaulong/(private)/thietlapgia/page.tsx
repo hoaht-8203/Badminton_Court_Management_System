@@ -61,6 +61,7 @@ import React from "react";
 import { useDetailProduct } from "@/hooks/useProducts";
 import { axiosInstance as axios } from "@/lib/axios";
 import { useListCategories } from "@/hooks/useCategories";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Utility function to format currency
 const formatCurrency = (value: number | undefined | null): string => {
@@ -469,6 +470,7 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
     }
   >();
   const isCreate = !priceId;
+  const queryClient = useQueryClient();
 
   const { data } = useDetailPrice({ id: priceId || 0 } as DetailPriceTableRequest, !!priceId);
   const createMutation = useCreatePrice();
@@ -543,7 +545,15 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
       };
 
       createMutation.mutate(payload, {
-        onSuccess: () => {
+        onSuccess: async () => {
+          // Invalidate tất cả các queries liên quan để đảm bảo data được refresh
+          queryClient.invalidateQueries({ queryKey: ["price-tables"] });
+          queryClient.invalidateQueries({ queryKey: ["price-table"] });
+          queryClient.invalidateQueries({ queryKey: ["price-table-products"] });
+          
+          // Refetch ngay lập tức
+          await queryClient.refetchQueries({ queryKey: ["price-tables"] });
+
           message.success("Tạo bảng giá thành công");
           setProductsRowsState({});
           setSelectedProductIds([]);
@@ -584,6 +594,14 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
             };
 
             await axios.post("/api/Prices/set-products", productsPayload);
+
+            // Invalidate tất cả các queries liên quan để đảm bảo data được refresh
+            queryClient.invalidateQueries({ queryKey: ["price-tables"] });
+            queryClient.invalidateQueries({ queryKey: ["price-table"] });
+            queryClient.invalidateQueries({ queryKey: ["price-table-products"] });
+            
+            // Refetch ngay lập tức
+            await queryClient.refetchQueries({ queryKey: ["price-tables"] });
 
             message.success("Cập nhật bảng giá và sản phẩm thành công");
             setProductsRowsState({});

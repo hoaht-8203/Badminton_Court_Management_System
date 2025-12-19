@@ -79,12 +79,13 @@ namespace FaceRecognation
                 var result = await _authService.LoginAsync(email, password);
                 if (result.Success)
                 {
-                    // Require Admin role. AuthService stores the raw "data" JSON in CurrentUserJson,
-                    // and exposes HasRole to check roles safely.
+                    // Cho phép Admin hoặc Chủ sân đăng nhập
                     bool isAdmin = _authService.HasRole("Admin");
-                    if (!isAdmin)
+                    bool isOwner = _authService.HasRole("BranchAdministrator");
+                    if (!isAdmin && !isOwner)
                     {
-                        StatusText.Text = "Bạn không có quyền truy cập. Yêu cầu role 'Admin'.";
+                        StatusText.Text =
+                            "Bạn không có quyền truy cập. Yêu cầu role 'Admin' hoặc 'Chủ sân'.";
                         LoginButton.IsEnabled = true;
                         return;
                     }

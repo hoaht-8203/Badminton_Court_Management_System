@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:FaceRecognation"
         mc:Ignorable="d"
     Title="Attendance - Webcam"
-    WindowState="Normal"
+    WindowState="Maximized"
     Topmost="False">
     <Grid>
         <Grid.RowDefinitions>

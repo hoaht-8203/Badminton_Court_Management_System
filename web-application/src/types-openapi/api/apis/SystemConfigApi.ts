@@ -112,6 +112,10 @@ export class SystemConfigApi extends runtime.BaseAPI implements SystemConfigApiI
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/SystemConfig/group/{group}`;
         urlPath = urlPath.replace(`{${"group"}}`, encodeURIComponent(String(requestParameters['group'])));
@@ -146,6 +150,10 @@ export class SystemConfigApi extends runtime.BaseAPI implements SystemConfigApiI
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/SystemConfig/{key}`;
@@ -183,6 +191,10 @@ export class SystemConfigApi extends runtime.BaseAPI implements SystemConfigApiI
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/SystemConfig/{key}`;

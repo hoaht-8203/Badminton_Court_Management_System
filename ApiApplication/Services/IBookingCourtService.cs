@@ -20,6 +20,7 @@ public interface IBookingCourtService
     Task<bool> CancelBookingCourtAsync(CancelBookingCourtRequest request);
 
     // Occurrence-level operations
+    Task<bool> CancelBookingCourtOccurrenceAsync(CancelBookingCourtOccurrenceRequest request);
     Task<bool> CheckInOccurrenceAsync(CheckInBookingCourtRequest request);
     Task<bool> CheckOutOccurrenceAsync(CheckOutBookingCourtRequest request);
     Task<bool> MarkOccurrenceNoShowAsync(NoShowBookingCourtRequest request);

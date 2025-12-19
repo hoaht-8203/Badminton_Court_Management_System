@@ -25,9 +25,11 @@ public class CashflowMappingProfile : Profile
                                         DateTimeKind.Utc
                                     )
                             )
-                            : (DateTime?)null
+                            : DateTime.UtcNow
                     )
-            );
+            )
+            .ForMember(d => d.CashflowType, opt => opt.Ignore())
+            .ForMember(d => d.ReferenceNumber, opt => opt.Ignore());
 
         CreateMap<UpdateCashflowRequest, Cashflow>()
             .ForMember(

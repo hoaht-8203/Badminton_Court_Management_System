@@ -1,6 +1,7 @@
 import { ApiError } from "@/lib/axios";
 import { courtScheduleService } from "@/services/courtScheduleService";
 import {
+  CancelBookingCourtOccurrenceRequest,
   CheckInBookingCourtRequest,
   CheckOutBookingCourtRequest,
   DetailBookingCourtOccurrenceRequest,
@@ -62,6 +63,18 @@ export function useNoShowBookingCourtOccurrence() {
 
   return useMutation<ApiResponse<boolean>, ApiError, NoShowBookingCourtRequest>({
     mutationFn: (params) => courtScheduleService.noShowBookingOccurrence(params),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.detail(variables.id) });
+    },
+  });
+}
+
+export function useCancelBookingCourtOccurrence() {
+  const queryClient = useQueryClient();
+
+  return useMutation<ApiResponse<boolean>, ApiError, CancelBookingCourtOccurrenceRequest>({
+    mutationFn: (params) => courtScheduleService.cancelBookingOccurrence(params),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.lists() });
       queryClient.invalidateQueries({ queryKey: bookingCourtOccurrenceKeys.detail(variables.id) });

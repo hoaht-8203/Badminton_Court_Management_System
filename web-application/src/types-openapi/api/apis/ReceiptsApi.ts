@@ -189,6 +189,10 @@ export class ReceiptsApi extends runtime.BaseAPI implements ReceiptsApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Receipts/detail`;
 
@@ -222,6 +226,10 @@ export class ReceiptsApi extends runtime.BaseAPI implements ReceiptsApiInterface
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Receipts/{id}/cancel`;
@@ -257,6 +265,10 @@ export class ReceiptsApi extends runtime.BaseAPI implements ReceiptsApiInterface
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Receipts/{id}/complete`;
@@ -295,6 +307,10 @@ export class ReceiptsApi extends runtime.BaseAPI implements ReceiptsApiInterface
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Receipts/{id}/note`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
@@ -332,6 +348,10 @@ export class ReceiptsApi extends runtime.BaseAPI implements ReceiptsApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Receipts/{id}`;
@@ -374,6 +394,10 @@ export class ReceiptsApi extends runtime.BaseAPI implements ReceiptsApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Receipts/list`;
 
@@ -402,6 +426,10 @@ export class ReceiptsApi extends runtime.BaseAPI implements ReceiptsApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Receipts`;

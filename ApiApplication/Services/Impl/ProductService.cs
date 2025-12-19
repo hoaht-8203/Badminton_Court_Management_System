@@ -694,8 +694,12 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
 
         Console.WriteLine($"[DEBUG] Final active price table: {currentActivePriceTable?.Id}");
 
-        // Bước 4: Lấy tất cả sản phẩm và áp dụng giá
-        var products = await _context.Products.Include(p => p.Category).ToListAsync();
+        // Bước 4: Lấy tất cả sản phẩm đang kinh doanh và áp dụng giá
+        // Chỉ lấy sản phẩm có IsActive = true (đang kinh doanh)
+        var products = await _context.Products
+            .Include(p => p.Category)
+            .Where(p => p.IsActive)
+            .ToListAsync();
         var result = new List<ListProductResponse>();
 
         foreach (var product in products)

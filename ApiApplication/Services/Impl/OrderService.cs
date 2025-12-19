@@ -132,6 +132,24 @@ public class OrderService(
             );
         }
 
+        // Kiểm tra stock của các sản phẩm trong order
+        if (occurrence.BookingOrderItems != null && occurrence.BookingOrderItems.Any())
+        {
+            foreach (var orderItem in occurrence.BookingOrderItems)
+            {
+                if (orderItem.Product != null && orderItem.Product.ManageInventory)
+                {
+                    if (orderItem.Product.Stock < orderItem.Quantity)
+                    {
+                        throw new ApiException(
+                            $"Sản phẩm '{orderItem.Product.Name}' không đủ tồn kho. Tồn kho hiện tại: {orderItem.Product.Stock}, số lượng yêu cầu: {orderItem.Quantity}",
+                            HttpStatusCode.BadRequest
+                        );
+                    }
+                }
+            }
+        }
+
         // Tính toán thông tin thanh toán sân
         var courtTotalAmount = await CalculateBookingAmountForOccurrenceAsync(occurrence);
 

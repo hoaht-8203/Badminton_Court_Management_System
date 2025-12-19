@@ -67,6 +67,7 @@ models/BookingServiceDtoApiResponse.ts
 models/BookingServiceDtoListApiResponse.ts
 models/BooleanApiResponse.ts
 models/Branch.ts
+models/CancelBookingCourtOccurrenceRequest.ts
 models/CancelBookingCourtRequest.ts
 models/CancelReturnGoodsRequest.ts
 models/CancellationToken.ts

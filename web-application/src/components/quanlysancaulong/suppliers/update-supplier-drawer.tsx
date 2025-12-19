@@ -50,9 +50,24 @@ const UpdateSupplierDrawer = ({ open, onClose, supplierId }: UpdateSupplierDrawe
         onClose();
       },
       onError: (error: ApiError) => {
-        for (const key in error.errors) {
-          message.error(error.errors[key]);
-          form.setFields([{ name: key, errors: [error.errors[key]] }]);
+        // Hiển thị message lỗi chính
+        message.error(error.message || "Có lỗi xảy ra khi cập nhật nhà cung cấp");
+
+        // Set lỗi vào field tương ứng nếu có
+        if (error.message?.toLowerCase().includes("email")) {
+          form.setFields([{ name: "email", errors: [error.message] }]);
+        } else if (error.message?.toLowerCase().includes("số điện thoại") || error.message?.toLowerCase().includes("phone")) {
+          form.setFields([{ name: "phone", errors: [error.message] }]);
+        }
+
+        // Xử lý lỗi từ error.errors nếu có
+        if (error.errors) {
+          for (const key in error.errors) {
+            const fieldName = key.toLowerCase();
+            if (fieldName === "email" || fieldName === "phone" || fieldName === "name") {
+              form.setFields([{ name: fieldName, errors: [error.errors[key]] }]);
+            }
+          }
         }
       },
     });

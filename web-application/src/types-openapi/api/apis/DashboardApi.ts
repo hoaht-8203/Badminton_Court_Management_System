@@ -202,6 +202,10 @@ export class DashboardApi extends runtime.BaseAPI implements DashboardApiInterfa
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Dashboard/bookings/heatmap`;
 
@@ -240,6 +244,10 @@ export class DashboardApi extends runtime.BaseAPI implements DashboardApiInterfa
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Dashboard/monthly-customer-types`;
@@ -284,6 +292,10 @@ export class DashboardApi extends runtime.BaseAPI implements DashboardApiInterfa
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Dashboard/recent-transactions`;
 
@@ -327,6 +339,10 @@ export class DashboardApi extends runtime.BaseAPI implements DashboardApiInterfa
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Dashboard/revenue`;
 
@@ -365,6 +381,10 @@ export class DashboardApi extends runtime.BaseAPI implements DashboardApiInterfa
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Dashboard/summary`;
@@ -408,6 +428,10 @@ export class DashboardApi extends runtime.BaseAPI implements DashboardApiInterfa
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Dashboard/top-courts`;

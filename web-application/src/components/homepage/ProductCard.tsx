@@ -40,7 +40,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 />
                 {isOutOfStock && (
                   <div className="absolute inset-0 z-10 flex items-center justify-center">
-                    <img
+                    <Image
                       src="https://png.pngtree.com/png-vector/20250506/ourmid/pngtree-sold-out-label-stamp-in-red-with-rectangular-border-for-limited-vector-png-image_16099397.png"
                       alt="Sold Out"
                       width={140}

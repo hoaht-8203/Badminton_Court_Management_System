@@ -62,6 +62,27 @@ public class BookingCourtService(
             throw new ApiException("Sân này đã bị xóa.", HttpStatusCode.BadRequest);
         }
 
+        // Validate customer status
+        var customer =
+            await _context.Customers.FirstOrDefaultAsync(c => c.Id == request.CustomerId)
+            ?? throw new ApiException("Khách hàng không tồn tại.", HttpStatusCode.BadRequest);
+
+        if (customer.Status == CustomerStatus.Inactive)
+        {
+            throw new ApiException(
+                "Khách hàng đang ở trạng thái không hoạt động, không thể đặt sân.",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        if (customer.Status == CustomerStatus.Deleted)
+        {
+            throw new ApiException(
+                "Khách hàng đã bị xóa, không thể đặt sân.",
+                HttpStatusCode.BadRequest
+            );
+        }
+
         var startDate = DateOnly.FromDateTime(request.StartDate);
         var endDate = DateOnly.FromDateTime(request.EndDate);
 
@@ -338,13 +359,7 @@ public class BookingCourtService(
 
         // Note: email sending with payment link handled in higher layer (e.g., BookingCourtsController)
 
-        // Load customer info for response
-        var customer =
-            await _context.Customers.FirstOrDefaultAsync(c => c.Id == entity.CustomerId)
-            ?? throw new ApiException(
-                "Không tìm thấy thông tin khách hàng.",
-                HttpStatusCode.InternalServerError
-            );
+        // Customer info already loaded during validation, reuse it for response
 
         // Build response with minimal data needed for UI
         var response = new CreateBookingCourtResponse
@@ -1386,9 +1401,64 @@ public class BookingCourtService(
 
     public async Task<bool> CancelBookingCourtAsync(CancelBookingCourtRequest request)
     {
+        // Find the BookingCourt by ID
+        var bookingCourt = await _context
+            .BookingCourts.Include(b => b.BookingCourtOccurrences)
+            .Include(b => b.Payments)
+            .FirstOrDefaultAsync(b => b.Id == request.Id);
+
+        if (bookingCourt == null)
+        {
+            throw new ApiException("Không tìm thấy lịch đặt sân", HttpStatusCode.BadRequest);
+        }
+
+        // If already cancelled, return success
+        if (bookingCourt.Status == BookingCourtStatus.Cancelled)
+        {
+            return true;
+        }
+
+        // Cancel the BookingCourt
+        bookingCourt.Status = BookingCourtStatus.Cancelled;
+
+        // Cancel all related BookingCourtOccurrences
+        foreach (var occurrence in bookingCourt.BookingCourtOccurrences)
+        {
+            if (occurrence.Status != BookingCourtOccurrenceStatus.Cancelled)
+            {
+                occurrence.Status = BookingCourtOccurrenceStatus.Cancelled;
+            }
+        }
+
+        // Cancel all related payments
+        foreach (var payment in bookingCourt.Payments)
+        {
+            if (
+                payment.Status == PaymentStatus.PendingPayment
+                || payment.Status == PaymentStatus.Unpaid
+            )
+            {
+                payment.Status = PaymentStatus.Cancelled;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Notify via SignalR
+        await _hub.Clients.All.SendAsync("bookingUpdated", bookingCourt.Id);
+        await _hub.Clients.All.SendAsync("paymentsCancelled", new { bookingId = bookingCourt.Id });
+
+        return true;
+    }
+
+    public async Task<bool> CancelBookingCourtOccurrenceAsync(
+        CancelBookingCourtOccurrenceRequest request
+    )
+    {
         // Find the specific occurrence
         var occurrence = await _context
             .BookingCourtOccurrences.Include(o => o.BookingCourt)
+            .Include(o => o.Payments)
             .FirstOrDefaultAsync(o => o.Id == request.Id);
 
         if (occurrence == null)
@@ -1396,24 +1466,38 @@ public class BookingCourtService(
             throw new ApiException("Không tìm thấy lịch sân", HttpStatusCode.BadRequest);
         }
 
+        // If already cancelled, return success
         if (occurrence.Status == BookingCourtOccurrenceStatus.Cancelled)
         {
             return true;
         }
 
+        // Cancel the occurrence
         occurrence.Status = BookingCourtOccurrenceStatus.Cancelled;
 
         // Cancel related payments for this occurrence
-        foreach (var p in occurrence.Payments)
+        foreach (var payment in occurrence.Payments)
         {
-            if (p.Status == PaymentStatus.PendingPayment || p.Status == PaymentStatus.Unpaid)
+            if (
+                payment.Status == PaymentStatus.PendingPayment
+                || payment.Status == PaymentStatus.Unpaid
+            )
             {
-                p.Status = PaymentStatus.Cancelled;
+                payment.Status = PaymentStatus.Cancelled;
             }
+        }
+
+        // Add note if provided
+        if (!string.IsNullOrWhiteSpace(request.Note))
+        {
+            occurrence.Note = string.IsNullOrWhiteSpace(occurrence.Note)
+                ? request.Note
+                : occurrence.Note + "\n" + request.Note;
         }
 
         await _context.SaveChangesAsync();
 
+        // Notify via SignalR
         await _hub.Clients.All.SendAsync("bookingUpdated", occurrence.BookingCourtId);
         await _hub.Clients.All.SendAsync("occurrenceCancelled", occurrence.Id);
         await _hub.Clients.All.SendAsync(
@@ -1617,6 +1701,12 @@ public class BookingCourtService(
         {
             throw new ApiException("Không tìm thấy sản phẩm", HttpStatusCode.BadRequest);
         }
+
+        if (!product.IsActive)
+        {
+            throw new ApiException("Sản phẩm này không còn hoạt động", HttpStatusCode.BadRequest);
+        }
+
         var qty = Math.Max(1, request.Quantity);
         var unit = product.SalePrice;
 
@@ -1696,6 +1786,15 @@ public class BookingCourtService(
             var product =
                 await _context.Products.FirstOrDefaultAsync(p => p.Id == request.ProductId)
                 ?? throw new ApiException("Không tìm thấy sản phẩm", HttpStatusCode.BadRequest);
+
+            if (!product.IsActive)
+            {
+                throw new ApiException(
+                    "Sản phẩm này không còn hoạt động",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
             var unit = product.SalePrice;
             var qty = Math.Max(1, request.Quantity);
             var item = new BookingOrderItem

@@ -7,6 +7,8 @@ using ApiApplication.Entities.Shared;
 using ApiApplication.Enums;
 using ApiApplication.Exceptions;
 using ApiApplication.Sessions;
+using ApiApplication.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl
@@ -17,18 +19,21 @@ namespace ApiApplication.Services.Impl
         private readonly ICurrentUser _currentUser;
         private readonly IInventoryCardService _inventoryCardService;
         private readonly ICashflowService _cashflowService;
+        private readonly IHubContext<ProductHub> _hubContext;
 
         public ReturnGoodsService(
             ApplicationDbContext context,
             ICurrentUser currentUser,
             IInventoryCardService inventoryCardService,
-            ICashflowService cashflowService
+            ICashflowService cashflowService,
+            IHubContext<ProductHub> hubContext
         )
         {
             _context = context;
             _currentUser = currentUser;
             _inventoryCardService = inventoryCardService;
             _cashflowService = cashflowService;
+            _hubContext = hubContext;
         }
 
         public async Task<List<ListReturnGoodsResponse>> ListAsync(
@@ -244,6 +249,23 @@ namespace ApiApplication.Services.Impl
                 }
 
                 await _context.SaveChangesAsync();
+
+                // Broadcast product stock update via SignalR when completing
+                if (request.Complete)
+                {
+                    var productIds = returnGoods.Items.Select(i => i.ProductId).Distinct().ToList();
+                    try
+                    {
+                        Console.WriteLine($"[SignalR] Broadcasting productStockUpdated for product IDs: {string.Join(", ", productIds)}");
+                        await _hubContext.Clients.All.SendAsync("productStockUpdated", productIds);
+                        Console.WriteLine($"[SignalR] Successfully broadcasted productStockUpdated");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to broadcast product stock update: {ex.Message}");
+                    }
+                }
+
                 return returnGoods.Id;
             }
             catch (ApiException)
@@ -344,6 +366,22 @@ namespace ApiApplication.Services.Impl
 
             await ProcessReturnGoodsAsync(returnGoods);
 
+            // Save stock changes first
+            await _context.SaveChangesAsync();
+
+            // Broadcast product stock update via SignalR
+            var productIds = returnGoods.Items.Select(i => i.ProductId).Distinct().ToList();
+            try
+            {
+                Console.WriteLine($"[SignalR] Broadcasting productStockUpdated for product IDs: {string.Join(", ", productIds)}");
+                await _hubContext.Clients.All.SendAsync("productStockUpdated", productIds);
+                Console.WriteLine($"[SignalR] Successfully broadcasted productStockUpdated");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to broadcast product stock update: {ex.Message}");
+            }
+
             // Create cashflow entry for this return goods (payment to supplier)
             try
             {
@@ -373,8 +411,6 @@ namespace ApiApplication.Services.Impl
                     $"Failed to create cashflow for return goods {returnGoods.Id}: {ex.Message}"
                 );
             }
-
-            await _context.SaveChangesAsync();
         }
 
         public async Task CancelAsync(int id, string? note = null)

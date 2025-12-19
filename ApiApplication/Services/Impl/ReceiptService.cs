@@ -4,6 +4,8 @@ using ApiApplication.Dtos.Receipt;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
 using ApiApplication.Exceptions;
+using ApiApplication.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiApplication.Services.Impl;
@@ -12,11 +14,13 @@ public class ReceiptService : IReceiptService
 {
     private readonly ApplicationDbContext _context;
     private readonly ICashflowService _cashflowService;
+    private readonly IHubContext<ProductHub> _hubContext;
 
-    public ReceiptService(ApplicationDbContext context, ICashflowService cashflowService)
+    public ReceiptService(ApplicationDbContext context, ICashflowService cashflowService, IHubContext<ProductHub> hubContext)
     {
         _context = context;
         _cashflowService = cashflowService;
+        _hubContext = hubContext;
     }
 
     public async Task<List<ListReceiptResponse>> ListAsync(
@@ -106,6 +110,21 @@ public class ReceiptService : IReceiptService
 
             // Tạo phiếu kiểm kho tự động khi nhập kho
             await CreateInventoryCheckForReceiptAsync(entity);
+
+            // Save stock changes first
+            await _context.SaveChangesAsync();
+
+            // Broadcast product stock update via SignalR
+            try
+            {
+                Console.WriteLine($"[SignalR] Broadcasting productStockUpdated for product IDs: {string.Join(", ", productIds)}");
+                await _hubContext.Clients.All.SendAsync("productStockUpdated", productIds);
+                Console.WriteLine($"[SignalR] Successfully broadcasted productStockUpdated");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to broadcast product stock update: {ex.Message}");
+            }
         }
 
         await _context.SaveChangesAsync();
@@ -241,6 +260,21 @@ public class ReceiptService : IReceiptService
                     EndingStock = p.Stock,
                 }
             );
+        }
+
+        // Save stock changes first
+        await _context.SaveChangesAsync();
+
+        // Broadcast product stock update via SignalR
+        try
+        {
+            Console.WriteLine($"[SignalR] Broadcasting productStockUpdated for product IDs: {string.Join(", ", productIds)}");
+            await _hubContext.Clients.All.SendAsync("productStockUpdated", productIds);
+            Console.WriteLine($"[SignalR] Successfully broadcasted productStockUpdated");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to broadcast product stock update: {ex.Message}");
         }
 
         // Tạo phiếu kiểm kho tự động khi hoàn thành phiếu nhập

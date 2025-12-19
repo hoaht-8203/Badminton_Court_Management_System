@@ -108,6 +108,10 @@ export class PaymentsApi extends runtime.BaseAPI implements PaymentsApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Payments/detail-payment-by-booking-id`;
 
@@ -146,6 +150,10 @@ export class PaymentsApi extends runtime.BaseAPI implements PaymentsApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Payments/detail-payment-by-id`;
 
@@ -183,6 +191,10 @@ export class PaymentsApi extends runtime.BaseAPI implements PaymentsApiInterface
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Payments/qr-by-booking-id`;

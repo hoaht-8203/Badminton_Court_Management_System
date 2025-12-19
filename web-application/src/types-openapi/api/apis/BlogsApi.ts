@@ -147,6 +147,10 @@ export class BlogsApi extends runtime.BaseAPI implements BlogsApiInterface {
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Blogs/create`;
 
@@ -176,6 +180,10 @@ export class BlogsApi extends runtime.BaseAPI implements BlogsApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Blogs/delete`;
@@ -208,6 +216,10 @@ export class BlogsApi extends runtime.BaseAPI implements BlogsApiInterface {
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Blogs/detail`;
@@ -244,6 +256,10 @@ export class BlogsApi extends runtime.BaseAPI implements BlogsApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Blogs/list`;
 
@@ -272,6 +288,10 @@ export class BlogsApi extends runtime.BaseAPI implements BlogsApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Blogs/update`;

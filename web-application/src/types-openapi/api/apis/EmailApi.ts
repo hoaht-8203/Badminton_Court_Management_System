@@ -55,6 +55,10 @@ export class EmailApi extends runtime.BaseAPI implements EmailApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Email/test-configuration`;
 

@@ -505,8 +505,7 @@ builder
 builder.Services.AddCors(options =>
 {
     var configuredOrigins =
-        builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
-        ?? (
+        builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? (
             Environment
                 .GetEnvironmentVariable("ALLOWED_ORIGINS")
                 ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -541,31 +540,37 @@ builder.Services.AddSwaggerGen(c =>
     );
     c.EnableAnnotations();
     c.DocumentFilter<ApiApplication.Helpers.SwaggerFromQuerySchemaDocumentFilter>();
-    
+
     // Add JWT Authentication to Swagger
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-    
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+    c.AddSecurityDefinition(
+        "Bearer",
+        new OpenApiSecurityScheme
         {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
+            Description =
+                "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer",
         }
-    });
+    );
+
+    c.AddSecurityRequirement(
+        new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer",
+                    },
+                },
+                Array.Empty<string>()
+            },
+        }
+    );
 });
 
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
@@ -610,5 +615,6 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate(); // Tự động apply migrations
 }
+app.MapHub<ProductHub>("/hubs/products").RequireCors("AllowFrontend");
 
 app.Run();

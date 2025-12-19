@@ -18,6 +18,7 @@ import type {
   AddOrderItemRequest,
   BookingOrderItemResponseListApiResponse,
   BooleanApiResponse,
+  CancelBookingCourtOccurrenceRequest,
   CancelBookingCourtRequest,
   CheckInBookingCourtRequest,
   CheckOutBookingCourtRequest,
@@ -39,6 +40,8 @@ import {
     BookingOrderItemResponseListApiResponseToJSON,
     BooleanApiResponseFromJSON,
     BooleanApiResponseToJSON,
+    CancelBookingCourtOccurrenceRequestFromJSON,
+    CancelBookingCourtOccurrenceRequestToJSON,
     CancelBookingCourtRequestFromJSON,
     CancelBookingCourtRequestToJSON,
     CheckInBookingCourtRequestFromJSON,
@@ -96,6 +99,10 @@ export interface ApiBookingCourtsListGetRequest {
 
 export interface ApiBookingCourtsNoshowPostRequest {
     noShowBookingCourtRequest?: NoShowBookingCourtRequest;
+}
+
+export interface ApiBookingCourtsOccurrenceCancelPostRequest {
+    cancelBookingCourtOccurrenceRequest?: CancelBookingCourtOccurrenceRequest;
 }
 
 export interface ApiBookingCourtsOccurrenceDetailGetRequest {
@@ -229,6 +236,19 @@ export interface BookingCourtsApiInterface {
 
     /**
      * 
+     * @param {CancelBookingCourtOccurrenceRequest} [cancelBookingCourtOccurrenceRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof BookingCourtsApiInterface
+     */
+    apiBookingCourtsOccurrenceCancelPostRaw(requestParameters: ApiBookingCourtsOccurrenceCancelPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>>;
+
+    /**
+     */
+    apiBookingCourtsOccurrenceCancelPost(requestParameters: ApiBookingCourtsOccurrenceCancelPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse>;
+
+    /**
+     * 
      * @param {string} id 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -337,6 +357,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/BookingCourts/cancel`;
 
@@ -366,6 +390,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/BookingCourts/checkin`;
@@ -397,6 +425,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/BookingCourts/checkout`;
 
@@ -426,6 +458,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/BookingCourts/create`;
@@ -465,6 +501,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/BookingCourts/detail`;
@@ -509,6 +549,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/BookingCourts/list`;
 
@@ -538,6 +582,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/BookingCourts/noshow`;
 
@@ -561,6 +609,40 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
 
     /**
      */
+    async apiBookingCourtsOccurrenceCancelPostRaw(requestParameters: ApiBookingCourtsOccurrenceCancelPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<BooleanApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
+
+        let urlPath = `/api/BookingCourts/occurrence/cancel`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: CancelBookingCourtOccurrenceRequestToJSON(requestParameters['cancelBookingCourtOccurrenceRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => BooleanApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiBookingCourtsOccurrenceCancelPost(requestParameters: ApiBookingCourtsOccurrenceCancelPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<BooleanApiResponse> {
+        const response = await this.apiBookingCourtsOccurrenceCancelPostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
     async apiBookingCourtsOccurrenceDetailGetRaw(requestParameters: ApiBookingCourtsOccurrenceDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DetailBookingCourtOccurrenceResponseApiResponse>> {
         if (requestParameters['id'] == null) {
             throw new runtime.RequiredError(
@@ -576,6 +658,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/BookingCourts/occurrence/detail`;
@@ -624,6 +710,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/BookingCourts/occurrences`;
 
@@ -652,6 +742,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/BookingCourts/order/add-item`;
@@ -685,6 +779,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/BookingCourts/order/list`;
 
@@ -713,6 +811,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/BookingCourts/order/update-item`;
@@ -744,6 +846,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/BookingCourts/user/create`;
 
@@ -771,6 +877,10 @@ export class BookingCourtsApi extends runtime.BaseAPI implements BookingCourtsAp
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/BookingCourts/user/history`;

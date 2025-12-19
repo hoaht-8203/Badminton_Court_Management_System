@@ -108,7 +108,7 @@ export const productColumns: TableProps<ListProductResponse>["columns"] = [
 ];
 
 // Component để tính tổng tồn kho - sử dụng service
-export const StockSummaryCell = ({ productIds }: { productIds: number[] }) => {
+export const StockSummaryCell = ({ productIds, refreshTrigger }: { productIds: number[]; refreshTrigger?: number }) => {
   const [totalStock, setTotalStock] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -139,7 +139,7 @@ export const StockSummaryCell = ({ productIds }: { productIds: number[] }) => {
       setTotalStock(0);
       setLoading(false);
     }
-  }, [productIds]);
+  }, [productIds, refreshTrigger]);
 
   if (loading) return <span>...</span>;
   return <span className="font-bold text-black">{totalStock.toLocaleString("vi-VN")}</span>;

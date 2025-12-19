@@ -476,13 +476,17 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
         }
       }
 
-      // Invalidate queries to refresh data
+      // Invalidate and refetch queries to refresh data immediately
       try {
         await queryClient.invalidateQueries({ queryKey: ["return-goods"] });
         await queryClient.invalidateQueries({ queryKey: ["products"] });
         await queryClient.invalidateQueries({ queryKey: ["suppliers"] });
         // Invalidate all queries that might contain return goods data
         await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });
+        // Refetch products immediately to update stock quantities when completing
+        if (complete) {
+          await queryClient.refetchQueries({ queryKey: ["products"] });
+        }
       } catch {}
 
       // Call onChanged to refresh parent component data immediately
@@ -517,13 +521,15 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
       await returnGoodsService.cancel(returnGoodsId);
       message.success("Đã hủy phiếu trả hàng");
 
-      // Invalidate queries to refresh data
+      // Invalidate and refetch queries to refresh data immediately
       try {
         await queryClient.invalidateQueries({ queryKey: ["return-goods"] });
         await queryClient.invalidateQueries({ queryKey: ["products"] });
         await queryClient.invalidateQueries({ queryKey: ["suppliers"] });
         // Invalidate all queries that might contain return goods data
         await queryClient.invalidateQueries({ queryKey: ["inventory-checks"] });
+        // Refetch products immediately to update stock quantities
+        await queryClient.refetchQueries({ queryKey: ["products"] });
       } catch {}
 
       // Call onChanged to refresh parent component data immediately
@@ -922,7 +928,29 @@ const CreateEditReturnGoodsDrawer: React.FC<Props> = ({ open, onClose, returnGoo
           >
             <Row gutter={12}>
               <Col span={12}>
-                <Form.Item name="accountNumber" label="Số tài khoản" rules={[{ required: true, message: "Nhập số tài khoản" }]}>
+                <Form.Item
+                  name="accountNumber"
+                  label="Số tài khoản"
+                  rules={[
+                    { required: true, message: "Nhập số tài khoản" },
+                    {
+                      validator: (_, value) => {
+                        if (!value) return Promise.resolve();
+                        const trimmedValue = String(value).trim();
+                        // Kiểm tra STK trùng nhau (trừ trường hợp đang edit cùng một bank)
+                        const isDuplicate = banks.some(
+                          (bank) =>
+                            String(bank.accountNumber).trim().toLowerCase() === trimmedValue.toLowerCase() &&
+                            (!editingBank || Number(bank.id) !== Number(editingBank.id))
+                        );
+                        if (isDuplicate) {
+                          return Promise.reject(new Error("Số tài khoản đã tồn tại"));
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
                   <Input />
                 </Form.Item>
               </Col>

@@ -144,6 +144,10 @@ export class CategoriesApi extends runtime.BaseAPI implements CategoriesApiInter
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Categories/create`;
 
@@ -183,6 +187,10 @@ export class CategoriesApi extends runtime.BaseAPI implements CategoriesApiInter
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Categories/delete`;
 
@@ -221,6 +229,10 @@ export class CategoriesApi extends runtime.BaseAPI implements CategoriesApiInter
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Categories/detail`;
 
@@ -256,6 +268,10 @@ export class CategoriesApi extends runtime.BaseAPI implements CategoriesApiInter
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Categories/list`;
 
@@ -284,6 +300,10 @@ export class CategoriesApi extends runtime.BaseAPI implements CategoriesApiInter
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Categories/update`;

@@ -66,13 +66,20 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
             );
         }
 
-        // Validate unique name
-        if (await _context.Services.AnyAsync(s => s.Name == request.Name))
+        // Validate unique name (case-insensitive)
+        if (!string.IsNullOrWhiteSpace(request.Name))
         {
-            throw new ApiException(
-                $"Tên dịch vụ {request.Name} đã được sử dụng",
-                HttpStatusCode.BadRequest
-            );
+            var normalizedName = request.Name.Trim().ToLower();
+            var existingService = await _context.Services
+                .FirstOrDefaultAsync(s => s.Name.Trim().ToLower() == normalizedName);
+
+            if (existingService != null)
+            {
+                throw new ApiException(
+                    $"Tên dịch vụ '{request.Name}' đã được sử dụng",
+                    HttpStatusCode.BadRequest
+                );
+            }
         }
 
         var entity = _mapper.Map<Service>(request);
@@ -112,17 +119,25 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
             }
         }
 
-        if (!string.IsNullOrEmpty(request.Name) && request.Name != service.Name)
+        // Validate unique name (case-insensitive, exclude current service)
+        if (!string.IsNullOrWhiteSpace(request.Name))
         {
-            var isExist = await _context.Services.AnyAsync(s =>
-                s.Name == request.Name && s.Id != request.Id
-            );
-            if (isExist)
+            var normalizedName = request.Name.Trim().ToLower();
+            var currentNormalizedName = service.Name?.Trim().ToLower();
+
+            // Only check if name is actually changing
+            if (normalizedName != currentNormalizedName)
             {
-                throw new ApiException(
-                    $"Tên dịch vụ {request.Name} đã được sử dụng",
-                    HttpStatusCode.BadRequest
-                );
+                var existingService = await _context.Services
+                    .FirstOrDefaultAsync(s => s.Id != request.Id && s.Name.Trim().ToLower() == normalizedName);
+
+                if (existingService != null)
+                {
+                    throw new ApiException(
+                        $"Tên dịch vụ '{request.Name}' đã được sử dụng",
+                        HttpStatusCode.BadRequest
+                    );
+                }
             }
         }
 

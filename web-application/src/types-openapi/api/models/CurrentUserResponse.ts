@@ -81,6 +81,12 @@ export interface CurrentUserResponse {
      * @memberof CurrentUserResponse
      */
     membership?: UserMembershipInfo;
+    /**
+     * 
+     * @type {string}
+     * @memberof CurrentUserResponse
+     */
+    accessToken?: string | null;
 }
 
 /**
@@ -112,6 +118,7 @@ export function CurrentUserResponseFromJSONTyped(json: any, ignoreDiscriminator:
         'phoneNumber': json['phoneNumber'] == null ? undefined : json['phoneNumber'],
         'roles': json['roles'] == null ? undefined : json['roles'],
         'membership': json['membership'] == null ? undefined : UserMembershipInfoFromJSON(json['membership']),
+        'accessToken': json['accessToken'] == null ? undefined : json['accessToken'],
     };
 }
 
@@ -135,6 +142,7 @@ export function CurrentUserResponseToJSONTyped(value?: CurrentUserResponse | nul
         'phoneNumber': value['phoneNumber'],
         'roles': value['roles'],
         'membership': UserMembershipInfoToJSON(value['membership']),
+        'accessToken': value['accessToken'],
     };
 }
 

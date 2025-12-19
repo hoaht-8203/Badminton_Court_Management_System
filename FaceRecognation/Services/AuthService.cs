@@ -13,12 +13,15 @@ namespace FaceRecognation.Services
     public class AuthService : IAuthService
     {
         private readonly HttpClient _http;
+        private readonly TokenStore _tokenStore;
         public Dtos.CurrentUserResponse? CurrentUser { get; private set; }
         public string? CurrentUserJson { get; private set; }
+        public string? AccessToken => _tokenStore.AccessToken;
 
-        public AuthService(HttpClient http)
+        public AuthService(HttpClient http, TokenStore tokenStore)
         {
             _http = http ?? throw new ArgumentNullException(nameof(http));
+            _tokenStore = tokenStore ?? throw new ArgumentNullException(nameof(tokenStore));
             _http.DefaultRequestHeaders.Accept.Clear();
             _http.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json")
@@ -79,6 +82,17 @@ namespace FaceRecognation.Services
                 CurrentUser = apiResp.Data;
                 CurrentUserJson =
                     apiResp.Data != null ? JsonSerializer.Serialize(apiResp.Data) : null;
+                _tokenStore.AccessToken = apiResp.Data?.AccessToken; // Store in shared TokenStore
+                
+                // Debug logging
+                System.Diagnostics.Debug.WriteLine($"[AuthService] Login successful");
+                System.Diagnostics.Debug.WriteLine($"[AuthService] AccessToken received: {(string.IsNullOrEmpty(_tokenStore.AccessToken) ? "NO TOKEN" : _tokenStore.AccessToken.Substring(0, Math.Min(30, _tokenStore.AccessToken.Length)) + "...")}");
+                System.Diagnostics.Debug.WriteLine($"[AuthService] User: {CurrentUser?.Email}");
+                System.Diagnostics.Debug.WriteLine($"[AuthService] Roles: {string.Join(", ", CurrentUser?.Roles ?? new List<string>())}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[AuthService] Login failed: {apiResp.Message}");
             }
 
             return apiResp;

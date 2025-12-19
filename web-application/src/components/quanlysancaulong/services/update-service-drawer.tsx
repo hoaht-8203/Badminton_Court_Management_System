@@ -102,13 +102,22 @@ const UpdateServiceDrawer = ({ open, onClose, serviceId }: UpdateServiceDrawerPr
         onClose();
       },
       onError: (error: ApiError) => {
-        if (error.message) {
-          message.error(error.message);
+        // Hiển thị message lỗi chính
+        message.error(error.message || "Có lỗi xảy ra khi cập nhật dịch vụ");
+
+        // Set lỗi vào field tương ứng nếu có
+        if (error.message?.toLowerCase().includes("tên dịch vụ") || error.message?.toLowerCase().includes("name")) {
+          form.setFields([{ name: "name", errors: [error.message] }]);
         }
 
-        for (const key in error.errors) {
-          message.error(error.errors[key]);
-          form.setFields([{ name: key, errors: [error.errors[key]] }]);
+        // Xử lý lỗi từ error.errors nếu có
+        if (error.errors) {
+          for (const key in error.errors) {
+            const fieldName = key.toLowerCase();
+            if (fieldName === "name" || fieldName === "code" || fieldName === "category") {
+              form.setFields([{ name: fieldName, errors: [error.errors[key]] }]);
+            }
+          }
         }
       },
     });

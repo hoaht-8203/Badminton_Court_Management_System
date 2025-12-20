@@ -78,4 +78,14 @@ export const courtScheduleService = {
     const res = await axiosInstance.get<ApiResponse<ListUserBookingHistoryResponse[]>>("/api/BookingCourts/user/history");
     return res.data;
   },
+
+  async userCancelBooking(payload: CancelBookingCourtRequest): Promise<ApiResponse<boolean>> {
+    const response = await axiosInstance.post("api/BookingCourts/user/booking/cancel", payload);
+    return response.data;
+  },
+
+  async userCancelBookingOccurrence(payload: CancelBookingCourtOccurrenceRequest): Promise<ApiResponse<boolean>> {
+    const response = await axiosInstance.post("api/BookingCourts/user/booking/occurrence/cancel", payload);
+    return response.data;
+  },
 };

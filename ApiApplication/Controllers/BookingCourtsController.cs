@@ -114,8 +114,8 @@ public class BookingCourtsController(
     /// <summary>
     /// Customer creates their own booking online - Accessible by all authenticated users
     /// </summary>
-    [AllowAnonymous]
     [HttpPost("user/create")]
+    [Authorize(Policy = PolicyConstants.CustomerAccess)]
     public async Task<ActionResult<ApiResponse<CreateBookingCourtResponse>>> UserCreate(
         [FromBody] UserCreateBookingCourtRequest request
     )
@@ -300,6 +300,40 @@ public class BookingCourtsController(
     )
     {
         var ok = await _service.CancelBookingCourtOccurrenceAsync(request);
+        return Ok(
+            ApiResponse<bool>.SuccessResponse(
+                ok,
+                ok ? "Huỷ lịch sân thành công" : "Huỷ lịch sân thất bại"
+            )
+        );
+    }
+
+    /// <summary>
+    /// User cancels their own booking - Only allows users to cancel their own bookings
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.CustomerAccess)]
+    [HttpPost("user/booking/cancel")]
+    public async Task<ActionResult<ApiResponse<bool>>> UserCancel(
+        [FromBody] CancelBookingCourtRequest request
+    )
+    {
+        var ok = await _service.UserCancelBookingCourtAsync(request);
+        return Ok(
+            ApiResponse<bool>.SuccessResponse(ok, ok ? "Huỷ lịch thành công" : "Huỷ lịch thất bại")
+        );
+    }
+
+    /// <summary>
+    /// User cancels their own booking occurrence - Only allows users to cancel their own occurrences.
+    /// If all occurrences are cancelled, the booking will be automatically cancelled.
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.CustomerAccess)]
+    [HttpPost("user/booking/occurrence/cancel")]
+    public async Task<ActionResult<ApiResponse<bool>>> UserCancelOccurrence(
+        [FromBody] CancelBookingCourtOccurrenceRequest request
+    )
+    {
+        var ok = await _service.UserCancelBookingCourtOccurrenceAsync(request);
         return Ok(
             ApiResponse<bool>.SuccessResponse(
                 ok,

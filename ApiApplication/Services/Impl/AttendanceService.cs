@@ -103,7 +103,13 @@ public class AttendanceService : IAttendanceService
 
     public async Task<bool> CheckInAsync(int staffId)
     {
-        var now = DateTime.Now;
+        TimeZoneInfo vnTimeZone;
+        try {
+            vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh"); // Linux, Azure
+        } catch {
+            vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // Windows fallback
+        }
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
         var today = DateOnly.FromDateTime(now);
 
         // Check if there's an open record (checked-in but not checked-out yet)
@@ -134,7 +140,13 @@ public class AttendanceService : IAttendanceService
 
     public async Task<bool> CheckOutAsync(int staffId)
     {
-        var now = DateTime.Now;
+        TimeZoneInfo vnTimeZone;
+        try {
+            vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh"); // Linux, Azure
+        } catch {
+            vnTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time"); // Windows fallback
+        }
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, vnTimeZone);
         var today = DateOnly.FromDateTime(now);
 
         // Find the open record (checked-in but not checked-out) for today

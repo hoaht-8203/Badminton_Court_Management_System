@@ -1458,6 +1458,9 @@ public class BookingCourtService(
         // Find the specific occurrence
         var occurrence = await _context
             .BookingCourtOccurrences.Include(o => o.BookingCourt)
+            .ThenInclude(b => b.BookingCourtOccurrences)
+            .Include(o => o.BookingCourt)
+            .ThenInclude(b => b.Payments)
             .Include(o => o.Payments)
             .FirstOrDefaultAsync(o => o.Id == request.Id);
 
@@ -1470,6 +1473,20 @@ public class BookingCourtService(
         if (occurrence.Status == BookingCourtOccurrenceStatus.Cancelled)
         {
             return true;
+        }
+
+        // Validate that occurrence can be cancelled
+        // Only allow cancellation for PendingPayment, Active, or NoShow status
+        if (
+            occurrence.Status != BookingCourtOccurrenceStatus.PendingPayment
+            && occurrence.Status != BookingCourtOccurrenceStatus.Active
+            && occurrence.Status != BookingCourtOccurrenceStatus.NoShow
+        )
+        {
+            throw new ApiException(
+                "Không thể hủy lịch sân đã CheckIn hoặc Completed.",
+                HttpStatusCode.BadRequest
+            );
         }
 
         // Cancel the occurrence
@@ -1493,6 +1510,242 @@ public class BookingCourtService(
             occurrence.Note = string.IsNullOrWhiteSpace(occurrence.Note)
                 ? request.Note
                 : occurrence.Note + "\n" + request.Note;
+        }
+
+        // Check if all occurrences are cancelled, if so, cancel the booking too
+        var booking = occurrence.BookingCourt;
+        if (booking != null)
+        {
+            var allOccurrencesCancelled = booking.BookingCourtOccurrences.All(o =>
+                o.Status == BookingCourtOccurrenceStatus.Cancelled
+            );
+
+            if (allOccurrencesCancelled && booking.Status != BookingCourtStatus.Cancelled)
+            {
+                booking.Status = BookingCourtStatus.Cancelled;
+
+                // Cancel all related payments for the booking
+                foreach (var payment in booking.Payments)
+                {
+                    if (
+                        payment.Status == PaymentStatus.PendingPayment
+                        || payment.Status == PaymentStatus.Unpaid
+                    )
+                    {
+                        payment.Status = PaymentStatus.Cancelled;
+                    }
+                }
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Notify via SignalR
+        await _hub.Clients.All.SendAsync("bookingUpdated", occurrence.BookingCourtId);
+        await _hub.Clients.All.SendAsync("occurrenceCancelled", occurrence.Id);
+        await _hub.Clients.All.SendAsync(
+            "paymentsCancelled",
+            new { bookingId = occurrence.BookingCourtId }
+        );
+
+        return true;
+    }
+
+    public async Task<bool> UserCancelBookingCourtAsync(CancelBookingCourtRequest request)
+    {
+        // Get current user ID
+        var userId = _currentUser.UserId;
+        if (userId == null || userId == Guid.Empty)
+        {
+            throw new ApiException(
+                "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
+                HttpStatusCode.Unauthorized
+            );
+        }
+
+        // Find user's associated customer
+        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
+        if (customer == null)
+        {
+            throw new ApiException(
+                "Không tìm thấy thông tin khách hàng.",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        // Find the BookingCourt by ID
+        var bookingCourt = await _context
+            .BookingCourts.Include(b => b.BookingCourtOccurrences)
+            .Include(b => b.Payments)
+            .FirstOrDefaultAsync(b => b.Id == request.Id);
+
+        if (bookingCourt == null)
+        {
+            throw new ApiException("Không tìm thấy lịch đặt sân", HttpStatusCode.BadRequest);
+        }
+
+        // Validate ownership - only allow users to cancel their own bookings
+        if (bookingCourt.CustomerId != customer.Id)
+        {
+            throw new ApiException(
+                "Bạn không có quyền hủy lịch đặt sân này.",
+                HttpStatusCode.Forbidden
+            );
+        }
+
+        // If already cancelled, return success
+        if (bookingCourt.Status == BookingCourtStatus.Cancelled)
+        {
+            return true;
+        }
+
+        // Cancel the BookingCourt
+        bookingCourt.Status = BookingCourtStatus.Cancelled;
+
+        // Cancel all related BookingCourtOccurrences
+        foreach (var occurrence in bookingCourt.BookingCourtOccurrences)
+        {
+            if (occurrence.Status != BookingCourtOccurrenceStatus.Cancelled)
+            {
+                occurrence.Status = BookingCourtOccurrenceStatus.Cancelled;
+            }
+        }
+
+        // Cancel all related payments
+        foreach (var payment in bookingCourt.Payments)
+        {
+            if (
+                payment.Status == PaymentStatus.PendingPayment
+                || payment.Status == PaymentStatus.Unpaid
+            )
+            {
+                payment.Status = PaymentStatus.Cancelled;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Notify via SignalR
+        await _hub.Clients.All.SendAsync("bookingUpdated", bookingCourt.Id);
+        await _hub.Clients.All.SendAsync("paymentsCancelled", new { bookingId = bookingCourt.Id });
+
+        return true;
+    }
+
+    public async Task<bool> UserCancelBookingCourtOccurrenceAsync(
+        CancelBookingCourtOccurrenceRequest request
+    )
+    {
+        // Get current user ID
+        var userId = _currentUser.UserId;
+        if (userId == null || userId == Guid.Empty)
+        {
+            throw new ApiException(
+                "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
+                HttpStatusCode.Unauthorized
+            );
+        }
+
+        // Find user's associated customer
+        var customer = await _context.Customers.FirstOrDefaultAsync(c => c.UserId == userId);
+        if (customer == null)
+        {
+            throw new ApiException(
+                "Không tìm thấy thông tin khách hàng.",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        // Find the specific occurrence
+        var occurrence = await _context
+            .BookingCourtOccurrences.Include(o => o.BookingCourt)
+            .ThenInclude(b => b.BookingCourtOccurrences)
+            .Include(o => o.BookingCourt)
+            .ThenInclude(b => b.Payments)
+            .Include(o => o.Payments)
+            .FirstOrDefaultAsync(o => o.Id == request.Id);
+
+        if (occurrence == null)
+        {
+            throw new ApiException("Không tìm thấy lịch sân", HttpStatusCode.BadRequest);
+        }
+
+        // Validate ownership - only allow users to cancel their own booking occurrences
+        if (occurrence.BookingCourt?.CustomerId != customer.Id)
+        {
+            throw new ApiException(
+                "Bạn không có quyền hủy lịch sân này.",
+                HttpStatusCode.Forbidden
+            );
+        }
+
+        // If already cancelled, return success
+        if (occurrence.Status == BookingCourtOccurrenceStatus.Cancelled)
+        {
+            return true;
+        }
+
+        // Validate that occurrence can be cancelled
+        // Only allow cancellation for PendingPayment, Active, or NoShow status
+        if (
+            occurrence.Status != BookingCourtOccurrenceStatus.PendingPayment
+            && occurrence.Status != BookingCourtOccurrenceStatus.Active
+            && occurrence.Status != BookingCourtOccurrenceStatus.NoShow
+        )
+        {
+            throw new ApiException(
+                "Không thể hủy lịch sân đã CheckIn hoặc Completed.",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        // Cancel the occurrence
+        occurrence.Status = BookingCourtOccurrenceStatus.Cancelled;
+
+        // Cancel related payments for this occurrence
+        foreach (var payment in occurrence.Payments)
+        {
+            if (
+                payment.Status == PaymentStatus.PendingPayment
+                || payment.Status == PaymentStatus.Unpaid
+            )
+            {
+                payment.Status = PaymentStatus.Cancelled;
+            }
+        }
+
+        // Add note if provided
+        if (!string.IsNullOrWhiteSpace(request.Note))
+        {
+            occurrence.Note = string.IsNullOrWhiteSpace(occurrence.Note)
+                ? request.Note
+                : occurrence.Note + "\n" + request.Note;
+        }
+
+        // Check if all occurrences are cancelled, if so, cancel the booking too
+        var booking = occurrence.BookingCourt;
+        if (booking != null)
+        {
+            var allOccurrencesCancelled = booking.BookingCourtOccurrences.All(o =>
+                o.Status == BookingCourtOccurrenceStatus.Cancelled
+            );
+
+            if (allOccurrencesCancelled && booking.Status != BookingCourtStatus.Cancelled)
+            {
+                booking.Status = BookingCourtStatus.Cancelled;
+
+                // Cancel all related payments for the booking
+                foreach (var payment in booking.Payments)
+                {
+                    if (
+                        payment.Status == PaymentStatus.PendingPayment
+                        || payment.Status == PaymentStatus.Unpaid
+                    )
+                    {
+                        payment.Status = PaymentStatus.Cancelled;
+                    }
+                }
+            }
         }
 
         await _context.SaveChangesAsync();

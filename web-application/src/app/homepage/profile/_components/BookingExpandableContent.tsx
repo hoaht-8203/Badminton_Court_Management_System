@@ -18,9 +18,10 @@ const PaymentHistory = dynamic(() => import("./PaymentHistory"), {
 
 type Props = {
   record: ListUserBookingHistoryResponse;
+  onCancelSuccess?: () => void;
 };
 
-function Component({ record }: Props) {
+function Component({ record, onCancelSuccess }: Props) {
   return (
     <Tabs
       items={[
@@ -32,7 +33,7 @@ function Component({ record }: Props) {
               Chi tiết đặt sân
             </span>
           ),
-          children: <BookingDetails record={record} />,
+          children: <BookingDetails record={record} onCancelSuccess={onCancelSuccess} />,
         },
         {
           key: "payments",

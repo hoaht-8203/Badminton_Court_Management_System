@@ -1,22 +1,25 @@
 "use client";
 
 import { ListUserBookingHistoryResponse, ListFeedbackResponse } from "@/types-openapi/api";
-import { CalendarOutlined, ClockCircleOutlined, MessageOutlined, CheckCircleOutlined, EditOutlined } from "@ant-design/icons";
-import { Card, Col, Descriptions, List, Row, Space, Tag, Typography, Button, Rate, Divider } from "antd";
+import { CalendarOutlined, ClockCircleOutlined, MessageOutlined, CheckCircleOutlined, EditOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import { Card, Col, Descriptions, List, Row, Space, Tag, Typography, Button, Rate, Divider, Modal, message } from "antd";
 import dayjs from "dayjs";
 import { memo, useMemo, useState } from "react";
 import FeedbackModal from "@/components/homepage/FeedbackModal";
 import { useGetFeedbackByCustomer } from "@/hooks/useFeedback";
+import { courtScheduleService } from "@/services/courtScheduleService";
 
 const { Text } = Typography;
 
 type Props = {
   record: ListUserBookingHistoryResponse;
+  onCancelSuccess?: () => void;
 };
 
-function Component({ record }: Props) {
+function Component({ record, onCancelSuccess }: Props) {
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
   const [selectedOccurrenceId, setSelectedOccurrenceId] = useState<string | null>(null);
+  const [cancellingOccurrenceId, setCancellingOccurrenceId] = useState<string | null>(null);
 
   // Load all feedbacks of the customer to check if they've already feedback for each occurrence
   const { data: customerFeedbacks } = useGetFeedbackByCustomer(record.customerId, !!record.customerId);
@@ -52,6 +55,52 @@ function Component({ record }: Props) {
   const handleFeedbackSuccess = () => {
     // Refetch feedbacks after successful submission
     // The query will automatically refetch due to query invalidation in the hook
+  };
+
+  // Check if occurrence can be cancelled (PendingPayment, Active, or NoShow)
+  const canCancelOccurrence = (status: string) => {
+    return status === "PendingPayment" || status === "Active" || status === "NoShow";
+  };
+
+  const handleCancelOccurrence = (occurrenceId: string, occurrenceDate: string | Date, occurrenceTime: string) => {
+    Modal.confirm({
+      title: "Xác nhận hủy lịch sân",
+      content: (
+        <div>
+          <p>Bạn có chắc chắn muốn hủy lịch sân này?</p>
+          <p>
+            <strong>Ngày:</strong>{" "}
+            {typeof occurrenceDate === "string" ? dayjs(occurrenceDate).format("DD/MM/YYYY") : dayjs(occurrenceDate).format("DD/MM/YYYY")}
+          </p>
+          <p>
+            <strong>Thời gian:</strong> {occurrenceTime}
+          </p>
+          <p style={{ color: "#ff4d4f", marginTop: 8 }}>Lưu ý: Không thể hủy lịch sân đã CheckIn hoặc Completed.</p>
+        </div>
+      ),
+      okText: "Xác nhận hủy",
+      cancelText: "Hủy",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          setCancellingOccurrenceId(occurrenceId);
+          const result = await courtScheduleService.userCancelBookingOccurrence({
+            id: occurrenceId,
+          });
+
+          if (result.success) {
+            message.success("Hủy lịch sân thành công!");
+            onCancelSuccess?.();
+          } else {
+            message.error(result.message || "Hủy lịch sân thất bại!");
+          }
+        } catch (error: any) {
+          message.error(error?.response?.data?.message || error?.message || "Hủy lịch sân thất bại!");
+        } finally {
+          setCancellingOccurrenceId(null);
+        }
+      },
+    });
   };
 
   return (
@@ -139,19 +188,44 @@ function Component({ record }: Props) {
                   </Col>
 
                   <Col span={10}>
-                    {occurrence.status === "Completed" && occurrence.id && (
-                      <Space>
-                        {feedbackMap.has(occurrence.id) ? (
-                          <Tag icon={<CheckCircleOutlined />} color="green">
-                            Đã đánh giá
-                          </Tag>
-                        ) : (
-                          <Button type="primary" size="small" icon={<MessageOutlined />} onClick={() => handleOpenFeedbackModal(occurrence.id!)}>
-                            Đánh giá
+                    <Space>
+                      {occurrence.status === "Completed" && occurrence.id && (
+                        <>
+                          {feedbackMap.has(occurrence.id) ? (
+                            <Tag icon={<CheckCircleOutlined />} color="green">
+                              Đã đánh giá
+                            </Tag>
+                          ) : (
+                            <Button type="primary" size="small" icon={<MessageOutlined />} onClick={() => handleOpenFeedbackModal(occurrence.id!)}>
+                              Đánh giá
+                            </Button>
+                          )}
+                        </>
+                      )}
+                      {occurrence.id &&
+                        occurrence.status &&
+                        canCancelOccurrence(occurrence.status) &&
+                        (occurrence.status === "PendingPayment" || occurrence.status === "Active" || occurrence.status === "NoShow") && (
+                          <Button
+                            danger
+                            size="small"
+                            icon={<CloseCircleOutlined />}
+                            onClick={() => {
+                              if (occurrence.id && occurrence.date) {
+                                const dateStr = typeof occurrence.date === "string" ? occurrence.date : dayjs(occurrence.date).format("YYYY-MM-DD");
+                                handleCancelOccurrence(
+                                  occurrence.id,
+                                  dateStr,
+                                  `${dayjs(occurrence.startTime, "HH:mm:ss").format("HH:mm")} - ${dayjs(occurrence.endTime, "HH:mm:ss").format("HH:mm")}`,
+                                );
+                              }
+                            }}
+                            loading={cancellingOccurrenceId === occurrence.id}
+                          >
+                            Hủy lịch
                           </Button>
                         )}
-                      </Space>
-                    )}
+                    </Space>
                   </Col>
 
                   {occurrence.note && (

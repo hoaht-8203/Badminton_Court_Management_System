@@ -505,7 +505,8 @@ builder
 builder.Services.AddCors(options =>
 {
     var configuredOrigins =
-        builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? (
+        builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
+        ?? (
             Environment
                 .GetEnvironmentVariable("ALLOWED_ORIGINS")
                 ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -581,24 +582,27 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-// SECURITY: Only enable Swagger in Development environment
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.IndexStream = () => File.OpenRead("wwwroot/swagger-custom.html");
-    });
-    app.MapScalarApiReference(options =>
-    {
-        options
-            .WithTitle("My API")
-            .WithTheme(ScalarTheme.Moon)
-            .WithOpenApiRoutePattern("/swagger/v1/swagger.json");
-    });
-}
-
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+app.UseHttpsRedirection();
+app.UseCors("AllowFrontend");
+app.UseAuthentication();
+app.UseAuthorization();
+
+// SECURITY: Protect Swagger endpoints with Basic Authentication (username: admin, password: admin123)
+app.UseMiddleware<SwaggerBasicAuthMiddleware>();
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.IndexStream = () => File.OpenRead("wwwroot/swagger-custom.html");
+});
+app.MapScalarApiReference(options =>
+{
+    options
+        .WithTitle("My API")
+        .WithTheme(ScalarTheme.Moon)
+        .WithOpenApiRoutePattern("/swagger/v1/swagger.json");
+});
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");

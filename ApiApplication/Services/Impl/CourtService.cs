@@ -112,6 +112,14 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
             );
         }
 
+        if (court.Status == CourtStatus.InUse)
+        {
+            throw new ApiException(
+                "Sân đang được sử dụng, không thể cập nhật",
+                HttpStatusCode.BadRequest
+            );
+        }
+
         if (!string.IsNullOrEmpty(request.Name) && request.Name != court.Name)
         {
             var isExist = await _context.Courts.AnyAsync(c =>
@@ -179,6 +187,14 @@ public class CourtService(ApplicationDbContext context, IMapper mapper, ICurrent
         {
             throw new ApiException(
                 $"Trạng thái không hợp lệ: {request.Status}. Trạng thái hợp lệ là: Active, Inactive, Deleted",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        if (courts.Status == CourtStatus.InUse)
+        {
+            throw new ApiException(
+                "Sân đang được sử dụng, không thẻ thay đổi trạng thái",
                 HttpStatusCode.BadRequest
             );
         }

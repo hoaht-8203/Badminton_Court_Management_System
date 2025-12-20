@@ -588,12 +588,12 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
           // Sau khi update thông tin bảng giá thành công, update sản phẩm
           try {
             // Luôn gọi API set-products với danh sách sản phẩm đã được validate
-            const productsPayload: SetPriceTableProductsRequest = {
-              priceTableId: priceId!,
-              products: products,
-            };
+              const productsPayload: SetPriceTableProductsRequest = {
+                priceTableId: priceId!,
+                products: products,
+              };
 
-            await axios.post("/api/Prices/set-products", productsPayload);
+              await axios.post("/api/Prices/set-products", productsPayload);
 
             // Invalidate tất cả các queries liên quan để đảm bảo data được refresh
             queryClient.invalidateQueries({ queryKey: ["price-tables"] });
@@ -709,9 +709,9 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
                     };
 
                     return (
-                      <Card
-                        title="Khung giờ"
-                        extra={
+                    <Card
+                      title="Khung giờ"
+                      extra={
                           <Button
                             onClick={() => {
                               add({ startTime: dayjs("08:00", "HH:mm"), endTime: dayjs("12:00", "HH:mm") });
@@ -720,13 +720,13 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
                             }}
                             icon={<PlusOutlined />}
                           >
-                            Thêm khung giờ
-                          </Button>
-                        }
-                      >
-                        {fields.map((field) => (
-                          <Row key={field.key} gutter={12} align="middle" className="mb-2">
-                            <Col span={7}>
+                          Thêm khung giờ
+                        </Button>
+                      }
+                    >
+                      {fields.map((field) => (
+                        <Row key={field.key} gutter={12} align="middle" className="mb-2">
+                          <Col span={7}>
                               <Form.Item
                                 name={[field.name, "startTime"]}
                                 label="Từ giờ"
@@ -751,10 +751,10 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
                                 ]}
                                 dependencies={[["ranges"]]}
                               >
-                                <TimePicker format="HH:mm" style={{ width: "100%" }} />
-                              </Form.Item>
-                            </Col>
-                            <Col span={7}>
+                              <TimePicker format="HH:mm" style={{ width: "100%" }} />
+                            </Form.Item>
+                          </Col>
+                          <Col span={7}>
                               <Form.Item
                                 name={[field.name, "endTime"]}
                                 label="Đến"
@@ -779,10 +779,10 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
                                 ]}
                                 dependencies={[["ranges"]]}
                               >
-                                <TimePicker format="HH:mm" style={{ width: "100%" }} />
-                              </Form.Item>
-                            </Col>
-                            <Col span={4}>
+                              <TimePicker format="HH:mm" style={{ width: "100%" }} />
+                            </Form.Item>
+                          </Col>
+                          <Col span={4}>
                               <Button
                                 danger
                                 onClick={() => {
@@ -791,12 +791,12 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
                                   setTimeout(validateAllRanges, 100);
                                 }}
                               >
-                                Xoá
-                              </Button>
-                            </Col>
-                          </Row>
-                        ))}
-                      </Card>
+                              Xoá
+                            </Button>
+                          </Col>
+                        </Row>
+                      ))}
+                    </Card>
                     );
                   }}
                 </Form.List>

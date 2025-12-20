@@ -41,7 +41,11 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             query = query.Where(p => p.Category != null && p.Category.Name.ToLower().Contains(cat));
         }
 
-        var items = await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
+        // Sắp xếp: sản phẩm không bán trên web xếp trước, hiển thị trên web xếp sau
+        var items = await query
+            .OrderBy(p => p.IsDisplayOnWeb) // false (không bán trên web) xếp trước, true (bán trên web) xếp sau
+            .ThenByDescending(p => p.CreatedAt)
+            .ToListAsync();
         return _mapper.Map<List<ListProductResponse>>(items);
     }
 

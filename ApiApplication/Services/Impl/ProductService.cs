@@ -698,11 +698,12 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
 
         Console.WriteLine($"[DEBUG] Final active price table: {currentActivePriceTable?.Id}");
 
-        // Bước 4: Lấy tất cả sản phẩm đang kinh doanh và áp dụng giá
-        // Chỉ lấy sản phẩm có IsActive = true (đang kinh doanh)
+     
         var products = await _context.Products
             .Include(p => p.Category)
             .Where(p => p.IsActive)
+            .OrderBy(p => p.IsDisplayOnWeb) // false (không bán trên web) xếp trước, true (bán trên web) xếp sau
+            .ThenByDescending(p => p.CreatedAt)
             .ToListAsync();
         var result = new List<ListProductResponse>();
 
@@ -757,7 +758,7 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             );
         }
 
-        return result.OrderBy(p => p.Name).ToList();
+        return result;
     }
 
     private static string? ExtractFileNameFromUrl(string url)

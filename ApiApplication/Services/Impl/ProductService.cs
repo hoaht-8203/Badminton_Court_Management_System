@@ -564,6 +564,8 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             query = query.Where(p => p.IsActive == request.IsActive);
         }
 
+        query = query.OrderBy(p => p.IsDisplayOnWeb);
+
         var products = await query.ToListAsync();
 
         var result = new List<ListProductsByPriceTableResponse>();
@@ -700,8 +702,8 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
 
         // Bước 4: Lấy tất cả sản phẩm đang kinh doanh và áp dụng giá
         // Chỉ lấy sản phẩm có IsActive = true (đang kinh doanh)
-        var products = await _context.Products
-            .Include(p => p.Category)
+        var products = await _context
+            .Products.Include(p => p.Category)
             .Where(p => p.IsActive)
             .ToListAsync();
         var result = new List<ListProductResponse>();

@@ -137,6 +137,18 @@ export interface ProductsApiInterface {
 
     /**
      * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProductsApiInterface
+     */
+    apiProductsGetCurrentAppliedPriceGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListProductResponseListApiResponse>>;
+
+    /**
+     */
+    apiProductsGetCurrentAppliedPriceGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListProductResponseListApiResponse>;
+
+    /**
+     * 
      * @param {number} priceTableId 
      * @param {string} [search] 
      * @param {number} [categoryId] 
@@ -254,6 +266,10 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Products/create`;
 
@@ -293,6 +309,10 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Products/delete`;
 
@@ -331,6 +351,10 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Products/detail`;
 
@@ -348,6 +372,37 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
      */
     async apiProductsDetailGet(requestParameters: ApiProductsDetailGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DetailProductResponseApiResponse> {
         const response = await this.apiProductsDetailGetRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
+    async apiProductsGetCurrentAppliedPriceGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ListProductResponseListApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
+
+        let urlPath = `/api/Products/get-current-applied-price`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ListProductResponseListApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiProductsGetCurrentAppliedPriceGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ListProductResponseListApiResponse> {
+        const response = await this.apiProductsGetCurrentAppliedPriceGetRaw(initOverrides);
         return await response.value();
     }
 
@@ -380,6 +435,10 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Products/list-by-price-table`;
@@ -424,6 +483,10 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Products/list-for-web`;
 
@@ -467,6 +530,10 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Products/list`;
 
@@ -500,6 +567,10 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
         const consumes: runtime.Consume[] = [
             { contentType: 'multipart/form-data' },
@@ -557,6 +628,10 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Products/update`;
 
@@ -593,6 +668,10 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Products/update-status`;
 
@@ -627,6 +706,10 @@ export class ProductsApi extends runtime.BaseAPI implements ProductsApiInterface
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Products/update-web-display`;

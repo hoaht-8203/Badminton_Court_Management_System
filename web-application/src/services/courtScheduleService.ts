@@ -1,4 +1,5 @@
 import {
+  CancelBookingCourtOccurrenceRequest,
   CancelBookingCourtRequest,
   CheckInBookingCourtRequest,
   CheckOutBookingCourtRequest,
@@ -53,6 +54,11 @@ export const courtScheduleService = {
     return response.data;
   },
 
+  async cancelBookingOccurrence(payload: CancelBookingCourtOccurrenceRequest): Promise<ApiResponse<boolean>> {
+    const response = await axiosInstance.post("api/BookingCourts/occurrence/cancel", payload);
+    return response.data;
+  },
+
   async checkInBookingOccurrence(payload: CheckInBookingCourtRequest): Promise<ApiResponse<boolean>> {
     const response = await axiosInstance.post("api/BookingCourts/checkin", payload);
     return response.data;
@@ -71,5 +77,15 @@ export const courtScheduleService = {
   async getUserBookingHistory(): Promise<ApiResponse<ListUserBookingHistoryResponse[]>> {
     const res = await axiosInstance.get<ApiResponse<ListUserBookingHistoryResponse[]>>("/api/BookingCourts/user/history");
     return res.data;
+  },
+
+  async userCancelBooking(payload: CancelBookingCourtRequest): Promise<ApiResponse<boolean>> {
+    const response = await axiosInstance.post("api/BookingCourts/user/booking/cancel", payload);
+    return response.data;
+  },
+
+  async userCancelBookingOccurrence(payload: CancelBookingCourtOccurrenceRequest): Promise<ApiResponse<boolean>> {
+    const response = await axiosInstance.post("api/BookingCourts/user/booking/occurrence/cancel", payload);
+    return response.data;
   },
 };

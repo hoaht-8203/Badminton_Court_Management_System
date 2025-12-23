@@ -10,4 +10,5 @@ public class UpdateSliderRequest : BaseEntity
     public string? Description { get; set; }
     public required string ImageUrl { get; set; }
     public string? BackLink { get; set; }
+    public required string Status { get; set; }
 }

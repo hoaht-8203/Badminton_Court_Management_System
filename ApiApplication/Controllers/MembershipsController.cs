@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Membership;
 using ApiApplication.Services;
@@ -8,11 +9,15 @@ namespace ApiApplication.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+[Authorize(Policy = PolicyConstants.ManagementOnly)]
 public class MembershipsController(IMembershipService membershipService) : ControllerBase
 {
     private readonly IMembershipService _membershipService = membershipService;
 
+    /// <summary>
+    /// Get list of membership packages - Accessible by everyone to view available packages
+    /// </summary>
+    [AllowAnonymous]
     [HttpGet("list")]
     public async Task<ApiResponse<ListMembershipResponse[]>> List(
         [FromQuery] ListMembershipRequest request
@@ -22,6 +27,10 @@ public class MembershipsController(IMembershipService membershipService) : Contr
         return ApiResponse<ListMembershipResponse[]>.SuccessResponse(data.ToArray());
     }
 
+    /// <summary>
+    /// Get membership detail - Accessible by everyone to view package details
+    /// </summary>
+    [AllowAnonymous]
     [HttpGet("detail")]
     public async Task<ApiResponse<DetailMembershipResponse>> Detail(
         [FromQuery] DetailMembershipRequest request

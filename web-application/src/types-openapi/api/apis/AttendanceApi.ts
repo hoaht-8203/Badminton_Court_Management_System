@@ -160,6 +160,10 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Attendance/{attendanceRecordId}`;
         urlPath = urlPath.replace(`{${"attendanceRecordId"}}`, encodeURIComponent(String(requestParameters['attendanceRecordId'])));
@@ -188,6 +192,10 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Attendance/checkin`;
@@ -218,6 +226,10 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Attendance/checkout`;
 
@@ -247,6 +259,10 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Attendance`;
 
@@ -275,6 +291,10 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Attendance`;
@@ -313,6 +333,10 @@ export class AttendanceApi extends runtime.BaseAPI implements AttendanceApiInter
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Attendance/staff/{staffId}`;

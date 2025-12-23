@@ -34,7 +34,7 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
   const [repeatWeekly, setRepeatWeekly] = useState(false);
   const [repeatDays, setRepeatDays] = useState<number[]>([]);
   const [repeatEnd, setRepeatEnd] = useState<string | null>(null);
-  const [workOnHoliday, setWorkOnHoliday] = useState(false);
+  const [endDateMode, setEndDateMode] = useState<"none" | "date">("none");
 
   // Check if the selected date is in the past
   const isPastDate = useMemo(() => {
@@ -51,7 +51,7 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
       setRepeatWeekly(false);
       setRepeatDays([]);
       setRepeatEnd(null);
-      setWorkOnHoliday(false);
+      setEndDateMode("none");
     }
   }, [open]);
 
@@ -110,7 +110,7 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
     } else {
       message.warning("Không có ca nào được xếp!");
     }
-    onSave?.({ selectedShifts, repeatWeekly, repeatDays, repeatEnd, workOnHoliday });
+    onSave?.({ selectedShifts, repeatWeekly, repeatDays, repeatEnd });
     onClose();
   };
 
@@ -184,14 +184,19 @@ const ScheduleAssignModal: React.FC<ScheduleAssignModalProps> = ({ open, onClose
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span>Kết thúc</span>
-              <Select style={{ width: 120 }} defaultValue="none">
+              <Select style={{ width: 120 }} value={endDateMode} onChange={(value) => setEndDateMode(value)}>
                 <Select.Option value="none">Chưa xác định</Select.Option>
                 <Select.Option value="date">Chọn ngày</Select.Option>
               </Select>
-              <DatePicker disabled style={{ width: 120 }} />
-              <Checkbox checked={workOnHoliday} onChange={(e) => setWorkOnHoliday(e.target.checked)}>
-                Làm việc cả ngày lễ tết
-              </Checkbox>
+              <DatePicker 
+                disabled={endDateMode === "none"} 
+                style={{ width: 160 }} 
+                value={repeatEnd ? dayjs(repeatEnd) : null}
+                onChange={(date) => setRepeatEnd(date ? date.format("YYYY-MM-DD") : null)}
+                placeholder="Chọn ngày kết thúc"
+                format="DD/MM/YYYY"
+                minDate={date ? dayjs(date) : dayjs()}
+              />
             </div>
           </>
         )}

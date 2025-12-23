@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.InventoryCheck;
 using ApiApplication.Services;
@@ -8,6 +9,7 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Policy = PolicyConstants.WarehouseAccess)]
 public class InventoryChecksController(IInventoryCheckService inventoryCheckService)
     : ControllerBase
 {

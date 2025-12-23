@@ -1,14 +1,17 @@
 using System.Net;
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.InventoryCard;
 using ApiApplication.Exceptions;
 using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Policy = PolicyConstants.WarehouseAccess)]
 public class InventoryCardsController(IInventoryCardService service) : ControllerBase
 {
     private readonly IInventoryCardService _service = service;

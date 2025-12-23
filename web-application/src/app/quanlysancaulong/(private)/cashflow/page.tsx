@@ -40,12 +40,23 @@ const CashflowPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const { data: cashflowData, isFetching: loadingCashflowData, refetch: refetchCashflow } = useListCashflow(searchParams);
+  // Fetch all cashflow data for summary calculation (without filters)
+  const { data: allCashflowData } = useListCashflow({
+    isPayment: undefined,
+    from: undefined,
+    to: undefined,
+    cashflowTypeId: undefined,
+    status: undefined,
+  });
 
-  // compute summary numbers memoized
-  const items = useMemo(() => cashflowData?.data ?? [], [cashflowData]);
-  const totalThu = useMemo(() => items.filter((i) => !i.isPayment).reduce((s, it) => s + (it.value ?? 0), 0), [items]);
-  const totalChi = useMemo(() => items.filter((i) => i.isPayment).reduce((s, it) => s + (it.value ?? 0), 0), [items]);
+  // compute summary numbers from ALL data (not filtered)
+  const allItems = useMemo(() => allCashflowData?.data ?? [], [allCashflowData]);
+  const totalThu = useMemo(() => allItems.filter((i) => !i.isPayment).reduce((s, it) => s + (it.value ?? 0), 0), [allItems]);
+  const totalChi = useMemo(() => allItems.filter((i) => i.isPayment).reduce((s, it) => s - (it.value ?? 0), 0), [allItems]);
   const balance = useMemo(() => totalThu + totalChi, [totalThu, totalChi]);
+
+  // items for display in list (filtered)
+  const items = useMemo(() => cashflowData?.data ?? [], [cashflowData]);
 
   const handleOpenCreate = useCallback(() => {
     setDrawerMode("create");
@@ -77,6 +88,32 @@ const CashflowPage: React.FC = () => {
       }
     },
     [drawerMode, createMutation, updateFn, editing, refetchCashflow],
+  );
+
+  const handleChangeStatus = useCallback(
+    async (id: number, newStatus: string) => {
+      try {
+        // Fetch current cashflow data
+        const currentData = items.find((item) => item.id === id);
+        if (!currentData) return;
+
+        await updateFn(id, {
+          cashflowTypeId: currentData.cashflowTypeId!,
+          value: currentData.value!,
+          isPayment: currentData.isPayment!,
+          status: newStatus,
+          time: currentData.time ? new Date(currentData.time) : undefined,
+          personType: currentData.personType,
+          relatedPerson: currentData.relatedPerson,
+          note: currentData.note,
+        });
+        message.success("Cập nhật trạng thái thành công");
+        refetchCashflow();
+      } catch (error) {
+        message.error("Cập nhật trạng thái thất bại");
+      }
+    },
+    [items, updateFn, refetchCashflow],
   );
 
   const totalCount = items.length;
@@ -150,6 +187,7 @@ const CashflowPage: React.FC = () => {
             contextHolder={contextHolder}
             // allow list/expanded to open drawer for edit
             onOpenDrawer={handleOpenEdit}
+            onChangeStatus={handleChangeStatus}
           />
         </Suspense>
 

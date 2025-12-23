@@ -45,7 +45,7 @@ const PendingPaymentsTab = dynamic(() => import("./_components/PendingPaymentsTa
 // Import hooks and services
 import { bookingCourtOccurrenceKeys, useDetailBookingCourtOccurrence, useListBookingCourtOccurrences } from "@/hooks/useBookingCourtOccurrence";
 import { useListCourts } from "@/hooks/useCourt";
-import { useListProducts } from "@/hooks/useProducts";
+import { useGetCurrentAppliedPrice } from "@/hooks/useProducts";
 import { useListServices } from "@/hooks/useServices";
 import { usePendingPaymentOrders } from "@/hooks/useOrders";
 import { cashierService } from "@/services/cashierService";
@@ -79,7 +79,7 @@ const CashierPageContent = memo(function CashierPageContent() {
   const [pendingOrdersFilter, setPendingOrdersFilter] = useState<{ status?: string; paymentMethod?: string }>({});
 
   const { data: courtsData, isFetching: loadingCourts, refetch: refetchCourts } = useListCourts({});
-  const { data: productsData, isFetching: loadingProducts, refetch: refetchProducts } = useListProducts({});
+  const { data: productsData, isFetching: loadingProducts, refetch: refetchProducts } = useGetCurrentAppliedPrice();
   const { data: servicesData, isFetching: loadingServices, refetch: refetchServices } = useListServices({});
   const { data: pendingOrdersData, isFetching: loadingPendingOrders, refetch: refetchPendingOrders } = usePendingPaymentOrders(pendingOrdersFilter);
   // Memoize today's date to prevent infinite re-renders - use same logic as court-schedule.tsx

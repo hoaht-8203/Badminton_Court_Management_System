@@ -1,12 +1,15 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Helpers;
 using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Policy = PolicyConstants.ManagementOnly)]
 public class SystemConfigController(ISystemConfigService systemConfigService) : ControllerBase
 {
     private readonly ISystemConfigService _systemConfigService = systemConfigService;

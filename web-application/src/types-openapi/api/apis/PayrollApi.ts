@@ -198,6 +198,10 @@ export class PayrollApi extends runtime.BaseAPI implements PayrollApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Payroll`;
 
@@ -230,6 +234,10 @@ export class PayrollApi extends runtime.BaseAPI implements PayrollApiInterface {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Payroll/items/by-staff/{staffId}`;
@@ -269,6 +277,10 @@ export class PayrollApi extends runtime.BaseAPI implements PayrollApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Payroll/pay-item/{payrollItemId}`;
         urlPath = urlPath.replace(`{${"payrollItemId"}}`, encodeURIComponent(String(requestParameters['payrollItemId'])));
@@ -302,6 +314,10 @@ export class PayrollApi extends runtime.BaseAPI implements PayrollApiInterface {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Payroll/{payrollId}`;
@@ -337,6 +353,10 @@ export class PayrollApi extends runtime.BaseAPI implements PayrollApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Payroll/{payrollId}`;
         urlPath = urlPath.replace(`{${"payrollId"}}`, encodeURIComponent(String(requestParameters['payrollId'])));
@@ -365,6 +385,10 @@ export class PayrollApi extends runtime.BaseAPI implements PayrollApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Payroll`;
@@ -399,6 +423,10 @@ export class PayrollApi extends runtime.BaseAPI implements PayrollApiInterface {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Payroll/refresh/{payrollId}`;

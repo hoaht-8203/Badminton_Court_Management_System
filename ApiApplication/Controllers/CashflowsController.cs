@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Cashflow;
 using ApiApplication.Entities;
@@ -9,7 +10,7 @@ namespace ApiApplication.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-// [Authorize]
+[Authorize(Policy = PolicyConstants.ManagementOnly)]
 public class CashflowsController(
     ICashflowService cashflowService,
     ICashflowTypeService cashflowTypeService

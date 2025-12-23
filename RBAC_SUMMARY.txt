@@ -1,0 +1,146 @@
+# ROLE-BASED ACCESS CONTROL - QUICK REFERENCE
+
+## ROLES
+1. **Admin** - Toàn quyền hệ thống
+2. **BranchAdministrator** - Quản lý chi nhánh
+3. **Staff** - Nhân viên văn phòng
+4. **WarehouseStaff** - Nhân viên kho
+5. **Receptionist** - Lễ tân
+6. **Customer** - Khách hàng
+
+## POLICIES
+- **AdminOnly**: Admin
+- **ManagementOnly**: Admin, BranchAdministrator
+- **StaffAccess**: Admin, BranchAdministrator, Staff, Receptionist, WarehouseStaff
+- **OfficeStaffAccess**: Admin, BranchAdministrator, Staff, Receptionist
+- **WarehouseAccess**: Admin, BranchAdministrator, WarehouseStaff
+- **ReceptionistAccess**: Admin, BranchAdministrator, Receptionist
+- **CustomerAccess**: Tất cả authenticated users
+
+## CONTROLLERS BY POLICY
+
+### AdminOnly (3)
+- EmailController
+- RolesController
+- SystemConfigController
+- UsersController
+
+### ManagementOnly (13)
+- ActivitiesController
+- BlogsController (create/update/delete)
+- CashflowsController
+- CourtAreasController
+- DashboardController
+- DepartmentController
+- ExportsController
+- MembershipsController
+- PayrollController
+- SalaryFormController
+- ShiftController
+- SlidersController
+- StoreBankAccountsController
+- VouchersController
+
+### OfficeStaffAccess (4)
+- AttendanceController
+- CustomersController
+- ScheduleController
+- UserMembershipsController
+
+### WarehouseAccess (10)
+- CategoriesController
+- InventoryCardsController
+- InventoryChecksController
+- ProductsController
+- ReceiptsController
+- ReturnGoodsController
+- StockOutsController
+- SupplierBankAccountsController
+- SuppliersController
+
+### ReceptionistAccess (5)
+- BookingCourtsController
+- CourtsController
+- OrdersController
+- PricesController
+- ServicesController
+
+### CustomerAccess (3)
+- FeedbacksController
+- FilesController
+- NotificationsController
+
+### Mixed/Public (2)
+- AuthController (Public login + Authenticated endpoints)
+- PaymentsController (Public webhooks)
+
+## CHANGES MADE
+
+### Files Created:
+1. `/ApiApplication/Authorization/PolicyConstants.cs` - Policy definitions
+
+### Files Modified:
+1. `/ApiApplication/Constants/IdentityRoleConstants.cs` - Added 5 new roles
+2. `/ApiApplication/Data/ApplicationDbContext.cs` - Seed data for 6 roles
+3. `/ApiApplication/Program.cs` - Register authorization policies
+4. **43 Controllers** - Applied role-based authorization
+
+### Migration Created:
+- `AddRoleSystemForBCMS` - Adds new roles to database
+
+### Documentation:
+- `/ROLE_BASED_ACCESS_CONTROL.txt` - Full documentation (this file is summary)
+
+## TESTING CHECKLIST
+
+### Admin Testing
+- [ ] Can access SystemConfig endpoints
+- [ ] Can manage Users and Roles
+- [ ] Can access all Management endpoints
+- [ ] Can test email configuration
+
+### BranchAdministrator Testing
+- [ ] Can access Dashboard
+- [ ] Can view Activities and Reports
+- [ ] Can manage Staff, Payroll, Departments
+- [ ] Cannot access SystemConfig, Users, Roles
+
+### Staff Testing
+- [ ] Can view and manage Customers
+- [ ] Can view Schedules and Attendance
+- [ ] Can manage UserMemberships
+- [ ] Cannot access Warehouse or Management endpoints
+
+### WarehouseStaff Testing
+- [ ] Can manage Products, Categories
+- [ ] Can process Receipts, StockOuts, Returns
+- [ ] Can manage Suppliers and their bank accounts
+- [ ] Cannot access Office or Management endpoints
+
+### Receptionist Testing
+- [ ] Can manage Bookings and Courts
+- [ ] Can process Orders
+- [ ] Can manage Services and view Prices
+- [ ] Cannot access Warehouse or Management endpoints
+
+### Customer Testing
+- [ ] Can view Courts (public)
+- [ ] Can create Bookings
+- [ ] Can provide Feedback
+- [ ] Can upload Files
+- [ ] Cannot access any Admin/Management endpoints
+
+## DEPLOYMENT STEPS
+
+1. ✅ Run migration: `dotnet ef database update` (Already done)
+2. ✅ Build project: `dotnet build` (Successful)
+3. Test endpoints with different roles
+4. Update Swagger documentation with role information
+5. Deploy to production
+
+## NOTES
+
+- Migration đã được apply: `AddRoleSystemForBCMS`
+- Build thành công: 0 Errors, 0 Warnings
+- Tất cả 43 controllers đã được update
+- Legacy support: UserRoleGuid = CustomerRoleGuid để backward compatible

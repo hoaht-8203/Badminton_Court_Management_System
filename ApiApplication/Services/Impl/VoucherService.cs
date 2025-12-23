@@ -37,11 +37,24 @@ public class VoucherService : IVoucherService
             throw new ApiException("Mã voucher không được để trống", HttpStatusCode.BadRequest);
 
         if (request.StartAt >= request.EndAt)
-            throw new ApiException("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc", HttpStatusCode.BadRequest);
+            throw new ApiException(
+                "Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc",
+                HttpStatusCode.BadRequest
+            );
 
-        var exists = await _context.Vouchers.AnyAsync(v => v.Code == request.Code);
-        if (exists)
-            throw new ApiException("Mã voucher đã tồn tại", HttpStatusCode.BadRequest);
+        // Check for duplicate voucher code
+        var existingVoucher = await _context
+            .Vouchers.Where(v => v.Code == request.Code)
+            .Select(v => new { v.Code, v.Title })
+            .FirstOrDefaultAsync();
+
+        if (existingVoucher != null)
+        {
+            throw new ApiException(
+                $"Mã voucher '{existingVoucher.Code}' đã tồn tại trong hệ thống (Voucher: {existingVoucher.Title}). Vui lòng sử dụng mã khác.",
+                HttpStatusCode.BadRequest
+            );
+        }
 
         // Map request to entity using AutoMapper
         var entity = _mapper.Map<Voucher>(request);
@@ -115,14 +128,31 @@ public class VoucherService : IVoucherService
 
         // Validate dates
         if (request.StartAt >= request.EndAt)
-            throw new ApiException("Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc", HttpStatusCode.BadRequest);
+            throw new ApiException(
+                "Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc",
+                HttpStatusCode.BadRequest
+            );
 
         // Check code uniqueness (if code is being changed)
         if (!string.IsNullOrWhiteSpace(request.Code) && request.Code != v.Code)
         {
-            var codeExists = await _context.Vouchers.AnyAsync(vx => vx.Code == request.Code && vx.Id != id);
-            if (codeExists)
-                throw new ApiException("Mã voucher đã tồn tại", HttpStatusCode.BadRequest);
+            var existingVoucher = await _context
+                .Vouchers.Where(vx => vx.Code == request.Code && vx.Id != id)
+                .Select(vx => new
+                {
+                    vx.Code,
+                    vx.Title,
+                    vx.Id,
+                })
+                .FirstOrDefaultAsync();
+
+            if (existingVoucher != null)
+            {
+                throw new ApiException(
+                    $"Mã voucher '{existingVoucher.Code}' đã được sử dụng bởi voucher khác (ID: {existingVoucher.Id}, Tên: {existingVoucher.Title}). Vui lòng chọn mã khác.",
+                    HttpStatusCode.BadRequest
+                );
+            }
         }
 
         // Update fields using AutoMapper
@@ -583,10 +613,11 @@ public class VoucherService : IVoucherService
             return new ValidateVoucherResponse
             {
                 IsValid = false,
-                ErrorMessage = $"Voucher chưa đến thời gian sử dụng. Có hiệu lực từ {voucher.StartAt:dd/MM/yyyy HH:mm}",
+                ErrorMessage =
+                    $"Voucher chưa đến thời gian sử dụng. Có hiệu lực từ {voucher.StartAt:dd/MM/yyyy HH:mm}",
             };
         }
-        
+
         if (voucher.EndAt < referenceDateTime)
         {
             return new ValidateVoucherResponse
@@ -602,7 +633,8 @@ public class VoucherService : IVoucherService
             return new ValidateVoucherResponse
             {
                 IsValid = false,
-                ErrorMessage = $"Voucher đã hết lượt sử dụng ({voucher.UsedCount}/{voucher.UsageLimitTotal})",
+                ErrorMessage =
+                    $"Voucher đã hết lượt sử dụng ({voucher.UsedCount}/{voucher.UsageLimitTotal})",
             };
         }
 
@@ -616,7 +648,8 @@ public class VoucherService : IVoucherService
             return new ValidateVoucherResponse
             {
                 IsValid = false,
-                ErrorMessage = $"Bạn đã sử dụng hết lượt voucher này ({userUsageCount}/{voucher.UsageLimitPerUser})",
+                ErrorMessage =
+                    $"Bạn đã sử dụng hết lượt voucher này ({userUsageCount}/{voucher.UsageLimitPerUser})",
             };
         }
 
@@ -776,24 +809,28 @@ public class VoucherService : IVoucherService
                     }
                     else if (userRule.MembershipId.HasValue)
                     {
-                        var membership = await _context.Memberships.FindAsync(userRule.MembershipId.Value);
-                        errorDetails.Add($"yêu cầu gói thành viên {membership?.Name ?? "đặc biệt"}");
+                        var membership = await _context.Memberships.FindAsync(
+                            userRule.MembershipId.Value
+                        );
+                        errorDetails.Add(
+                            $"yêu cầu gói thành viên {membership?.Name ?? "đặc biệt"}"
+                        );
                     }
                     else if (userRule.IsNewCustomer.HasValue)
                     {
-                        errorDetails.Add(userRule.IsNewCustomer.Value ? "chỉ dành cho khách hàng mới" : "chỉ dành cho khách hàng cũ");
+                        errorDetails.Add(
+                            userRule.IsNewCustomer.Value
+                                ? "chỉ dành cho khách hàng mới"
+                                : "chỉ dành cho khách hàng cũ"
+                        );
                     }
                 }
-                
-                var errorMessage = errorDetails.Any() 
-                    ? $"Voucher {string.Join(" hoặc ", errorDetails)}" 
+
+                var errorMessage = errorDetails.Any()
+                    ? $"Voucher {string.Join(" hoặc ", errorDetails)}"
                     : "Bạn không đủ điều kiện sử dụng voucher này";
-                
-                return new ValidateVoucherResponse
-                {
-                    IsValid = false,
-                    ErrorMessage = errorMessage,
-                };
+
+                return new ValidateVoucherResponse { IsValid = false, ErrorMessage = errorMessage };
             }
         }
 
@@ -847,25 +884,67 @@ public class VoucherService : IVoucherService
         decimal discountAmount
     )
     {
-        // Create voucher usage record
-        var voucherUsage = new VoucherUsage
-        {
-            VoucherId = voucherId,
-            CustomerId = customerId,
-            DiscountApplied = discountAmount,
-            UsedAt = DateTime.UtcNow,
-        };
+        // Use database transaction
+        using var transaction = await _context.Database.BeginTransactionAsync();
 
-        _context.VoucherUsages.Add(voucherUsage);
-
-        // Update voucher used count
-        var voucher = await _context.Vouchers.FindAsync(voucherId);
-        if (voucher != null)
+        try
         {
+            // PESSIMISTIC LOCK
+            var voucher = await _context
+                .Vouchers.FromSqlRaw(
+                    "SELECT * FROM \"Vouchers\" WHERE \"Id\" = {0} FOR UPDATE",
+                    voucherId
+                )
+                .FirstOrDefaultAsync();
+
+            if (voucher == null)
+            {
+                throw new ApiException("Voucher không tồn tại", HttpStatusCode.NotFound);
+            }
+
+            //  Double-check usage limits after acquiring lock
+
+            if (voucher.UsageLimitTotal > 0 && voucher.UsedCount >= voucher.UsageLimitTotal)
+            {
+                throw new ApiException(
+                    $"Voucher đã hết lượt sử dụng ({voucher.UsedCount}/{voucher.UsageLimitTotal})",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            // Check per-user usage limit
+            var userUsageCount = await _context.VoucherUsages.CountAsync(vu =>
+                vu.VoucherId == voucherId && vu.CustomerId == customerId
+            );
+
+            if (voucher.UsageLimitPerUser > 0 && userUsageCount >= voucher.UsageLimitPerUser)
+            {
+                throw new ApiException(
+                    $"Bạn đã sử dụng hết lượt voucher này ({userUsageCount}/{voucher.UsageLimitPerUser})",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
+            // All checks passed - create usage record and increment counter
+            var voucherUsage = new VoucherUsage
+            {
+                VoucherId = voucherId,
+                CustomerId = customerId,
+                DiscountApplied = discountAmount,
+                UsedAt = DateTime.UtcNow,
+            };
+
+            _context.VoucherUsages.Add(voucherUsage);
             voucher.UsedCount += 1;
-        }
 
-        await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task ExtendAsync(int id, ExtendVoucherRequest request)

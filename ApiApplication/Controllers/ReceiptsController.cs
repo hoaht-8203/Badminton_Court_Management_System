@@ -1,9 +1,11 @@
+using ApiApplication.Authorization;
 using ApiApplication.Constants;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Receipt;
 using ApiApplication.Entities;
 using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +13,7 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Policy = PolicyConstants.WarehouseAccess)]
 public class ReceiptsController(IReceiptService receiptService) : ControllerBase
 {
     private readonly IReceiptService _service = receiptService;

@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
     Title="Đăng ký khuôn mặt" Height="420" Width="700"
-    WindowState="Normal"
+    WindowState="Maximized"
         FontFamily="Segoe UI"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">

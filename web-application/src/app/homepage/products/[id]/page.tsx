@@ -144,7 +144,7 @@ const ProductDetailPage = () => {
                       />
                       {isOutOfStock && (
                         <div className="absolute inset-0 z-10 flex items-center justify-center">
-                          <img
+                          <Image
                             src="https://png.pngtree.com/png-vector/20250506/ourmid/pngtree-sold-out-label-stamp-in-red-with-rectangular-border-for-limited-vector-png-image_16099397.png"
                             alt="Sold Out"
                             width={200}
@@ -234,7 +234,7 @@ const ProductDetailPage = () => {
               <div className="mb-4">
                 {isOutOfStock ? (
                   <div className="flex items-center gap-3">
-                    <img
+                    <Image
                       src="https://png.pngtree.com/png-vector/20250506/ourmid/pngtree-sold-out-label-stamp-in-red-with-rectangular-border-for-limited-vector-png-image_16099397.png"
                       alt="Sold Out"
                       width={100}
@@ -288,7 +288,7 @@ const ProductDetailPage = () => {
                   <GiftOutlined style={{ fontSize: "20px", color: "#ff4d4f" }} />
                   <Text strong style={{ fontSize: "16px" }}>
                     <span className="text-gray-800">Ưu đãi thêm khi mua sản phẩm tại </span>
-                    <img
+                    <Image
                       src="https://caulong365.store/web-logo/caulong365_ver3.png"
                       alt="CauLong365.Store"
                       className="ml-2 inline-block h-6"
@@ -298,7 +298,7 @@ const ProductDetailPage = () => {
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-start gap-2">
-                    <img
+                    <Image
                       src="https://res.cloudinary.com/dafzz2c9j/image/upload/v1762582034/png-clipart-checked-logo-check-mark-green-check-angle-leaf-thumbnail-removebg-preview_xdfzob.png"
                       alt="check"
                       className="mt-0.5 h-5 w-5 flex-shrink-0"
@@ -309,7 +309,7 @@ const ProductDetailPage = () => {
                     </Text>
                   </div>
                   <div className="flex items-start gap-2">
-                    <img
+                    <Image
                       src="https://e7.pngegg.com/pngimages/405/55/png-clipart-checked-logo-check-mark-green-check-angle-leaf-thumbnail.png"
                       alt="check"
                       className="mt-0.5 h-5 w-5 flex-shrink-0"
@@ -320,7 +320,7 @@ const ProductDetailPage = () => {
                     </Text>
                   </div>
                   <div className="flex items-start gap-2">
-                    <img
+                    <Image
                       src="https://e7.pngegg.com/pngimages/405/55/png-clipart-checked-logo-check-mark-green-check-angle-leaf-thumbnail.png"
                       alt="check"
                       className="mt-0.5 h-5 w-5 flex-shrink-0"
@@ -331,7 +331,7 @@ const ProductDetailPage = () => {
                     </Text>
                   </div>
                   <div className="flex items-start gap-2">
-                    <img
+                    <Image
                       src="https://e7.pngegg.com/pngimages/405/55/png-clipart-checked-logo-check-mark-green-check-angle-leaf-thumbnail.png"
                       alt="check"
                       className="mt-0.5 h-5 w-5 flex-shrink-0"
@@ -342,7 +342,7 @@ const ProductDetailPage = () => {
                     </Text>
                   </div>
                   <div className="flex items-start gap-2">
-                    <img
+                    <Image
                       src="https://e7.pngegg.com/pngimages/405/55/png-clipart-checked-logo-check-mark-green-check-angle-leaf-thumbnail.png"
                       alt="check"
                       className="mt-0.5 h-5 w-5 flex-shrink-0"

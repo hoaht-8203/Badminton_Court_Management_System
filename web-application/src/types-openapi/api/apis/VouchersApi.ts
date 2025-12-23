@@ -45,6 +45,8 @@ import {
 
 export interface ApiVouchersAvailableGetRequest {
     bookingDateTime?: Date;
+    endTime?: Date;
+    originalAmount?: number;
     customerId?: number;
 }
 
@@ -84,6 +86,8 @@ export interface VouchersApiInterface {
     /**
      * 
      * @param {Date} [bookingDateTime] 
+     * @param {Date} [endTime] 
+     * @param {number} [originalAmount] 
      * @param {number} [customerId] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -200,14 +204,26 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
         const queryParameters: any = {};
 
         if (requestParameters['bookingDateTime'] != null) {
-            queryParameters['bookingDateTime'] = (requestParameters['bookingDateTime'] as any).toISOString();
+            queryParameters['BookingDateTime'] = (requestParameters['bookingDateTime'] as any).toISOString();
+        }
+
+        if (requestParameters['endTime'] != null) {
+            queryParameters['EndTime'] = (requestParameters['endTime'] as any).toISOString();
+        }
+
+        if (requestParameters['originalAmount'] != null) {
+            queryParameters['OriginalAmount'] = requestParameters['originalAmount'];
         }
 
         if (requestParameters['customerId'] != null) {
-            queryParameters['customerId'] = requestParameters['customerId'];
+            queryParameters['CustomerId'] = requestParameters['customerId'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Vouchers/available`;
@@ -237,6 +253,10 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Vouchers/create`;
@@ -277,6 +297,10 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Vouchers/delete`;
 
@@ -315,6 +339,10 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Vouchers/detail`;
 
@@ -351,6 +379,10 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Vouchers/extend/{id}`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
@@ -379,6 +411,10 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Vouchers/list`;
@@ -416,6 +452,10 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Vouchers/update/{id}`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
@@ -446,6 +486,10 @@ export class VouchersApi extends runtime.BaseAPI implements VouchersApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Vouchers/validate`;

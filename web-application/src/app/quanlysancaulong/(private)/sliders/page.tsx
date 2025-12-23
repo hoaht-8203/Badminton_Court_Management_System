@@ -40,6 +40,20 @@ const SlidersPage = () => {
 
   const { data: slidersData, isFetching: loadingSlidersData, refetch: refetchSlidersData } = useListSliders(searchParams);
 
+  const filteredSliders: ListSliderResponse[] =
+    slidersData?.data?.filter((slider) => {
+      const titleFilter = searchParams.title?.trim();
+      const statusFilter = searchParams.status;
+
+      const matchTitle = titleFilter
+        ? (slider.title ?? "").toLowerCase().includes(titleFilter.toLowerCase())
+        : true;
+
+      const matchStatus = statusFilter ? slider.status === statusFilter : true;
+
+      return matchTitle && matchStatus;
+    }) ?? [];
+
   const deleteSliderMutation = useDeleteSlider();
 
   const handleClickUpdateSlider = (record: ListSliderResponse) => {
@@ -105,7 +119,7 @@ const SlidersPage = () => {
       <div>
         <div className="mb-2 flex items-center justify-between">
           <div>
-            <span className="font-bold text-green-500">Tổng số slider: {slidersData?.data?.length ?? 0}</span>
+            <span className="font-bold text-green-500">Tổng số slider: {filteredSliders.length}</span>
           </div>
           <div className="flex gap-2">
             <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpenCreateSliderDrawer(true)}>
@@ -120,7 +134,7 @@ const SlidersPage = () => {
         <Table<ListSliderResponse>
           {...tableProps}
           columns={columns}
-          dataSource={slidersData?.data ?? []}
+          dataSource={filteredSliders}
           loading={loadingSlidersData}
           expandable={{
             expandRowByClick: true,

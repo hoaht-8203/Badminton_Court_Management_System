@@ -210,6 +210,10 @@ export class CashflowsApi extends runtime.BaseAPI implements CashflowsApiInterfa
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Cashflows`;
 
@@ -243,6 +247,10 @@ export class CashflowsApi extends runtime.BaseAPI implements CashflowsApiInterfa
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Cashflows/{id}`;
@@ -278,6 +286,10 @@ export class CashflowsApi extends runtime.BaseAPI implements CashflowsApiInterfa
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Cashflows/{id}`;
@@ -316,6 +328,10 @@ export class CashflowsApi extends runtime.BaseAPI implements CashflowsApiInterfa
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Cashflows/{id}`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
@@ -346,6 +362,10 @@ export class CashflowsApi extends runtime.BaseAPI implements CashflowsApiInterfa
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Cashflows`;
@@ -379,6 +399,10 @@ export class CashflowsApi extends runtime.BaseAPI implements CashflowsApiInterfa
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Cashflows/related-persons`;
 
@@ -409,6 +433,10 @@ export class CashflowsApi extends runtime.BaseAPI implements CashflowsApiInterfa
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Cashflows/types`;

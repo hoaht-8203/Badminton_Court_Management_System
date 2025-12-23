@@ -134,6 +134,10 @@ export class SalaryFormApi extends runtime.BaseAPI implements SalaryFormApiInter
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/SalaryForm`;
 
@@ -167,6 +171,10 @@ export class SalaryFormApi extends runtime.BaseAPI implements SalaryFormApiInter
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/SalaryForm/{id}`;
@@ -202,6 +210,10 @@ export class SalaryFormApi extends runtime.BaseAPI implements SalaryFormApiInter
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/SalaryForm/{id}`;
@@ -240,6 +252,10 @@ export class SalaryFormApi extends runtime.BaseAPI implements SalaryFormApiInter
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/SalaryForm/{id}`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
@@ -270,6 +286,10 @@ export class SalaryFormApi extends runtime.BaseAPI implements SalaryFormApiInter
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/SalaryForm`;

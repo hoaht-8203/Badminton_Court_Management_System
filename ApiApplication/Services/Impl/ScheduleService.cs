@@ -133,15 +133,29 @@ namespace ApiApplication.Services.Impl
                                             && ar.Date == DateOnly.FromDateTime(x.Date)
                                         )
                                         .ToList();
-                                    var statusByDate =
-                                        Helpers.AttendanceHelper.DetermineStatusOfShift(
-                                            attendances,
-                                            x.Shift
-                                        );
-                                    if (x.Date > DateTime.Now)
+
+                                    // Determine if shift has started by comparing shift start time with current time
+                                    var shiftStartDateTime = DateOnly
+                                        .FromDateTime(x.Date)
+                                        .ToDateTime(x.Shift.StartTime);
+                                    var now = DateTime.Now;
+
+                                    string statusByDate;
+                                    if (shiftStartDateTime > now)
                                     {
+                                        // Shift hasn't started yet
                                         statusByDate = AttendanceStatus.NotYet;
                                     }
+                                    else
+                                    {
+                                        // Shift has started or passed, check attendance
+                                        statusByDate =
+                                            Helpers.AttendanceHelper.DetermineStatusOfShift(
+                                                attendances,
+                                                x.Shift
+                                            );
+                                    }
+
                                     return new StaffAttendanceResponse
                                     {
                                         Id = x.Staff.Id,
@@ -298,13 +312,31 @@ namespace ApiApplication.Services.Impl
                 }
             }
 
-            var schedule = await _context.Schedules.FirstOrDefaultAsync(s =>
-                s.StaffId == request.StaffId
-                && s.ShiftId == request.ShiftId
-                && s.StartDate == requestDate
-            );
-            if (schedule == null)
+            // Find schedules that apply to this date
+            var schedules = await _context
+                .Schedules.Where(s =>
+                    s.StaffId == request.StaffId
+                    && s.ShiftId == request.ShiftId
+                    && (
+                        // Non-fixed shift with exact start date
+                        (!s.IsFixedShift && s.StartDate == requestDate)
+                        ||
+                        // Fixed shift that covers this date
+                        (
+                            s.IsFixedShift
+                            && s.StartDate <= requestDate
+                            && (s.EndDate == null || s.EndDate >= requestDate)
+                        )
+                    )
+                )
+                .ToListAsync();
+
+            // If there's a fixed shift covering this date
+            var fixedSchedule = schedules.FirstOrDefault(s => s.IsFixedShift);
+            if (fixedSchedule != null)
             {
+                // For fixed shifts, don't delete the schedule record
+                // Instead, add to CancelledShifts to exclude this specific date
                 _context.CancelledShifts.Add(
                     new Entities.CancelledShift
                     {
@@ -324,15 +356,23 @@ namespace ApiApplication.Services.Impl
                 return true;
             }
 
-            _context.Schedules.Remove(schedule);
-            var scheduleSaved = await _context.SaveChangesAsync() > 0;
-            if (!scheduleSaved)
+            // If there's a non-fixed shift with exact start date
+            var nonFixedSchedule = schedules.FirstOrDefault(s => !s.IsFixedShift);
+            if (nonFixedSchedule != null)
             {
-                throw new ApiException(
-                    "Không thể xóa lịch làm việc",
-                    System.Net.HttpStatusCode.InternalServerError
-                );
+                // For non-fixed shifts, delete the schedule record directly
+                _context.Schedules.Remove(nonFixedSchedule);
+                var scheduleSaved = await _context.SaveChangesAsync() > 0;
+                if (!scheduleSaved)
+                {
+                    throw new ApiException(
+                        "Không thể xóa lịch làm việc",
+                        System.Net.HttpStatusCode.InternalServerError
+                    );
+                }
+                return true;
             }
+
             return true;
         }
     }

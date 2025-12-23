@@ -13,10 +13,12 @@ export const useListProducts = (params: ListProductRequest) => {
       params?.code ?? null,
       params?.name ?? null,
       params?.category ?? null,
-      params?.menuType ?? null,
-      params?.isDirectSale ?? null,
+      
     ],
     queryFn: () => productService.list(params),
+    refetchOnWindowFocus: true, // Auto refetch when window gains focus
+    refetchOnMount: true, // Auto refetch when component mounts
+    staleTime: 0, // Always consider data stale to ensure fresh data
   });
 };
 
@@ -25,6 +27,9 @@ export const useDetailProduct = (params: DetailProductRequest, enabled = true) =
     queryKey: ["product", params, params?.id],
     queryFn: () => productService.detail(params),
     enabled,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    staleTime: 0, // Always consider data stale to ensure fresh data
   });
 };
 
@@ -71,8 +76,7 @@ export const useListProductsForWeb = (params: ListProductRequest) => {
       params?.code ?? null,
       params?.name ?? null,
       params?.category ?? null,
-      params?.menuType ?? null,
-      params?.isDirectSale ?? null,
+      
     ],
     queryFn: () => productService.listForWeb(params),
   });
@@ -87,5 +91,12 @@ export const useUpdateWebDisplay = () => {
       qc.invalidateQueries({ queryKey: ["products-for-web"] });
       qc.invalidateQueries({ queryKey: ["product"] });
     },
+  });
+};
+
+export const useGetCurrentAppliedPrice = () => {
+  return useQuery({
+    queryKey: ["current-applied-price"],
+    queryFn: () => productService.getCurrentAppliedPrice(),
   });
 };

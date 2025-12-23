@@ -13,6 +13,7 @@ import {
   QrcodeOutlined,
   CrownOutlined,
   CheckCircleOutlined,
+  CloseCircleOutlined,
 } from "@ant-design/icons";
 import "./membership-cards.css";
 import type { MenuProps } from "antd";
@@ -29,6 +30,7 @@ import { useListMemberships } from "@/hooks/useMembership";
 import { useCreateUserMembershipForCurrentUser } from "@/hooks/useUserMembershipService";
 import { ListMembershipResponse, CreateUserMembershipResponse } from "@/types-openapi/api";
 import Image from "next/image";
+import { courtScheduleService } from "@/services/courtScheduleService";
 
 const { Title, Text } = Typography;
 
@@ -53,7 +55,7 @@ const items: MenuItem[] = [
 ];
 
 // Lazy load expandable content (tabs with details and payments) only when a row is expanded
-type ExpandableProps = { record: ListUserBookingHistoryResponse };
+type ExpandableProps = { record: ListUserBookingHistoryResponse; onCancelSuccess?: () => void };
 const BookingExpandableContent = dynamic<ExpandableProps>(() => import("./_components/BookingExpandableContent"), {
   loading: () => (
     <div className="bg-gray-50 p-6">
@@ -283,9 +285,61 @@ const BookingHistoryPage = () => {
         render: (_: any, record: ListUserBookingHistoryResponse) => {
           const isPendingPayment = record.status === "PendingPayment";
           const hasQrUrl = record.qrUrl && record.paymentId;
+          // Check if booking can be cancelled (PendingPayment, Active, or Cancelled status check)
+          const canCancelBooking = record.status === "PendingPayment" || record.status === "Active";
+
+          const handleCancelBooking = () => {
+            Modal.confirm({
+              title: "Xác nhận hủy đặt sân",
+              content: (
+                <div>
+                  <p>Bạn có chắc chắn muốn hủy toàn bộ đặt sân này?</p>
+                  <p>
+                    <strong>Sân:</strong> {record.courtName}
+                  </p>
+                  <p>
+                    <strong>Ngày:</strong> {dayjs(record.startDate).format("DD/MM/YYYY")} - {dayjs(record.endDate).format("DD/MM/YYYY")}
+                  </p>
+                  <p>
+                    <strong>Thời gian:</strong> {dayjs(record.startTime, "HH:mm:ss").format("HH:mm")} -{" "}
+                    {dayjs(record.endTime, "HH:mm:ss").format("HH:mm")}
+                  </p>
+                  <p style={{ color: "#ff4d4f", marginTop: 8 }}>Lưu ý: Tất cả các lịch sân trong đặt sân này sẽ bị hủy.</p>
+                </div>
+              ),
+              okText: "Xác nhận hủy",
+              cancelText: "Hủy",
+              okButtonProps: { danger: true },
+              onOk: async () => {
+                try {
+                  if (!record.id) {
+                    message.error("Không tìm thấy ID đặt sân!");
+                    return;
+                  }
+                  const result = await courtScheduleService.userCancelBooking({
+                    id: record.id,
+                  });
+
+                  if (result.success) {
+                    message.success("Hủy đặt sân thành công!");
+                    refetch();
+                  } else {
+                    message.error(result.message || "Hủy đặt sân thất bại!");
+                  }
+                } catch (error: any) {
+                  message.error(error?.response?.data?.message || error?.message || "Hủy đặt sân thất bại!");
+                }
+              },
+            });
+          };
 
           return (
-            <Space>
+            <div className="flex flex-col items-end gap-2">
+              {canCancelBooking && (
+                <Button danger icon={<CloseCircleOutlined />} onClick={handleCancelBooking} size="small">
+                  Hủy đặt sân
+                </Button>
+              )}
               <Button
                 type="primary"
                 icon={<QrcodeOutlined />}
@@ -295,14 +349,14 @@ const BookingHistoryPage = () => {
               >
                 Mã QR
               </Button>
-            </Space>
+            </div>
           );
         },
-        width: 100,
+        width: 150,
         fixed: "right" as const,
       },
     ],
-    [handleShowQrPayment],
+    [handleShowQrPayment, refetch],
   );
 
   const bookingHistory = useMemo(() => data?.data || [], [data?.data]);
@@ -311,10 +365,10 @@ const BookingHistoryPage = () => {
   const expandedRowRender = useCallback(
     (record: ListUserBookingHistoryResponse) => (
       <div className="bg-gray-50 p-4">
-        <BookingExpandableContent record={record} />
+        <BookingExpandableContent record={record} onCancelSuccess={refetch} />
       </div>
     ),
-    [],
+    [refetch],
   );
 
   const tablePagination = useMemo(

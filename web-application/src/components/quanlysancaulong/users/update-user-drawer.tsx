@@ -1,11 +1,10 @@
 "use client";
 
-import { useListRoles } from "@/hooks";
 import { useDetailAdministrator, useUpdateAdministrator } from "@/hooks/useUsers";
 import { ApiError } from "@/lib/axios";
 import { UpdateUserRequest } from "@/types-openapi/api";
 import { CloseOutlined, SaveOutlined } from "@ant-design/icons";
-import { Button, Col, DatePicker, Drawer, Form, FormProps, Input, Row, Select, Space, message } from "antd";
+import { Button, Col, DatePicker, Drawer, Form, FormProps, Input, Row, Space, message } from "antd";
 import FormItem from "antd/es/form/FormItem";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -20,11 +19,6 @@ interface UpdateUserDrawerProps {
 
 const UpdateUserDrawer = ({ open, onClose, userId }: UpdateUserDrawerProps) => {
   const [form] = Form.useForm();
-
-  // Fetch roles for select options
-  const { data: rolesData, isFetching: loadingRolesData } = useListRoles({
-    roleName: null,
-  });
 
   // Fetch user detail
   const { data: detailData, isFetching: loadingDetail, refetch } = useDetailAdministrator({ userId });
@@ -42,7 +36,6 @@ const UpdateUserDrawer = ({ open, onClose, userId }: UpdateUserDrawerProps) => {
       fullName: d.fullName ?? null,
       email: d.email ?? null,
       phoneNumber: d.phoneNumber ?? null,
-      role: d.role?.[0] ?? null,
       address: d.address ?? null,
       city: d.city ?? null,
       district: d.district ?? null,
@@ -162,19 +155,7 @@ const UpdateUserDrawer = ({ open, onClose, userId }: UpdateUserDrawerProps) => {
               <Input.Password placeholder="Nhập lại mật khẩu mới" />
             </FormItem>
           </Col>
-          <Col span={12}>
-            <FormItem<UpdateUserRequest> name="role" label="Vai trò" rules={[{ required: true, message: "Vai trò là bắt buộc" }]}>
-              <Select
-                placeholder="Chọn vai trò"
-                options={rolesData?.data?.map((r) => ({
-                  value: r.roleName,
-                  label: r.roleName,
-                }))}
-                loading={loadingRolesData}
-              />
-            </FormItem>
-          </Col>
-          <Col span={12}>
+          <Col span={24}>
             <FormItem<UpdateUserRequest> name="dateOfBirth" label="Ngày sinh">
               <DatePicker style={{ width: "100%" }} placeholder="Chọn ngày sinh" />
             </FormItem>

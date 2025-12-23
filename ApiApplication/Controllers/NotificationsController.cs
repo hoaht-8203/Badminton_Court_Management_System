@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Notification;
 using ApiApplication.Services;
@@ -8,7 +9,7 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = PolicyConstants.CustomerAccess)]
 public class NotificationsController(INotificationService notificationService) : ControllerBase
 {
     private readonly INotificationService _notificationService = notificationService;

@@ -1,13 +1,16 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.SupplierBankAccount;
 using ApiApplication.Entities;
 using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Policy = PolicyConstants.WarehouseAccess)]
 public class SupplierBankAccountsController(ISupplierBankAccountService service) : ControllerBase
 {
     private readonly ISupplierBankAccountService _service = service;

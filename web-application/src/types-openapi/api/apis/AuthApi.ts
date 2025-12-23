@@ -21,6 +21,7 @@ import type {
   MyProfileResponseApiResponse,
   ObjectApiResponse,
   RegisterRequest,
+  ResendVerifyEmailRequest,
   UpdateMyProfileRequest,
   UpdatePasswordRequest,
   ValidateForgotPasswordRequest,
@@ -39,6 +40,8 @@ import {
     ObjectApiResponseToJSON,
     RegisterRequestFromJSON,
     RegisterRequestToJSON,
+    ResendVerifyEmailRequestFromJSON,
+    ResendVerifyEmailRequestToJSON,
     UpdateMyProfileRequestFromJSON,
     UpdateMyProfileRequestToJSON,
     UpdatePasswordRequestFromJSON,
@@ -55,6 +58,10 @@ export interface ApiAuthForgotPasswordPostRequest {
 
 export interface ApiAuthLoginPostRequest {
     loginRequest?: LoginRequest;
+}
+
+export interface ApiAuthResendVerifyEmailPostRequest {
+    resendVerifyEmailRequest?: ResendVerifyEmailRequest;
 }
 
 export interface ApiAuthSignUpPostRequest {
@@ -160,6 +167,19 @@ export interface AuthApiInterface {
 
     /**
      * 
+     * @param {ResendVerifyEmailRequest} [resendVerifyEmailRequest] 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof AuthApiInterface
+     */
+    apiAuthResendVerifyEmailPostRaw(requestParameters: ApiAuthResendVerifyEmailPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>>;
+
+    /**
+     */
+    apiAuthResendVerifyEmailPost(requestParameters: ApiAuthResendVerifyEmailPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse>;
+
+    /**
+     * 
      * @param {RegisterRequest} [registerRequest] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -239,6 +259,10 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Auth/forgot-password`;
 
@@ -269,6 +293,10 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Auth/login`;
 
@@ -297,6 +325,10 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Auth/logout`;
 
@@ -323,6 +355,10 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Auth/me`;
@@ -351,6 +387,10 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Auth/my-profile`;
 
@@ -378,6 +418,10 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Auth/refresh-token`;
 
@@ -400,12 +444,50 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
 
     /**
      */
+    async apiAuthResendVerifyEmailPostRaw(requestParameters: ApiAuthResendVerifyEmailPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<ObjectApiResponse>> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
+
+        let urlPath = `/api/Auth/resend-verify-email`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: ResendVerifyEmailRequestToJSON(requestParameters['resendVerifyEmailRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => ObjectApiResponseFromJSON(jsonValue));
+    }
+
+    /**
+     */
+    async apiAuthResendVerifyEmailPost(requestParameters: ApiAuthResendVerifyEmailPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<ObjectApiResponse> {
+        const response = await this.apiAuthResendVerifyEmailPostRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     */
     async apiAuthSignUpPostRaw(requestParameters: ApiAuthSignUpPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<CurrentUserResponseApiResponse>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Auth/sign-up`;
@@ -437,6 +519,10 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Auth/update-my-profile`;
 
@@ -466,6 +552,10 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Auth/update-password`;
@@ -497,6 +587,10 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Auth/validate-forgot-password`;
 
@@ -526,6 +620,10 @@ export class AuthApi extends runtime.BaseAPI implements AuthApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Auth/verify-email`;

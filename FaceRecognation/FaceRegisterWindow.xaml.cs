@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -15,7 +17,7 @@ namespace FaceRecognation
         private int currentFaceIndex = 0; // 0..4 for five images
         private StaffResponse? _staff;
         private readonly ICompreFaceService? _compreFaceService;
-        private string?[] _imagePaths = new string?[5];
+        private byte[]?[] _imageBytes = new byte[]?[5]; // Store image bytes instead of paths
 
         // Parameterless ctor kept for XAML designer and manual instantiation
         public FaceRegisterWindow()
@@ -81,8 +83,8 @@ namespace FaceRecognation
                             break;
                     }
 
-                    if (idx >= 0 && idx < _imagePaths.Length)
-                        _imagePaths[idx] = null;
+                    if (idx >= 0 && idx < _imageBytes.Length)
+                        _imageBytes[idx] = null;
 
                     // hide the remove button
                     try
@@ -148,11 +150,8 @@ namespace FaceRecognation
         {
             try
             {
-                var bitmap = new BitmapImage();
-                bitmap.BeginInit();
-                bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                bitmap.UriSource = new Uri(filePath);
-                bitmap.EndInit();
+                // Load and fix EXIF orientation, then save bytes
+                var (bitmap, bytes) = LoadImageWithCorrectOrientationAndBytes(filePath);
 
                 switch (idx)
                 {
@@ -173,9 +172,9 @@ namespace FaceRecognation
                         break;
                 }
 
-                // store path so we can upload bytes later
-                if (idx >= 0 && idx < _imagePaths.Length)
-                    _imagePaths[idx] = filePath;
+                // Store corrected image bytes
+                if (idx >= 0 && idx < _imageBytes.Length)
+                    _imageBytes[idx] = bytes;
 
                 // show the corresponding remove button
                 try
@@ -230,7 +229,7 @@ namespace FaceRecognation
         private async void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             // Validate that all five images have been provided
-            bool allPresent = _imagePaths.All(p => !string.IsNullOrEmpty(p));
+            bool allPresent = _imageBytes.All(b => b != null && b.Length > 0);
             if (!allPresent)
             {
                 MessageBox.Show(
@@ -272,12 +271,11 @@ namespace FaceRecognation
                 var createResp = await _compreFaceService.CreateSubjectAsync(subjectName);
 
                 // Upload each image
-                for (int i = 0; i < _imagePaths.Length; i++)
+                for (int i = 0; i < _imageBytes.Length; i++)
                 {
-                    var path = _imagePaths[i];
-                    if (string.IsNullOrEmpty(path) || !File.Exists(path))
+                    var bytes = _imageBytes[i];
+                    if (bytes == null || bytes.Length == 0)
                         continue;
-                    var bytes = await File.ReadAllBytesAsync(path);
                     await _compreFaceService.AddFaceToSubjectAsync(subjectName, bytes);
                 }
 
@@ -298,6 +296,68 @@ namespace FaceRecognation
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
+            }
+        }
+
+        /// <summary>
+        /// Load image, fix EXIF orientation, and return both BitmapSource and bytes
+        /// </summary>
+        private (BitmapSource bitmap, byte[] bytes) LoadImageWithCorrectOrientationAndBytes(string filePath)
+        {
+            using (var originalBitmap = new Bitmap(filePath))
+            {
+                // Fix EXIF orientation
+                if (originalBitmap.PropertyIdList.Contains(0x0112)) // PropertyTagOrientation
+                {
+                    var prop = originalBitmap.GetPropertyItem(0x0112);
+                    int orientation = prop.Value[0];
+
+                    switch (orientation)
+                    {
+                        case 2:
+                            originalBitmap.RotateFlip(RotateFlipType.RotateNoneFlipX);
+                            break;
+                        case 3:
+                            originalBitmap.RotateFlip(RotateFlipType.Rotate180FlipNone);
+                            break;
+                        case 4:
+                            originalBitmap.RotateFlip(RotateFlipType.Rotate180FlipX);
+                            break;
+                        case 5:
+                            originalBitmap.RotateFlip(RotateFlipType.Rotate90FlipX);
+                            break;
+                        case 6:
+                            originalBitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                            break;
+                        case 7:
+                            originalBitmap.RotateFlip(RotateFlipType.Rotate270FlipX);
+                            break;
+                        case 8:
+                            originalBitmap.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                            break;
+                    }
+
+                    // Remove EXIF orientation tag
+                    originalBitmap.RemovePropertyItem(0x0112);
+                }
+
+                // Convert to bytes and BitmapSource
+                using (var memory = new MemoryStream())
+                {
+                    originalBitmap.Save(memory, ImageFormat.Jpeg);
+                    var imageBytes = memory.ToArray();
+
+                    // Create BitmapSource from bytes
+                    memory.Position = 0;
+                    var bitmapImage = new BitmapImage();
+                    bitmapImage.BeginInit();
+                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmapImage.StreamSource = memory;
+                    bitmapImage.EndInit();
+                    bitmapImage.Freeze();
+
+                    return (bitmapImage, imageBytes);
+                }
             }
         }
     }

@@ -208,6 +208,10 @@ export class InventoryChecksApi extends runtime.BaseAPI implements InventoryChec
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/InventoryChecks/bulk-cancel`;
 
@@ -242,6 +246,10 @@ export class InventoryChecksApi extends runtime.BaseAPI implements InventoryChec
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/InventoryChecks/{id}/cancel`;
@@ -278,6 +286,10 @@ export class InventoryChecksApi extends runtime.BaseAPI implements InventoryChec
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/InventoryChecks/{id}/complete`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
@@ -312,6 +324,10 @@ export class InventoryChecksApi extends runtime.BaseAPI implements InventoryChec
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/InventoryChecks/{id}`;
@@ -349,6 +365,10 @@ export class InventoryChecksApi extends runtime.BaseAPI implements InventoryChec
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/InventoryChecks/{id}`;
@@ -391,6 +411,10 @@ export class InventoryChecksApi extends runtime.BaseAPI implements InventoryChec
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/InventoryChecks/list`;
 
@@ -419,6 +443,10 @@ export class InventoryChecksApi extends runtime.BaseAPI implements InventoryChec
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/InventoryChecks/merge`;
@@ -449,6 +477,10 @@ export class InventoryChecksApi extends runtime.BaseAPI implements InventoryChec
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/InventoryChecks`;

@@ -57,9 +57,29 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
   const courtWatch = Form.useWatch("courtId", form);
   const [payInFull, setPayInFull] = useState<boolean>(false);
   const [paymentMethod, setPaymentMethod] = useState<"Bank" | "Cash">(userMode ? "Bank" : "Bank");
-  const totalHoursPlay = useMemo(() => {
-    return (endTimeWatch?.diff(startTimeWatch, "hour") ?? 0).toFixed(1);
+
+  // Tổng thời gian chơi (sử dụng phút để chính xác, ví dụ 1 giờ 15 phút)
+  const totalMinutesPlay = useMemo(() => {
+    if (!startTimeWatch || !endTimeWatch) return 0;
+    return endTimeWatch.diff(startTimeWatch, "minute"); // có thể âm nếu chọn sai
   }, [startTimeWatch, endTimeWatch]);
+
+  const totalHoursPlayNumber = useMemo(() => {
+    return totalMinutesPlay / 60;
+  }, [totalMinutesPlay]);
+
+  const totalHoursPlayLabel = useMemo(() => {
+    if (totalMinutesPlay <= 0) return "0 giờ";
+    const hours = Math.floor(totalMinutesPlay / 60);
+    const minutes = totalMinutesPlay % 60;
+    if (minutes === 0) {
+      return `${hours} giờ`;
+    }
+    if (hours === 0) {
+      return `${minutes} phút`;
+    }
+    return `${hours} giờ ${minutes} phút`;
+  }, [totalMinutesPlay]);
 
   const [createBookingCourtDaysOfWeek, setCreateBookingCourtDaysOfWeek] = useState<string>("1");
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>([]);
@@ -506,6 +526,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                               format="HH:mm"
                               showNow={false}
                               style={{ width: "100%" }}
+                              minuteStep={15}
                               onChange={() => {
                                 // revalidate counterpart to clear stale error
                                 form.validateFields(["endTime"]).catch(() => undefined);
@@ -538,6 +559,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                               placeholder="Chọn giờ kết thúc"
                               format="HH:mm"
                               style={{ width: "100%" }}
+                              minuteStep={15}
                               onChange={() => {
                                 form.validateFields(["startTime"]).catch(() => undefined);
                               }}
@@ -581,7 +603,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                               },
                             ]}
                           >
-                            <TimePicker placeholder="Chọn giờ bắt đầu" style={{ width: "100%" }} />
+                            <TimePicker placeholder="Chọn giờ bắt đầu" style={{ width: "100%" }} minuteStep={15} />
                           </FormItem>
                         </Col>
                         <Col span={6}>
@@ -601,7 +623,7 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                               },
                             ]}
                           >
-                            <TimePicker placeholder="Chọn giờ kết thúc" style={{ width: "100%" }} />
+                            <TimePicker placeholder="Chọn giờ kết thúc" style={{ width: "100%" }} minuteStep={15} />
                           </FormItem>
                         </Col>
                         <Col span={24}>
@@ -683,9 +705,9 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                         {
                           key: "7",
                           label: "Tổng số giờ đặt sân",
-                          children: `${totalHoursPlay} giờ`,
+                          children: totalHoursPlayLabel,
                           span: 1,
-                          style: { color: totalHoursPlay < 1 ? "red" : "inherit" },
+                          style: { color: totalHoursPlayNumber < 1 ? "red" : "inherit" },
                         },
                         {
                           key: "8",
@@ -762,9 +784,9 @@ const ModalCreateNewBooking = ({ open, onClose, newBooking, userMode = false }: 
                         {
                           key: "8",
                           label: "Tổng số giờ mỗi buổi",
-                          children: `${totalHoursPlay} giờ`,
+                          children: totalHoursPlayLabel,
                           span: 1,
-                          style: { color: totalHoursPlay < 1 ? "red" : "inherit" },
+                          style: { color: totalHoursPlayNumber < 1 ? "red" : "inherit" },
                         },
                         {
                           key: "9",

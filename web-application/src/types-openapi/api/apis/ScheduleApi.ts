@@ -165,6 +165,10 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Schedule/assign`;
 
@@ -205,6 +209,10 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Schedule/by-shift`;
 
@@ -243,6 +251,10 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Schedule/by-staff`;
@@ -302,6 +314,10 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Schedule/by-staff/{staffId}`;
         urlPath = urlPath.replace(`{${"staffId"}}`, encodeURIComponent(String(requestParameters['staffId2'])));
@@ -331,6 +347,10 @@ export class ScheduleApi extends runtime.BaseAPI implements ScheduleApiInterface
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Schedule/remove`;

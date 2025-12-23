@@ -1,4 +1,5 @@
 using System.Threading;
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Customer;
 using ApiApplication.Dtos.Pagination;
@@ -10,7 +11,7 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = PolicyConstants.OfficeStaffAccess)]
 public class CustomersController(ICustomerService customerService) : ControllerBase
 {
     private readonly ICustomerService _customerService = customerService;

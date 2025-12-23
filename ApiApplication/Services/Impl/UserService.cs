@@ -69,9 +69,7 @@ public class UserService(
             throw new ApiException("Số điện thoại đã được sử dụng", HttpStatusCode.BadRequest);
         }
 
-        var isRoleExists = await _roleManager.RoleExistsAsync(
-            RoleHelper.GetIdentityRoleName(Role.Admin)
-        );
+        var isRoleExists = await _roleManager.RoleExistsAsync(createAdministratorRequest.Role);
         if (!isRoleExists)
         {
             throw new ApiException("Vai trò không tồn tại", HttpStatusCode.BadRequest);
@@ -86,18 +84,51 @@ public class UserService(
         user.CreatedAt = DateTime.UtcNow;
         user.CreatedBy = _currentUser.Username;
 
+        // Khi admin tạo tài khoản, tự động xác thực email (không cần verify)
+        user.EmailConfirmed = true;
+
         var result = await _userManager.CreateAsync(user);
 
         if (!result.Succeeded)
         {
+            var errorMessages = result.Errors.Select(e => e.Description).ToList();
+            var mainMessage =
+                errorMessages.Count > 0
+                    ? $"Tạo tài khoản thất bại: {string.Join(", ", errorMessages)}"
+                    : "Tạo tài khoản thất bại do lỗi không xác định";
+
             throw new ApiException(
-                "Đăng ký thất bại",
+                mainMessage,
                 HttpStatusCode.BadRequest,
                 result.Errors.ToDictionary(x => x.Code, x => x.Description)
             );
         }
 
-        await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.Admin));
+        await _userManager.AddToRoleAsync(user, createAdministratorRequest.Role);
+
+        // Nếu role là Customer/User, tự động tạo bản ghi Customer
+        if (
+            createAdministratorRequest.Role == IdentityRoleConstants.Customer
+            || createAdministratorRequest.Role == IdentityRoleConstants.User
+        )
+        {
+            var customer = new Customer
+            {
+                UserId = user.Id,
+                FullName = user.FullName,
+                Email = user.Email!,
+                PhoneNumber = createAdministratorRequest.PhoneNumber,
+                DateOfBirth = createAdministratorRequest.DateOfBirth.HasValue
+                    ? DateOnly.FromDateTime(createAdministratorRequest.DateOfBirth.Value)
+                    : null,
+                Address = createAdministratorRequest.Address,
+                City = createAdministratorRequest.City,
+                District = createAdministratorRequest.District,
+                Ward = createAdministratorRequest.Ward,
+                Status = CustomerStatus.Active,
+            };
+            _context.Customers.Add(customer);
+        }
 
         //nếu có staffId thì gán userId cho staff
         if (createAdministratorRequest.StaffId.HasValue)

@@ -85,6 +85,10 @@ export class InventoryCardsApi extends runtime.BaseAPI implements InventoryCards
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/InventoryCards/create`;
 
@@ -116,6 +120,10 @@ export class InventoryCardsApi extends runtime.BaseAPI implements InventoryCards
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/InventoryCards/list-by-product`;

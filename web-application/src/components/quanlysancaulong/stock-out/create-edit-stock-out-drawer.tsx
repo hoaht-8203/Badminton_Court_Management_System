@@ -401,6 +401,7 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
           message.success("Đã hoàn thành phiếu xuất hủy");
           try {
             await queryClient.invalidateQueries({ queryKey: ["products"] });
+            await queryClient.refetchQueries({ queryKey: ["products"] });
           } catch {}
         } else {
           await stockOutService.update(stockOutId!, payload);
@@ -412,6 +413,7 @@ const CreateEditStockOutDrawer: React.FC<Props> = ({ open, onClose, stockOutId, 
         if (complete) {
           try {
             await queryClient.invalidateQueries({ queryKey: ["products"] });
+            await queryClient.refetchQueries({ queryKey: ["products"] });
           } catch {}
         }
       }

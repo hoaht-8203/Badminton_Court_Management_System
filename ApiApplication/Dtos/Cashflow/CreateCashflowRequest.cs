@@ -16,6 +16,7 @@ public class CreateCashflowRequest
     public string? PersonType { get; set; }
     public string? RelatedPerson { get; set; }
     public string? Note { get; set; }
+    public string? Status { get; set; }
 
     // public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Cash;
 

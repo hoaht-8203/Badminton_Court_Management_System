@@ -11,7 +11,10 @@ public class RoleHelper
         return role switch
         {
             Role.Admin => IdentityRoleConstants.Admin,
-            Role.User => IdentityRoleConstants.User,
+            Role.Customer => IdentityRoleConstants.Customer,
+            Role.Staff => IdentityRoleConstants.Staff,
+            Role.WareHouse => IdentityRoleConstants.WarehouseStaff,
+            Role.Receptionist => IdentityRoleConstants.Receptionist,
             _ => throw new ArgumentOutOfRangeException(
                 nameof(role),
                 role,

@@ -103,6 +103,10 @@ export class FilesApi extends runtime.BaseAPI implements FilesApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/files/delete`;
 
@@ -130,6 +134,10 @@ export class FilesApi extends runtime.BaseAPI implements FilesApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/files/set-bucket-public`;
 
@@ -155,6 +163,10 @@ export class FilesApi extends runtime.BaseAPI implements FilesApiInterface {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
         const consumes: runtime.Consume[] = [
             { contentType: 'multipart/form-data' },

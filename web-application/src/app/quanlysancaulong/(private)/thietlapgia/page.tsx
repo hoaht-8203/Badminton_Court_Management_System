@@ -61,6 +61,7 @@ import React from "react";
 import { useDetailProduct } from "@/hooks/useProducts";
 import { axiosInstance as axios } from "@/lib/axios";
 import { useListCategories } from "@/hooks/useCategories";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Utility function to format currency
 const formatCurrency = (value: number | undefined | null): string => {
@@ -469,6 +470,7 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
     }
   >();
   const isCreate = !priceId;
+  const queryClient = useQueryClient();
 
   const { data } = useDetailPrice({ id: priceId || 0 } as DetailPriceTableRequest, !!priceId);
   const createMutation = useCreatePrice();
@@ -499,11 +501,16 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
   }, [data?.data, open, form]);
 
   useEffect(() => {
-    if (productIdsRes?.data && open) {
+    if (productIdsRes?.data && open && !isCreate) {
+      // Chỉ load sản phẩm khi đang edit, không load khi tạo mới
       const productIds = productIdsRes.data.products?.map((p) => p.productId) || [];
       setSelectedProductIds(productIds);
+    } else if (isCreate && open) {
+      // Reset khi tạo mới
+      setSelectedProductIds([]);
+      setProductsRowsState({});
     }
-  }, [productIdsRes?.data, open]);
+  }, [productIdsRes?.data, open, isCreate]);
 
   const onSubmit = (values: any) => {
     const cleanRanges = (values.ranges || [])
@@ -521,6 +528,13 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
         return { productId: id, overrideSalePrice: value };
       });
 
+      // Validation: yêu cầu ít nhất 1 sản phẩm
+      if (products.length === 0) {
+        message.error("Vui lòng chọn ít nhất 1 sản phẩm để tạo bảng giá");
+        setActiveTab("scope");
+        return;
+      }
+
       const payload: CreatePriceTableRequest = {
         name: values.name,
         isActive: !!values.isActive,
@@ -531,7 +545,15 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
       };
 
       createMutation.mutate(payload, {
-        onSuccess: () => {
+        onSuccess: async () => {
+          // Invalidate tất cả các queries liên quan để đảm bảo data được refresh
+          queryClient.invalidateQueries({ queryKey: ["price-tables"] });
+          queryClient.invalidateQueries({ queryKey: ["price-table"] });
+          queryClient.invalidateQueries({ queryKey: ["price-table-products"] });
+          
+          // Refetch ngay lập tức
+          await queryClient.refetchQueries({ queryKey: ["price-tables"] });
+
           message.success("Tạo bảng giá thành công");
           setProductsRowsState({});
           setSelectedProductIds([]);
@@ -540,6 +562,18 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
         onError: (e: any) => message.error(e?.message || "Lỗi tạo bảng giá"),
       });
     } else {
+      // Validation: yêu cầu ít nhất 1 sản phẩm khi update
+      const products: PriceTableProductItem[] = selectedProductIds.map((id) => {
+        const value = productsRowsState[id];
+        return { productId: id, overrideSalePrice: value };
+      });
+
+      if (products.length === 0) {
+        message.error("Vui lòng chọn ít nhất 1 sản phẩm để cập nhật bảng giá");
+        setActiveTab("scope");
+        return;
+      }
+
       const payload: UpdatePriceTableRequest = {
         id: priceId!,
         name: values.name,
@@ -550,9 +584,32 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
       };
 
       updateMutation.mutate(payload, {
-        onSuccess: () => {
-          message.success("Cập nhật bảng giá thành công");
-          onSaved();
+        onSuccess: async () => {
+          // Sau khi update thông tin bảng giá thành công, update sản phẩm
+          try {
+            // Luôn gọi API set-products với danh sách sản phẩm đã được validate
+              const productsPayload: SetPriceTableProductsRequest = {
+                priceTableId: priceId!,
+                products: products,
+              };
+
+              await axios.post("/api/Prices/set-products", productsPayload);
+
+            // Invalidate tất cả các queries liên quan để đảm bảo data được refresh
+            queryClient.invalidateQueries({ queryKey: ["price-tables"] });
+            queryClient.invalidateQueries({ queryKey: ["price-table"] });
+            queryClient.invalidateQueries({ queryKey: ["price-table-products"] });
+            
+            // Refetch ngay lập tức
+            await queryClient.refetchQueries({ queryKey: ["price-tables"] });
+
+            message.success("Cập nhật bảng giá và sản phẩm thành công");
+            setProductsRowsState({});
+            setSelectedProductIds([]);
+            onSaved();
+          } catch (error: any) {
+            message.error(error?.response?.data?.message || error?.message || "Lỗi cập nhật sản phẩm");
+          }
         },
         onError: (e: any) => message.error(e?.message || "Lỗi cập nhật bảng giá"),
       });
@@ -617,11 +674,52 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
                 </Row>
 
                 <Form.List name="ranges">
-                  {(fields, { add, remove }) => (
+                  {(fields, { add, remove }) => {
+                    const validateTimeRange = (fieldIndex: number, startTime: Dayjs | undefined, endTime: Dayjs | undefined) => {
+                      if (!startTime || !endTime) return true;
+                      // Kiểm tra startTime phải trước endTime
+                      if (startTime.isAfter(endTime) || startTime.isSame(endTime)) {
+                        return false;
+                      }
+                      // Kiểm tra trùng với các khung giờ khác
+                      const currentRanges = form.getFieldValue("ranges") || [];
+                      for (let i = 0; i < currentRanges.length; i++) {
+                        if (i === fieldIndex) continue;
+                        const otherStart = currentRanges[i]?.startTime;
+                        const otherEnd = currentRanges[i]?.endTime;
+                        if (!otherStart || !otherEnd) continue;
+                        // Kiểm tra overlap: (startTime < otherEnd) && (endTime > otherStart)
+                        if (startTime.isBefore(otherEnd) && endTime.isAfter(otherStart)) {
+                          return false;
+                        }
+                      }
+                      return true;
+                    };
+
+                    // Validate tất cả các field khi có thay đổi
+                    const validateAllRanges = () => {
+                      const ranges = form.getFieldValue("ranges") || [];
+                      ranges.forEach((_: any, index: number) => {
+                        const startTime = ranges[index]?.startTime;
+                        const endTime = ranges[index]?.endTime;
+                        if (startTime && endTime) {
+                          form.validateFields([["ranges", index, "startTime"], ["ranges", index, "endTime"]]);
+                        }
+                      });
+                    };
+
+                    return (
                     <Card
                       title="Khung giờ"
                       extra={
-                        <Button onClick={() => add({ startTime: dayjs("08:00", "HH:mm"), endTime: dayjs("12:00", "HH:mm") })} icon={<PlusOutlined />}>
+                          <Button
+                            onClick={() => {
+                              add({ startTime: dayjs("08:00", "HH:mm"), endTime: dayjs("12:00", "HH:mm") });
+                              // Validate sau khi thêm
+                              setTimeout(validateAllRanges, 100);
+                            }}
+                            icon={<PlusOutlined />}
+                          >
                           Thêm khung giờ
                         </Button>
                       }
@@ -629,24 +727,78 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
                       {fields.map((field) => (
                         <Row key={field.key} gutter={12} align="middle" className="mb-2">
                           <Col span={7}>
-                            <Form.Item name={[field.name, "startTime"]} label="Từ giờ" rules={[{ required: true }]}>
+                              <Form.Item
+                                name={[field.name, "startTime"]}
+                                label="Từ giờ"
+                                rules={[
+                                  { required: true, message: "Chọn giờ bắt đầu" },
+                                  {
+                                    validator: (_, value) => {
+                                      const ranges = form.getFieldValue("ranges") || [];
+                                      const endTime = ranges[field.name]?.endTime;
+                                      if (!value) return Promise.resolve();
+                                      if (endTime && (value.isAfter(endTime) || value.isSame(endTime))) {
+                                        return Promise.reject(new Error("Giờ bắt đầu phải trước giờ kết thúc"));
+                                      }
+                                      if (!validateTimeRange(field.name, value, endTime)) {
+                                        return Promise.reject(new Error("Khung giờ bị trùng với khung giờ khác"));
+                                      }
+                                      // Validate lại các field khác
+                                      setTimeout(validateAllRanges, 100);
+                                      return Promise.resolve();
+                                    },
+                                  },
+                                ]}
+                                dependencies={[["ranges"]]}
+                              >
                               <TimePicker format="HH:mm" style={{ width: "100%" }} />
                             </Form.Item>
                           </Col>
                           <Col span={7}>
-                            <Form.Item name={[field.name, "endTime"]} label="Đến" rules={[{ required: true }]}>
+                              <Form.Item
+                                name={[field.name, "endTime"]}
+                                label="Đến"
+                                rules={[
+                                  { required: true, message: "Chọn giờ kết thúc" },
+                                  {
+                                    validator: (_, value) => {
+                                      const ranges = form.getFieldValue("ranges") || [];
+                                      const startTime = ranges[field.name]?.startTime;
+                                      if (!value) return Promise.resolve();
+                                      if (startTime && (startTime.isAfter(value) || startTime.isSame(value))) {
+                                        return Promise.reject(new Error("Giờ kết thúc phải sau giờ bắt đầu"));
+                                      }
+                                      if (!validateTimeRange(field.name, startTime, value)) {
+                                        return Promise.reject(new Error("Khung giờ bị trùng với khung giờ khác"));
+                                      }
+                                      // Validate lại các field khác
+                                      setTimeout(validateAllRanges, 100);
+                                      return Promise.resolve();
+                                    },
+                                  },
+                                ]}
+                                dependencies={[["ranges"]]}
+                              >
                               <TimePicker format="HH:mm" style={{ width: "100%" }} />
                             </Form.Item>
                           </Col>
                           <Col span={4}>
-                            <Button danger onClick={() => remove(field.name)}>
+                              <Button
+                                danger
+                                onClick={() => {
+                                  remove(field.name);
+                                  // Validate lại sau khi xóa
+                                  setTimeout(validateAllRanges, 100);
+                                }}
+                              >
                               Xoá
                             </Button>
                           </Col>
                         </Row>
                       ))}
                     </Card>
-                  )}
+                    );
+                  }}
                 </Form.List>
 
                 <div className="mt-3 text-right">
@@ -722,7 +874,8 @@ const ProductsSelector = ({
   };
 
   useEffect(() => {
-    if (mapped?.data && priceId) {
+    if (mapped?.data && priceId && !isCreate) {
+      // Chỉ load sản phẩm khi đang edit, không load khi tạo mới
       const initial: Record<number, number | undefined> = {};
       const products = mapped.data.products || [];
       products.forEach((product: any) => {
@@ -730,20 +883,21 @@ const ProductsSelector = ({
       });
       setRowsState(initial);
       onChangeSelected(products.map((p: any) => p.productId));
+    } else if (isCreate) {
+      // Reset khi tạo mới
+      setRowsState({});
+      onChangeSelected([]);
     }
-  }, [mapped?.data, priceId, onChangeSelected]);
+  }, [mapped?.data, priceId, onChangeSelected, isCreate]);
 
   const rowSelection = {
     selectedRowKeys: selected,
     onChange: (keys: React.Key[], selectedRows: any[]) => {
-      // block selecting inactive rows
-      const activeKeys = selectedRows.filter((r) => r.isActive).map((r) => r.id as number);
-      if (activeKeys.length !== selectedRows.length) {
-        message.warning("Không thể chọn sản phẩm Không kích hoạt");
-      }
-      onChangeSelected(activeKeys);
+      // Cho phép chọn cả sản phẩm ngừng kinh doanh
+      const allKeys = selectedRows.map((r) => r.id as number);
+      onChangeSelected(allKeys);
     },
-    getCheckboxProps: (record: any) => ({ disabled: !record.isActive }),
+    getCheckboxProps: (record: any) => ({ disabled: false }),
   } as any;
 
   const onSearch = (v: any) => {
@@ -767,27 +921,18 @@ const ProductsSelector = ({
   const onSave = () => {
     if (!priceId && !isCreate) return;
 
-    // disallow saving if any selected products are inactive (redundant safety)
-    const invalid = selected.some((id) => {
-      const row: any = rows.find((r: any) => r.id === id);
-      return row && !row.isActive;
-    });
-    if (invalid) {
-      message.error("Không thể lưu: có sản phẩm 'Không kích hoạt' trong lựa chọn");
-      return;
-    }
-
+    // Cho phép lưu cả sản phẩm ngừng kinh doanh
     if (priceId) {
-    const products: PriceTableProductItem[] = selected.map((id) => {
-      const row = rows.find((r: any) => r.id === id);
-      const value = rowsState[id] ?? row?.salePrice;
-      return { productId: id, overrideSalePrice: value };
-    });
+      const products: PriceTableProductItem[] = selected.map((id) => {
+        const row = rows.find((r: any) => r.id === id);
+        const value = rowsState[id] ?? row?.salePrice;
+        return { productId: id, overrideSalePrice: value };
+      });
 
-    const payload: SetPriceTableProductsRequest = {
-      priceTableId: priceId,
-      products: products,
-    };
+      const payload: SetPriceTableProductsRequest = {
+        priceTableId: priceId,
+        products: products,
+      };
 
       setProducts.mutate(payload, {
         onSuccess: () => message.success("Đã lưu sản phẩm áp dụng"),
@@ -873,14 +1018,14 @@ const ProductsSelector = ({
                 const CostCellForValidation = ({ productId, currentPrice }: { productId: number; currentPrice: number | undefined }) => {
                   const { data: detail } = useDetailProduct({ id: productId }, true);
                   const costPrice = (detail?.data as any)?.costPrice ?? 0;
-                  // Khi tạo mới (isCreate), để trống. Khi edit (có priceId), hiển thị giá từ rowsState hoặc giá mặc định
-                  const displayValue = isCreate ? currentPrice : (currentPrice ?? r.salePrice);
+                  // Hiển thị giá từ rowsState, nếu không có thì hiển thị placeholder cho cả add và edit
+                  const displayValue = currentPrice;
                   return (
-                <InputNumber
+                    <InputNumber
                       min={costPrice}
-                  style={{ width: 140 }}
+                      style={{ width: 140 }}
                       value={displayValue}
-                      placeholder={isCreate ? "Nhập giá" : undefined}
+                      placeholder="Nhập giá"
                       onChange={async (val) => {
                         const newPrice = val as number | null;
                         if (newPrice !== null && newPrice < costPrice) {
@@ -889,9 +1034,9 @@ const ProductsSelector = ({
                         }
                         setRowsState((s) => ({ ...s, [r.id]: newPrice ?? undefined }));
                       }}
-                  formatter={(value) => value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : ""}
-                  parser={(value) => value ? value.replace(/\$\s?|(,*)/g, "") : ""}
-                />
+                      formatter={(value) => (value ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "")}
+                      parser={(value) => (value ? value.replace(/\$\s?|(,*)/g, "") : "")}
+                    />
                   );
                 };
                 return <CostCellForValidation productId={r.id} currentPrice={rowsState[r.id]} />;
@@ -907,16 +1052,9 @@ const ProductsSelector = ({
       </div>
 
       <div className="mt-4 text-right">
-        {!isCreate && (
-        <Button type="primary" onClick={onSave}>
-          Lưu
-        </Button>
-        )}
-        {isCreate && (
-          <div className="text-sm text-gray-500">
-            Sản phẩm đã chọn sẽ được lưu cùng với bảng giá khi bạn nhấn "Lưu" ở tab "Thông tin"
-          </div>
-        )}
+        <div className="text-sm text-gray-500">
+          Sản phẩm đã chọn sẽ được lưu cùng với bảng giá khi bạn nhấn &quot;Lưu&quot; ở tab &quot;Thông tin&quot;
+        </div>
       </div>
     </Card>
   );

@@ -13,7 +13,12 @@ const SearchSliders = ({ onSearch, onReset }: SearchSlidersProps) => {
   const [form] = Form.useForm();
 
   const handleSearch = (values: ListSliderRequest) => {
-    onSearch(values);
+    const params: ListSliderRequest = {
+      title: values.title?.trim() ? values.title.trim() : null,
+      status: values.status ?? null,
+    };
+
+    onSearch(params);
   };
 
   const handleReset = () => {

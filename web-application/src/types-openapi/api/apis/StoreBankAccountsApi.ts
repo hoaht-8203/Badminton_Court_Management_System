@@ -117,6 +117,10 @@ export class StoreBankAccountsApi extends runtime.BaseAPI implements StoreBankAc
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/store-bank-accounts`;
 
@@ -150,6 +154,10 @@ export class StoreBankAccountsApi extends runtime.BaseAPI implements StoreBankAc
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/store-bank-accounts/{id}`;
@@ -188,6 +196,10 @@ export class StoreBankAccountsApi extends runtime.BaseAPI implements StoreBankAc
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/store-bank-accounts/{id}`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
@@ -218,6 +230,10 @@ export class StoreBankAccountsApi extends runtime.BaseAPI implements StoreBankAc
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/store-bank-accounts`;

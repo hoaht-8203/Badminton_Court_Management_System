@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using ApiApplication.Authorization;
+using ApiApplication.Constants;
 using ApiApplication.Data;
 using ApiApplication.Dtos;
 using ApiApplication.Entities;
@@ -251,7 +253,77 @@ builder
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    // Admin only policy
+    options.AddPolicy(
+        PolicyConstants.AdminOnly,
+        policy => policy.RequireRole(IdentityRoleConstants.Admin)
+    );
+
+    // Management policy (Admin + Branch Administrator)
+    options.AddPolicy(
+        PolicyConstants.ManagementOnly,
+        policy =>
+            policy.RequireRole(
+                IdentityRoleConstants.Admin,
+                IdentityRoleConstants.BranchAdministrator
+            )
+    );
+
+    // Staff access policy (Admin + Branch Admin + Staff + Receptionist + Warehouse Staff)
+    options.AddPolicy(
+        PolicyConstants.StaffAccess,
+        policy =>
+            policy.RequireRole(
+                IdentityRoleConstants.Admin,
+                IdentityRoleConstants.BranchAdministrator,
+                IdentityRoleConstants.Staff,
+                IdentityRoleConstants.Receptionist,
+                IdentityRoleConstants.WarehouseStaff
+            )
+    );
+
+    // Office staff access policy (Admin + Branch Admin + Staff + Receptionist)
+    options.AddPolicy(
+        PolicyConstants.OfficeStaffAccess,
+        policy =>
+            policy.RequireRole(
+                IdentityRoleConstants.Admin,
+                IdentityRoleConstants.BranchAdministrator,
+                IdentityRoleConstants.Staff,
+                IdentityRoleConstants.Receptionist
+            )
+    );
+
+    // Warehouse access policy (Admin + Branch Admin + Warehouse Staff)
+    options.AddPolicy(
+        PolicyConstants.WarehouseAccess,
+        policy =>
+            policy.RequireRole(
+                IdentityRoleConstants.Admin,
+                IdentityRoleConstants.BranchAdministrator,
+                IdentityRoleConstants.WarehouseStaff
+            )
+    );
+
+    // Receptionist access policy (Admin + Branch Admin + Receptionist)
+    options.AddPolicy(
+        PolicyConstants.ReceptionistAccess,
+        policy =>
+            policy.RequireRole(
+                IdentityRoleConstants.Admin,
+                IdentityRoleConstants.BranchAdministrator,
+                IdentityRoleConstants.Receptionist
+            )
+    );
+
+    // Customer access policy (All roles including customers)
+    options.AddPolicy(PolicyConstants.CustomerAccess, policy => policy.RequireAuthenticatedUser());
+
+    // Authenticated policy
+    options.AddPolicy(PolicyConstants.Authenticated, policy => policy.RequireAuthenticatedUser());
+});
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHostedService<BookingHoldExpiryHostedService>();
 builder.Services.AddHostedService<OrderExpiryHostedService>();
@@ -317,6 +389,31 @@ builder.Services.AddSwaggerGen(c =>
     );
     c.EnableAnnotations();
     c.DocumentFilter<ApiApplication.Helpers.SwaggerFromQuerySchemaDocumentFilter>();
+    
+    // Add JWT Authentication to Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme. Enter 'Bearer' [space] and then your token in the text input below.",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+    
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 builder.Services.Configure<SecurityStampValidatorOptions>(options =>
@@ -327,18 +424,22 @@ builder.Services.Configure<SecurityStampValidatorOptions>(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+// SECURITY: Only enable Swagger in Development environment
+if (app.Environment.IsDevelopment())
 {
-    c.IndexStream = () => File.OpenRead("wwwroot/swagger-custom.html");
-});
-app.MapScalarApiReference(options =>
-{
-    options
-        .WithTitle("My API")
-        .WithTheme(ScalarTheme.Moon) // dark theme
-        .WithOpenApiRoutePattern("/swagger/v1/swagger.json");
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.IndexStream = () => File.OpenRead("wwwroot/swagger-custom.html");
+    });
+    app.MapScalarApiReference(options =>
+    {
+        options
+            .WithTitle("My API")
+            .WithTheme(ScalarTheme.Moon)
+            .WithOpenApiRoutePattern("/swagger/v1/swagger.json");
+    });
+}
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
@@ -351,5 +452,6 @@ app.MapControllers();
 app.UseWebSockets();
 app.MapHub<BookingHub>("/hubs/booking").RequireCors("Frontend");
 app.MapHub<NotificationHub>("/hubs/notifications").RequireCors("Frontend");
+app.MapHub<ProductHub>("/hubs/products").RequireCors("Frontend");
 
 app.Run();

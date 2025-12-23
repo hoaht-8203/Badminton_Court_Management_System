@@ -196,6 +196,10 @@ export class ReturnGoodsApi extends runtime.BaseAPI implements ReturnGoodsApiInt
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/ReturnGoods/cancel/{id}`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
@@ -232,6 +236,10 @@ export class ReturnGoodsApi extends runtime.BaseAPI implements ReturnGoodsApiInt
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/ReturnGoods/complete/{id}`;
         urlPath = urlPath.replace(`{${"id"}}`, encodeURIComponent(String(requestParameters['id'])));
@@ -261,6 +269,10 @@ export class ReturnGoodsApi extends runtime.BaseAPI implements ReturnGoodsApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/ReturnGoods/create`;
@@ -296,6 +308,10 @@ export class ReturnGoodsApi extends runtime.BaseAPI implements ReturnGoodsApiInt
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/ReturnGoods/detail/{id}`;
@@ -333,6 +349,10 @@ export class ReturnGoodsApi extends runtime.BaseAPI implements ReturnGoodsApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/ReturnGoods/{id}/note`;
@@ -375,6 +395,10 @@ export class ReturnGoodsApi extends runtime.BaseAPI implements ReturnGoodsApiInt
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/ReturnGoods/list`;
 
@@ -410,6 +434,10 @@ export class ReturnGoodsApi extends runtime.BaseAPI implements ReturnGoodsApiInt
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/ReturnGoods/update/{id}`;

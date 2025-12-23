@@ -29,6 +29,7 @@ import { useListCategories } from "@/hooks/useCategories";
 import { supplierBankAccountsService } from "@/services/supplierBankAccountsService";
 import { receiptsService } from "@/services/receiptsService";
 import { CreateReceiptRequest } from "@/types-openapi/api";
+import { useQueryClient } from "@tanstack/react-query";
 
 type StockInItem = {
   productId: number;
@@ -57,6 +58,7 @@ interface Props {
 const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, onChanged }) => {
   const [form] = Form.useForm();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { data: suppliers } = useListSuppliers({});
   const { data: categoriesData } = useListCategories({});
 
@@ -411,6 +413,14 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
       await receiptsService.create(payload);
       message.success(complete ? "Đã hoàn thành phiếu nhập" : "Đã lưu nháp phiếu nhập");
 
+      // Refetch products query when completing to refresh stock quantities immediately
+      if (complete) {
+        try {
+          await queryClient.invalidateQueries({ queryKey: ["products"] });
+          await queryClient.refetchQueries({ queryKey: ["products"] });
+        } catch {}
+      }
+
       // Reset all filter states
       setQuery("");
       setDebouncedQuery("");
@@ -607,6 +617,12 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
                           try {
                             await receiptsService.complete(Number(receiptId));
                             message.success("Đã hoàn thành phiếu");
+
+                            // Refetch products query to refresh stock quantities immediately
+                            try {
+                              await queryClient.invalidateQueries({ queryKey: ["products"] });
+                              await queryClient.refetchQueries({ queryKey: ["products"] });
+                            } catch {}
 
                             // Reset all filter states
                             setQuery("");
@@ -904,7 +920,29 @@ const CreateEditStockInDrawer: React.FC<Props> = ({ open, onClose, receiptId, on
           >
             <Row gutter={12}>
               <Col span={12}>
-                <Form.Item name="accountNumber" label="Số tài khoản" rules={[{ required: true, message: "Nhập số tài khoản" }]}>
+                <Form.Item
+                  name="accountNumber"
+                  label="Số tài khoản"
+                  rules={[
+                    { required: true, message: "Nhập số tài khoản" },
+                    {
+                      validator: (_, value) => {
+                        if (!value) return Promise.resolve();
+                        const trimmedValue = String(value).trim();
+                        // Kiểm tra STK trùng nhau (trừ trường hợp đang edit cùng một bank)
+                        const isDuplicate = banks.some(
+                          (bank) =>
+                            String(bank.accountNumber).trim().toLowerCase() === trimmedValue.toLowerCase() &&
+                            (!editingBank || Number(bank.id) !== Number(editingBank.id))
+                        );
+                        if (isDuplicate) {
+                          return Promise.reject(new Error("Số tài khoản đã tồn tại"));
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
                   <Input />
                 </Form.Item>
               </Col>

@@ -140,6 +140,10 @@ export class CourtAreasApi extends runtime.BaseAPI implements CourtAreasApiInter
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/CourtAreas/create`;
 
@@ -169,6 +173,10 @@ export class CourtAreasApi extends runtime.BaseAPI implements CourtAreasApiInter
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/CourtAreas/delete`;
@@ -209,6 +217,10 @@ export class CourtAreasApi extends runtime.BaseAPI implements CourtAreasApiInter
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/CourtAreas/detail`;
 
@@ -235,6 +247,10 @@ export class CourtAreasApi extends runtime.BaseAPI implements CourtAreasApiInter
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/CourtAreas/list`;
@@ -264,6 +280,10 @@ export class CourtAreasApi extends runtime.BaseAPI implements CourtAreasApiInter
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/CourtAreas/update`;

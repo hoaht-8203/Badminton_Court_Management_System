@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Service;
 using ApiApplication.Services;
@@ -8,11 +9,15 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = PolicyConstants.ManagementOnly)]
 public class ServicesController(IServiceService serviceService) : ControllerBase
 {
     private readonly IServiceService _serviceService = serviceService;
 
+    /// <summary>
+    /// List services - Accessible by customers to view available services
+    /// </summary>
+    [AllowAnonymous]
     [HttpGet("list")]
     public async Task<ActionResult<ApiResponse<List<ListServiceResponse>>>> List(
         [FromQuery] ListServiceRequest request
@@ -27,6 +32,10 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Get service details - Accessible by customers to view service information
+    /// </summary>
+    [AllowAnonymous]
     [HttpGet("detail")]
     public async Task<ActionResult<ApiResponse<DetailServiceResponse>>> Detail(
         [FromQuery] DetailServiceRequest request
@@ -89,6 +98,10 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Add service to booking occurrence - Staff access for cashier operations
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.StaffAccess)]
     [HttpPost("booking-occurrence/add-service")]
     public async Task<ActionResult<ApiResponse<BookingServiceDto>>> AddBookingService(
         [FromBody] AddBookingServiceRequest request
@@ -103,6 +116,10 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Remove service from booking occurrence - Staff access
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.StaffAccess)]
     [HttpDelete("booking-occurrence/remove-service")]
     public async Task<ActionResult<ApiResponse<bool>>> RemoveBookingService(
         [FromBody] RemoveBookingServiceRequest request
@@ -117,6 +134,10 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// Get booking services - Staff access to view services in a booking
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.StaffAccess)]
     [HttpGet("booking-occurrence/{bookingCourtOccurrenceId}/services")]
     public async Task<ActionResult<ApiResponse<List<BookingServiceDto>>>> GetBookingServices(
         Guid bookingCourtOccurrenceId
@@ -131,6 +152,10 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
         );
     }
 
+    /// <summary>
+    /// End service - Staff access to stop service and calculate billing
+    /// </summary>
+    [Authorize(Policy = PolicyConstants.StaffAccess)]
     [HttpPut("booking-occurrence/end-service")]
     public async Task<ActionResult<ApiResponse<BookingServiceDto>>> EndService(
         [FromBody] EndServiceRequest request

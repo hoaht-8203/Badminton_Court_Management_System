@@ -189,6 +189,10 @@ export class UserMembershipsApi extends runtime.BaseAPI implements UserMembershi
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/UserMemberships/create-for-current-user`;
 
@@ -218,6 +222,10 @@ export class UserMembershipsApi extends runtime.BaseAPI implements UserMembershi
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/UserMemberships/create`;
@@ -251,6 +259,10 @@ export class UserMembershipsApi extends runtime.BaseAPI implements UserMembershi
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/UserMemberships/delete`;
 
@@ -282,6 +294,10 @@ export class UserMembershipsApi extends runtime.BaseAPI implements UserMembershi
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/UserMemberships/detail`;
 
@@ -310,6 +326,10 @@ export class UserMembershipsApi extends runtime.BaseAPI implements UserMembershi
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/UserMemberships/extend-payment`;
@@ -351,6 +371,10 @@ export class UserMembershipsApi extends runtime.BaseAPI implements UserMembershi
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/UserMemberships/list`;
 
@@ -379,6 +403,10 @@ export class UserMembershipsApi extends runtime.BaseAPI implements UserMembershi
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/UserMemberships/update-status`;

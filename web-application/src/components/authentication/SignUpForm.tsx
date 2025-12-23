@@ -3,7 +3,7 @@
 import { authService } from "@/services/authService";
 import { ApiError } from "@/lib/axios";
 import { RegisterRequest } from "@/types-openapi/api";
-import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
+import { LockOutlined, MailOutlined, PhoneOutlined, UserOutlined } from "@ant-design/icons";
 import { Button, Card, Form, Input, message } from "antd";
 import FormItem from "antd/es/form/FormItem";
 import type { NamePath } from "antd/es/form/interface";
@@ -31,6 +31,7 @@ const SignUpForm = ({ isUsersMode = false }: SignUpFormProps) => {
         fullName: values.fullName,
         email: values.email,
         password: values.password,
+        phoneNumber: values.phoneNumber,
       });
 
       if (response.success) {
@@ -74,6 +75,10 @@ const SignUpForm = ({ isUsersMode = false }: SignUpFormProps) => {
               { required: true, message: "Vui lòng nhập tên đăng nhập" },
               { min: 3, message: "Tên đăng nhập phải có ít nhất 3 ký tự" },
               { max: 20, message: "Tên đăng nhập không được quá 20 ký tự" },
+              {
+                pattern: /^[a-zA-Z0-9_]+$/,
+                message: "Tên đăng nhập không được chứa ký tự có dấu hoặc ký tự đặc biệt (chỉ cho phép chữ cái, số và dấu gạch dưới)",
+              },
             ]}
           >
             <Input prefix={<UserOutlined />} size="large" placeholder="Nhập tên đăng nhập" />
@@ -99,6 +104,17 @@ const SignUpForm = ({ isUsersMode = false }: SignUpFormProps) => {
             ]}
           >
             <Input prefix={<MailOutlined />} size="large" placeholder="Nhập email" />
+          </FormItem>
+
+          <FormItem<RegisterRequest>
+            label="Số điện thoại"
+            name="phoneNumber"
+            rules={[
+              { required: true, message: "Vui lòng nhập số điện thoại" },
+              { pattern: /^0[0-9]{9,10}$/, message: "Số điện thoại phải bắt đầu bằng 0 và có 10-11 số" },
+            ]}
+          >
+            <Input prefix={<PhoneOutlined />} size="large" placeholder="Nhập số điện thoại" />
           </FormItem>
 
           <FormItem<RegisterRequest>

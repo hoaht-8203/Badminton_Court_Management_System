@@ -3,7 +3,7 @@ import { useGetScheduleByShift } from "@/hooks/useSchedule";
 import { useListShifts } from "@/hooks/useShift";
 import { useListStaffs } from "@/hooks/useStaffs";
 import { ListStaffRequestFromJSON } from "@/types-openapi/api/models/ListStaffRequest";
-import { FileExcelOutlined, SearchOutlined, ReloadOutlined } from "@ant-design/icons";
+import { SearchOutlined, ReloadOutlined } from "@ant-design/icons";
 import { Button, Select, Tag } from "antd";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
@@ -173,10 +173,7 @@ const WorkScheduleTable: React.FC = () => {
 
         {/* week selector removed from top toolbar and moved to bottom center for better spacing */}
 
-        <Button type="primary" icon={<FileExcelOutlined />} style={{ marginLeft: "auto" }}>
-          Xuất file
-        </Button>
-        <Button type="primary" style={{ marginLeft: 8 }} onClick={() => setAssignDrawerOpen(true)}>
+        <Button type="primary" style={{ marginLeft: "auto" }} onClick={() => setAssignDrawerOpen(true)}>
           Xếp lịch
         </Button>
       </div>

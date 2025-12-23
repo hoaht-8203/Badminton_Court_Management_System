@@ -1,4 +1,5 @@
 using System.Net;
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Minio;
 using ApiApplication.Exceptions;
@@ -10,7 +11,7 @@ namespace ApiApplication.Controllers;
 
 [ApiController]
 [Route("api/files")]
-[Authorize]
+[Authorize(Policy = PolicyConstants.CustomerAccess)]
 public class FilesController(IStorageService storageService) : ControllerBase
 {
     private readonly IStorageService _storageService = storageService;

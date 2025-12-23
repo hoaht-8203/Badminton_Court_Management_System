@@ -67,4 +67,9 @@ export const productService = {
     const res = await axiosInstance.put<ApiResponse<null>>("/api/Products/update-web-display", undefined, { params: { id, isDisplayOnWeb } });
     return res.data;
   },
+
+  async getCurrentAppliedPrice(): Promise<ApiResponse<ListProductResponse[]>> {
+    const res = await axiosInstance.get<ApiResponse<ListProductResponse[]>>("/api/Products/get-current-applied-price");
+    return res.data;
+  },
 };

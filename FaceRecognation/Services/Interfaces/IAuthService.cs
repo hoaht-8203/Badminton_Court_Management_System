@@ -5,6 +5,11 @@ namespace FaceRecognation.Services.Interfaces
     public interface IAuthService
     {
         /// <summary>
+        /// Access token returned from login
+        /// </summary>
+        string? AccessToken { get; }
+        
+        /// <summary>
         /// Perform login against /api/auth/login. Returns the server ApiResponse<CurrentUserResponse>.
         /// </summary>
         Task<Dtos.ApiResponse<Dtos.CurrentUserResponse>> LoginAsync(string email, string password);

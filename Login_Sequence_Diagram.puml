@@ -1,0 +1,205 @@
+@startuml Login Sequence Diagram
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam maxmessagesize 50
+
+title Login Flow Sequence Diagram
+
+actor User as user
+participant "LoginForm" as loginForm
+participant "AuthContext" as authContext
+participant "authService" as authService
+participant "HTTP Client" as httpClient
+participant "AuthController" as authController
+participant "AuthService" as backendAuthService
+participant "UserManager" as userManager
+participant "DbContext" as dbContext
+participant "TokenProcessor" as tokenProcessor
+database "Database" as database
+
+user -> loginForm: Enter credentials & submit
+activate loginForm
+
+loginForm -> authContext: login(payload)
+activate authContext
+
+authContext -> authService: login(payload)
+activate authService
+
+authService -> httpClient: POST /api/auth/login
+activate httpClient
+
+httpClient -> authController: HTTP POST /api/auth/login
+activate authController
+
+authController -> backendAuthService: LoginAsync(loginRequest)
+activate backendAuthService
+
+== Authentication ==
+backendAuthService -> userManager: FindByEmailAsync(email)
+activate userManager
+userManager -> database: Query user by email
+activate database
+database --> userManager: User or null
+deactivate database
+userManager --> backendAuthService: ApplicationUser
+deactivate userManager
+
+backendAuthService -> userManager: CheckPasswordAsync(user, password)
+activate userManager
+userManager --> backendAuthService: true/false
+deactivate userManager
+
+alt Invalid credentials
+    backendAuthService --> authController: ApiException
+    authController --> httpClient: HTTP 400
+    httpClient --> authService: Error
+    authService --> authContext: Error
+    authContext --> loginForm: Error
+    loginForm -> user: Show error message
+    deactivate loginForm
+    deactivate authContext
+    deactivate authService
+    deactivate httpClient
+    deactivate authController
+    deactivate backendAuthService
+else Valid credentials
+    backendAuthService -> backendAuthService: Check user.Status == Active
+    activate backendAuthService
+    
+    alt User Inactive
+        backendAuthService --> authController: ApiException
+        authController --> httpClient: HTTP 400
+        httpClient --> authService: Error
+        authService --> authContext: Error
+        authContext --> loginForm: Error
+        loginForm -> user: Show error message
+        deactivate loginForm
+        deactivate authContext
+        deactivate authService
+        deactivate httpClient
+        deactivate authController
+        deactivate backendAuthService
+    else User Active
+        deactivate backendAuthService
+        
+        backendAuthService -> userManager: GetRolesAsync(user)
+        activate userManager
+        userManager -> database: Query roles
+        activate database
+        database --> userManager: Roles list
+        deactivate database
+        userManager --> backendAuthService: IList<string> roles
+        deactivate userManager
+        
+        == Token Generation ==
+        backendAuthService -> tokenProcessor: GenerateJwtToken(user, roles)
+        activate tokenProcessor
+        tokenProcessor --> backendAuthService: (jwtToken, expiration)
+        deactivate tokenProcessor
+        
+        backendAuthService -> tokenProcessor: GenerateRefreshToken()
+        activate tokenProcessor
+        tokenProcessor --> backendAuthService: refreshToken
+        deactivate tokenProcessor
+        
+        == Save Refresh Token ==
+        backendAuthService -> dbContext: Save refresh token
+        activate dbContext
+        dbContext -> database: INSERT refresh token
+        activate database
+        database --> dbContext: Success
+        deactivate database
+        dbContext --> backendAuthService: Success
+        deactivate dbContext
+        
+        == Set Cookies ==
+        backendAuthService -> tokenProcessor: WriteCookie("ACCESS_TOKEN", jwtToken)
+        activate tokenProcessor
+        tokenProcessor -> httpClient: Set-Cookie: ACCESS_TOKEN
+        activate httpClient
+        httpClient --> tokenProcessor: OK
+        deactivate httpClient
+        tokenProcessor --> backendAuthService: Done
+        deactivate tokenProcessor
+        
+        backendAuthService -> tokenProcessor: WriteCookie("REFRESH_TOKEN", refreshToken)
+        activate tokenProcessor
+        tokenProcessor -> httpClient: Set-Cookie: REFRESH_TOKEN
+        activate httpClient
+        httpClient --> tokenProcessor: OK
+        deactivate httpClient
+        tokenProcessor --> backendAuthService: Done
+        deactivate tokenProcessor
+        
+        == Build Response ==
+        backendAuthService -> dbContext: GetUserMembershipInfo(userId)
+        activate dbContext
+        dbContext -> database: Query membership
+        activate database
+        database --> dbContext: Membership data
+        deactivate database
+        dbContext --> backendAuthService: Membership info
+        deactivate dbContext
+        
+        backendAuthService -> backendAuthService: Map to CurrentUserResponse\nSet Roles & Membership
+        activate backendAuthService
+        backendAuthService --> authController: CurrentUserResponse
+        deactivate backendAuthService
+        deactivate backendAuthService
+        
+        authController -> authController: Wrap in ApiResponse
+        activate authController
+        authController --> httpClient: HTTP 200 OK\nApiResponse<CurrentUserResponse>
+        deactivate authController
+        deactivate authController
+        
+        httpClient --> authService: ApiResponse<CurrentUserResponse>
+        deactivate httpClient
+        deactivate httpClient
+        
+        authService --> authContext: ApiResponse<CurrentUserResponse>
+        deactivate authService
+        
+        authContext -> authContext: setUser(res.data)
+        activate authContext
+        deactivate authContext
+        
+        authContext -> authContext: refresh()
+        activate authContext
+        authContext -> authService: getCurrentUser()
+        activate authService
+        authService -> httpClient: GET /api/auth/me
+        activate httpClient
+        httpClient -> authController: HTTP GET /api/auth/me
+        activate authController
+        authController -> backendAuthService: GetCurrentUserAsync()
+        activate backendAuthService
+        backendAuthService --> authController: CurrentUserResponse
+        deactivate backendAuthService
+        authController --> httpClient: HTTP 200 OK
+        deactivate authController
+        httpClient --> authService: ApiResponse<CurrentUserResponse>
+        deactivate httpClient
+        authService --> authContext: ApiResponse<CurrentUserResponse>
+        deactivate authService
+        authContext -> authContext: setUser(res.data)
+        activate authContext
+        deactivate authContext
+        authContext --> loginForm: Success
+        deactivate authContext
+        
+        loginForm -> loginForm: Show success message
+        activate loginForm
+        loginForm -> loginForm: router.push("/homepage")
+        activate loginForm
+        loginForm --> user: Redirect to homepage
+        deactivate loginForm
+        deactivate loginForm
+    end
+end
+
+@enduml
+

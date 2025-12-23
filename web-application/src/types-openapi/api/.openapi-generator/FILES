@@ -67,6 +67,7 @@ models/BookingServiceDtoApiResponse.ts
 models/BookingServiceDtoListApiResponse.ts
 models/BooleanApiResponse.ts
 models/Branch.ts
+models/CancelBookingCourtOccurrenceRequest.ts
 models/CancelBookingCourtRequest.ts
 models/CancelReturnGoodsRequest.ts
 models/CancellationToken.ts
@@ -412,6 +413,7 @@ models/RecentTransactionDtoArrayApiResponse.ts
 models/RegisterRequest.ts
 models/RelatedPerson.ts
 models/RemoveBookingServiceRequest.ts
+models/ResendVerifyEmailRequest.ts
 models/ReturnGoods.ts
 models/ReturnGoodsItem.ts
 models/ReturnGoodsStatus.ts

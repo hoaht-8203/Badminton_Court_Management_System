@@ -175,6 +175,67 @@ public class AuthService(
         await _context.SaveChangesAsync();
     }
 
+    public async Task ResendVerifyEmailAsync(ResendVerifyEmailRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            throw new ApiException("Email không hợp lệ", HttpStatusCode.BadRequest);
+        }
+
+        var user =
+            await _userManager.FindByEmailAsync(request.Email)
+            ?? throw new ApiException("Email không tồn tại", HttpStatusCode.BadRequest);
+
+        // Nếu email đã được xác thực rồi thì không cần gửi lại
+        if (user.EmailConfirmed)
+        {
+            throw new ApiException("Email đã được xác thực", HttpStatusCode.BadRequest);
+        }
+
+        // Xóa các token xác thực email cũ
+        var oldTokens = await _context
+            .ApplicationUserTokens.Where(x =>
+                x.UserId == user.Id && x.TokenType == TokenType.EmailConfirm
+            )
+            .ToListAsync();
+
+        if (oldTokens.Count > 0)
+        {
+            _context.ApplicationUserTokens.RemoveRange(oldTokens);
+        }
+
+        // Tạo OTP mới với 6 chữ số
+        var otp = new Random().Next(100000, 999999).ToString();
+
+        _context.ApplicationUserTokens.Add(
+            new ApplicationUserToken
+            {
+                UserId = user.Id,
+                Token = otp,
+                TokenType = TokenType.EmailConfirm,
+                ExpiresAtUtc = DateTime.UtcNow.AddDays(1),
+            }
+        );
+
+        await _context.SaveChangesAsync();
+
+        _emailService.SendEmailFireAndForget(
+            () =>
+                _emailService.SendVerifyEmailAsync(
+                    new SendVerifyEmailAsyncRequest
+                    {
+                        To = user.Email!,
+                        ToName = user.FullName,
+                        FullName = user.FullName,
+                        Token = otp,
+                        ExpiresAt = "24 giờ",
+                    }
+                ),
+            _logger,
+            user.Email!
+        );
+    }
+
     private async Task<UserMembershipInfo?> GetUserMembershipInfoAsync(Guid userId)
     {
         var customer = await _context
@@ -250,12 +311,17 @@ public class AuthService(
 
     public async Task<CurrentUserResponse> LoginAsync(LoginRequest loginRequest)
     {
+        // Tìm user bằng email hoặc username
         var user = await _userManager.FindByEmailAsync(loginRequest.Email);
+        if (user == null)
+        {
+            user = await _userManager.FindByNameAsync(loginRequest.Email);
+        }
 
         if (user == null || !await _userManager.CheckPasswordAsync(user, loginRequest.Password))
         {
             throw new ApiException(
-                "Email hoặc mật khẩu không chính xác",
+                "Email/Tên đăng nhập hoặc mật khẩu không chính xác",
                 HttpStatusCode.BadRequest
             );
         }
@@ -265,6 +331,20 @@ public class AuthService(
             throw new ApiException(
                 "Tài khoản dừng hoạt động không thể đăng nhập, vui lòng liên hệ với quản trị viên để được hỗ trợ.",
                 HttpStatusCode.BadRequest
+            );
+        }
+
+        // Kiểm tra email đã được xác thực chưa
+        if (!user.EmailConfirmed)
+        {
+            throw new ApiException(
+                "Email chưa được xác thực. Vui lòng kiểm tra email và xác thực tài khoản trước khi đăng nhập.",
+                HttpStatusCode.BadRequest,
+                new Dictionary<string, string>
+                {
+                    { "emailNotConfirmed", "true" },
+                    { "email", user.Email! },
+                }
             );
         }
 
@@ -317,6 +397,7 @@ public class AuthService(
         var res = _mapper.Map<CurrentUserResponse>(user);
         res.Roles = [.. roles];
         res.Membership = await GetUserMembershipInfoAsync(user.Id);
+        res.AccessToken = jwtToken; // Include access token in response for desktop clients
         return res;
     }
 
@@ -548,7 +629,7 @@ public class AuthService(
             );
         }
 
-        await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.User));
+        await _userManager.AddToRoleAsync(user, RoleHelper.GetIdentityRoleName(Role.Customer));
 
         // Tự động tạo customer khi đăng ký
         var customer = new Customer

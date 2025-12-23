@@ -282,6 +282,10 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Courts/change-status`;
 
@@ -311,6 +315,10 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Courts/create`;
@@ -342,6 +350,10 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Courts/create-pricing-rule-template`;
 
@@ -371,6 +383,10 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Courts/delete`;
@@ -403,6 +419,10 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
         }
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Courts/delete-pricing-rule-template`;
@@ -442,6 +462,10 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Courts/detail`;
 
@@ -468,6 +492,10 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Courts/list-court-group-by-court-area`;
@@ -508,6 +536,10 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Courts/list`;
 
@@ -546,6 +578,10 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Courts/list-pricing-rule-by-court-id`;
 
@@ -572,6 +608,10 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Courts/list-pricing-rule-templates`;
@@ -602,6 +642,10 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
 
         headerParameters['Content-Type'] = 'application/json';
 
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
+
 
         let urlPath = `/api/Courts/update-pricing-rule-template`;
 
@@ -631,6 +675,10 @@ export class CourtsApi extends runtime.BaseAPI implements CourtsApiInterface {
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.apiKey) {
+            headerParameters["Authorization"] = await this.configuration.apiKey("Authorization"); // Bearer authentication
+        }
 
 
         let urlPath = `/api/Courts/update`;

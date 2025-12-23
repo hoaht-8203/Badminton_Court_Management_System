@@ -1,3 +1,4 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.ReturnGoods;
 using ApiApplication.Services;
@@ -8,7 +9,7 @@ namespace ApiApplication.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+[Authorize(Policy = PolicyConstants.WarehouseAccess)]
 public class ReturnGoodsController(IReturnGoodsService returnGoodsService) : ControllerBase
 {
     private readonly IReturnGoodsService _returnGoodsService = returnGoodsService;

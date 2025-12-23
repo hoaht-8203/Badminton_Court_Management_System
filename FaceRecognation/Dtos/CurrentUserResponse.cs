@@ -11,5 +11,6 @@ namespace FaceRecognation.Dtos
         public bool EmailConfirmed { get; set; }
         public string? AvatarUrl { get; set; }
         public List<string>? Roles { get; set; }
+        public string? AccessToken { get; set; } // Access token from server
     }
 }

@@ -1,6 +1,8 @@
+using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Dtos.Attendance;
 using ApiApplication.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +10,7 @@ namespace ApiApplication.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policy = PolicyConstants.OfficeStaffAccess)]
     public class AttendanceController : ControllerBase
     {
         private readonly IAttendanceService _attendanceService;
@@ -18,29 +21,39 @@ namespace ApiApplication.Controllers
         }
 
         [HttpPost("checkin")]
+        [AllowAnonymous] // Allow face recognition kiosk to check-in without authentication
         public async Task<IActionResult> CheckIn([FromBody] Dtos.Attendance.CheckInRequest request)
         {
             var result = await _attendanceService.CheckInAsync(request.StaffId);
-            return Ok(
-                ApiResponse<bool>.SuccessResponse(
-                    result,
-                    result ? "Check-in thành công" : "Check-in thất bại"
-                )
-            );
+
+            if (!result)
+            {
+                return BadRequest(
+                    ApiResponse<bool>.ErrorResponse(
+                        "Không thể check-in. Bạn đã check-in nhưng chưa check-out ca trước đó."
+                    )
+                );
+            }
+
+            return Ok(ApiResponse<bool>.SuccessResponse(result, "Check-in thành công"));
         }
 
         [HttpPost("checkout")]
+        [AllowAnonymous] // Allow face recognition kiosk to check-out without authentication
         public async Task<IActionResult> CheckOut(
             [FromBody] Dtos.Attendance.CheckoutRequest request
         )
         {
             var result = await _attendanceService.CheckOutAsync(request.StaffId);
+
             if (!result)
+            {
                 return BadRequest(
                     ApiResponse<bool>.ErrorResponse(
-                        "Không tìm thấy check-in phù hợp trong ngày hoặc đã check-out"
+                        "Không thể check-out. Bạn chưa check-in hoặc đã check-out rồi."
                     )
                 );
+            }
 
             return Ok(ApiResponse<bool>.SuccessResponse(result, "Check-out thành công"));
         }

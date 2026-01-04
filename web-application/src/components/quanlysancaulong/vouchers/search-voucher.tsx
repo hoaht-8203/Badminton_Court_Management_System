@@ -19,9 +19,9 @@ const SearchVoucher = ({ onSearch, onReset }: SearchVoucherProps) => {
   const handleSearch: FormProps<any>["onFinish"] = (values) => {
     const [from, to] = values.startAtRange || [];
     onSearch({
-      code: values.code || undefined,
-      title: values.title || undefined,
-      discountType: values.discountType || undefined,
+      code: values.code ? values.code : undefined,
+      title: values.title ? values.title : undefined,
+      discountType: values.discountType ? values.discountType : undefined,
       isActive: values.isActive === "" ? undefined : values.isActive === "active" ? true : values.isActive === "inactive" ? false : undefined,
       startAtFrom: from ? dayjs(from).toDate() : undefined,
       startAtTo: to ? dayjs(to).toDate() : undefined,

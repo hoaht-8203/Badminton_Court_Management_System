@@ -131,7 +131,7 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         if (existingCustomerByEmail != null)
         {
             throw new ApiException(
-                $"Email {request.Email} has been used by other customers",
+                $"Email {request.Email} đã được sử dụng bởi khách hàng khác.",
                 HttpStatusCode.BadRequest
             );
         }
@@ -139,7 +139,11 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         // Validate phone number format
         if (!string.IsNullOrEmpty(request.PhoneNumber))
         {
-            if (request.PhoneNumber.Length < 9 || request.PhoneNumber.Length > 11 || !Regex.IsMatch(request.PhoneNumber, @"^\d{9,11}$"))
+            if (
+                request.PhoneNumber.Length < 9
+                || request.PhoneNumber.Length > 11
+                || !Regex.IsMatch(request.PhoneNumber, @"^\d{9,11}$")
+            )
             {
                 throw new ApiException(
                     "Số điện thoại phải có từ 9 đến 11 chữ số",
@@ -182,6 +186,22 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
             );
         }
 
+        // Validate that required fields cannot be set to null/empty
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            throw new ApiException("Họ và tên không được để trống", HttpStatusCode.BadRequest);
+        }
+
+        if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+        {
+            throw new ApiException("Số điện thoại không được để trống", HttpStatusCode.BadRequest);
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            throw new ApiException("Email không được để trống", HttpStatusCode.BadRequest);
+        }
+
         if (!string.IsNullOrEmpty(request.Email) && request.Email != customer.Email)
         {
             var existingCustomer = await _context.Customers.FirstOrDefaultAsync(c =>
@@ -198,10 +218,17 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         }
 
         // Validate and check phone number uniqueness if provided and changed
-        if (!string.IsNullOrEmpty(request.PhoneNumber) && request.PhoneNumber != customer.PhoneNumber)
+        if (
+            !string.IsNullOrEmpty(request.PhoneNumber)
+            && request.PhoneNumber != customer.PhoneNumber
+        )
         {
             // Validate phone number format
-            if (request.PhoneNumber.Length < 9 || request.PhoneNumber.Length > 11 || !Regex.IsMatch(request.PhoneNumber, @"^\d{9,11}$"))
+            if (
+                request.PhoneNumber.Length < 9
+                || request.PhoneNumber.Length > 11
+                || !Regex.IsMatch(request.PhoneNumber, @"^\d{9,11}$")
+            )
             {
                 throw new ApiException(
                     "Số điện thoại phải có từ 9 đến 11 chữ số",

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using ApiApplication.Data;
 using ApiApplication.Exceptions;
 using ApiApplication.Sessions;
@@ -17,6 +18,25 @@ namespace ApiApplication.Services.Impl
         private readonly IMapper _mapper = mapper;
         private readonly ICurrentUser _currentUser = currentUser;
 
+        /// <summary>
+        /// Validates if a string is valid JSON format
+        /// </summary>
+        private bool IsValidJson(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return false;
+
+            try
+            {
+                JsonDocument.Parse(input);
+                return true;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+        }
+
         public async Task UpdateStaffAsync(Dtos.StaffRequest request, int id)
         {
             var staff = await _context.Staffs.FindAsync(id);
@@ -25,6 +45,15 @@ namespace ApiApplication.Services.Impl
                 throw new ApiException(
                     $"Nhân viên với Id {id} không tồn tại",
                     HttpStatusCode.NotFound
+                );
+            }
+
+            // Validate SalarySettings JSON
+            if (!IsValidJson(request.SalarySettings))
+            {
+                throw new ApiException(
+                    "Cài đặt lương phải là JSON hợp lệ",
+                    HttpStatusCode.BadRequest
                 );
             }
 
@@ -83,6 +112,15 @@ namespace ApiApplication.Services.Impl
 
         public async Task CreateStaffAsync(Dtos.StaffRequest request)
         {
+            // Validate SalarySettings JSON
+            if (!IsValidJson(request.SalarySettings))
+            {
+                throw new ApiException(
+                    "Cài đặt lương phải là JSON hợp lệ",
+                    HttpStatusCode.BadRequest
+                );
+            }
+
             // Validate format for IdentificationNumber
             if (!string.IsNullOrEmpty(request.IdentificationNumber))
             {

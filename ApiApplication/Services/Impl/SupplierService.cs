@@ -31,7 +31,7 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper) : ISu
             var keyword = request.Name.ToLower();
             query = query.Where(p =>
                 p.Name != null
-                && p.Name.Contains(keyword, StringComparison.CurrentCultureIgnoreCase)
+                && p.Name.ToLower().Contains(keyword)
             );
         }
 
@@ -47,8 +47,7 @@ public class SupplierService(ApplicationDbContext context, IMapper mapper) : ISu
         }
         if (!string.IsNullOrEmpty(request.Status))
         {
-            var status = request.Status.ToLower();
-            query = query.Where(p => p.Status != null && p.Status.ToLower().Contains(status));
+            query = query.Where(p => p.Status == request.Status);
         }
 
         var suppliers = await query.ToListAsync();

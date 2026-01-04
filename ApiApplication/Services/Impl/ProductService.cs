@@ -68,6 +68,49 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
     {
         try
         {
+            // Validate that Code and Name cannot be null/empty
+            if (string.IsNullOrWhiteSpace(request.Code))
+            {
+                throw new ApiException(
+                    "Mã sản phẩm không được để trống",
+                    System.Net.HttpStatusCode.BadRequest
+                );
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                throw new ApiException(
+                    "Tên sản phẩm không được để trống",
+                    System.Net.HttpStatusCode.BadRequest
+                );
+            }
+
+            // Validate stock constraints
+            if (request.ManageInventory && request.MaxStock > 0 && request.MinStock > request.MaxStock)
+            {
+                throw new ApiException(
+                    "Tồn kho tối thiểu không được vượt quá tồn kho tối đa",
+                    System.Net.HttpStatusCode.BadRequest
+                );
+            }
+
+            // Validate that CostPrice and SalePrice are not zero when they should have values
+            if (request.CostPrice < 0)
+            {
+                throw new ApiException(
+                    "Giá vốn không được là số âm",
+                    System.Net.HttpStatusCode.BadRequest
+                );
+            }
+
+            if (request.SalePrice < 0)
+            {
+                throw new ApiException(
+                    "Giá bán không được là số âm",
+                    System.Net.HttpStatusCode.BadRequest
+                );
+            }
+
             if (!string.IsNullOrWhiteSpace(request.Code))
             {
                 var existed = await _context.Products.AnyAsync(p => p.Code == request.Code);
@@ -150,6 +193,55 @@ public class ProductService(ApplicationDbContext context, IMapper mapper, IStora
             throw new ApiException(
                 $"Sản phẩm không tồn tại: {request.Id}",
                 System.Net.HttpStatusCode.NotFound
+            );
+        }
+
+        // Validate that required fields (Name, Code) cannot be set to null
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            throw new ApiException(
+                "Tên sản phẩm không được để trống",
+                System.Net.HttpStatusCode.BadRequest
+            );
+        }
+
+        // If Code is provided (not null), it cannot be empty
+        if (request.Code != null && string.IsNullOrWhiteSpace(request.Code))
+        {
+            throw new ApiException(
+                "Mã sản phẩm không được để trống",
+                System.Net.HttpStatusCode.BadRequest
+            );
+        }
+
+        // Validate stock constraints
+        int stockToCheck = request.Stock ?? entity.Stock;
+        int minStockToCheck = request.MinStock ?? entity.MinStock;
+        int maxStockToCheck = request.MaxStock ?? entity.MaxStock;
+        bool manageInventoryToCheck = request.ManageInventory ?? entity.ManageInventory;
+
+        if (manageInventoryToCheck && maxStockToCheck > 0 && minStockToCheck > maxStockToCheck)
+        {
+            throw new ApiException(
+                "Tồn kho tối thiểu không được vượt quá tồn kho tối đa",
+                System.Net.HttpStatusCode.BadRequest
+            );
+        }
+
+        // Validate that CostPrice and SalePrice are not negative
+        if (request.CostPrice.HasValue && request.CostPrice < 0)
+        {
+            throw new ApiException(
+                "Giá vốn không được là số âm",
+                System.Net.HttpStatusCode.BadRequest
+            );
+        }
+
+        if (request.SalePrice.HasValue && request.SalePrice < 0)
+        {
+            throw new ApiException(
+                "Giá bán không được là số âm",
+                System.Net.HttpStatusCode.BadRequest
             );
         }
 

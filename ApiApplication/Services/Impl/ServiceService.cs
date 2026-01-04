@@ -123,21 +123,15 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
         if (!string.IsNullOrWhiteSpace(request.Name))
         {
             var normalizedName = request.Name.Trim().ToLower();
-            var currentNormalizedName = service.Name?.Trim().ToLower();
+            var existingService = await _context.Services
+                .FirstOrDefaultAsync(s => s.Id != request.Id && s.Name.Trim().ToLower() == normalizedName);
 
-            // Only check if name is actually changing
-            if (normalizedName != currentNormalizedName)
+            if (existingService != null)
             {
-                var existingService = await _context.Services
-                    .FirstOrDefaultAsync(s => s.Id != request.Id && s.Name.Trim().ToLower() == normalizedName);
-
-                if (existingService != null)
-                {
-                    throw new ApiException(
-                        $"Tên dịch vụ '{request.Name}' đã được sử dụng",
-                        HttpStatusCode.BadRequest
-                    );
-                }
+                throw new ApiException(
+                    $"Tên dịch vụ '{request.Name}' đã được sử dụng",
+                    HttpStatusCode.BadRequest
+                );
             }
         }
 

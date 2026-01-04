@@ -16,10 +16,10 @@ const SearchSupplier = ({ onSearch, onReset }: SearchSupplierProps) => {
 
   const handleSearch: FormProps<ListSupplierRequest>["onFinish"] = (values) => {
     onSearch({
-      id: values.id ?? null,
-      name: values.name || null,
-      phone: values.phone || null,
-      status: values.status || null,
+      id: values.id ? values.id : undefined,
+      name: values.name ? values.name : undefined,
+      phone: values.phone ? values.phone : undefined,
+      status: values.status ? values.status : undefined,
     });
   };
 

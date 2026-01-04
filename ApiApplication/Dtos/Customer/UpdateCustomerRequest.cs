@@ -8,15 +8,15 @@ public class UpdateCustomerRequest
     public required int Id { get; set; }
 
     [MaxLength(100, ErrorMessage = "Họ và tên không được vượt quá 100 ký tự")]
-    public string? FullName { get; set; }
+    public required string FullName { get; set; }
 
     [Phone(ErrorMessage = "Số điện thoại không hợp lệ")]
     [MaxLength(20, ErrorMessage = "Số điện thoại không được vượt quá 20 ký tự")]
-    public string? PhoneNumber { get; set; }
+    public required string PhoneNumber { get; set; }
 
     [EmailAddress(ErrorMessage = "Email không hợp lệ")]
     [MaxLength(100, ErrorMessage = "Email không được vượt quá 100 ký tự")]
-    public string? Email { get; set; }
+    public required string Email { get; set; }
 
     public DateTime? DateOfBirth { get; set; }
 

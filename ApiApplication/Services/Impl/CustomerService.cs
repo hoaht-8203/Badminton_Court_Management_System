@@ -251,26 +251,7 @@ public class CustomerService(ApplicationDbContext context, IMapper mapper, ICurr
         }
 
         _mapper.Map(request, customer);
-
-        if (request.Gender != null && string.IsNullOrEmpty(request.Gender))
-            customer.Gender = null;
-        if (request.Address != null && string.IsNullOrEmpty(request.Address))
-            customer.Address = null;
-        if (request.City != null && string.IsNullOrEmpty(request.City))
-            customer.City = null;
-        if (request.District != null && string.IsNullOrEmpty(request.District))
-            customer.District = null;
-        if (request.Ward != null && string.IsNullOrEmpty(request.Ward))
-            customer.Ward = null;
-        if (request.IDCard != null && string.IsNullOrEmpty(request.IDCard))
-            customer.IDCard = null;
-        if (request.Note != null && string.IsNullOrEmpty(request.Note))
-            customer.Note = null;
-        if (request.AvatarUrl != null && string.IsNullOrEmpty(request.AvatarUrl))
-            customer.AvatarUrl = null;
-
         await _context.SaveChangesAsync();
-
         return _mapper.Map<DetailCustomerResponse>(customer);
     }
 

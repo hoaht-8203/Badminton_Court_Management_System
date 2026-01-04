@@ -135,6 +135,18 @@ public class ServiceService(ApplicationDbContext context, IMapper mapper) : ISer
             }
         }
 
+        if (request.PricePerHour < 0)
+            throw new ApiException("Giá dịch vụ phải lớn hơn hoặc bằng 0", HttpStatusCode.BadRequest);
+
+        if (!string.IsNullOrWhiteSpace(request.Category))
+            throw new ApiException("Danh mục dịch vụ không được để trống", HttpStatusCode.BadRequest);
+
+        if (!string.IsNullOrWhiteSpace(request.Unit))
+            throw new ApiException("Đơn vị tính không được để trống", HttpStatusCode.BadRequest);
+
+        if (request.StockQuantity < 0)
+            throw new ApiException("Số lượng tồn kho phải lớn hơn hoặc bằng 0", HttpStatusCode.BadRequest);
+
         _mapper.Map(request, service);
         await _context.SaveChangesAsync();
         return _mapper.Map<DetailServiceResponse>(service);

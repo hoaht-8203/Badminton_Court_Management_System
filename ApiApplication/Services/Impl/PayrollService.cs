@@ -35,6 +35,28 @@ public class PayrollService : IPayrollService
 
     public async Task<bool> CreatePayrollAsync(CreatePayrollRequest request)
     {
+        // Validate: Name cannot be null/empty
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            throw new ApiException(
+                "Tên bảng lương không được để trống",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        // Validate: Name must be unique (case-insensitive)
+        var normalizedName = request.Name.Trim().ToLower();
+        var existingPayroll = await _context.Payrolls
+            .FirstOrDefaultAsync(p => p.Name.ToLower() == normalizedName);
+
+        if (existingPayroll != null)
+        {
+            throw new ApiException(
+                $"Tên bảng lương '{request.Name}' đã được sử dụng",
+                HttpStatusCode.BadRequest
+            );
+        }
+
         // Validate: EndDate must be >= StartDate
         if (request.EndDate < request.StartDate)
         {

@@ -36,6 +36,9 @@ public class VoucherService : IVoucherService
         if (string.IsNullOrWhiteSpace(request.Code))
             throw new ApiException("Mã voucher không được để trống", HttpStatusCode.BadRequest);
 
+        if (string.IsNullOrWhiteSpace(request.Title))
+            throw new ApiException("Tiêu đề voucher không được để trống", HttpStatusCode.BadRequest);
+
         if (request.StartAt >= request.EndAt)
             throw new ApiException(
                 "Thời gian bắt đầu phải nhỏ hơn thời gian kết thúc",
@@ -52,6 +55,20 @@ public class VoucherService : IVoucherService
         {
             throw new ApiException(
                 $"Mã voucher '{existingVoucher.Code}' đã tồn tại trong hệ thống (Voucher: {existingVoucher.Title}). Vui lòng sử dụng mã khác.",
+                HttpStatusCode.BadRequest
+            );
+        }
+
+        // Check for duplicate voucher title
+        var existingTitle = await _context
+            .Vouchers.Where(v => v.Title == request.Title)
+            .Select(v => new { v.Code, v.Title })
+            .FirstOrDefaultAsync();
+
+        if (existingTitle != null)
+        {
+            throw new ApiException(
+                $"Tiêu đề voucher '{existingTitle.Title}' đã tồn tại trong hệ thống (Mã: {existingTitle.Code}). Vui lòng sử dụng tiêu đề khác.",
                 HttpStatusCode.BadRequest
             );
         }
@@ -150,6 +167,28 @@ public class VoucherService : IVoucherService
             {
                 throw new ApiException(
                     $"Mã voucher '{existingVoucher.Code}' đã được sử dụng bởi voucher khác (ID: {existingVoucher.Id}, Tên: {existingVoucher.Title}). Vui lòng chọn mã khác.",
+                    HttpStatusCode.BadRequest
+                );
+            }
+        }
+
+        // Check title uniqueness (if title is being changed)
+        if (!string.IsNullOrWhiteSpace(request.Title) && request.Title != v.Title)
+        {
+            var existingTitle = await _context
+                .Vouchers.Where(vx => vx.Title == request.Title && vx.Id != id)
+                .Select(vx => new
+                {
+                    vx.Code,
+                    vx.Title,
+                    vx.Id,
+                })
+                .FirstOrDefaultAsync();
+
+            if (existingTitle != null)
+            {
+                throw new ApiException(
+                    $"Tiêu đề voucher '{existingTitle.Title}' đã được sử dụng bởi voucher khác (ID: {existingTitle.Id}, Mã: {existingTitle.Code}). Vui lòng chọn tiêu đề khác.",
                     HttpStatusCode.BadRequest
                 );
             }

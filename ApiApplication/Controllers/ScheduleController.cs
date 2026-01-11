@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using ApiApplication.Authorization;
 using ApiApplication.Dtos;
 using ApiApplication.Services;
@@ -57,6 +58,32 @@ namespace ApiApplication.Controllers
                 ApiResponse<List<ScheduleResponse>>.SuccessResponse(
                     result,
                     "Get schedule of week by staff successfully"
+                )
+            );
+        }
+
+        /// <summary>
+        /// Get current user's schedule - Accessible by all authenticated staff
+        /// </summary>
+        [HttpGet("me")]
+        [Authorize(Policy = PolicyConstants.StaffAccess)]
+        public async Task<ActionResult<ApiResponse<List<ScheduleResponse>>>> GetMySchedule(
+            [FromQuery] ScheduleRequest request
+        )
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(
+                    ApiResponse<List<ScheduleResponse>>.ErrorResponse("Unauthorized")
+                );
+            }
+
+            var result = await _scheduleService.GetMyScheduleAsync(request, Guid.Parse(userId));
+            return Ok(
+                ApiResponse<List<ScheduleResponse>>.SuccessResponse(
+                    result,
+                    "Get my schedule successfully"
                 )
             );
         }

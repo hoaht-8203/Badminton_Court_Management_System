@@ -492,6 +492,15 @@ public class PayrollService : IPayrollService
         return _mapper.Map<List<PayrollItemResponse>>(payrollItems);
     }
 
+    public async Task<List<PayrollItemResponse>> GetMyPayrollItemsAsync(Guid userId)
+    {
+        var staff = await _context.Staffs.FirstOrDefaultAsync(s => s.UserId == userId);
+        if (staff == null)
+            return new List<PayrollItemResponse>();
+
+        return await GetPayrollItemsByStaffIdAsync(staff.Id);
+    }
+
     public async Task<bool> PayPayrollItemAsync(int payrollItemId, decimal amount)
     {
         var payrollItem = await _context

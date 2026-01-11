@@ -53,6 +53,10 @@ export const scheduleService = {
     const response = await axiosInstance.get(`/api/schedule/by-staff/${staffId}`, { params: request });
     return response.data;
   },
+  getMySchedule: async (request: { startDate: string; endDate: string }): Promise<ApiResponse<ScheduleResponse[]>> => {
+    const response = await axiosInstance.get(`/api/schedule/me`, { params: request });
+    return response.data;
+  },
   assign: async (request: ScheduleRequest): Promise<ApiResponse<null>> => {
     const response = await axiosInstance.post("/api/schedule/assign", request);
     return response.data;

@@ -91,6 +91,15 @@ public class AttendanceService : IAttendanceService
         return _mapper.Map<List<AttendanceResponse>>(attendanceRecords);
     }
 
+    public async Task<List<AttendanceResponse>> GetMyAttendanceRecordsAsync(Guid userId, DateTime date)
+    {
+        var staff = await _context.Staffs.FirstOrDefaultAsync(s => s.UserId == userId);
+        if (staff == null)
+            return new List<AttendanceResponse>();
+
+        return await GetAttendanceRecordsByStaffIdAsync(staff.Id, date);
+    }
+
     public async Task<bool> DeleteAttendanceRecordAsync(int attendanceRecordId)
     {
         var attendanceRecord = await _context.AttendanceRecords.FindAsync(attendanceRecordId);

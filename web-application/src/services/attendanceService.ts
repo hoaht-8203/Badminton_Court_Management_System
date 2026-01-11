@@ -19,6 +19,10 @@ export const attendanceService = {
     const res = await axiosInstance.get<ApiResponse<AttendanceResponse[]>>(`/api/Attendance/staff/${staffId}?date=${date}`);
     return res.data;
   },
+  async getMyAttendance(date: string): Promise<ApiResponse<AttendanceResponse[]>> {
+    const res = await axiosInstance.get<ApiResponse<AttendanceResponse[]>>(`/api/Attendance/me?date=${date}`);
+    return res.data;
+  },
 
   async deleteAttendanceRecord(id: number): Promise<ApiResponse<any>> {
     const res = await axiosInstance.delete<ApiResponse<any>>(`/api/Attendance/${id}`);

@@ -1,5 +1,6 @@
 using System;
 using ApiApplication.Entities;
+using ApiApplication.Enums;
 
 namespace ApiApplication.Dtos
 {
@@ -11,5 +12,6 @@ namespace ApiApplication.Dtos
         public DateTime Date { get; set; }
         public DayOfWeek DayOfWeek { get; set; }
         public bool IsFixedShift { get; set; }
+        public string? AttendanceStatus { get; set; }
     }
 }

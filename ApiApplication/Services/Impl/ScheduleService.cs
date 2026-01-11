@@ -375,5 +375,44 @@ namespace ApiApplication.Services.Impl
 
             return true;
         }
+
+        public async Task<List<ScheduleResponse>> GetMyScheduleAsync(
+            ScheduleRequest request,
+            Guid userId
+        )
+        {
+            // Find staff by userId
+            var staff = await _context.Staffs.FirstOrDefaultAsync(s =>
+                s.UserId == userId && s.IsActive
+            );
+
+            if (staff == null)
+            {
+                throw new ApiException(
+                    "Không tìm thấy thông tin nhân viên",
+                    System.Net.HttpStatusCode.NotFound
+                );
+            }
+
+            var startDate = DateOnly.FromDateTime(request.StartDate);
+            var endDate = request.EndDate.HasValue
+                ? DateOnly.FromDateTime(request.EndDate.Value)
+                : default;
+
+            var result = await _context
+                .Schedules.Where(s => s.StaffId == staff.Id)
+                .Include(s => s.Shift)
+                .Include(s => s.Staff)
+                .ToListAsync();
+
+            // Get attendance records for the same period
+            var attendanceRecords = await _context
+                .AttendanceRecords.Where(a =>
+                    a.StaffId == staff.Id && a.Date >= startDate && a.Date <= endDate
+                )
+                .ToListAsync();
+
+            return Helpers.ScheduleHelper.StandardizeSchedule(result, startDate, endDate, _mapper, attendanceRecords);
+        }
     }
 }

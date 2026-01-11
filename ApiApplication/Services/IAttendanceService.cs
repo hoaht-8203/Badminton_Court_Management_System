@@ -12,6 +12,7 @@ public interface IAttendanceService
     Task<bool> UpdateAttendanceRecordAsync(AttendanceRequest request);
     Task<bool> DeleteAttendanceRecordAsync(int attendanceRecordId);
     Task<List<AttendanceResponse>> GetAttendanceRecordsByStaffIdAsync(int staffId, DateTime date);
+    Task<List<AttendanceResponse>> GetMyAttendanceRecordsAsync(Guid userId, DateTime date);
 
     // New convenience methods for quick check-in / check-out
     Task<bool> CheckInAsync(int staffId);

@@ -33,7 +33,7 @@ import Image from "next/image";
 import { courtScheduleService } from "@/services/courtScheduleService";
 import { ROLES } from "@/constants/roles";
 import WorkScheduleTab from "./_components/WorkScheduleTab";
-// import SalaryTab from "./_components/SalaryTab";
+import SalaryTab from "./_components/SalaryTab";
 
 const { Title, Text } = Typography;
 
@@ -758,7 +758,7 @@ const BookingHistoryPage = () => {
               </Title>
               <Text type="secondary">Xem thông tin bảng lương của bạn</Text>
             </div>
-            {/* <SalaryTab /> */}
+            <SalaryTab />
           </section>
         );
       default:

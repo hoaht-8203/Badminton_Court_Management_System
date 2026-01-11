@@ -63,6 +63,16 @@ export function useGetPayrollItemsByStaff(staffId?: number) {
   });
 }
 
+export function useGetMyPayrollItems() {
+  return useQuery<PayrollItemResponse[]>({
+    queryKey: ["myPayrollItems"],
+    queryFn: async () => {
+      const res = await payrollService.getMyPayrollItems();
+      return res.data ?? [];
+    },
+  });
+}
+
 export function useDeletePayroll() {
   const queryClient = useQueryClient();
   return useMutation({

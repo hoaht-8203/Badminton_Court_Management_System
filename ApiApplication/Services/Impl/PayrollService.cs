@@ -38,16 +38,14 @@ public class PayrollService : IPayrollService
         // Validate: Name cannot be null/empty
         if (string.IsNullOrWhiteSpace(request.Name))
         {
-            throw new ApiException(
-                "Tên bảng lương không được để trống",
-                HttpStatusCode.BadRequest
-            );
+            throw new ApiException("Tên bảng lương không được để trống", HttpStatusCode.BadRequest);
         }
 
         // Validate: Name must be unique (case-insensitive)
         var normalizedName = request.Name.Trim().ToLower();
-        var existingPayroll = await _context.Payrolls
-            .FirstOrDefaultAsync(p => p.Name.ToLower() == normalizedName);
+        var existingPayroll = await _context.Payrolls.FirstOrDefaultAsync(p =>
+            p.Name.ToLower() == normalizedName
+        );
 
         if (existingPayroll != null)
         {

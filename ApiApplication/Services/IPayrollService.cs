@@ -12,6 +12,7 @@ public interface IPayrollService
     Task<PayrollDetailResponse?> GetPayrollByIdAsync(int payrollId);
     Task<List<PayrollItemResponse>> GetPayrollItemsByPayrollIdAsync(int payrollId);
     Task<List<PayrollItemResponse>> GetPayrollItemsByStaffIdAsync(int staffId);
+    Task<List<PayrollItemResponse>> GetMyPayrollItemsAsync(Guid userId);
     Task<bool> PayPayrollItemAsync(int payrollItemId, decimal amount);
     Task<bool> DeletePayrollAsync(int payrollId);
 }

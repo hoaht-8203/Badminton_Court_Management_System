@@ -61,6 +61,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseNpgsql(npgsqlDataSource);
 });
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -107,6 +109,7 @@ builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<ISystemConfigService, SystemConfigService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -442,6 +445,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseMiddleware<AuditLoggingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
@@ -453,5 +457,6 @@ app.UseWebSockets();
 app.MapHub<BookingHub>("/hubs/booking").RequireCors("Frontend");
 app.MapHub<NotificationHub>("/hubs/notifications").RequireCors("Frontend");
 app.MapHub<ProductHub>("/hubs/products").RequireCors("Frontend");
+app.MapHub<AuditLogHub>("/hubs/auditlogs").RequireCors("Frontend");
 
 app.Run();

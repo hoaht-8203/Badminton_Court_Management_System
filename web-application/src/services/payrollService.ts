@@ -36,6 +36,10 @@ export const payrollService = {
     const response = await axiosInstance.get(`api/payroll/items/by-staff/${staffId}`);
     return response.data;
   },
+  async getMyPayrollItems(): Promise<ApiResponse<PayrollItemResponse[]>> {
+    const response = await axiosInstance.get("api/payroll/me");
+    return response.data;
+  },
   async delete(payrollId: number): Promise<ApiResponse<null>> {
     const response = await axiosInstance.delete(`api/payroll/${payrollId}`);
     return response.data;

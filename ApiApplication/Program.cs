@@ -181,6 +181,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(opt =>
     opt.UseNpgsql(npgsqlDataSource);
 });
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -227,6 +229,7 @@ builder.Services.AddScoped<IVoucherService, VoucherService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<ISystemConfigService, SystemConfigService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 builder.Services.AddAutoMapper(config => config.AddProfile<UserMappingProfile>());
 builder.Services.AddAutoMapper(config => config.AddProfile<RoleMappingProfile>());
@@ -505,8 +508,7 @@ builder
 builder.Services.AddCors(options =>
 {
     var configuredOrigins =
-        builder.Configuration.GetSection("Cors:Origins").Get<string[]>()
-        ?? (
+        builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? (
             Environment
                 .GetEnvironmentVariable("ALLOWED_ORIGINS")
                 ?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -603,6 +605,7 @@ app.MapScalarApiReference(options =>
         .WithTheme(ScalarTheme.Moon)
         .WithOpenApiRoutePattern("/swagger/v1/swagger.json");
 });
+app.UseMiddleware<AuditLoggingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
@@ -620,5 +623,6 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate(); // Tự động apply migrations
 }
 app.MapHub<ProductHub>("/hubs/products").RequireCors("AllowFrontend");
+app.MapHub<AuditLogHub>("/hubs/auditlogs").RequireCors("Frontend");
 
 app.Run();

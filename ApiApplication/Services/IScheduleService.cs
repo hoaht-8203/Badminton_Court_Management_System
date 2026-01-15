@@ -16,5 +16,6 @@ public interface IScheduleService
         ScheduleRequest request,
         int staffId
     );
+    Task<List<ScheduleResponse>> GetMyScheduleAsync(ScheduleRequest request, Guid userId);
     Task<bool> RemoveStaffFromShiftAsync(ScheduleRequest request);
 }

@@ -1,5 +1,6 @@
 using ApiApplication.Constants;
 using ApiApplication.Dtos;
+using ApiApplication.Entities.Shared;
 using AutoMapper;
 using Minio.DataModel.Result;
 
@@ -11,10 +12,13 @@ namespace ApiApplication.Helpers
             List<Entities.Schedule> schedules,
             DateOnly startDate,
             DateOnly endDate,
-            IMapper _mapper
+            IMapper _mapper,
+            List<Entities.AttendanceRecord>? attendanceRecords = null
         )
         {
             var result = new List<ScheduleResponse>();
+            attendanceRecords ??= new List<Entities.AttendanceRecord>();
+
             foreach (var schedule in schedules)
             {
                 if (schedule.IsFixedShift)
@@ -25,6 +29,14 @@ namespace ApiApplication.Helpers
                         if (!schedule.ByDay.Contains(DoWMapping.DayOfWeekToString[date.DayOfWeek]))
                             continue;
 
+                        // Get attendance status for this date
+                        var attendanceStatus = GetAttendanceStatus(
+                            attendanceRecords,
+                            schedule,
+                            date,
+                            _mapper
+                        );
+
                         var scheduleResponse = new ScheduleResponse
                         {
                             Staff = _mapper.Map<StaffResponse>(schedule.Staff),
@@ -32,6 +44,7 @@ namespace ApiApplication.Helpers
                             Date = date.ToDateTime(TimeOnly.MinValue),
                             DayOfWeek = date.DayOfWeek,
                             IsFixedShift = schedule.IsFixedShift,
+                            AttendanceStatus = attendanceStatus,
                         };
                         normalizedSchedules.Add(scheduleResponse);
                     }
@@ -39,6 +52,14 @@ namespace ApiApplication.Helpers
                 }
                 else
                 {
+                    // Get attendance status for this date
+                    var attendanceStatus = GetAttendanceStatus(
+                        attendanceRecords,
+                        schedule,
+                        schedule.StartDate,
+                        _mapper
+                    );
+
                     var scheduleResponse = new ScheduleResponse
                     {
                         Staff = _mapper.Map<StaffResponse>(schedule.Staff),
@@ -46,6 +67,7 @@ namespace ApiApplication.Helpers
                         Date = schedule.StartDate.ToDateTime(TimeOnly.MinValue),
                         DayOfWeek = schedule.StartDate.DayOfWeek,
                         IsFixedShift = schedule.IsFixedShift,
+                        AttendanceStatus = attendanceStatus,
                     };
                     result.Add(scheduleResponse);
                 }
@@ -61,6 +83,35 @@ namespace ApiApplication.Helpers
                     .ToList();
             }
             return result;
+        }
+
+        private static string GetAttendanceStatus(
+            List<Entities.AttendanceRecord> attendanceRecords,
+            Entities.Schedule schedule,
+            DateOnly date,
+            IMapper mapper
+        )
+        {
+            // Filter attendance records for this staff and date
+            var recordsForDate = attendanceRecords
+                .Where(a => a.StaffId == schedule.StaffId && a.Date == date)
+                .ToList();
+
+            // If no attendance records exist
+            if (recordsForDate.Count == 0)
+            {
+                // If date is in the past, mark as Absent
+                if (date < DateOnly.FromDateTime(DateTime.Now))
+                {
+                    return AttendanceStatus.Absent;
+                }
+                // Future date - not yet
+                return AttendanceStatus.NotYet;
+            }
+
+            // Use AttendanceHelper to determine status
+            var shiftResponse = mapper.Map<ShiftResponse>(schedule.Shift);
+            return AttendanceHelper.DetermineStatusOfShift(recordsForDate, shiftResponse);
         }
     }
 }

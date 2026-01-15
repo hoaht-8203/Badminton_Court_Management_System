@@ -10,6 +10,7 @@ const KPIGrid = dynamic(() => import("@/components/quanlysancaulong/dashboard/kp
 const RevenueChart = dynamic(() => import("@/components/quanlysancaulong/dashboard/revenue-chart"), { ssr: false, loading: () => <Spin /> });
 const BookingsHeatmap = dynamic(() => import("@/components/quanlysancaulong/dashboard/bookings-heatmap"), { ssr: false, loading: () => <Spin /> });
 const TopCourts = dynamic(() => import("@/components/quanlysancaulong/dashboard/top-courts"), { ssr: false, loading: () => <Spin /> });
+const RecentAuditLogs = dynamic(() => import("@/components/quanlysancaulong/dashboard/recent-audit-logs"), { ssr: false, loading: () => <Spin /> });
 
 const DashboardPage: React.FC = () => {
   // Real data from backend
@@ -99,6 +100,14 @@ const DashboardPage: React.FC = () => {
         <Col xs={24} lg={8}>
           <Suspense fallback={<Spin />}>
             <TopCourts items={topItems} />
+          </Suspense>
+        </Col>
+      </Row>
+
+      <Row gutter={16} style={{ marginTop: 16 }}>
+        <Col xs={24}>
+          <Suspense fallback={<Spin />}>
+            <RecentAuditLogs limit={10} />
           </Suspense>
         </Col>
       </Row>

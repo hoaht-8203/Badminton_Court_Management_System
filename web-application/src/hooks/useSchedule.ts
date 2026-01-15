@@ -22,6 +22,13 @@ export function useGetScheduleByStaff(request: WeeklyScheduleRequest) {
   });
 }
 
+export function useGetMySchedule(request: { startDate: string; endDate: string }) {
+  return useQuery({
+    queryKey: ["schedule", "my-schedule", request],
+    queryFn: () => scheduleService.getMySchedule(request),
+  });
+}
+
 export function useAssignSchedule() {
   const queryClient = useQueryClient();
   return useMutation({

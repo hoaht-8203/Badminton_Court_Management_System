@@ -31,28 +31,55 @@ import { useCreateUserMembershipForCurrentUser } from "@/hooks/useUserMembership
 import { ListMembershipResponse, CreateUserMembershipResponse } from "@/types-openapi/api";
 import Image from "next/image";
 import { courtScheduleService } from "@/services/courtScheduleService";
+import { ROLES } from "@/constants/roles";
+import WorkScheduleTab from "./_components/WorkScheduleTab";
+import SalaryTab from "./_components/SalaryTab";
 
 const { Title, Text } = Typography;
 
 type MenuItem = Required<MenuProps>["items"][number];
 
-const items: MenuItem[] = [
-  {
-    label: "Thông tin cá nhân",
-    key: "profile",
-    icon: <UserOutlined />,
-  },
-  {
-    label: "Lịch sử đặt sân & Thanh toán",
-    key: "booking-history",
-    icon: <HistoryOutlined />,
-  },
-  {
-    label: "Hội viên",
-    key: "membership",
-    icon: <CrownOutlined />,
-  },
-];
+const getMenuItems = (userRoles: string[] | undefined): MenuItem[] => {
+  const baseItems: MenuItem[] = [
+    {
+      label: "Thông tin cá nhân",
+      key: "profile",
+      icon: <UserOutlined />,
+    },
+  ];
+
+  // Add Staff-only items right after profile if user has Staff role
+  if (userRoles?.includes(ROLES.STAFF)) {
+    baseItems.push(
+      {
+        label: "Lịch làm việc",
+        key: "work-schedule",
+        icon: <CalendarOutlined />,
+      },
+      {
+        label: "Bảng lương",
+        key: "salary",
+        icon: <DollarOutlined />,
+      },
+    );
+  }
+
+  // Add remaining items
+  baseItems.push(
+    {
+      label: "Lịch sử đặt sân & Thanh toán",
+      key: "booking-history",
+      icon: <HistoryOutlined />,
+    },
+    {
+      label: "Hội viên",
+      key: "membership",
+      icon: <CrownOutlined />,
+    },
+  );
+
+  return baseItems;
+};
 
 // Lazy load expandable content (tabs with details and payments) only when a row is expanded
 type ExpandableProps = { record: ListUserBookingHistoryResponse; onCancelSuccess?: () => void };
@@ -708,6 +735,32 @@ const BookingHistoryPage = () => {
             </div>
           </section>
         );
+      case "work-schedule":
+        return (
+          <section>
+            <div className="mb-6">
+              <Title level={2}>
+                <CalendarOutlined className="mr-2" />
+                Lịch làm việc
+              </Title>
+              <Text type="secondary">Xem lịch làm việc của bạn</Text>
+            </div>
+            <WorkScheduleTab />
+          </section>
+        );
+      case "salary":
+        return (
+          <section>
+            <div className="mb-6">
+              <Title level={2}>
+                <DollarOutlined className="mr-2" />
+                Bảng lương
+              </Title>
+              <Text type="secondary">Xem thông tin bảng lương của bạn</Text>
+            </div>
+            <SalaryTab />
+          </section>
+        );
       default:
         return null;
     }
@@ -716,7 +769,7 @@ const BookingHistoryPage = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">
-        <Menu onClick={onClick} selectedKeys={[current]} mode="horizontal" items={items} />
+        <Menu onClick={onClick} selectedKeys={[current]} mode="horizontal" items={getMenuItems(user?.roles || undefined)} />
       </div>
 
       {isLoading ? (

@@ -1,0 +1,16 @@
+/* Work Schedule Calendar Styles */
+.work-schedule-calendar .ant-picker-calendar-full .ant-picker-panel .ant-picker-cell-selected .ant-picker-calendar-date {
+  background: #e6f4ff;
+}
+
+.work-schedule-calendar .ant-picker-calendar-full .ant-picker-panel .ant-picker-calendar-date-today {
+  border-color: #1890ff;
+}
+
+.work-schedule-calendar .ant-picker-calendar-full .ant-picker-panel .ant-picker-cell {
+  padding: 4px 8px;
+}
+
+.work-schedule-calendar .ant-picker-calendar-full .ant-picker-panel .ant-picker-calendar-date-value {
+  margin-bottom: 4px;
+}

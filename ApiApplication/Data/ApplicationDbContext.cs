@@ -3,6 +3,7 @@ using System.Text.Json;
 using ApiApplication.Constants;
 using ApiApplication.Entities;
 using ApiApplication.Entities.Shared;
+using ApiApplication.Helpers;
 using ApiApplication.Sessions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -13,10 +14,12 @@ namespace ApiApplication.Data;
 
 public class ApplicationDbContext(
     DbContextOptions<ApplicationDbContext> options,
-    ICurrentUser currentUser
+    ICurrentUser currentUser,
+    IHttpContextAccessor httpContextAccessor
 ) : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
     private readonly ICurrentUser _currentUser = currentUser;
+    private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
     public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     public DbSet<Staff> Staffs { get; set; }
@@ -76,6 +79,9 @@ public class ApplicationDbContext(
     public DbSet<VoucherTimeRule> VoucherTimeRules { get; set; }
     public DbSet<VoucherUsage> VoucherUsages { get; set; }
     public DbSet<VoucherUserRule> VoucherUserRules { get; set; }
+
+    // Audit Log
+    public DbSet<AuditLog> AuditLogs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -953,6 +959,64 @@ public class ApplicationDbContext(
             }
         }
 
+        // Create audit logs for auditable entities
+        var auditLogs = CreateAuditLogs();
+        if (auditLogs.Count > 0)
+        {
+            AuditLogs.AddRange(auditLogs);
+        }
+
         return base.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Create audit log entries from entity changes
+    /// </summary>
+    private List<AuditLog> CreateAuditLogs()
+    {
+        var auditLogs = new List<AuditLog>();
+
+        // Get audit context from HttpContext
+        var httpContext = _httpContextAccessor.HttpContext;
+        var ipAddress = httpContext?.Items["AuditLog_IpAddress"]?.ToString();
+        var userAgent = httpContext?.Items["AuditLog_UserAgent"]?.ToString();
+        var userId = httpContext?.Items["AuditLog_UserId"]?.ToString();
+        var userName = httpContext?.Items["AuditLog_UserName"]?.ToString();
+
+        // Fall back to current user if not found in HttpContext
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            userId = _currentUser.UserId.ToString();
+        }
+
+        if (string.IsNullOrWhiteSpace(userName))
+        {
+            userName = _currentUser.Username;
+        }
+
+        // Get all changed entries
+        var changedEntries = ChangeTracker
+            .Entries()
+            .Where(e =>
+                e.State == EntityState.Added
+                || e.State == EntityState.Modified
+                || e.State == EntityState.Deleted
+            )
+            .ToList();
+
+        foreach (var entry in changedEntries)
+        {
+            var logs = AuditLogHelper.CreateAuditLogs(
+                entry,
+                userId,
+                userName,
+                ipAddress,
+                userAgent
+            );
+
+            auditLogs.AddRange(logs);
+        }
+
+        return auditLogs;
     }
 }

@@ -38,16 +38,14 @@ public class PayrollService : IPayrollService
         // Validate: Name cannot be null/empty
         if (string.IsNullOrWhiteSpace(request.Name))
         {
-            throw new ApiException(
-                "Tên bảng lương không được để trống",
-                HttpStatusCode.BadRequest
-            );
+            throw new ApiException("Tên bảng lương không được để trống", HttpStatusCode.BadRequest);
         }
 
         // Validate: Name must be unique (case-insensitive)
         var normalizedName = request.Name.Trim().ToLower();
-        var existingPayroll = await _context.Payrolls
-            .FirstOrDefaultAsync(p => p.Name.ToLower() == normalizedName);
+        var existingPayroll = await _context.Payrolls.FirstOrDefaultAsync(p =>
+            p.Name.ToLower() == normalizedName
+        );
 
         if (existingPayroll != null)
         {
@@ -490,6 +488,15 @@ public class PayrollService : IPayrollService
             .ToListAsync();
 
         return _mapper.Map<List<PayrollItemResponse>>(payrollItems);
+    }
+
+    public async Task<List<PayrollItemResponse>> GetMyPayrollItemsAsync(Guid userId)
+    {
+        var staff = await _context.Staffs.FirstOrDefaultAsync(s => s.UserId == userId);
+        if (staff == null)
+            return new List<PayrollItemResponse>();
+
+        return await GetPayrollItemsByStaffIdAsync(staff.Id);
     }
 
     public async Task<bool> PayPayrollItemAsync(int payrollItemId, decimal amount)

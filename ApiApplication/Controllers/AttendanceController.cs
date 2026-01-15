@@ -5,6 +5,7 @@ using ApiApplication.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ApiApplication.Controllers
 {
@@ -18,6 +19,25 @@ namespace ApiApplication.Controllers
         public AttendanceController(IAttendanceService attendanceService)
         {
             _attendanceService = attendanceService;
+        }
+
+        [HttpGet("me")]
+        [Authorize(Policy = PolicyConstants.StaffAccess)]
+        public async Task<IActionResult> GetMyAttendanceRecords([FromQuery] DateTime date)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(ApiResponse<List<AttendanceResponse>>.ErrorResponse("Không tìm thấy thông tin người dùng"));
+            }
+
+            var result = await _attendanceService.GetMyAttendanceRecordsAsync(userId, date);
+            return Ok(
+                ApiResponse<List<AttendanceResponse>>.SuccessResponse(
+                    result,
+                    "Lấy dữ liệu chấm công thành công"
+                )
+            );
         }
 
         [HttpPost("checkin")]

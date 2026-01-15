@@ -40,6 +40,7 @@
     "@tiptap/react": "^3.7.2",
     "@tiptap/starter-kit": "^3.7.2",
     "antd": "^5.27.4",
+    "date-fns": "^4.1.0",
     "daypilot-pro-react": "https://npm.daypilot.org/daypilot-pro-react/trial/2025.3.6646.tar.gz",
     "lodash.debounce": "^4.0.8",
     "lodash.throttle": "^4.1.1",

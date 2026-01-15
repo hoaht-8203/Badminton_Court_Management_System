@@ -1,3 +1,7 @@
+using Microsoft.AspNetCore.RateLimiting;
+using Serilog;
+
+using System.Threading.RateLimiting;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -28,6 +32,15 @@ using Npgsql;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
 
 // Add services to the container.
 
@@ -192,7 +205,11 @@ builder
         {
             OnMessageReceived = context =>
             {
-                context.Token = context.Request.Cookies["ACCESS_TOKEN"];
+                var cookieToken = context.Request.Cookies["ACCESS_TOKEN"];
+                if (!string.IsNullOrEmpty(cookieToken))
+                {
+                    context.Token = cookieToken;
+                }
                 return Task.CompletedTask;
             },
             OnTokenValidated = async context =>
@@ -324,6 +341,22 @@ builder.Services.AddAuthorization(options =>
     // Authenticated policy
     options.AddPolicy(PolicyConstants.Authenticated, policy => policy.RequireAuthenticatedUser());
 });
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter(
+        policyName: "fixed",
+        options =>
+        {
+            options.PermitLimit = 100000;
+            options.Window = TimeSpan.FromMinutes(1);
+            options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            options.QueueLimit = 0;
+        }
+    );
+});
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHostedService<BookingHoldExpiryHostedService>();
 builder.Services.AddHostedService<OrderExpiryHostedService>();
@@ -445,10 +478,11 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting("fixed");
 app.UseWebSockets();
 app.MapHub<BookingHub>("/hubs/booking").RequireCors("Frontend");
 app.MapHub<NotificationHub>("/hubs/notifications").RequireCors("Frontend");

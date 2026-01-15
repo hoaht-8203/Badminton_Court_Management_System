@@ -1,0 +1,10 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1767809762955,1581,01-Admin Login,404,Not Found,Batch Notification Test 1-1,text,false,,93369,239,1,1,https://caulong365.store/api/account/login,1477,0,383
+1767809776555,1183,02-Send Broadcast Notification,404,Not Found,Batch Notification Test 1-1,text,false,Broadcast notification failed,93064,849,1,1,https://caulong365.store/api/notifications/broadcast,1080,0,0
+1767809789753,1360,03-Check Batch Status,404,Not Found,Batch Notification Test 1-1,text,false,,93064,370,1,1,https://caulong365.store/api/notifications/batch//status,1093,0,0
+1767809803124,454,04-Check System Resources,404,Not Found,Batch Notification Test 1-1,text,false,System unstable after batch notification,93064,357,1,1,https://caulong365.store/api/system/health,444,0,0
+1767809815587,1014,01-Admin Login,404,Not Found,Batch Notification Test 1-1,text,false,,93064,411,1,1,https://caulong365.store/api/account/login,1008,0,0
+1767809828607,1719,02-Send Broadcast Notification,404,Not Found,Batch Notification Test 1-1,text,false,Broadcast notification failed,93064,849,1,1,https://caulong365.store/api/notifications/broadcast,1598,0,506
+1767809842336,635,03-Check Batch Status,404,Not Found,Batch Notification Test 1-1,text,false,,93064,370,1,1,https://caulong365.store/api/notifications/batch//status,516,0,0
+1767809854974,496,04-Check System Resources,404,Not Found,Batch Notification Test 1-1,text,false,System unstable after batch notification,93064,357,1,1,https://caulong365.store/api/system/health,319,0,0
+1767809867479,1225,01-Admin Login,404,Not Found,Batch Notification Test 1-1,text,false,,93064,411,1,1,https://caulong365.store/api/account/login,1092,0,0

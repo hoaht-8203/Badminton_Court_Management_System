@@ -1,0 +1,56 @@
+2026-01-08 01:27:30,651 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2026-01-08 01:27:30,661 INFO o.a.j.JMeter: Loading user properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/user.properties
+2026-01-08 01:27:30,661 INFO o.a.j.JMeter: Loading system properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/system.properties
+2026-01-08 01:27:30,662 INFO o.a.j.JMeter: Setting JMeter property: protocol=https
+2026-01-08 01:27:30,662 INFO o.a.j.JMeter: Setting JMeter property: domain=caulong365.store
+2026-01-08 01:27:30,662 INFO o.a.j.JMeter: Setting JMeter property: port=443
+2026-01-08 01:27:30,662 INFO o.a.j.JMeter: Setting JMeter property: base_url=https://caulong365.store
+2026-01-08 01:27:30,662 INFO o.a.j.JMeter: Setting JMeter property: users=1000
+2026-01-08 01:27:30,662 INFO o.a.j.JMeter: Setting JMeter property: ramp_up=30
+2026-01-08 01:27:30,662 INFO o.a.j.JMeter: Setting JMeter property: duration=60
+2026-01-08 01:27:30,664 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2026-01-08 01:27:30,664 INFO o.a.j.JMeter: Version 5.6.3
+2026-01-08 01:27:30,664 INFO o.a.j.JMeter: java.version=21.0.9
+2026-01-08 01:27:30,664 INFO o.a.j.JMeter: java.vm.name=OpenJDK 64-Bit Server VM
+2026-01-08 01:27:30,664 INFO o.a.j.JMeter: os.name=Mac OS X
+2026-01-08 01:27:30,664 INFO o.a.j.JMeter: os.arch=aarch64
+2026-01-08 01:27:30,664 INFO o.a.j.JMeter: os.version=26.2
+2026-01-08 01:27:30,664 INFO o.a.j.JMeter: file.encoding=UTF-8
+2026-01-08 01:27:30,664 INFO o.a.j.JMeter: java.awt.headless=true
+2026-01-08 01:27:30,664 INFO o.a.j.JMeter: Max memory     =1073741824
+2026-01-08 01:27:30,664 INFO o.a.j.JMeter: Available Processors =10
+2026-01-08 01:27:30,668 INFO o.a.j.JMeter: Default Locale=English (EN)
+2026-01-08 01:27:30,668 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2026-01-08 01:27:30,668 INFO o.a.j.JMeter: JMeterHome=/opt/homebrew/Cellar/jmeter/5.6.3/libexec
+2026-01-08 01:27:30,668 INFO o.a.j.JMeter: user.dir  =/Users/dotritrong/Desktop/Capstone/Badminton_Court_Management_System/Tests/NonFunctional
+2026-01-08 01:27:30,668 INFO o.a.j.JMeter: PWD       =/Users/dotritrong/Desktop/Capstone/Badminton_Court_Management_System/Tests/NonFunctional
+2026-01-08 01:27:30,670 INFO o.a.j.JMeter: IP: 127.0.0.1 Name: PARK-3.local FullName: localhost
+2026-01-08 01:27:30,676 INFO o.a.j.s.FileServer: Default base='/Users/dotritrong/Desktop/Capstone/Badminton_Court_Management_System/Tests/NonFunctional'
+2026-01-08 01:27:30,676 INFO o.a.j.s.FileServer: Set new base='/Users/dotritrong/Desktop/Capstone/Badminton_Court_Management_System/Tests/NonFunctional'
+2026-01-08 01:27:30,740 INFO o.a.j.s.SaveService: Testplan (JMX) version: 2.2. Testlog (JTL) version: 2.2
+2026-01-08 01:27:30,754 INFO o.a.j.s.SaveService: Using SaveService properties version 5.0
+2026-01-08 01:27:30,755 INFO o.a.j.s.SaveService: Using SaveService properties file encoding UTF-8
+2026-01-08 01:27:30,756 INFO o.a.j.s.SaveService: Loading file: NFT_QA_06_ConcurrentUserLoad.jmx
+2026-01-08 01:27:30,774 INFO o.a.j.p.h.c.CookieManager: Settings: Delete null: true Check: true Allow variable: true Save: false Prefix: COOKIE_
+2026-01-08 01:27:30,784 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/html is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-01-08 01:27:30,784 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xhtml+xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-01-08 01:27:30,784 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-01-08 01:27:30,784 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-01-08 01:27:30,784 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/vnd.wap.wml is org.apache.jmeter.protocol.http.parser.RegexpHTMLParser
+2026-01-08 01:27:30,784 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/css is org.apache.jmeter.protocol.http.parser.CssParser
+2026-01-08 01:27:30,797 INFO o.a.j.JMeter: Creating summariser <summary>
+2026-01-08 01:27:30,802 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-01-08 01:27:30,802 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-01-08 01:27:30,802 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-01-08 01:27:30,804 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must contain the string: '.functions.'
+2026-01-08 01:27:30,804 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must not contain the string: '.gui.'
+2026-01-08 01:27:30,844 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.functions.Function], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-01-08 01:27:30,902 INFO o.a.j.JMeter: Running test (1767810450902)
+2026-01-08 01:27:30,909 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Concurrent Users
+2026-01-08 01:27:30,910 INFO o.a.j.e.StandardJMeterEngine: Starting 0 threads for group Concurrent Users.
+2026-01-08 01:27:30,910 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-01-08 01:27:30,910 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=0 ramp-up=0 delayedStart=false
+2026-01-08 01:27:30,910 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-01-08 01:27:30,910 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-01-08 01:27:30,910 INFO o.a.j.e.StandardJMeterEngine: Notifying test listeners of end of test
+2026-01-08 01:27:30,910 INFO o.a.j.r.Summariser: summary =      0 in 00:00:00 = ******/s Avg:     0 Min: 9223372036854775807 Max: -9223372036854775808 Err:     0 (0.00%)

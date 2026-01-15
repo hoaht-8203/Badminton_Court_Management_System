@@ -1,0 +1,2 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1767721642810,1882,Upload 10MB File,200,OK,MinIO Test Users 1-1,text,true,,406,10486243,1,1,http://localhost:5039/api/files/upload,1878,0,10

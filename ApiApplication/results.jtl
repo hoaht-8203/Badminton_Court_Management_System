@@ -1,0 +1,701 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1767632818576,6,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-1,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,6
+1767632818583,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-1,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632818584,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-1,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632818584,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-1,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632818585,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-1,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632818586,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-1,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632818586,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-1,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632818587,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-1,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632818587,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-1,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632818588,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-1,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632819053,2,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-2,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,2
+1767632819056,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-2,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632819057,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-2,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632819059,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-2,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632819060,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-2,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632819062,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-2,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632819063,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-2,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632819064,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-2,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632819065,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-2,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632819066,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-2,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632819552,2,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-3,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,2
+1767632819555,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-3,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632819556,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-3,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632819558,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-3,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632819559,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-3,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632819560,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-3,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632819561,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-3,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632819562,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-3,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632819564,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-3,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632819564,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-3,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632820051,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-4,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632820054,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-4,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632820056,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-4,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632820057,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-4,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632820058,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-4,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632820059,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-4,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632820060,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-4,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632820061,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-4,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632820062,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-4,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632820063,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-4,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632820552,2,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-5,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,2
+1767632820555,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-5,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632820556,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-5,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632820557,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-5,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632820558,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-5,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632820559,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-5,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632820560,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-5,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632820561,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-5,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632820561,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-5,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632820562,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-5,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632821052,2,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-6,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,2
+1767632821055,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-6,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632821056,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-6,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632821057,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-6,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632821058,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-6,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632821059,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-6,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632821060,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-6,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632821061,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-6,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632821062,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-6,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632821063,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-6,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632821548,2,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-7,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,2
+1767632821551,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-7,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632821553,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-7,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632821554,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-7,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632821555,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-7,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632821557,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-7,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632821558,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-7,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632821559,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-7,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632821559,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-7,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632821560,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-7,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822053,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-8,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822055,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-8,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822056,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-8,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822058,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-8,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632822059,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-8,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632822060,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-8,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632822061,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-8,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632822061,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-8,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822062,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-8,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822063,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-8,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822553,2,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-9,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,2
+1767632822556,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-9,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822557,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-9,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822558,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-9,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822559,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-9,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822560,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-9,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632822561,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-9,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632822562,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-9,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822563,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-9,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632822564,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-9,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632823052,2,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-10,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632823054,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-10,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632823055,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-10,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632823056,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-10,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632823057,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-10,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632823058,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-10,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632823059,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-10,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632823060,0,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-10,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,0
+1767632823060,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-10,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1
+1767632823061,1,Test Email Configuration API,Non HTTP response code: org.apache.http.conn.HttpHostConnectException,"Non HTTP response message: Connect to localhost:5039 [localhost/127.0.0.1, localhost/0:0:0:0:0:0:0:1] failed: Connection refused",Email Dispatch Users 1-10,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: org.apache.http.conn.HttpHostConnectException]]]
+
+****** comparison: [[[200                                                                  ]]]
+
+/",2582,0,1,1,http://localhost:5039/api/Email/test-configuration,0,0,1

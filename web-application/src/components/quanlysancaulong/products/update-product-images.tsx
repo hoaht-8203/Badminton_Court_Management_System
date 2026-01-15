@@ -32,10 +32,21 @@ const UpdateProductImages = ({ productId, onUpdated }: { productId: number; onUp
   }, [productId]);
 
   const props: UploadProps = {
-    beforeUpload: () => false,
+    beforeUpload: (file) => {
+      const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png" || file.type === "image/webp" || file.type.startsWith("image/");
+      if (!isJpgOrPng) {
+        message.error("Bạn chỉ có thể tải lên file hình ảnh!");
+      }
+      return false; // Prevent auto upload
+    },
     listType: "picture-card",
+    accept: "image/*",
     fileList: files,
-    onChange: ({ fileList }) => setFiles(fileList),
+    onChange: ({ fileList }) => {
+      // Filter out non-image files if they somehow got in
+      const filteredList = fileList.filter((file) => file.type?.startsWith("image/") || file.originFileObj?.type?.startsWith("image/") || file.url);
+      setFiles(filteredList);
+    },
     multiple: true,
   };
 
@@ -47,7 +58,7 @@ const UpdateProductImages = ({ productId, onUpdated }: { productId: number; onUp
       
       // If no new files, don't call updateImages (keep existing images)
       if (newFiles.length === 0) {
-        message.info("Không có ảnh mới để tải lên. Ảnh cũ sẽ được giữ nguyên.");
+        message.error("Vui lòng chọn ít nhất một ảnh mới để tải lên");
         return;
       }
       

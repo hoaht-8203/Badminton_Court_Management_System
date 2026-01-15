@@ -1,0 +1,454 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1767892246952,2025,Health Check,200,OK,Health Monitor 2-1,text,false,"The operation lasted too long: It took 2,025 milliseconds, but should not have lasted longer than 1,000 milliseconds.",727,131,1,10,http://127.0.0.1:5039/api/Courts/list,2025,0,1
+1767892236988,20379,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-1,,false,,4796,8616,15,16,null,0,1034,15
+1767892237265,2144,01-Login,200,OK,Gradual Load 1-1,text,true,,2521,244,2,3,http://127.0.0.1:5039/api/Auth/login,2143,0,15
+1767892238480,18694,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-2,,false,,4806,8656,15,16,null,0,1227,1
+1767892239614,1030,02-Complex Search Query,200,OK,Gradual Load 1-1,text,true,,1112,2080,3,4,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,1030,0,0
+1767892238691,1948,01-Login,200,OK,Gradual Load 1-2,text,true,,2531,244,3,4,http://127.0.0.1:5039/api/Auth/login,1948,0,1
+1767892240813,1271,03-Get All Courts,200,OK,Gradual Load 1-1,text,true,,727,2026,4,5,http://127.0.0.1:5039/api/Courts/list,1271,0,0
+1767892240892,1877,02-Complex Search Query,200,OK,Gradual Load 1-2,text,true,,1112,2090,4,5,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,1877,0,0
+1767892242326,15726,04-Dashboard Stats,200,OK,Gradual Load 1-1,text,true,,337,2032,15,16,http://127.0.0.1:5039/api/Dashboard/summary,15726,0,0
+1767892243017,7826,03-Get All Courts,200,OK,Gradual Load 1-2,text,true,,727,2036,10,11,http://127.0.0.1:5039/api/Courts/list,7826,0,0
+1767892258192,208,05-Create Heavy Booking,404,Not Found,Gradual Load 1-1,,false,,99,2234,15,16,http://127.0.0.1:5039/api/BookingCourts/user-create,208,0,0
+1767892251086,6908,04-Dashboard Stats,200,OK,Gradual Load 1-2,text,true,,337,2042,15,16,http://127.0.0.1:5039/api/Dashboard/summary,6908,0,0
+1767892258265,135,05-Create Heavy Booking,404,Not Found,Gradual Load 1-2,,false,,99,2244,15,16,http://127.0.0.1:5039/api/BookingCourts/user-create,135,0,0
+1767892258981,2505,Health Check,200,OK,Health Monitor 2-1,text,false,"The operation lasted too long: It took 2,505 milliseconds, but should not have lasted longer than 1,000 milliseconds.",727,131,1,18,http://127.0.0.1:5039/api/Courts/list,2505,0,0
+1767892239980,26464,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-3,,false,,4792,8600,20,21,null,0,925,1
+1767892240160,2610,01-Login,200,OK,Gradual Load 1-3,text,true,,2517,244,4,5,http://127.0.0.1:5039/api/Auth/login,2610,0,1
+1767892242926,7917,02-Complex Search Query,200,OK,Gradual Load 1-3,text,true,,1112,2076,10,11,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,7917,0,0
+1767892251091,5518,03-Get All Courts,200,OK,Gradual Load 1-3,text,true,,727,2022,14,15,http://127.0.0.1:5039/api/Courts/list,5518,0,0
+1767892256795,9026,04-Dashboard Stats,200,OK,Gradual Load 1-3,text,true,,337,2028,20,21,http://127.0.0.1:5039/api/Dashboard/summary,9026,0,0
+1767892265977,1393,05-Create Heavy Booking,404,Not Found,Gradual Load 1-3,,false,,99,2230,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,1393,0,0
+1767892251976,18313,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-11,,false,,4801,8626,20,21,null,0,978,1
+1767892252269,5708,01-Login,200,OK,Gradual Load 1-11,text,true,,2526,245,14,15,http://127.0.0.1:5039/api/Auth/login,5708,0,1
+1767892258146,3274,02-Complex Search Query,200,OK,Gradual Load 1-11,text,true,,1112,2082,17,18,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,3274,0,0
+1767892261567,2583,03-Get All Courts,200,OK,Gradual Load 1-11,text,true,,727,2028,19,20,http://127.0.0.1:5039/api/Courts/list,2583,0,0
+1767892264288,4285,04-Dashboard Stats,200,OK,Gradual Load 1-11,text,true,,337,2034,20,21,http://127.0.0.1:5039/api/Dashboard/summary,4284,0,0
+1767892268797,2463,05-Create Heavy Booking,404,Not Found,Gradual Load 1-11,,false,,99,2237,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,2463,0,0
+1767892256471,16846,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-14,,false,,4807,8650,20,21,null,0,1009,0
+1767892241477,31713,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-4,,false,,4792,8600,20,21,null,0,1136,1
+1767892241609,16371,01-Login,200,OK,Gradual Load 1-4,text,true,,2517,244,14,15,http://127.0.0.1:5039/api/Auth/login,16371,0,1
+1767892256627,1431,01-Login,200,OK,Gradual Load 1-14,text,true,,2532,245,15,16,http://127.0.0.1:5039/api/Auth/login,1431,0,0
+1767892258291,3300,02-Complex Search Query,200,OK,Gradual Load 1-4,text,true,,1112,2076,17,18,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,3300,0,0
+1767892261803,2386,03-Get All Courts,200,OK,Gradual Load 1-4,text,true,,727,2022,19,20,http://127.0.0.1:5039/api/Courts/list,2386,0,0
+1767892258202,3218,02-Complex Search Query,200,OK,Gradual Load 1-14,text,true,,1112,2088,17,18,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,3218,0,0
+1767892264413,6581,04-Dashboard Stats,200,OK,Gradual Load 1-4,text,true,,337,2028,20,21,http://127.0.0.1:5039/api/Dashboard/summary,6581,0,0
+1767892261676,2512,03-Get All Courts,200,OK,Gradual Load 1-14,text,true,,727,2034,19,20,http://127.0.0.1:5039/api/Courts/list,2511,0,0
+1767892271252,3075,05-Create Heavy Booking,404,Not Found,Gradual Load 1-4,,false,,99,2230,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,3075,0,0
+1767892264458,6536,04-Dashboard Stats,200,OK,Gradual Load 1-14,text,true,,337,2040,20,21,http://127.0.0.1:5039/api/Dashboard/summary,6536,0,0
+1767892271178,3149,05-Create Heavy Booking,404,Not Found,Gradual Load 1-14,,false,,99,2243,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,3149,0,0
+1767892271493,2899,Health Check,200,OK,Health Monitor 2-1,text,false,"The operation lasted too long: It took 2,899 milliseconds, but should not have lasted longer than 1,000 milliseconds.",727,131,1,21,http://127.0.0.1:5039/api/Courts/list,2899,0,0
+1767892245977,27511,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-7,,false,,4790,8592,20,21,null,0,905,0
+1767892246179,12211,01-Login,200,OK,Gradual Load 1-7,text,true,,2515,244,15,16,http://127.0.0.1:5039/api/Auth/login,12211,0,0
+1767892258504,4212,02-Complex Search Query,200,OK,Gradual Load 1-7,text,true,,1112,2074,18,19,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,4212,0,0
+1767892262949,1638,03-Get All Courts,200,OK,Gradual Load 1-7,text,true,,727,2020,19,20,http://127.0.0.1:5039/api/Courts/list,1638,0,0
+1767892264838,8236,04-Dashboard Stats,200,OK,Gradual Load 1-7,text,true,,337,2026,20,21,http://127.0.0.1:5039/api/Dashboard/summary,8236,0,0
+1767892273180,1214,05-Create Heavy Booking,404,Not Found,Gradual Load 1-7,,false,,99,2228,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,1214,0,0
+1767892253474,21495,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-12,,false,,4799,8618,20,21,null,0,1008,1
+1767892253749,9107,01-Login,200,OK,Gradual Load 1-12,text,true,,2524,245,18,19,http://127.0.0.1:5039/api/Auth/login,9107,0,1
+1767892263083,2587,02-Complex Search Query,200,OK,Gradual Load 1-12,text,true,,1112,2080,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,2587,0,0
+1767892265950,1581,03-Get All Courts,200,OK,Gradual Load 1-12,text,true,,727,2026,20,21,http://127.0.0.1:5039/api/Courts/list,1581,0,0
+1767892267646,7818,04-Dashboard Stats,200,OK,Gradual Load 1-12,text,true,,337,2032,20,21,http://127.0.0.1:5039/api/Dashboard/summary,7818,0,0
+1767892275576,402,05-Create Heavy Booking,404,Not Found,Gradual Load 1-12,,false,,99,2235,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,402,0,0
+1767892257985,17000,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-15,,false,,4807,8650,20,21,null,0,993,1
+1767892250476,24407,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-10,,false,,4797,8610,20,21,null,0,1095,0
+1767892258105,6045,01-Login,200,OK,Gradual Load 1-15,text,true,,2532,245,19,20,http://127.0.0.1:5039/api/Auth/login,6045,0,1
+1767892250724,12132,01-Login,200,OK,Gradual Load 1-10,text,true,,2522,245,18,19,http://127.0.0.1:5039/api/Auth/login,12132,0,0
+1767892264302,1674,02-Complex Search Query,200,OK,Gradual Load 1-15,text,true,,1112,2088,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,1674,0,0
+1767892263005,1582,02-Complex Search Query,200,OK,Gradual Load 1-10,text,true,,1112,2078,19,20,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,1582,0,0
+1767892266201,1410,03-Get All Courts,200,OK,Gradual Load 1-15,text,true,,727,2034,20,21,http://127.0.0.1:5039/api/Courts/list,1410,0,0
+1767892264790,2580,03-Get All Courts,200,OK,Gradual Load 1-10,text,true,,727,2024,20,21,http://127.0.0.1:5039/api/Courts/list,2580,0,0
+1767892267893,7571,04-Dashboard Stats,200,OK,Gradual Load 1-15,text,true,,337,2040,20,21,http://127.0.0.1:5039/api/Dashboard/summary,7571,0,0
+1767892267580,7884,04-Dashboard Stats,200,OK,Gradual Load 1-10,text,true,,337,2030,20,21,http://127.0.0.1:5039/api/Dashboard/summary,7884,0,0
+1767892275678,300,05-Create Heavy Booking,404,Not Found,Gradual Load 1-15,,false,,99,2243,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,300,0,0
+1767892275750,229,05-Create Heavy Booking,404,Not Found,Gradual Load 1-10,,false,,99,2233,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,229,0,0
+1767892254973,19990,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-13,,false,,4801,8625,20,21,null,0,1017,0
+1767892255264,8883,01-Login,200,OK,Gradual Load 1-13,text,true,,2526,245,19,20,http://127.0.0.1:5039/api/Auth/login,8883,0,0
+1767892264254,1717,02-Complex Search Query,200,OK,Gradual Load 1-13,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,1717,0,0
+1767892266187,1424,03-Get All Courts,200,OK,Gradual Load 1-13,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,1424,0,0
+1767892267857,7607,04-Dashboard Stats,200,OK,Gradual Load 1-13,text,true,,337,2034,20,21,http://127.0.0.1:5039/api/Dashboard/summary,7607,0,0
+1767892275622,359,05-Create Heavy Booking,404,Not Found,Gradual Load 1-13,,false,,99,2236,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,359,0,0
+1767892248976,26296,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-9,,false,,4794,8608,20,21,null,0,1267,1
+1767892249262,12158,01-Login,200,OK,Gradual Load 1-9,text,true,,2519,244,17,18,http://127.0.0.1:5039/api/Auth/login,12158,0,1
+1767892261652,2537,02-Complex Search Query,200,OK,Gradual Load 1-9,text,true,,1112,2078,19,20,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,2537,0,0
+1767892264413,1563,03-Get All Courts,200,OK,Gradual Load 1-9,text,true,,727,2024,20,21,http://127.0.0.1:5039/api/Courts/list,1563,0,0
+1767892266220,9824,04-Dashboard Stats,200,OK,Gradual Load 1-9,text,true,,337,2030,20,21,http://127.0.0.1:5039/api/Dashboard/summary,9824,0,0
+1767892276326,214,05-Create Heavy Booking,404,Not Found,Gradual Load 1-9,,false,,99,2232,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,214,0,0
+1767892258402,17073,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-2,,false,,4797,9611,20,21,null,0,1065,0
+1767892258577,8450,01-Login,200,OK,Gradual Load 1-2,text,true,,2522,1247,20,21,http://127.0.0.1:5039/api/Auth/login,8450,0,0
+1767892267329,915,02-Complex Search Query,200,OK,Gradual Load 1-2,text,true,,1112,2078,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,915,0,0
+1767892268455,4619,03-Get All Courts,200,OK,Gradual Load 1-2,text,true,,727,2024,20,21,http://127.0.0.1:5039/api/Courts/list,4619,0,0
+1767892273225,2902,04-Dashboard Stats,200,OK,Gradual Load 1-2,text,true,,337,2030,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2902,0,0
+1767892276353,187,05-Create Heavy Booking,404,Not Found,Gradual Load 1-2,,false,,99,2232,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,187,0,0
+1767892244476,30990,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-6,,false,,4796,8616,20,21,null,0,1074,1
+1767892244618,21203,01-Login,200,OK,Gradual Load 1-6,text,true,,2521,244,20,21,http://127.0.0.1:5039/api/Auth/login,21203,0,1
+1767892266016,1595,02-Complex Search Query,200,OK,Gradual Load 1-6,text,true,,1112,2080,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,1595,0,0
+1767892267788,3207,03-Get All Courts,200,OK,Gradual Load 1-6,text,true,,727,2026,20,21,http://127.0.0.1:5039/api/Courts/list,3207,0,0
+1767892271254,4872,04-Dashboard Stats,200,OK,Gradual Load 1-6,text,true,,337,2032,20,21,http://127.0.0.1:5039/api/Dashboard/summary,4872,0,0
+1767892276428,113,05-Create Heavy Booking,404,Not Found,Gradual Load 1-6,,false,,99,2234,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,113,0,0
+1767892247478,28753,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-8,,false,,4794,8608,20,21,null,0,1121,0
+1767892247704,19604,01-Login,200,OK,Gradual Load 1-8,text,true,,2519,244,20,21,http://127.0.0.1:5039/api/Auth/login,19604,0,0
+1767892267571,3424,02-Complex Search Query,200,OK,Gradual Load 1-8,text,true,,1112,2078,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,3424,0,0
+1767892271301,3177,03-Get All Courts,200,OK,Gradual Load 1-8,text,true,,727,2024,20,21,http://127.0.0.1:5039/api/Courts/list,3177,0,0
+1767892274639,1902,04-Dashboard Stats,200,OK,Gradual Load 1-8,text,true,,337,2030,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1902,0,0
+1767892276707,646,05-Create Heavy Booking,404,Not Found,Gradual Load 1-8,,false,,99,2232,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,646,0,0
+1767892259472,16750,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-16,,false,,4805,8641,20,21,null,0,1137,0
+1767892259741,8502,01-Login,200,OK,Gradual Load 1-16,text,true,,2530,245,20,21,http://127.0.0.1:5039/api/Auth/login,8502,0,0
+1767892268391,4683,02-Complex Search Query,200,OK,Gradual Load 1-16,text,true,,1112,2086,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,4683,0,0
+1767892273309,1169,03-Get All Courts,200,OK,Gradual Load 1-16,text,true,,727,2032,20,21,http://127.0.0.1:5039/api/Courts/list,1169,0,0
+1767892274712,1828,04-Dashboard Stats,200,OK,Gradual Load 1-16,text,true,,337,2038,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1828,0,0
+1767892276792,568,05-Create Heavy Booking,404,Not Found,Gradual Load 1-16,,false,,99,2240,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,568,0,0
+1767892262473,13795,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-18,,false,,4805,8642,20,21,null,0,1092,1
+1767892262700,4911,01-Login,200,OK,Gradual Load 1-18,text,true,,2530,245,20,21,http://127.0.0.1:5039/api/Auth/login,4911,0,1
+1767892267906,3100,02-Complex Search Query,200,OK,Gradual Load 1-18,text,true,,1112,2086,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,3100,0,0
+1767892271238,3169,03-Get All Courts,200,OK,Gradual Load 1-18,text,true,,727,2032,20,21,http://127.0.0.1:5039/api/Courts/list,3169,0,0
+1767892274634,2081,04-Dashboard Stats,200,OK,Gradual Load 1-18,text,true,,337,2038,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2081,0,0
+1767892276826,534,05-Create Heavy Booking,404,Not Found,Gradual Load 1-18,,false,,99,2241,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,534,0,0
+1767892260971,15532,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-17,,false,,4805,8641,20,21,null,0,856,1
+1767892261227,7321,01-Login,200,OK,Gradual Load 1-17,text,true,,2530,245,20,21,http://127.0.0.1:5039/api/Auth/login,7321,0,1
+1767892268679,5648,02-Complex Search Query,200,OK,Gradual Load 1-17,text,true,,1112,2086,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,5648,0,0
+1767892274494,1320,03-Get All Courts,200,OK,Gradual Load 1-17,text,true,,727,2032,20,21,http://127.0.0.1:5039/api/Courts/list,1320,0,0
+1767892275967,748,04-Dashboard Stats,200,OK,Gradual Load 1-17,text,true,,337,2038,20,21,http://127.0.0.1:5039/api/Dashboard/summary,748,0,0
+1767892276865,495,05-Create Heavy Booking,404,Not Found,Gradual Load 1-17,,false,,99,2240,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,495,0,0
+1767892258401,17777,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-1,,false,,4803,9625,20,21,null,0,1181,0
+1767892258658,9585,01-Login,200,OK,Gradual Load 1-1,text,true,,2528,1237,20,21,http://127.0.0.1:5039/api/Auth/login,9585,0,0
+1767892268542,4532,02-Complex Search Query,200,OK,Gradual Load 1-1,text,true,,1112,2084,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,4532,0,0
+1767892273239,1239,03-Get All Courts,200,OK,Gradual Load 1-1,text,true,,727,2030,20,21,http://127.0.0.1:5039/api/Courts/list,1239,0,0
+1767892274729,1915,04-Dashboard Stats,200,OK,Gradual Load 1-1,text,true,,337,2036,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1915,0,0
+1767892276854,506,05-Create Heavy Booking,404,Not Found,Gradual Load 1-1,,false,,99,2238,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,506,0,0
+1767892263971,12259,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-19,,false,,4801,8625,20,21,null,0,1130,1
+1767892264254,4194,01-Login,200,OK,Gradual Load 1-19,text,true,,2526,245,20,21,http://127.0.0.1:5039/api/Auth/login,4194,0,1
+1767892268605,4469,02-Complex Search Query,200,OK,Gradual Load 1-19,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,4469,0,0
+1767892273323,1172,03-Get All Courts,200,OK,Gradual Load 1-19,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,1172,0,0
+1767892274777,1867,04-Dashboard Stats,200,OK,Gradual Load 1-19,text,true,,337,2034,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1867,0,0
+1767892276803,557,05-Create Heavy Booking,404,Not Found,Gradual Load 1-19,,false,,99,2236,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,557,0,0
+1767892265472,11601,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-20,,false,,4799,8618,20,21,null,0,771,0
+1767892265686,5320,01-Login,200,OK,Gradual Load 1-20,text,true,,2524,245,20,21,http://127.0.0.1:5039/api/Auth/login,5320,0,0
+1767892271119,3359,02-Complex Search Query,200,OK,Gradual Load 1-20,text,true,,1112,2080,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,3359,0,0
+1767892274623,1357,03-Get All Courts,200,OK,Gradual Load 1-20,text,true,,727,2026,20,21,http://127.0.0.1:5039/api/Courts/list,1357,0,0
+1767892276137,1377,04-Dashboard Stats,200,OK,Gradual Load 1-20,text,true,,337,2032,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1377,0,0
+1767892277655,188,05-Create Heavy Booking,404,Not Found,Gradual Load 1-20,,false,,99,2235,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,188,0,0
+1767892267371,10020,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-3,,false,,4805,9630,20,21,null,0,1217,0
+1767892267624,7840,01-Login,200,OK,Gradual Load 1-3,text,true,,2530,1233,20,21,http://127.0.0.1:5039/api/Auth/login,7840,0,0
+1767892275748,311,02-Complex Search Query,200,OK,Gradual Load 1-3,text,true,,1112,2086,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,311,0,0
+1767892276351,293,03-Get All Courts,200,OK,Gradual Load 1-3,text,true,,727,2032,20,21,http://127.0.0.1:5039/api/Courts/list,293,0,0
+1767892276905,1317,04-Dashboard Stats,200,OK,Gradual Load 1-3,text,true,,337,2038,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1317,0,0
+1767892278348,259,05-Create Heavy Booking,404,Not Found,Gradual Load 1-3,,false,,99,2241,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,259,0,0
+1767892242979,36814,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-5,,false,,4794,8608,20,21,null,0,938,0
+1767892243085,33054,01-Login,200,OK,Gradual Load 1-5,text,true,,2519,244,20,21,http://127.0.0.1:5039/api/Auth/login,33054,0,0
+1767892276411,233,02-Complex Search Query,200,OK,Gradual Load 1-5,text,true,,1112,2078,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,233,0,0
+1767892276763,751,03-Get All Courts,200,OK,Gradual Load 1-5,text,true,,727,2024,20,21,http://127.0.0.1:5039/api/Courts/list,751,0,0
+1767892277782,1745,04-Dashboard Stats,200,OK,Gradual Load 1-5,text,true,,337,2030,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1745,0,0
+1767892279700,1031,05-Create Heavy Booking,404,Not Found,Gradual Load 1-5,,false,,99,2232,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,1031,0,0
+1767892274328,5436,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-4,,false,,4809,9644,20,21,null,0,1196,0
+1767892274626,2097,01-Login,200,OK,Gradual Load 1-4,text,true,,2534,1233,20,21,http://127.0.0.1:5039/api/Auth/login,2097,0,0
+1767892276930,610,02-Complex Search Query,200,OK,Gradual Load 1-4,text,true,,1112,2090,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,610,0,0
+1767892277770,454,03-Get All Courts,200,OK,Gradual Load 1-4,text,true,,727,2036,20,21,http://127.0.0.1:5039/api/Courts/list,454,0,0
+1767892278439,1975,04-Dashboard Stats,200,OK,Gradual Load 1-4,text,true,,337,2042,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1975,0,0
+1767892280659,300,05-Create Heavy Booking,404,Not Found,Gradual Load 1-4,,false,,99,2243,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,300,0,0
+1767892274395,5512,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-7,,false,,4799,9604,20,21,null,0,1169,0
+1767892274693,2030,01-Login,200,OK,Gradual Load 1-7,text,true,,2524,1231,20,21,http://127.0.0.1:5039/api/Auth/login,2030,0,0
+1767892276980,560,02-Complex Search Query,200,OK,Gradual Load 1-7,text,true,,1112,2080,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,560,0,0
+1767892277787,437,03-Get All Courts,200,OK,Gradual Load 1-7,text,true,,727,2026,20,21,http://127.0.0.1:5039/api/Courts/list,437,0,0
+1767892278450,2398,04-Dashboard Stats,200,OK,Gradual Load 1-7,text,true,,337,2032,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2398,0,0
+1767892280988,87,05-Create Heavy Booking,404,Not Found,Gradual Load 1-7,,false,,99,2235,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,87,0,0
+1767892274328,5697,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-14,,false,,4807,9647,20,21,null,0,1052,0
+1767892274597,2047,01-Login,200,OK,Gradual Load 1-14,text,true,,2532,1242,20,21,http://127.0.0.1:5039/api/Auth/login,2047,0,0
+1767892276905,635,02-Complex Search Query,200,OK,Gradual Load 1-14,text,true,,1112,2088,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,635,0,0
+1767892277652,569,03-Get All Courts,200,OK,Gradual Load 1-14,text,true,,727,2034,20,21,http://127.0.0.1:5039/api/Courts/list,569,0,0
+1767892278503,2340,04-Dashboard Stats,200,OK,Gradual Load 1-14,text,true,,337,2040,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2340,0,0
+1767892280970,106,05-Create Heavy Booking,404,Not Found,Gradual Load 1-14,,false,,99,2243,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,106,0,0
+1767892271269,9110,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-11,,false,,4797,9601,20,21,null,0,858,0
+1767892271588,5765,01-Login,200,OK,Gradual Load 1-11,text,true,,2522,1236,20,21,http://127.0.0.1:5039/api/Auth/login,5765,0,0
+1767892277491,203,02-Complex Search Query,200,OK,Gradual Load 1-11,text,true,,1112,2078,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,203,0,0
+1767892277845,747,03-Get All Courts,200,OK,Gradual Load 1-11,text,true,,727,2024,20,21,http://127.0.0.1:5039/api/Courts/list,747,0,0
+1767892278723,2238,04-Dashboard Stats,200,OK,Gradual Load 1-11,text,true,,337,2030,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2238,0,0
+1767892281079,157,05-Create Heavy Booking,404,Not Found,Gradual Load 1-11,,false,,99,2233,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,157,0,0
+1767892275980,6303,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-10,,false,,4801,9614,20,21,null,0,789,0
+1767892276104,1410,01-Login,200,OK,Gradual Load 1-10,text,true,,2526,1232,20,21,http://127.0.0.1:5039/api/Auth/login,1410,0,0
+1767892277653,568,02-Complex Search Query,200,OK,Gradual Load 1-10,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,568,0,0
+1767892278418,906,03-Get All Courts,200,OK,Gradual Load 1-10,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,906,0,0
+1767892279536,2539,04-Dashboard Stats,200,OK,Gradual Load 1-10,text,true,,337,2034,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2539,0,0
+1767892282190,880,05-Create Heavy Booking,404,Not Found,Gradual Load 1-10,,false,,99,2238,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,880,0,0
+1767892275980,6210,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-15,,false,,4801,9623,20,21,null,0,882,0
+1767892276169,1526,01-Login,200,OK,Gradual Load 1-15,text,true,,2526,1242,20,21,http://127.0.0.1:5039/api/Auth/login,1526,0,0
+1767892277832,453,02-Complex Search Query,200,OK,Gradual Load 1-15,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,453,0,0
+1767892278428,896,03-Get All Courts,200,OK,Gradual Load 1-15,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,896,0,0
+1767892279494,2581,04-Dashboard Stats,200,OK,Gradual Load 1-15,text,true,,337,2034,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2581,0,0
+1767892282317,754,05-Create Heavy Booking,404,Not Found,Gradual Load 1-15,,false,,99,2237,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,754,0,0
+1767892275981,6479,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-13,,false,,4803,9624,20,21,null,0,890,0
+1767892276127,1386,01-Login,200,OK,Gradual Load 1-13,text,true,,2528,1236,20,21,http://127.0.0.1:5039/api/Auth/login,1386,0,0
+1767892277744,480,02-Complex Search Query,200,OK,Gradual Load 1-13,text,true,,1112,2084,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,480,0,0
+1767892278397,918,03-Get All Courts,200,OK,Gradual Load 1-13,text,true,,727,2030,20,21,http://127.0.0.1:5039/api/Courts/list,918,0,0
+1767892279494,3574,04-Dashboard Stats,200,OK,Gradual Load 1-13,text,true,,337,2036,20,21,http://127.0.0.1:5039/api/Dashboard/summary,3574,0,0
+1767892283228,121,05-Create Heavy Booking,404,Not Found,Gradual Load 1-13,,false,,99,2238,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,121,0,0
+1767892275979,6289,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-12,,false,,4803,9623,20,21,null,0,1104,0
+1767892276246,1454,01-Login,200,OK,Gradual Load 1-12,text,true,,2528,1234,20,21,http://127.0.0.1:5039/api/Auth/login,1454,0,0
+1767892277943,649,02-Complex Search Query,200,OK,Gradual Load 1-12,text,true,,1112,2084,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,649,0,0
+1767892278792,633,03-Get All Courts,200,OK,Gradual Load 1-12,text,true,,727,2030,20,21,http://127.0.0.1:5039/api/Courts/list,633,0,0
+1767892279610,3458,04-Dashboard Stats,200,OK,Gradual Load 1-12,text,true,,337,2036,20,21,http://127.0.0.1:5039/api/Dashboard/summary,3458,0,0
+1767892283276,95,05-Create Heavy Booking,404,Not Found,Gradual Load 1-12,,false,,99,2239,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,95,0,0
+1767892277361,5344,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-1,,false,,4799,9610,20,21,null,0,1040,0
+1767892277539,1776,01-Login,200,OK,Gradual Load 1-1,text,true,,2524,1238,20,21,http://127.0.0.1:5039/api/Auth/login,1776,0,0
+1767892279519,895,02-Complex Search Query,200,OK,Gradual Load 1-1,text,true,,1112,2080,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,895,0,0
+1767892280672,404,03-Get All Courts,200,OK,Gradual Load 1-1,text,true,,727,2026,20,21,http://127.0.0.1:5039/api/Courts/list,404,0,0
+1767892281293,2161,04-Dashboard Stats,200,OK,Gradual Load 1-1,text,true,,337,2032,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2161,0,0
+1767892283637,108,05-Create Heavy Booking,404,Not Found,Gradual Load 1-1,,false,,99,2234,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,108,0,0
+1767892276541,6327,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-6,,false,,4803,9624,20,21,null,0,878,0
+1767892276696,1897,01-Login,200,OK,Gradual Load 1-6,text,true,,2528,1237,20,21,http://127.0.0.1:5039/api/Auth/login,1897,0,0
+1767892278817,608,02-Complex Search Query,200,OK,Gradual Load 1-6,text,true,,1112,2084,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,608,0,0
+1767892279559,1289,03-Get All Courts,200,OK,Gradual Load 1-6,text,true,,727,2030,20,21,http://127.0.0.1:5039/api/Courts/list,1289,0,0
+1767892281008,2341,04-Dashboard Stats,200,OK,Gradual Load 1-6,text,true,,337,2036,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2341,0,0
+1767892283553,192,05-Create Heavy Booking,404,Not Found,Gradual Load 1-6,,false,,99,2237,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,192,0,0
+1767892276541,6276,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-2,,false,,4797,9596,20,21,null,0,929,0
+1767892276667,1619,01-Login,200,OK,Gradual Load 1-2,text,true,,2522,1232,20,21,http://127.0.0.1:5039/api/Auth/login,1619,0,0
+1767892278452,872,02-Complex Search Query,200,OK,Gradual Load 1-2,text,true,,1112,2078,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,872,0,0
+1767892279462,930,03-Get All Courts,200,OK,Gradual Load 1-2,text,true,,727,2024,20,21,http://127.0.0.1:5039/api/Courts/list,930,0,0
+1767892280614,2633,04-Dashboard Stats,200,OK,Gradual Load 1-2,text,true,,337,2030,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2633,0,0
+1767892283523,222,05-Create Heavy Booking,404,Not Found,Gradual Load 1-2,,false,,99,2232,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,222,0,0
+1767892277361,5610,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-19,,false,,4801,9617,20,21,null,0,774,0
+1767892277463,1852,01-Login,200,OK,Gradual Load 1-19,text,true,,2526,1236,20,21,http://127.0.0.1:5039/api/Auth/login,1852,0,0
+1767892279493,921,02-Complex Search Query,200,OK,Gradual Load 1-19,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,921,0,0
+1767892280531,494,03-Get All Courts,200,OK,Gradual Load 1-19,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,494,0,0
+1767892281277,2155,04-Dashboard Stats,200,OK,Gradual Load 1-19,text,true,,337,2034,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2155,0,0
+1767892283557,188,05-Create Heavy Booking,404,Not Found,Gradual Load 1-19,,false,,99,2237,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,188,0,0
+1767892276541,6207,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-9,,false,,4805,9630,20,21,null,0,1202,0
+1767892276713,1880,01-Login,200,OK,Gradual Load 1-9,text,true,,2530,1235,20,21,http://127.0.0.1:5039/api/Auth/login,1880,0,0
+1767892278812,613,02-Complex Search Query,200,OK,Gradual Load 1-9,text,true,,1112,2086,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,613,0,0
+1767892279657,1358,03-Get All Courts,200,OK,Gradual Load 1-9,text,true,,727,2032,20,21,http://127.0.0.1:5039/api/Courts/list,1358,0,0
+1767892281295,2137,04-Dashboard Stats,200,OK,Gradual Load 1-9,text,true,,337,2038,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2137,0,0
+1767892283730,219,05-Create Heavy Booking,404,Not Found,Gradual Load 1-9,,false,,99,2239,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,219,0,0
+1767892277352,5729,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-8,,false,,4801,9615,20,21,null,0,868,0
+1767892277496,1819,01-Login,200,OK,Gradual Load 1-8,text,true,,2526,1235,20,21,http://127.0.0.1:5039/api/Auth/login,1819,0,0
+1767892279457,935,02-Complex Search Query,200,OK,Gradual Load 1-8,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,935,0,0
+1767892280626,449,03-Get All Courts,200,OK,Gradual Load 1-8,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,449,0,0
+1767892281186,2268,04-Dashboard Stats,200,OK,Gradual Load 1-8,text,true,,337,2034,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2268,0,0
+1767892283690,258,05-Create Heavy Booking,404,Not Found,Gradual Load 1-8,,false,,99,2236,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,258,0,0
+1767892277844,6929,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-20,,false,,4799,9608,20,21,null,0,870,0
+1767892277955,2437,01-Login,200,OK,Gradual Load 1-20,text,true,,2524,1234,20,21,http://127.0.0.1:5039/api/Auth/login,2437,0,0
+1767892280653,372,02-Complex Search Query,200,OK,Gradual Load 1-20,text,true,,1112,2080,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,372,0,0
+1767892281183,1885,03-Get All Courts,200,OK,Gradual Load 1-20,text,true,,727,2026,20,21,http://127.0.0.1:5039/api/Courts/list,1885,0,0
+1767892283246,813,04-Dashboard Stats,200,OK,Gradual Load 1-20,text,true,,337,2032,20,21,http://127.0.0.1:5039/api/Dashboard/summary,813,0,0
+1767892284221,1422,05-Create Heavy Booking,404,Not Found,Gradual Load 1-20,,false,,99,2236,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,1422,0,0
+1767892277360,7191,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-16,,false,,4803,9629,20,21,null,0,1093,0
+1767892277617,1808,01-Login,200,OK,Gradual Load 1-16,text,true,,2528,1240,20,21,http://127.0.0.1:5039/api/Auth/login,1808,0,0
+1767892279662,1353,02-Complex Search Query,200,OK,Gradual Load 1-16,text,true,,1112,2084,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,1353,0,0
+1767892281191,1871,03-Get All Courts,200,OK,Gradual Load 1-16,text,true,,727,2030,20,21,http://127.0.0.1:5039/api/Courts/list,1871,0,0
+1767892283200,749,04-Dashboard Stats,200,OK,Gradual Load 1-16,text,true,,337,2036,20,21,http://127.0.0.1:5039/api/Dashboard/summary,748,0,0
+1767892284233,1410,05-Create Heavy Booking,404,Not Found,Gradual Load 1-16,,false,,99,2239,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,1410,0,0
+1767892277361,7269,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-18,,false,,4805,9637,20,21,null,0,1014,0
+1767892277640,1887,01-Login,200,OK,Gradual Load 1-18,text,true,,2530,1240,20,21,http://127.0.0.1:5039/api/Auth/login,1887,0,0
+1767892279730,1231,02-Complex Search Query,200,OK,Gradual Load 1-18,text,true,,1112,2086,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,1231,0,0
+1767892281120,1948,03-Get All Courts,200,OK,Gradual Load 1-18,text,true,,727,2032,20,21,http://127.0.0.1:5039/api/Courts/list,1948,0,0
+1767892283219,794,04-Dashboard Stats,200,OK,Gradual Load 1-18,text,true,,337,2038,20,21,http://127.0.0.1:5039/api/Dashboard/summary,794,0,0
+1767892284234,1409,05-Create Heavy Booking,404,Not Found,Gradual Load 1-18,,false,,99,2241,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,1409,0,0
+1767892284398,1245,Health Check,200,OK,Health Monitor 2-1,text,false,"The operation lasted too long: It took 1,245 milliseconds, but should not have lasted longer than 1,000 milliseconds.",727,131,1,21,http://127.0.0.1:5039/api/Courts/list,1245,0,0
+1767892277361,7513,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-17,,false,,4799,9614,20,21,null,0,1060,0
+1767892277536,1779,01-Login,200,OK,Gradual Load 1-17,text,true,,2524,1240,20,21,http://127.0.0.1:5039/api/Auth/login,1779,0,0
+1767892279575,1273,02-Complex Search Query,200,OK,Gradual Load 1-17,text,true,,1112,2080,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,1273,0,0
+1767892281042,2026,03-Get All Courts,200,OK,Gradual Load 1-17,text,true,,727,2026,20,21,http://127.0.0.1:5039/api/Courts/list,2026,0,0
+1767892283342,2271,04-Dashboard Stats,200,OK,Gradual Load 1-17,text,true,,337,2032,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2270,0,0
+1767892285770,164,05-Create Heavy Booking,404,Not Found,Gradual Load 1-17,,false,,99,2236,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,164,0,0
+1767892278608,6532,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-3,,false,,4809,9653,20,21,null,0,1050,0
+1767892278853,2221,01-Login,200,OK,Gradual Load 1-3,text,true,,2534,1240,20,21,http://127.0.0.1:5039/api/Auth/login,2221,0,0
+1767892281345,1717,02-Complex Search Query,200,OK,Gradual Load 1-3,text,true,,1112,2090,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,1717,0,0
+1767892283300,176,03-Get All Courts,200,OK,Gradual Load 1-3,text,true,,727,2036,20,21,http://127.0.0.1:5039/api/Courts/list,176,0,0
+1767892283662,2329,04-Dashboard Stats,200,OK,Gradual Load 1-3,text,true,,337,2042,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2329,0,0
+1767892286101,89,05-Create Heavy Booking,404,Not Found,Gradual Load 1-3,,false,,99,2245,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,89,0,0
+1767892281236,5487,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-11,,false,,4803,9621,20,21,null,0,881,0
+1767892281363,2224,01-Login,200,OK,Gradual Load 1-11,text,true,,2528,1232,20,21,http://127.0.0.1:5039/api/Auth/login,2224,0,0
+1767892283711,309,02-Complex Search Query,200,OK,Gradual Load 1-11,text,true,,1112,2084,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,309,0,0
+1767892284269,1665,03-Get All Courts,200,OK,Gradual Load 1-11,text,true,,727,2030,20,21,http://127.0.0.1:5039/api/Courts/list,1665,0,0
+1767892286071,1220,04-Dashboard Stats,200,OK,Gradual Load 1-11,text,true,,337,2036,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1220,0,0
+1767892287535,69,05-Create Heavy Booking,404,Not Found,Gradual Load 1-11,,false,,99,2239,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,69,0,0
+1767892281076,5657,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-7,,false,,4799,9606,20,21,null,0,901,0
+1767892281250,2337,01-Login,200,OK,Gradual Load 1-7,text,true,,2524,1234,20,21,http://127.0.0.1:5039/api/Auth/login,2337,0,0
+1767892283843,216,02-Complex Search Query,200,OK,Gradual Load 1-7,text,true,,1112,2080,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,216,0,0
+1767892284260,1674,03-Get All Courts,200,OK,Gradual Load 1-7,text,true,,727,2026,20,21,http://127.0.0.1:5039/api/Courts/list,1674,0,0
+1767892286075,1338,04-Dashboard Stats,200,OK,Gradual Load 1-7,text,true,,337,2032,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1338,0,0
+1767892287541,92,05-Create Heavy Booking,404,Not Found,Gradual Load 1-7,,false,,99,2234,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,92,0,0
+1767892281076,5500,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-14,,false,,4807,9647,20,21,null,0,1140,0
+1767892280960,5689,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-4,,false,,4811,9664,20,21,null,0,1067,0
+1767892281334,2253,01-Login,200,OK,Gradual Load 1-14,text,true,,2532,1242,20,21,http://127.0.0.1:5039/api/Auth/login,2253,0,0
+1767892281149,2362,01-Login,200,OK,Gradual Load 1-4,text,true,,2536,1244,20,21,http://127.0.0.1:5039/api/Auth/login,2362,0,0
+1767892283836,223,02-Complex Search Query,200,OK,Gradual Load 1-14,text,true,,1112,2088,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,223,0,0
+1767892283751,308,02-Complex Search Query,200,OK,Gradual Load 1-4,text,true,,1112,2092,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,308,0,0
+1767892284315,1614,03-Get All Courts,200,OK,Gradual Load 1-14,text,true,,727,2034,20,21,http://127.0.0.1:5039/api/Courts/list,1614,0,0
+1767892284268,1661,03-Get All Courts,200,OK,Gradual Load 1-4,text,true,,727,2038,20,21,http://127.0.0.1:5039/api/Courts/list,1661,0,0
+1767892286126,1287,04-Dashboard Stats,200,OK,Gradual Load 1-14,text,true,,337,2040,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1287,0,0
+1767892286065,1224,04-Dashboard Stats,200,OK,Gradual Load 1-4,text,true,,337,2044,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1224,0,0
+1767892287582,134,05-Create Heavy Booking,404,Not Found,Gradual Load 1-4,,false,,99,2246,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,134,0,0
+1767892287593,123,05-Create Heavy Booking,404,Not Found,Gradual Load 1-14,,false,,99,2243,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,123,0,0
+1767892280731,6053,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-5,,false,,4801,9614,20,21,null,0,1132,0
+1767892281001,2431,01-Login,200,OK,Gradual Load 1-5,text,true,,2526,1235,20,21,http://127.0.0.1:5039/api/Auth/login,2431,0,0
+1767892283596,353,02-Complex Search Query,200,OK,Gradual Load 1-5,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,353,0,0
+1767892284154,1775,03-Get All Courts,200,OK,Gradual Load 1-5,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,1775,0,0
+1767892286160,1356,04-Dashboard Stats,200,OK,Gradual Load 1-5,text,true,,337,2034,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1356,0,0
+1767892287778,138,05-Create Heavy Booking,404,Not Found,Gradual Load 1-5,,false,,99,2235,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,138,0,0
+1767892283071,4107,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-10,,false,,4797,9601,20,21,null,0,841,0
+1767892283179,880,01-Login,200,OK,Gradual Load 1-10,text,true,,2522,1236,20,21,http://127.0.0.1:5039/api/Auth/login,880,0,0
+1767892284258,1676,02-Complex Search Query,200,OK,Gradual Load 1-10,text,true,,1112,2078,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,1676,0,0
+1767892286070,203,03-Get All Courts,200,OK,Gradual Load 1-10,text,true,,727,2024,20,21,http://127.0.0.1:5039/api/Courts/list,203,0,0
+1767892286454,1262,04-Dashboard Stats,200,OK,Gradual Load 1-10,text,true,,337,2030,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1262,0,0
+1767892287933,86,05-Create Heavy Booking,404,Not Found,Gradual Load 1-10,,false,,99,2233,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,86,0,0
+1767892283072,4243,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-15,,false,,4801,9617,20,21,null,0,800,0
+1767892283316,2297,01-Login,200,OK,Gradual Load 1-15,text,true,,2526,1236,20,21,http://127.0.0.1:5039/api/Auth/login,2296,0,0
+1767892285772,227,02-Complex Search Query,200,OK,Gradual Load 1-15,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,226,0,0
+1767892286137,238,03-Get All Courts,200,OK,Gradual Load 1-15,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,238,0,0
+1767892286515,1393,04-Dashboard Stats,200,OK,Gradual Load 1-15,text,true,,337,2034,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1392,0,0
+1767892288027,88,05-Create Heavy Booking,404,Not Found,Gradual Load 1-15,,false,,99,2237,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,88,0,0
+1767892283371,7393,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-12,,false,,4807,9643,20,21,null,0,919,0
+1767892283528,2662,01-Login,200,OK,Gradual Load 1-12,text,true,,2532,1238,20,21,http://127.0.0.1:5039/api/Auth/login,2662,0,0
+1767892286308,451,02-Complex Search Query,200,OK,Gradual Load 1-12,text,true,,1112,2088,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,451,0,0
+1767892287015,398,03-Get All Courts,200,OK,Gradual Load 1-12,text,true,,727,2034,20,21,http://127.0.0.1:5039/api/Courts/list,398,0,0
+1767892287685,3201,04-Dashboard Stats,200,OK,Gradual Load 1-12,text,true,,337,2040,20,21,http://127.0.0.1:5039/api/Dashboard/summary,3201,0,0
+1767892291002,681,05-Create Heavy Booking,404,Not Found,Gradual Load 1-12,,false,,99,2243,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,681,0,0
+1767892285644,5157,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-18,,false,,4797,9604,20,21,null,0,882,0
+1767892285787,707,01-Login,200,OK,Gradual Load 1-18,text,true,,2522,1240,20,21,http://127.0.0.1:5039/api/Auth/login,707,0,0
+1767892286791,610,02-Complex Search Query,200,OK,Gradual Load 1-18,text,true,,1112,2078,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,610,0,0
+1767892287555,161,03-Get All Courts,200,OK,Gradual Load 1-18,text,true,,727,2024,20,21,http://127.0.0.1:5039/api/Courts/list,161,0,0
+1767892287832,3082,04-Dashboard Stats,200,OK,Gradual Load 1-18,text,true,,337,2030,20,21,http://127.0.0.1:5039/api/Dashboard/summary,3082,0,0
+1767892291086,597,05-Create Heavy Booking,404,Not Found,Gradual Load 1-18,,false,,99,2232,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,597,0,0
+1767892283350,7763,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-13,,false,,4797,9603,20,21,null,0,1037,0
+1767892283467,2462,01-Login,200,OK,Gradual Load 1-13,text,true,,2522,1238,20,21,http://127.0.0.1:5039/api/Auth/login,2462,0,0
+1767892286228,266,02-Complex Search Query,200,OK,Gradual Load 1-13,text,true,,1112,2078,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,266,0,0
+1767892286741,660,03-Get All Courts,200,OK,Gradual Load 1-13,text,true,,727,2024,20,21,http://127.0.0.1:5039/api/Courts/list,660,0,0
+1767892287663,4011,04-Dashboard Stats,200,OK,Gradual Load 1-13,text,true,,337,2030,20,21,http://127.0.0.1:5039/api/Dashboard/summary,4011,0,0
+1767892291786,364,05-Create Heavy Booking,404,Not Found,Gradual Load 1-13,,false,,99,2233,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,364,0,0
+1767892283747,7440,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-19,,false,,4803,9626,20,21,null,0,1010,0
+1767892283908,2365,01-Login,200,OK,Gradual Load 1-19,text,true,,2528,1236,20,21,http://127.0.0.1:5039/api/Auth/login,2365,0,0
+1767892286486,804,02-Complex Search Query,200,OK,Gradual Load 1-19,text,true,,1112,2084,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,804,0,0
+1767892287499,217,03-Get All Courts,200,OK,Gradual Load 1-19,text,true,,727,2030,20,21,http://127.0.0.1:5039/api/Courts/list,217,0,0
+1767892287927,3747,04-Dashboard Stats,200,OK,Gradual Load 1-19,text,true,,337,2036,20,21,http://127.0.0.1:5039/api/Dashboard/summary,3747,0,0
+1767892291890,307,05-Create Heavy Booking,404,Not Found,Gradual Load 1-19,,false,,99,2240,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,307,0,0
+1767892283746,7690,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-2,,false,,4803,9620,20,21,null,0,1010,0
+1767892283950,7717,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-9,,false,,4801,9620,20,21,null,0,779,0
+1767892283969,2304,01-Login,200,OK,Gradual Load 1-2,text,true,,2528,1232,20,21,http://127.0.0.1:5039/api/Auth/login,2304,0,0
+1767892284109,2385,01-Login,200,OK,Gradual Load 1-9,text,true,,2526,1240,20,21,http://127.0.0.1:5039/api/Auth/login,2385,0,0
+1767892286461,829,02-Complex Search Query,200,OK,Gradual Load 1-2,text,true,,1112,2084,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,829,0,0
+1767892286633,768,02-Complex Search Query,200,OK,Gradual Load 1-9,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,768,0,0
+1767892287464,252,03-Get All Courts,200,OK,Gradual Load 1-2,text,true,,727,2030,20,21,http://127.0.0.1:5039/api/Courts/list,252,0,0
+1767892287628,280,03-Get All Courts,200,OK,Gradual Load 1-9,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,280,0,0
+1767892288018,4179,04-Dashboard Stats,200,OK,Gradual Load 1-2,text,true,,337,2036,20,21,http://127.0.0.1:5039/api/Dashboard/summary,4179,0,0
+1767892288046,4104,04-Dashboard Stats,200,OK,Gradual Load 1-9,text,true,,337,2034,20,21,http://127.0.0.1:5039/api/Dashboard/summary,4104,0,0
+1767892292320,126,05-Create Heavy Booking,404,Not Found,Gradual Load 1-2,,false,,99,2238,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,126,0,0
+1767892292266,180,05-Create Heavy Booking,404,Not Found,Gradual Load 1-9,,false,,99,2236,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,180,0,0
+1767892283745,7747,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-1,,false,,4805,9630,20,21,null,0,1062,0
+1767892284050,2325,01-Login,200,OK,Gradual Load 1-1,text,true,,2530,1234,20,21,http://127.0.0.1:5039/api/Auth/login,2325,0,0
+1767892286582,831,02-Complex Search Query,200,OK,Gradual Load 1-1,text,true,,1112,2086,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,831,0,0
+1767892287572,336,03-Get All Courts,200,OK,Gradual Load 1-1,text,true,,727,2032,20,21,http://127.0.0.1:5039/api/Courts/list,336,0,0
+1767892288131,4096,04-Dashboard Stats,200,OK,Gradual Load 1-1,text,true,,337,2038,20,21,http://127.0.0.1:5039/api/Dashboard/summary,4096,0,0
+1767892292394,159,05-Create Heavy Booking,404,Not Found,Gradual Load 1-1,,false,,99,2240,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,159,0,0
+1767892283746,7794,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-6,,false,,4801,9618,20,21,null,0,1148,0
+1767892283996,2279,01-Login,200,OK,Gradual Load 1-6,text,true,,2526,1238,20,21,http://127.0.0.1:5039/api/Auth/login,2279,0,0
+1767892286554,847,02-Complex Search Query,200,OK,Gradual Load 1-6,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,847,0,0
+1767892287559,349,03-Get All Courts,200,OK,Gradual Load 1-6,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,348,0,0
+1767892288077,4150,04-Dashboard Stats,200,OK,Gradual Load 1-6,text,true,,337,2034,20,21,http://127.0.0.1:5039/api/Dashboard/summary,4150,0,0
+1767892292518,169,05-Create Heavy Booking,404,Not Found,Gradual Load 1-6,,false,,99,2236,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,169,0,0
+1767892283950,7568,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-8,,false,,4803,9624,20,21,null,0,1238,0
+1767892284236,2258,01-Login,200,OK,Gradual Load 1-8,text,true,,2528,1236,20,21,http://127.0.0.1:5039/api/Auth/login,2258,0,0
+1767892286710,703,02-Complex Search Query,200,OK,Gradual Load 1-8,text,true,,1112,2084,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,703,0,0
+1767892287679,332,03-Get All Courts,200,OK,Gradual Load 1-8,text,true,,727,2030,20,21,http://127.0.0.1:5039/api/Courts/list,332,0,0
+1767892288260,4168,04-Dashboard Stats,200,OK,Gradual Load 1-8,text,true,,337,2036,20,21,http://127.0.0.1:5039/api/Dashboard/summary,4168,0,0
+1767892292649,107,05-Create Heavy Booking,404,Not Found,Gradual Load 1-8,,false,,99,2238,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,107,0,0
+1767892285644,6212,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-20,,false,,4803,9623,20,21,null,0,1034,0
+1767892285766,1508,01-Login,200,OK,Gradual Load 1-20,text,true,,2528,1234,20,21,http://127.0.0.1:5039/api/Auth/login,1508,0,0
+1767892287568,340,02-Complex Search Query,200,OK,Gradual Load 1-20,text,true,,1112,2084,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,340,0,0
+1767892288045,197,03-Get All Courts,200,OK,Gradual Load 1-20,text,true,,727,2030,20,21,http://127.0.0.1:5039/api/Courts/list,197,0,0
+1767892288437,3991,04-Dashboard Stats,200,OK,Gradual Load 1-20,text,true,,337,2036,20,21,http://127.0.0.1:5039/api/Dashboard/summary,3991,0,0
+1767892292714,176,05-Create Heavy Booking,404,Not Found,Gradual Load 1-20,,false,,99,2239,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,176,0,0
+1767892285644,6181,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-16,,false,,4799,9611,20,21,null,0,1101,0
+1767892285936,1466,01-Login,200,OK,Gradual Load 1-16,text,true,,2524,1238,20,21,http://127.0.0.1:5039/api/Auth/login,1466,0,0
+1767892287594,314,02-Complex Search Query,200,OK,Gradual Load 1-16,text,true,,1112,2080,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,314,0,0
+1767892288134,2384,03-Get All Courts,200,OK,Gradual Load 1-16,text,true,,727,2026,20,21,http://127.0.0.1:5039/api/Courts/list,2384,0,0
+1767892290800,1888,04-Dashboard Stats,200,OK,Gradual Load 1-16,text,true,,337,2032,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1887,0,0
+1767892292797,129,05-Create Heavy Booking,404,Not Found,Gradual Load 1-16,,false,,99,2235,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,129,0,0
+1767892286190,5675,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-3,,false,,4801,9624,20,21,null,0,1061,0
+1767892286420,1184,01-Login,200,OK,Gradual Load 1-3,text,true,,2526,1244,20,21,http://127.0.0.1:5039/api/Auth/login,1184,0,0
+1767892287894,294,02-Complex Search Query,200,OK,Gradual Load 1-3,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,294,0,0
+1767892288350,2564,03-Get All Courts,200,OK,Gradual Load 1-3,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,2564,0,0
+1767892291178,1510,04-Dashboard Stats,200,OK,Gradual Load 1-3,text,true,,337,2034,20,21,http://127.0.0.1:5039/api/Dashboard/summary,1509,0,0
+1767892292803,123,05-Create Heavy Booking,404,Not Found,Gradual Load 1-3,,false,,99,2236,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,123,0,0
+1767892285935,6227,High CPU Load Transaction,404,"Number of samples in transaction : 5, number of failing samples : 1",Gradual Load 1-17,,false,,4799,9608,20,21,null,0,1113,0
+1767892286148,1253,01-Login,200,OK,Gradual Load 1-17,text,true,,2524,1234,20,21,http://127.0.0.1:5039/api/Auth/login,1253,0,0
+1767892287613,295,02-Complex Search Query,200,OK,Gradual Load 1-17,text,true,,1112,2080,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,295,0,0
+1767892288160,2358,03-Get All Courts,200,OK,Gradual Load 1-17,text,true,,727,2026,20,21,http://127.0.0.1:5039/api/Courts/list,2358,0,0
+1767892290652,2036,04-Dashboard Stats,200,OK,Gradual Load 1-17,text,true,,337,2032,20,21,http://127.0.0.1:5039/api/Dashboard/summary,2035,0,0
+1767892292989,285,05-Create Heavy Booking,404,Not Found,Gradual Load 1-17,,false,,99,2236,20,21,http://127.0.0.1:5039/api/BookingCourts/user-create,285,0,0
+1767892292688,3956,High CPU Load Transaction,200,,Gradual Load 1-6,,true,,2530,1236,20,21,null,0,0,0
+1767892292925,3719,01-Login,200,OK,Gradual Load 1-6,text,true,,2530,1236,20,21,http://127.0.0.1:5039/api/Auth/login,3719,0,0
+1767892295645,1051,Health Check,200,OK,Health Monitor 2-1,text,false,"The operation lasted too long: It took 1,051 milliseconds, but should not have lasted longer than 1,000 milliseconds.",727,131,1,20,http://127.0.0.1:5039/api/Courts/list,1051,0,0
+1767892287716,9270,High CPU Load Transaction,200,,Gradual Load 1-14,,true,,4704,7392,19,19,null,0,0,0
+1767892287820,3862,01-Login,200,OK,Gradual Load 1-14,text,true,,2528,1242,20,21,http://127.0.0.1:5039/api/Auth/login,3862,0,0
+1767892291906,522,02-Complex Search Query,200,OK,Gradual Load 1-14,text,true,,1112,2084,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,522,0,0
+1767892287634,9352,High CPU Load Transaction,200,,Gradual Load 1-7,,true,,4698,7366,19,19,null,0,0,0
+1767892292643,248,03-Get All Courts,200,OK,Gradual Load 1-14,text,true,,727,2030,20,21,http://127.0.0.1:5039/api/Courts/list,247,0,0
+1767892293049,3937,04-Dashboard Stats,200,OK,Gradual Load 1-14,text,true,,337,2036,19,19,http://127.0.0.1:5039/api/Dashboard/summary,3937,0,0
+1767892292150,4836,High CPU Load Transaction,200,,Gradual Load 1-13,,true,,4365,5342,19,19,null,0,0,0
+1767892287716,9270,High CPU Load Transaction,200,,Gradual Load 1-4,,true,,4698,7378,19,19,null,0,0,0
+1767892287778,3904,01-Login,200,OK,Gradual Load 1-7,text,true,,2522,1234,20,21,http://127.0.0.1:5039/api/Auth/login,3904,0,0
+1767892292331,1044,01-Login,200,OK,Gradual Load 1-13,text,true,,2526,1232,20,21,http://127.0.0.1:5039/api/Auth/login,1044,0,0
+1767892287979,3861,01-Login,200,OK,Gradual Load 1-4,text,true,,2522,1246,20,21,http://127.0.0.1:5039/api/Auth/login,3861,0,0
+1767892291976,452,02-Complex Search Query,200,OK,Gradual Load 1-7,text,true,,1112,2078,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,452,0,0
+1767892292651,239,03-Get All Courts,200,OK,Gradual Load 1-7,text,true,,727,2024,20,21,http://127.0.0.1:5039/api/Courts/list,239,0,0
+1767892292007,421,02-Complex Search Query,200,OK,Gradual Load 1-4,text,true,,1112,2078,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,421,0,0
+1767892293116,3870,04-Dashboard Stats,200,OK,Gradual Load 1-7,text,true,,337,2030,19,19,http://127.0.0.1:5039/api/Dashboard/summary,3870,0,0
+1767892292582,308,03-Get All Courts,200,OK,Gradual Load 1-4,text,true,,727,2024,20,21,http://127.0.0.1:5039/api/Courts/list,308,0,0
+1767892293559,936,02-Complex Search Query,200,OK,Gradual Load 1-13,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,936,0,0
+1767892293081,3905,04-Dashboard Stats,200,OK,Gradual Load 1-4,text,true,,337,2030,19,19,http://127.0.0.1:5039/api/Dashboard/summary,3905,0,0
+1767892294790,2196,03-Get All Courts,200,OK,Gradual Load 1-13,text,true,,727,2028,19,19,http://127.0.0.1:5039/api/Courts/list,2196,0,0
+1767892288115,8871,High CPU Load Transaction,200,,Gradual Load 1-15,,true,,4704,7386,19,19,null,0,0,0
+1767892288322,4107,01-Login,200,OK,Gradual Load 1-15,text,true,,2528,1236,20,21,http://127.0.0.1:5039/api/Auth/login,4107,0,0
+1767892292585,240,02-Complex Search Query,200,OK,Gradual Load 1-15,text,true,,1112,2084,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,240,0,0
+1767892293086,272,03-Get All Courts,200,OK,Gradual Load 1-15,text,true,,727,2030,20,21,http://127.0.0.1:5039/api/Courts/list,272,0,0
+1767892293491,3495,04-Dashboard Stats,200,OK,Gradual Load 1-15,text,true,,337,2036,19,19,http://127.0.0.1:5039/api/Dashboard/summary,3495,0,0
+1767892292554,4432,High CPU Load Transaction,200,,Gradual Load 1-1,,true,,2524,1240,15,15,null,0,0,0
+1767892292801,4185,01-Login,200,OK,Gradual Load 1-1,text,true,,2524,1240,19,19,http://127.0.0.1:5039/api/Auth/login,4185,0,0
+1767892291683,5304,High CPU Load Transaction,200,,Gradual Load 1-18,,true,,4363,5338,14,14,null,0,0,0
+1767892291833,1439,01-Login,200,OK,Gradual Load 1-18,text,true,,2524,1232,20,21,http://127.0.0.1:5039/api/Auth/login,1439,0,0
+1767892293568,927,02-Complex Search Query,200,OK,Gradual Load 1-18,text,true,,1112,2080,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,927,0,0
+1767892294605,2382,03-Get All Courts,200,OK,Gradual Load 1-18,text,true,,727,2026,14,14,http://127.0.0.1:5039/api/Courts/list,2382,0,0
+1767892292926,4251,High CPU Load Transaction,200,,Gradual Load 1-16,,true,,2528,1234,12,12,null,0,0,0
+1767892293208,3969,01-Login,200,OK,Gradual Load 1-16,text,true,,2528,1234,12,12,http://127.0.0.1:5039/api/Auth/login,3969,0,0
+1767892292891,4285,High CPU Load Transaction,200,,Gradual Load 1-20,,true,,3642,3324,12,12,null,0,0,0
+1767892292996,3641,01-Login,200,OK,Gradual Load 1-20,text,true,,2530,1238,20,21,http://127.0.0.1:5039/api/Auth/login,3641,0,0
+1767892292447,4730,High CPU Load Transaction,200,,Gradual Load 1-9,,true,,4363,5342,12,12,null,0,0,0
+1767892292585,1198,01-Login,200,OK,Gradual Load 1-9,text,true,,2524,1236,20,21,http://127.0.0.1:5039/api/Auth/login,1198,0,0
+1767892294047,2597,02-Complex Search Query,200,OK,Gradual Load 1-9,text,true,,1112,2080,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,2597,0,0
+1767892296889,288,03-Get All Courts,200,OK,Gradual Load 1-9,text,true,,727,2026,12,12,http://127.0.0.1:5039/api/Courts/list,288,0,0
+1767892296884,292,02-Complex Search Query,200,OK,Gradual Load 1-20,text,true,,1112,2086,12,12,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,292,0,0
+1767892292197,4980,High CPU Load Transaction,200,,Gradual Load 1-19,,true,,4365,5348,12,12,null,0,0,0
+1767892292384,1252,01-Login,200,OK,Gradual Load 1-19,text,true,,2526,1238,20,21,http://127.0.0.1:5039/api/Auth/login,1252,0,0
+1767892293914,2736,02-Complex Search Query,200,OK,Gradual Load 1-19,text,true,,1112,2082,19,20,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,2736,0,0
+1767892296941,236,03-Get All Courts,200,OK,Gradual Load 1-19,text,true,,727,2028,12,12,http://127.0.0.1:5039/api/Courts/list,236,0,0
+1767892292447,4730,High CPU Load Transaction,200,,Gradual Load 1-2,,true,,3638,3320,12,12,null,0,0,0
+1767892292680,3957,01-Login,200,OK,Gradual Load 1-2,text,true,,2526,1238,20,21,http://127.0.0.1:5039/api/Auth/login,3957,0,0
+1767892296885,292,02-Complex Search Query,200,OK,Gradual Load 1-2,text,true,,1112,2082,12,12,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,292,0,0
+1767892293276,3900,High CPU Load Transaction,200,,Gradual Load 1-17,,true,,2530,1234,12,12,null,0,0,0
+1767892293477,3699,01-Login,200,OK,Gradual Load 1-17,text,true,,2530,1234,12,12,http://127.0.0.1:5039/api/Auth/login,3699,0,0
+1767892288020,9157,High CPU Load Transaction,200,,Gradual Load 1-10,,true,,4702,7376,8,8,null,0,0,0
+1767892288302,4126,01-Login,200,OK,Gradual Load 1-10,text,true,,2526,1232,20,21,http://127.0.0.1:5039/api/Auth/login,4126,0,0
+1767892292574,316,02-Complex Search Query,200,OK,Gradual Load 1-10,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,316,0,0
+1767892293065,293,03-Get All Courts,200,OK,Gradual Load 1-10,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,293,0,0
+1767892293532,3645,04-Dashboard Stats,200,OK,Gradual Load 1-10,text,true,,337,2034,12,12,http://127.0.0.1:5039/api/Dashboard/summary,3645,0,0
+1767892292926,4251,High CPU Load Transaction,200,,Gradual Load 1-3,,true,,3636,3316,8,8,null,0,0,0
+1767892293181,3469,01-Login,200,OK,Gradual Load 1-3,text,true,,2524,1236,19,20,http://127.0.0.1:5039/api/Auth/login,3469,0,0
+1767892296935,242,02-Complex Search Query,200,OK,Gradual Load 1-3,text,true,,1112,2080,12,12,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,242,0,0
+1767892292756,5025,High CPU Load Transaction,200,,Gradual Load 1-8,,true,,3638,3320,4,4,null,0,0,0
+1767892287605,10176,High CPU Load Transaction,200,,Gradual Load 1-11,,true,,4708,7400,4,4,null,0,0,0
+1767892292914,3723,01-Login,200,OK,Gradual Load 1-8,text,true,,2526,1238,20,21,http://127.0.0.1:5039/api/Auth/login,3723,0,0
+1767892287844,4306,01-Login,200,OK,Gradual Load 1-11,text,true,,2532,1238,20,21,http://127.0.0.1:5039/api/Auth/login,4306,0,0
+1767892296836,945,02-Complex Search Query,200,OK,Gradual Load 1-8,text,true,,1112,2082,4,4,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,945,0,0
+1767892292304,249,02-Complex Search Query,200,OK,Gradual Load 1-11,text,true,,1112,2088,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,249,0,0
+1767892292797,475,03-Get All Courts,200,OK,Gradual Load 1-11,text,true,,727,2034,20,21,http://127.0.0.1:5039/api/Courts/list,475,0,0
+1767892293395,4386,04-Dashboard Stats,200,OK,Gradual Load 1-11,text,true,,337,2040,4,4,http://127.0.0.1:5039/api/Dashboard/summary,4385,0,0
+1767892287916,9992,High CPU Load Transaction,200,,Gradual Load 1-5,,true,,4702,7380,2,2,null,0,0,0
+1767892291683,6225,High CPU Load Transaction,200,,Gradual Load 1-12,,true,,4702,7386,2,2,null,0,0,0
+1767892291824,1066,01-Login,200,OK,Gradual Load 1-12,text,true,,2526,1242,20,21,http://127.0.0.1:5039/api/Auth/login,1066,0,0
+1767892293017,341,02-Complex Search Query,200,OK,Gradual Load 1-12,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,341,0,0
+1767892293511,272,03-Get All Courts,200,OK,Gradual Load 1-12,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,272,0,0
+1767892293951,3957,04-Dashboard Stats,200,OK,Gradual Load 1-12,text,true,,337,2034,2,2,http://127.0.0.1:5039/api/Dashboard/summary,3957,0,0
+1767892288136,4310,01-Login,200,OK,Gradual Load 1-5,text,true,,2526,1236,20,21,http://127.0.0.1:5039/api/Auth/login,4310,0,0
+1767892292709,563,02-Complex Search Query,200,OK,Gradual Load 1-5,text,true,,1112,2082,20,21,http://127.0.0.1:5039/api/Dashboard/revenue?from=2024-01-01&to=2024-12-31&granularity=Month,563,0,0
+1767892293543,240,03-Get All Courts,200,OK,Gradual Load 1-5,text,true,,727,2028,20,21,http://127.0.0.1:5039/api/Courts/list,240,0,0
+1767892293896,4012,04-Dashboard Stats,200,OK,Gradual Load 1-5,text,true,,337,2034,2,2,http://127.0.0.1:5039/api/Dashboard/summary,4012,0,0

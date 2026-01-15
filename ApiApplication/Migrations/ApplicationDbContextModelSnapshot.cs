@@ -1075,6 +1075,8 @@ namespace ApiApplication.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("FullName");
+
                     b.HasIndex("UserId")
                         .IsUnique();
 
@@ -2784,22 +2786,22 @@ namespace ApiApplication.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 12, 6, 6, 57, 2, 755, DateTimeKind.Utc).AddTicks(8447),
+                            CreatedAt = new DateTime(2026, 1, 8, 13, 35, 9, 9, DateTimeKind.Utc).AddTicks(470),
                             CreatedBy = "System",
                             Description = "Ngày tạo bảng lương hàng tháng",
                             Key = "MonthlyPayrollGeneration",
-                            UpdatedAt = new DateTime(2025, 12, 6, 6, 57, 2, 755, DateTimeKind.Utc).AddTicks(8447),
+                            UpdatedAt = new DateTime(2026, 1, 8, 13, 35, 9, 9, DateTimeKind.Utc).AddTicks(470),
                             UpdatedBy = "System",
                             Value = "1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 12, 6, 6, 57, 2, 755, DateTimeKind.Utc).AddTicks(8449),
+                            CreatedAt = new DateTime(2026, 1, 8, 13, 35, 9, 9, DateTimeKind.Utc).AddTicks(470),
                             CreatedBy = "System",
                             Description = "Chế độ nghỉ lễ của hệ thống",
                             Key = "Holidays",
-                            UpdatedAt = new DateTime(2025, 12, 6, 6, 57, 2, 755, DateTimeKind.Utc).AddTicks(8449),
+                            UpdatedAt = new DateTime(2026, 1, 8, 13, 35, 9, 9, DateTimeKind.Utc).AddTicks(470),
                             UpdatedBy = "System",
                             Value = ""
                         });

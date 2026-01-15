@@ -79,7 +79,7 @@ public class AuthTokenProcessor(
                 HttpOnly = true,
                 Expires = expiration,
                 IsEssential = true,
-                Secure = true,
+                Secure = _httpContextAccessor.HttpContext?.Request.IsHttps ?? true,
                 SameSite = SameSiteMode.Strict,
             }
         );

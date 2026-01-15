@@ -87,6 +87,12 @@ public class ApplicationDbContext(
             .WithOne(c => c.User)
             .HasForeignKey<Customer>(c => c.UserId);
 
+        // Customer mappings - Add index for FullName search performance
+        builder.Entity<Customer>(entity =>
+        {
+            entity.HasIndex(c => c.FullName);
+        });
+
         // Payment mappings
         builder.Entity<Payment>(entity =>
         {

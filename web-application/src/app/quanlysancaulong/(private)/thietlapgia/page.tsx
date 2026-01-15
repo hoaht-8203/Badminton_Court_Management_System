@@ -33,6 +33,8 @@ import {
   StopOutlined,
 } from "@ant-design/icons";
 import dayjs, { Dayjs } from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+dayjs.extend(customParseFormat);
 import { useEffect, useMemo, useState } from "react";
 import {
   useCreatePrice,
@@ -514,11 +516,14 @@ const PriceDrawer = ({ open, onClose, priceId, onSaved }: { open: boolean; onClo
 
   const onSubmit = (values: any) => {
     const cleanRanges = (values.ranges || [])
-      .map((r: any) => ({
-        id: r?.id || null,
-        startTime: r?.startTime ? dayjs(r.startTime).format("HH:mm:ss") : undefined,
-        endTime: r?.endTime ? dayjs(r.endTime).format("HH:mm:ss") : undefined,
-      }))
+      .map((r: any) => {
+        const range: any = {
+          startTime: r?.startTime && dayjs(r.startTime).isValid() ? dayjs(r.startTime).format("HH:mm:ss") : undefined,
+          endTime: r?.endTime && dayjs(r.endTime).isValid() ? dayjs(r.endTime).format("HH:mm:ss") : undefined,
+        };
+        if (r?.id) range.id = r.id;
+        return range;
+      })
       .filter((r: any) => !!r.startTime && !!r.endTime);
 
     if (isCreate) {

@@ -1,0 +1,68 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1767812149620,2248,01-Login,404,Not Found,Booking Creation TPS Test 1-1,text,false,,93369,272,3,3,https://caulong365.store/api/Auth/login,2114,0,889
+1767812150367,1653,01-Login,404,Not Found,Booking Creation TPS Test 1-2,text,false,,93369,272,3,3,https://caulong365.store/api/Auth/login,1527,0,142
+1767812151366,1352,01-Login,404,Not Found,Booking Creation TPS Test 1-3,text,false,,93369,272,4,4,https://caulong365.store/api/Auth/login,1219,0,152
+1767812152367,764,01-Login,404,Not Found,Booking Creation TPS Test 1-4,text,false,,93369,272,4,4,https://caulong365.store/api/Auth/login,637,0,141
+1767812152601,735,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-1,text,false,Booking creation failed,93064,682,4,4,https://caulong365.store/api/BookingCourts/user/create,602,0,0
+1767812153367,580,01-Login,404,Not Found,Booking Creation TPS Test 1-5,text,false,,93369,272,5,5,https://caulong365.store/api/Auth/login,451,0,138
+1767812153370,1026,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-2,text,false,Booking creation failed,93064,682,6,6,https://caulong365.store/api/BookingCourts/user/create,1012,0,0
+1767812154363,1368,01-Login,404,Not Found,Booking Creation TPS Test 1-6,text,false,,93369,272,7,7,https://caulong365.store/api/Auth/login,1244,0,138
+1767812155370,449,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-3,text,false,Booking creation failed,93064,682,7,7,https://caulong365.store/api/BookingCourts/user/create,442,0,0
+1767812155368,732,01-Login,404,Not Found,Booking Creation TPS Test 1-7,text,false,,93369,272,7,7,https://caulong365.store/api/Auth/login,600,0,143
+1767812156367,274,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-4,text,false,Booking creation failed,93064,682,8,8,https://caulong365.store/api/BookingCourts/user/create,265,0,0
+1767812156366,829,01-Login,404,Not Found,Booking Creation TPS Test 1-8,text,false,,93369,272,8,8,https://caulong365.store/api/Auth/login,645,0,140
+1767812156598,670,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-1,text,false,,93064,375,8,8,https://caulong365.store/api/BookingCourts/detail?BookingId=,283,0,0
+1767812157368,703,01-Login,404,Not Found,Booking Creation TPS Test 1-9,text,false,,93369,273,9,9,https://caulong365.store/api/Auth/login,578,0,136
+1767812158369,456,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-5,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,451,0,0
+1767812158362,565,01-Login,404,Not Found,Booking Creation TPS Test 1-10,text,false,,93369,273,10,10,https://caulong365.store/api/Auth/login,438,0,156
+1767812159369,264,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-2,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,258,0,0
+1767812161366,330,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-6,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,265,0,0
+1767812162366,327,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-3,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,263,0,0
+1767812162370,331,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-7,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,267,0,0
+1767812164371,329,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-4,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,265,0,0
+1767812164368,353,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-8,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,287,0,0
+1767812164603,686,01-Login,404,Not Found,Booking Creation TPS Test 1-1,text,false,,93064,444,10,10,https://caulong365.store/api/Auth/login,508,0,146
+1767812166369,276,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-9,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,268,0,0
+1767812168366,271,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-10,text,false,Booking creation failed,93064,683,10,10,https://caulong365.store/api/BookingCourts/user/create,265,0,0
+1767812168370,275,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-5,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,266,0,0
+1767812169369,592,01-Login,404,Not Found,Booking Creation TPS Test 1-2,text,false,,93064,445,10,10,https://caulong365.store/api/Auth/login,411,0,137
+1767812171364,276,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-6,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,269,0,0
+1767812172368,325,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-7,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,264,0,0
+1767812172367,575,01-Login,404,Not Found,Booking Creation TPS Test 1-3,text,false,,93064,445,10,10,https://caulong365.store/api/Auth/login,454,0,157
+1767812174368,329,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-8,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,268,0,0
+1767812174602,332,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-1,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,262,0,0
+1767812174371,624,01-Login,404,Not Found,Booking Creation TPS Test 1-4,text,false,,93064,445,10,10,https://caulong365.store/api/Auth/login,444,0,136
+1767812176372,263,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-9,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,256,0,0
+1767812178368,264,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-10,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,258,0,0
+1767812178369,720,01-Login,404,Not Found,Booking Creation TPS Test 1-5,text,false,,93064,445,10,10,https://caulong365.store/api/Auth/login,417,0,132
+1767812179370,327,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-2,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,259,0,0
+1767812181367,575,01-Login,404,Not Found,Booking Creation TPS Test 1-6,text,false,,93064,445,10,10,https://caulong365.store/api/Auth/login,451,0,138
+1767812182366,324,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-3,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,261,0,0
+1767812182369,572,01-Login,404,Not Found,Booking Creation TPS Test 1-7,text,false,,93064,445,10,10,https://caulong365.store/api/Auth/login,447,0,138
+1767812184370,331,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-4,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,267,0,0
+1767812184598,483,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-1,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,420,0,0
+1767812184371,722,01-Login,404,Not Found,Booking Creation TPS Test 1-8,text,false,,93064,445,10,10,https://caulong365.store/api/Auth/login,462,0,147
+1767812186370,1316,01-Login,404,Not Found,Booking Creation TPS Test 1-9,text,false,,93064,445,10,10,https://caulong365.store/api/Auth/login,1066,0,139
+1767812188372,559,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-5,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,439,0,0
+1767812188369,626,01-Login,404,Not Found,Booking Creation TPS Test 1-10,text,false,,93064,445,10,10,https://caulong365.store/api/Auth/login,390,0,131
+1767812189373,329,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-2,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,268,0,0
+1767812191369,269,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-6,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,263,0,0
+1767812192371,326,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-3,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,260,0,0
+1767812192372,1106,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-7,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,898,0,0
+1767812194369,335,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-4,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,272,0,0
+1767812194367,584,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-8,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,456,0,0
+1767812194602,554,01-Login,404,Not Found,Booking Creation TPS Test 1-1,text,false,,93064,445,10,10,https://caulong365.store/api/Auth/login,422,0,154
+1767812196373,384,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-9,text,false,Booking creation failed,93064,682,10,10,https://caulong365.store/api/BookingCourts/user/create,264,0,0
+1767812198372,267,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-5,text,false,,93064,375,10,10,https://caulong365.store/api/BookingCourts/detail?BookingId=,260,0,0
+1767812198364,340,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-10,text,false,Booking creation failed,93064,683,10,10,https://caulong365.store/api/BookingCourts/user/create,275,0,0
+1767812199374,552,01-Login,404,Not Found,Booking Creation TPS Test 1-2,text,false,,93064,445,10,10,https://caulong365.store/api/Auth/login,423,0,135
+1767812201368,330,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-6,text,false,,93064,375,9,9,https://caulong365.store/api/BookingCourts/detail?BookingId=,267,0,0
+1767812202367,266,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-7,text,false,,93064,375,8,8,https://caulong365.store/api/BookingCourts/detail?BookingId=,259,0,0
+1767812202370,569,01-Login,404,Not Found,Booking Creation TPS Test 1-3,text,false,,93064,445,7,7,https://caulong365.store/api/Auth/login,446,0,134
+1767812204369,408,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-8,text,false,,93064,375,6,6,https://caulong365.store/api/BookingCourts/detail?BookingId=,270,0,0
+1767812204602,277,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-1,text,false,Booking creation failed,93064,682,5,5,https://caulong365.store/api/BookingCourts/user/create,264,0,0
+1767812204372,577,01-Login,404,Not Found,Booking Creation TPS Test 1-4,text,false,,93064,445,4,4,https://caulong365.store/api/Auth/login,395,0,131
+1767812206372,266,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-9,text,false,,93064,375,4,4,https://caulong365.store/api/BookingCourts/detail?BookingId=,263,0,0
+1767812208363,332,03-Verify Booking,404,Not Found,Booking Creation TPS Test 1-10,text,false,,93064,375,3,3,https://caulong365.store/api/BookingCourts/detail?BookingId=,324,0,0
+1767812208366,384,02-Create Booking,404,Not Found,Booking Creation TPS Test 1-4,text,false,Booking creation failed,93064,682,2,2,https://caulong365.store/api/BookingCourts/user/create,319,0,0
+1767812208371,539,01-Login,404,Not Found,Booking Creation TPS Test 1-5,text,false,,93064,445,1,1,https://caulong365.store/api/Auth/login,413,0,136

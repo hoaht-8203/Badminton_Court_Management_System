@@ -1,0 +1,7 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1767786456711,17,View Homepage,404,Not Found,Homepage Users 1-1,,false,Homepage request failed,99,159,2,2,http://localhost:5039/api/homepage/data,15,0,8
+1767786457661,3,View Homepage,404,Not Found,Homepage Users 1-2,,false,Homepage request failed,99,159,2,2,http://localhost:5039/api/homepage/data,3,0,2
+1767786457735,2,View Homepage,404,Not Found,Homepage Users 1-1,,false,Homepage request failed,99,159,2,2,http://localhost:5039/api/homepage/data,2,0,0
+1767786458671,1,View Homepage,404,Not Found,Homepage Users 1-2,,false,Homepage request failed,99,159,2,2,http://localhost:5039/api/homepage/data,1,0,0
+1767786458742,2,View Homepage,404,Not Found,Homepage Users 1-1,,false,Homepage request failed,99,159,2,2,http://localhost:5039/api/homepage/data,2,0,0
+1767786459679,1,View Homepage,404,Not Found,Homepage Users 1-2,,false,Homepage request failed,99,159,1,1,http://localhost:5039/api/homepage/data,1,0,0

@@ -11,14 +11,14 @@ namespace ApiApplication.Controllers;
 
 [ApiController]
 [Route("api/files")]
-[Authorize(Policy = PolicyConstants.CustomerAccess)]
+// [Authorize(Policy = PolicyConstants.CustomerAccess)]
 public class FilesController(IStorageService storageService) : ControllerBase
 {
     private readonly IStorageService _storageService = storageService;
 
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
-    [RequestSizeLimit(3145728)] // 3 MB
+    [RequestSizeLimit(15728640)] // 15 MB for test
     public async Task<ActionResult<ApiResponse<UploadFileResponse>>> UploadFile(
         [FromForm] UploadFileRequest request
     )

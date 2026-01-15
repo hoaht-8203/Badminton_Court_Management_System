@@ -30,10 +30,21 @@ const CreateNewProductDrawer = ({ open, onClose, title, isService }: CreateNewPr
   const qc = useQueryClient();
 
   const uploadProps: UploadProps = {
-    beforeUpload: () => false,
+    beforeUpload: (file) => {
+      const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png" || file.type === "image/webp" || file.type.startsWith("image/");
+      if (!isJpgOrPng) {
+        message.error("Bạn chỉ có thể tải lên file hình ảnh!");
+      }
+      return false; // Prevent auto upload
+    },
     listType: "picture-card",
+    accept: "image/*",
     fileList: files,
-    onChange: ({ fileList }) => setFiles(fileList),
+    onChange: ({ fileList }) => {
+      // Filter out non-image files if they somehow got in
+      const filteredList = fileList.filter((file) => file.type?.startsWith("image/") || file.originFileObj?.type?.startsWith("image/"));
+      setFiles(filteredList);
+    },
     multiple: true,
   };
 
@@ -71,8 +82,15 @@ const CreateNewProductDrawer = ({ open, onClose, title, isService }: CreateNewPr
   }, [open]);
 
   const onSubmit = async (values: CreateProductRequest) => {
+    // Validation: Require images
+    if (files.length === 0) {
+      message.error("Vui lòng tải ảnh sản phẩm");
+      return;
+    }
+
     createMutation.mutate(values, {
       onSuccess: async () => {
+        message.success("Thêm sản phẩm thành công");
         try {
           // Get the new product ID
           let productId: number | undefined;
@@ -308,6 +326,7 @@ const CreateNewProductDrawer = ({ open, onClose, title, isService }: CreateNewPr
             <Col span={8}>
               <Form.Item
                 name="minStock"
+                dependencies={["maxStock"]}
                 label={
                   <span>
                     Ít nhất{" "}
@@ -316,6 +335,17 @@ const CreateNewProductDrawer = ({ open, onClose, title, isService }: CreateNewPr
                     </Tooltip>
                   </span>
                 }
+                rules={[
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      const maxStock = getFieldValue("maxStock");
+                      if (value === undefined || maxStock === undefined || value <= maxStock) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(new Error("Số lượng tồn tối thiểu không được lớn hơn tồn tối đa"));
+                    },
+                  }),
+                ]}
               >
                 <InputNumber
                   min={0}

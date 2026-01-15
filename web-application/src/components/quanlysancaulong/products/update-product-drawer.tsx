@@ -44,6 +44,7 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
         categoryId,
         costPrice,
         salePrice,
+        maxStock: 999,
         images: images ?? undefined,
       });
       setManageInventory(!!rest.manageInventory);
@@ -270,16 +271,28 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
               </Col>
               <Col span={8}>
                 <Form.Item
-                  name="minStock"
-                  label={
-                    <span>
-                      Ít nhất{" "}
-                      <Tooltip title="Tồn ít nhất là tồn tối thiểu của 1 sản phẩm (hệ thống sẽ dựa vào thông tin này để cảnh báo tồn kho tối thiểu)">
-                        <InfoCircleOutlined className="cursor-help text-gray-400 hover:text-gray-600" />
-                      </Tooltip>
-                    </span>
-                  }
-                >
+                name="minStock"
+                dependencies={["maxStock"]}
+                label={
+                  <span>
+                    Ít nhất{" "}
+                    <Tooltip title="Tồn ít nhất là tồn tối thiểu của 1 sản phẩm (hệ thống sẽ dựa vào thông tin này để cảnh báo tồn kho tối thiểu)">
+                      <InfoCircleOutlined className="cursor-help text-gray-400 hover:text-gray-600" />
+                    </Tooltip>
+                  </span>
+                }
+                rules={[
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      const maxStock = getFieldValue("maxStock");
+                      if (value === undefined || maxStock === undefined || value <= maxStock) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(new Error("Số lượng tồn tối thiểu không được lớn hơn tồn tối đa"));
+                    },
+                  }),
+                ]}
+              >
                   <InputNumber
                     min={0}
                     style={{ width: "100%" }}
@@ -301,13 +314,13 @@ const UpdateProductDrawer = ({ open, onClose, productId }: { open: boolean; onCl
                     </span>
                   }
                 >
-                  <InputNumber
-                    min={0}
-                    style={{ width: "100%" }}
-                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                    // @ts-expect-error - Ant Design InputNumber parser type issue
-                    parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
-                  />
+                <InputNumber
+                  min={0}
+                  style={{ width: "100%" }}
+                  formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  // @ts-expect-error - Ant Design InputNumber parser type issue
+                  parser={(value) => Number(value!.replace(/\$\s?|(,*)/g, "")) || 0}
+                />
                 </Form.Item>
               </Col>
             </Row>

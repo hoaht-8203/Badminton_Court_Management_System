@@ -1,0 +1,16 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1767633304888,2582,Upload 10MB File,200,OK,MinIO Test Users 1-1,text,true,,406,10486222,1,1,http://localhost:5039/api/files/upload,2579,0,9
+1767633307472,589,Upload 2MB File,200,OK,MinIO Test Users 1-1,text,true,,406,2097618,1,1,http://localhost:5039/api/files/upload,589,0,0
+1767633308075,759,Retrieve 2MB File,200,OK,MinIO Test Users 1-1,bin,false,"The operation lasted too long: It took 759 milliseconds, but should not have lasted longer than 500 milliseconds.",2097752,175,1,1,https://minio.caulong365.store/bcms/20260105171507-5e67bc3ebc83466c9c3e7adcf812d532.jpg,270,0,214
+1767633742617,14,Upload 10MB File,Non HTTP response code: java.net.SocketException,Non HTTP response message: Broken pipe,MinIO Test Users 1-1,text,false,"Test failed: code expected to equal /
+
+****** received  : [[[Non HTTP response code: java.net.SocketException]]]
+
+****** comparison: [[[200                                             ]]]
+
+/",3163,0,1,1,http://localhost:5039/api/files/upload,0,0,9
+1767633742634,7,Upload 2MB File,401,Unauthorized,MinIO Test Users 1-1,text,false,,222,2097636,1,1,http://localhost:5039/api/files/upload,5,0,1
+1767633742650,0,Retrieve 2MB File,Non HTTP response code: org.apache.http.client.ClientProtocolException,Non HTTP response message: URI does not specify a valid host name: http:/,MinIO Test Users 1-1,text,false,,1109,0,1,1,http:/,0,0,0
+1767633873138,2536,Upload 10MB File,200,OK,MinIO Test Users 1-1,text,true,,406,10486246,1,1,http://localhost:5039/api/files/upload,2532,0,10
+1767633875679,424,Upload 2MB File,200,OK,MinIO Test Users 1-1,text,true,,406,2097612,1,1,http://localhost:5039/api/files/upload,424,0,0
+1767633876115,2403,Retrieve 2MB File,200,OK,MinIO Test Users 1-1,bin,false,"The operation lasted too long: It took 2,403 milliseconds, but should not have lasted longer than 500 milliseconds.",2097752,175,1,1,https://minio.caulong365.store/bcms/20260105172435-940e9924365743e783bcc2a4df50937a.jpg,300,0,234

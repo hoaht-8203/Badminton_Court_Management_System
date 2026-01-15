@@ -1,0 +1,32 @@
+2026-01-08 02:08:09,039 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2026-01-08 02:08:09,048 INFO o.a.j.JMeter: Loading user properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/user.properties
+2026-01-08 02:08:09,049 INFO o.a.j.JMeter: Loading system properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/system.properties
+2026-01-08 02:08:09,049 INFO o.a.j.JMeter: Setting JMeter property: base_url=127.0.0.1:5039
+2026-01-08 02:08:09,049 INFO o.a.j.JMeter: Setting JMeter property: protocol=http
+2026-01-08 02:08:09,049 INFO o.a.j.JMeter: Setting JMeter property: users=20
+2026-01-08 02:08:09,049 INFO o.a.j.JMeter: Setting JMeter property: iterations=100
+2026-01-08 02:08:09,051 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2026-01-08 02:08:09,051 INFO o.a.j.JMeter: Version 5.6.3
+2026-01-08 02:08:09,052 INFO o.a.j.JMeter: java.version=21.0.9
+2026-01-08 02:08:09,052 INFO o.a.j.JMeter: java.vm.name=OpenJDK 64-Bit Server VM
+2026-01-08 02:08:09,052 INFO o.a.j.JMeter: os.name=Mac OS X
+2026-01-08 02:08:09,052 INFO o.a.j.JMeter: os.arch=aarch64
+2026-01-08 02:08:09,052 INFO o.a.j.JMeter: os.version=26.2
+2026-01-08 02:08:09,052 INFO o.a.j.JMeter: file.encoding=UTF-8
+2026-01-08 02:08:09,052 INFO o.a.j.JMeter: java.awt.headless=true
+2026-01-08 02:08:09,052 INFO o.a.j.JMeter: Max memory     =1073741824
+2026-01-08 02:08:09,052 INFO o.a.j.JMeter: Available Processors =10
+2026-01-08 02:08:09,056 INFO o.a.j.JMeter: Default Locale=English (EN)
+2026-01-08 02:08:09,056 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2026-01-08 02:08:09,056 INFO o.a.j.JMeter: JMeterHome=/opt/homebrew/Cellar/jmeter/5.6.3/libexec
+2026-01-08 02:08:09,057 INFO o.a.j.JMeter: user.dir  =/Users/dotritrong/Desktop/Capstone/Badminton_Court_Management_System/Tests
+2026-01-08 02:08:09,057 INFO o.a.j.JMeter: PWD       =/Users/dotritrong/Desktop/Capstone/Badminton_Court_Management_System/Tests
+2026-01-08 02:08:09,058 INFO o.a.j.JMeter: IP: 127.0.0.1 Name: PARK-3.local FullName: localhost
+2026-01-08 02:08:09,063 ERROR o.a.j.JMeter: An error occurred: 
+org.apache.jmeter.report.config.ConfigurationException: The file /Users/dotritrong/Desktop/Capstone/Badminton_Court_Management_System/Tests/NFT_QA_08_DataGrowthSimulation.jmx doesn't exist or can't be opened
+	at org.apache.jmeter.JMeter.runNonGui(JMeter.java:950) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.JMeter.startNonGui(JMeter.java:940) ~[ApacheJMeter_core.jar:5.6.3]
+	at org.apache.jmeter.JMeter.start(JMeter.java:508) [ApacheJMeter_core.jar:5.6.3]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[?:?]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[?:?]
+	at org.apache.jmeter.NewDriver.main(NewDriver.java:259) [ApacheJMeter.jar:5.6.3]

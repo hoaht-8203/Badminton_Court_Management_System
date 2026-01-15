@@ -1,0 +1,5 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1767728448404,473,Step 1: Login,200,OK,Token User 1-1,text,true,,2340,245,1,1,http://localhost:5039/api/Auth/login,470,0,8
+1767728448879,207,Step 2: Access Protected Endpoint (Active),200,OK,Token User 1-1,text,true,,485,1049,1,1,http://localhost:5039/api/Auth/me,206,0,0
+1767728514092,280,Step 3: Refresh Token,200,OK,Token User 1-1,text,true,,1350,1144,1,1,http://localhost:5039/api/Auth/refresh-token,280,0,4
+1767728514373,194,Step 4: Access Protected Endpoint (After Refresh),200,OK,Token User 1-1,text,true,,485,1049,1,1,http://localhost:5039/api/Auth/me,194,0,1
